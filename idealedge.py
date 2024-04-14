@@ -46,6 +46,112 @@ def _faceNumberings( emb, ind ):
     pass
 
 
+def idealEdge(annulus):
+    """
+    Returns details of the ideal edge after crushing the given annulus.
+
+    Specifically, this routine returns a pair (t,e), where t is the index
+    (after crushing) of a tetrahedron that will meet the ideal edge after
+    crushing, and e is an edge number of this tetrahedron that corresponds to
+    the ideal edge.
+
+    Warning:
+    --> This routine assumes that the annulus is a separating surface in a
+        one-vertex triangulation of a 3-manifold with torus boundary. This
+        routine does not check that these conditions are satisfied.
+    """
+    tri = annulus.triangulation()
+
+    # Split edges of tri along annulus.
+    splitEdges = []
+    for e in tri.edges():
+        ei = e.index()
+        wt = annulus.edgeWeight(ei)
+        for s in range( wt + 1 ):
+            splitEdges.append( (ei,s) )
+
+    # Find "target" edges.
+    targets = dict()
+    for tet in tri.tetrahedra():
+        teti = tet.index()
+        hasQuads = False
+        for q in range(3):
+            if annulus.quads( teti, q ) > 0:
+                hasQuads = True
+                break
+        if hasQuads:
+            continue
+
+        # No quads in tet, so there is a cell in the centre that survives
+        # crushing. Find the edges of this cell that survive.
+        for en in range(6):
+            v = tet.edgeMapping(en)[0]
+            ei = tet.edge(en).index()
+            s = annulus.triangles( teti, v )
+            targets[ (ei,s) ] = ( teti, en )
+
+    # Starting edge for depth-first search.
+    for e in tri.edges():
+        ei = e.index()
+        if ( not e.isBoundary() ) or ( annulus.edgeWeight(ei) <= 1 ):
+            continue
+        start = ( ei, 1 )
+
+    # Find ideal edge using depth-first search.
+    stack = [start]
+    visited = set()
+    while stack:
+        ei, split = stack.pop()
+        e = tri.edge(ei)
+        for emb in e.embeddings():
+            tet = emb.tetrahedron()
+            teti = tet.index()
+            en = emb.face()
+            ver = emb.vertices()
+
+            # Get normal coordinates incident to e in tet.
+            f = [ annulus.triangles( teti, ver[i] ) for i in range(2) ]
+            q = 0
+            for qType in range(3):
+                quads = annulus.quads( teti, qType )
+                if quads > 0:
+                    if qType not in { en, 5-en }:
+                        q = quads
+                    break
+
+            # Does the current split edge belong to a parallel cell in this
+            # tet?
+            if split == f[0] or split == f[0] + q:
+                continue
+
+            # Is the parallel cell a triangular cell at vertex ver[0]?
+            if split < f[0]:
+                for enOther in range(6):
+                    if enOther == en:
+                        continue
+                    verOther = tet.faceMapping(enOther)
+                    if verOther[0] == ver[0]:
+                        #TODO
+                        pass
+                    elif verOther[1] == ver[0]:
+                        #TODO
+                        pass
+                #TODO
+                continue
+            #TODO
+
+            # Is the parallel cell a quadrilateral cell?
+            #TODO
+
+            # The parallel cell must be a triangular cell at vertex ver[1].
+            #TODO
+            pass
+        #TODO
+        pass
+    #TODO
+    pass
+
+
 def idealEdge(surf):
     """
     Assuming that surf is a separating annulus in a one-vertex triangulation
