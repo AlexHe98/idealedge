@@ -17,10 +17,11 @@ def idealEdge(annulus):
     """
     Returns details of the ideal edge after crushing the given annulus.
 
-    Specifically, this routine returns a pair (t,e), where t is the index
-    (after crushing) of a tetrahedron that will meet the ideal edge after
-    crushing, and e is an edge number of this tetrahedron that corresponds to
-    the ideal edge.
+    Specifically, if the ideal edge belongs to a component that gets
+    destroyed after crushing, then this routine returns None. Otherwise, this
+    routine returns a pair (t,e), where t is the index (after crushing) of a
+    tetrahedron that will meet the ideal edge after crushing, and e is an
+    edge number of this tetrahedron that corresponds to the ideal edge.
 
     Warning:
     --> This routine assumes that the annulus is a separating surface in a
@@ -60,10 +61,15 @@ def idealEdge(annulus):
     # Starting segment for depth-first search.
     for e in tri.edges():
         ei = e.index()
-        if ( not e.isBoundary() or
-                annulus.edgeWeight(ei).safeLongValue() <= 1 ):
-            continue
-        start = ( ei, 1 )
+        if ( e.isBoundary() and
+                annulus.edgeWeight(ei).safeLongValue() >= 2 ):
+            start = ( ei, 1 )
+
+            # If the starting segment is one of the targets, then we are
+            # already done.
+            output = targets.get( start, None )
+            if output is not None:
+                return output
 
     # Find ideal edge using depth-first search.
     stack = [start]
@@ -110,7 +116,7 @@ def idealEdge(annulus):
                     if enOther == en:
                         continue
                     eiOther = tet.edge(enOther).index()
-                    verOther = tet.faceMapping(enOther)
+                    verOther = tet.edgeMapping(enOther)
 
                     # Is the current segment adjacent to a segment of the
                     # edge numbered enOther?
@@ -133,14 +139,14 @@ def idealEdge(annulus):
                 # The parallel cell is a quadrilateral cell.
                 # This quadrilateral cell divides tet into two "sides".
                 side0 = { 0, qType + 1 }
-                if ver[0] not in s0:
+                if ver[0] not in side0:
                     side0 = {0,1,2,3} - side0
                 qDepth = seg - f[0]     # 1 <= qDepth <= q - 1
                 for enOther in range(6):
                     if enOther in { en, qType, 5 - qType }:
                         continue
                     eiOther = tet.edge(enOther).index()
-                    verOther = tet.faceMapping(enOther)
+                    verOther = tet.edgeMapping(enOther)
 
                     # The current segment is adjacent to a segment of the
                     # edge numbered enOther. Find this adjacent segment.
@@ -164,7 +170,7 @@ def idealEdge(annulus):
                     if enOther == en:
                         continue
                     eiOther = tet.edge(enOther).index()
-                    verOther = tet.faceMapping(enOther)
+                    verOther = tet.edgeMapping(enOther)
 
                     # Is the current segment adjacent to a segment of the
                     # edge numbered enOther?
@@ -186,6 +192,6 @@ def idealEdge(annulus):
 
         # End of loop. Move on to the next embedding of edge e.
 
-    # If the search terminates without finding the ideal edge, then something
-    # must have gone wrong.
-    raise RuntimeError( "Failed to find ideal edge." )
+    # If the search terminates without finding the ideal edge, then the ideal
+    # edge must belong to a component that gets destroyed.
+    return None
