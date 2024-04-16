@@ -207,3 +207,26 @@ def printIdealEdges(surfaces):
     for i, surf in enumerate(surfaces):
         if isAnnulus(surf):
             print( i, idealEdge(surf) )
+
+
+def crushAnnuli(surfaces):
+    """
+    Crushes all annuli in the given packet of normal surfaces, and adds a
+    Container of the resulting triangulations as a child of the given packet.
+    """
+    results = Container( "Crush annuli" )
+    surfaces.insertChildLast(results)
+    for i, surf in enumerate(surfaces):
+        if not isAnnulus(surf):
+            continue
+
+        # Crush and find ideal edge.
+        tri = PacketOfTriangulation3( surf.crush() )
+        idEdge = idealEdge(surf)
+        if idEdge is None:
+            tri.setLabel( "Crushed #{}: No ideal edge".format(i) )
+        else:
+            teti, en = idEdge
+            tri.setLabel( "Crushed #{}: Ideal edge {}".format(
+                i, tri.tetrahedron(teti).edge(en).index() ) )
+        results.insertChildLast(tri)
