@@ -40,6 +40,7 @@ def idealEdge(annulus):
 
     # Find "target" segments.
     targets = dict()
+    shift = 0
     for tet in tri.tetrahedra():
         teti = tet.index()
         hasQuads = False
@@ -48,6 +49,7 @@ def idealEdge(annulus):
                 hasQuads = True
                 break
         if hasQuads:
+            shift += 1
             continue
 
         # No quads in tet, so there is a cell in the centre that survives
@@ -56,7 +58,7 @@ def idealEdge(annulus):
             v = tet.edgeMapping(en)[0]
             ei = tet.edge(en).index()
             s = annulus.triangles( teti, v ).safeLongValue()
-            targets[ (ei,s) ] = ( teti, en )
+            targets[ (ei,s) ] = ( teti - shift, en )
 
     # Starting segment for depth-first search.
     for e in tri.edges():
