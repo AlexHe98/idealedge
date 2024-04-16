@@ -195,3 +195,13 @@ def idealEdge(annulus):
     # If the search terminates without finding the ideal edge, then the ideal
     # edge must belong to a component that gets destroyed.
     return None
+
+
+def printIdealEdges(surfaces):
+    """
+    Prints details of all ideal edges obtained by crushing annuli in the
+    given list of normal surfaces.
+    """
+    for i, surf in enumerate(surfaces):
+        if isAnnulus(surf):
+            print( i, idealEdge(surf) )
