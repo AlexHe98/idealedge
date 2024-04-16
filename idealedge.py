@@ -5,6 +5,14 @@ triangulation of a 3-manifold with torus boundary.
 from regina import *
 
 
+def isAnnulus(s):
+    """
+    Is the given normal surface s an annulus?
+    """
+    return ( s.isCompact() and s.isOrientable() and
+            s.hasRealBoundary() and s.eulerChar() == 0 )
+
+
 def idealEdge(annulus):
     """
     Returns details of the ideal edge after crushing the given annulus.
