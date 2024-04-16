@@ -33,7 +33,7 @@ def idealEdge(annulus):
     segments = []
     for e in tri.edges():
         ei = e.index()
-        wt = annulus.edgeWeight(ei)
+        wt = annulus.edgeWeight(ei).safeLongValue()
         for s in range( wt + 1 ):
             segments.append( (ei,s) )
 
@@ -43,7 +43,7 @@ def idealEdge(annulus):
         teti = tet.index()
         hasQuads = False
         for q in range(3):
-            if annulus.quads( teti, q ) > 0:
+            if annulus.quads( teti, q ).safeLongValue() > 0:
                 hasQuads = True
                 break
         if hasQuads:
@@ -54,13 +54,14 @@ def idealEdge(annulus):
         for en in range(6):
             v = tet.edgeMapping(en)[0]
             ei = tet.edge(en).index()
-            s = annulus.triangles( teti, v )
+            s = annulus.triangles( teti, v ).safeLongValue()
             targets[ (ei,s) ] = ( teti, en )
 
     # Starting segment for depth-first search.
     for e in tri.edges():
         ei = e.index()
-        if ( not e.isBoundary() ) or ( annulus.edgeWeight(ei) <= 1 ):
+        if ( not e.isBoundary() or
+                annulus.edgeWeight(ei).safeLongValue() <= 1 ):
             continue
         start = ( ei, 1 )
 
@@ -76,7 +77,7 @@ def idealEdge(annulus):
         # segments that are adjacent to it along parallel cells.
         ei, seg = current
         e = tri.edge(ei)
-        wt = annulus.edgeWeight(ei)
+        wt = annulus.edgeWeight(ei).safeLongValue()
         visited.add(current)    # Record as visited now, so we don't forget.
         for emb in e.embeddings():
             tet = emb.tetrahedron()
@@ -86,13 +87,14 @@ def idealEdge(annulus):
 
             # To locate the relevant parallel cells in tet, need to get the
             # normal coordinates incident to e.
-            f = [ annulus.triangles( teti, ver[i] ) for i in range(2) ]
+            f = [ annulus.triangles( teti, ver[i] ).safeLongValue()
+                    for i in range(2) ]
             q = 0
             qType = None
             for qt in range(3):
                 if qt in { en, 5-en }:
                     continue
-                quads = annulus.quads( teti, qt )
+                quads = annulus.quads( teti, qt ).safeLongValue()
                 if quads > 0:
                     q = quads
                     qType = qt
@@ -115,7 +117,7 @@ def idealEdge(annulus):
                     if verOther[0] == ver[0]:
                         adjacent = ( eiOther, seg )
                     elif verOther[1] == ver[0]:
-                        wtOther = annulus.edgeWeight(eiOther)
+                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - seg )
                     else:
                         continue
@@ -142,7 +144,8 @@ def idealEdge(annulus):
 
                     # The current segment is adjacent to a segment of the
                     # edge numbered enOther. Find this adjacent segment.
-                    fOther = annulus.triangles( teti, verOther[0] )
+                    fOther = annulus.triangles(
+                            teti, verOther[0] ).safeLongValue()
                     if verOther[0] in side0:
                         adjacent = ( eiOther, fOther + qDepth )
                     else:
@@ -168,7 +171,7 @@ def idealEdge(annulus):
                     if verOther[0] == ver[1]:
                         adjacent = ( eiOther, wt - seg )
                     elif verOther[1] == ver[1]:
-                        wtOther = annulus.edgeWeight(eiOther)
+                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
                     else:
                         continue
