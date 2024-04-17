@@ -297,16 +297,39 @@ def crushAnnuli(surfaces):
                             name = std.manifold().name()
                         summand.setLabel( "Summand #{}: {}".format(
                             sumNum, name ) )
-            elif compNum == idComp:
-                # Decompose this component into prime pieces.
-                #TODO
-                pass
             else:
+                if compNum == idComp:
+                    comp.setLabel( comp.adornedLabel(
+                        "Ideal edge {}".format(
+                            comp.tetrahedron(
+                                idEdge[0] ).edge(
+                                    idEdge[1] ).index() ) ) )
+
                 # Decompose this component into prime pieces.
-                #TODO
-                pass
-            #TODO
-            pass
-        #TODO
+                summands = comp.summands()
+                if len(summands) == 0:
+                    comp.setLabel( comp.label() + ": S3" )
+                elif len(summands) == 1:
+                    # Try to combinatorially recognise this component.
+                    std = StandardTriangulation.recognise( summands[0] )
+                    if std is None:
+                        name = "Not recognised"
+                    else:
+                        name = std.manifold().name()
+                    comp.setLabel( comp.label() + ": {}".format(name) )
+                else:
+                    comp.setLabel( comp.label() + ": Non-prime" )
+                    for sumNum, s in enumerate(summands):
+                        summand = PacketOfTriangulation3(s)
+                        comp.insertChildLast(summand)
+
+                        # Try to combinatorially recognise this summand.
+                        std = StandardTriangulation.recognise(summand)
+                        if std is None:
+                            name = "Not recognised"
+                        else:
+                            name = std.manifold().name()
+                        summand.setLabel( "Summand #{}: {}".format(
+                            sumNum, name ) )
     results.setLabel( results.adornedLabel(
         "Total {}".format(annulusCount) ) )
