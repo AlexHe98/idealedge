@@ -82,7 +82,7 @@ def idealEdge(annulus):
             continue
 
         # We haven't visited the current segment yet, so we need to find all
-        # segments that are adjacent to it along parallel cells.
+        # segments that are adjacent to it along parallel cells or faces.
         ei, seg = current
         e = tri.edge(ei)
         wt = annulus.edgeWeight(ei).safeLongValue()
@@ -93,8 +93,8 @@ def idealEdge(annulus):
             en = emb.face()
             ver = emb.vertices()
 
-            # To locate the relevant parallel cells in tet, need to get the
-            # normal coordinates incident to e.
+            # To locate the relevant parallel cells and faces in tet, need to
+            # get the normal coordinates incident to e.
             f = [ annulus.triangles( teti, ver[i] ).safeLongValue()
                     for i in range(2) ]
             q = 0
@@ -108,56 +108,25 @@ def idealEdge(annulus):
                     qType = qt
                     break
 
-            # Does the current segment belong to a parallel cell in this tet?
-            # If so, then we need to find all adjacent segments.
-            if seg == f[0] or seg == f[0] + q:
-                continue
+            # Does the current segment belong to a parallel cell or face in
+            # this tet? If so, then we need to find all adjacent segments.
             if seg < f[0]:
-                # The parallel cell is a triangular cell at vertex ver[0].
-                for enOther in range(6):
-                    if enOther == en:
+                # The current segment belongs to a parallel triangular cell
+                # at vertex ver[0].
+                for otherEnd in range(4):
+                    if otherEnd in { ver[0], ver[1] }:
                         continue
-                    eiOther = tet.edge(enOther).index()
-                    verOther = tet.edgeMapping(enOther)
-
-                    # Is the current segment adjacent to a segment of the
-                    # edge numbered enOther?
-                    if verOther[0] == ver[0]:
-                        adjacent = ( eiOther, seg )
-                    elif verOther[1] == ver[0]:
-                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - seg )
-                    else:
-                        continue
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        return output
-                    else:
-                        stack.append(adjacent)
-            elif q > 0 and seg < f[0] + q:
-                # The parallel cell is a quadrilateral cell.
-                # This quadrilateral cell divides tet into two "sides".
-                side0 = { 0, qType + 1 }
-                if ver[0] not in side0:
-                    side0 = {0,1,2,3} - side0
-                qDepth = seg - f[0]     # 1 <= qDepth <= q - 1
-                for enOther in range(6):
-                    if enOther in { en, qType, 5 - qType }:
-                        continue
-                    eiOther = tet.edge(enOther).index()
-                    verOther = tet.edgeMapping(enOther)
 
                     # The current segment is adjacent to a segment of the
-                    # edge numbered enOther. Find this adjacent segment.
-                    fOther = annulus.triangles(
-                            teti, verOther[0] ).safeLongValue()
-                    if verOther[0] in side0:
-                        adjacent = ( eiOther, fOther + qDepth )
+                    # edge with endpoints ver[0] and otherEnd.
+                    eiOther = tet.edge( ver[0], otherEnd ).index()
+                    enOther = Edge3.edgeNumber[ver[0]][otherEnd]
+                    verOther = tet.edgeMapping(enOther)
+                    if verOther[0] == ver[0]:
+                        adjacent = ( eiOther, seg )
                     else:
-                        adjacent = ( eiOther, fOther + q - qDepth )
+                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
+                        adjacent = ( eiOther, wtOther - seg )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
@@ -166,23 +135,67 @@ def idealEdge(annulus):
                         return output
                     else:
                         stack.append(adjacent)
-            else:
-                # The parallel cell is a triangular cell at vertex ver[1].
-                for enOther in range(6):
-                    if enOther == en:
+            elif seg > f[0] + q:
+                # The current segment belongs to a parallel triangular cell
+                # at vertex ver[1].
+                for otherEnd in range(4):
+                    if otherEnd in { ver[0], ver[1] }:
                         continue
-                    eiOther = tet.edge(enOther).index()
-                    verOther = tet.edgeMapping(enOther)
 
-                    # Is the current segment adjacent to a segment of the
-                    # edge numbered enOther?
+                    # The current segment is adjacent to a segment of the
+                    # edge with endpoints ver[1] and otherEnd.
+                    eiOther = tet.edge( ver[1], otherEnd ).index()
+                    enOther = Edge3.edgeNumber[ver[1]][otherEnd]
+                    verOther = tet.edgeMapping(enOther)
                     if verOther[0] == ver[1]:
                         adjacent = ( eiOther, wt - seg )
-                    elif verOther[1] == ver[1]:
+                    else:
                         wtOther = annulus.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
+
+                    # If the adjacent segment is one of the targets, then we
+                    # are done; otherwise, we add it to the stack.
+                    output = targets.get( adjacent, None )
+                    if output is not None:
+                        return output
                     else:
-                        continue
+                        stack.append(adjacent)
+            elif q > 0:
+                # The quadrilaterals divide tet into two "sides". The edge
+                # opposite this segment has endpoints lying on different
+                # sides, so we label these endpoints accordingly.
+                side = [ { 0, qType + 1 } ]
+                side.append( {0,1,2,3} - side[0] )
+                if ver[0] not in side[0]:
+                    side[0], side[1] = side[1], side[0]
+                side[0].remove( ver[0] )
+                side[1].remove( ver[1] )
+                opp = [ side[0].pop(), side[1].pop() ]
+
+                # Find all edges containing segments that are adjacent to the
+                # current segment.
+                qDepth = seg - f[0]     # 0 <= qDepth <= q
+                if qDepth == 0:
+                    adjEndpoints = [ [ ver[0], opp[1] ] ]
+                elif qDepth == q:
+                    adjEndpoints = [ [ opp[0], ver[1] ] ]
+                else:
+                    adjEndpoints = [
+                            [ ver[0], opp[1] ],
+                            [ opp[0], ver[1] ],
+                            [ opp[0], opp[1] ] ]
+                for start, end in adjEndpoints:
+                    # The current segment is adjacent to a segment of the
+                    # edge going from start to end.
+                    eiAdj = tet.edge( start, end ).index()
+                    enAdj = Edge3.edgeNumber[start][end]
+                    verAdj = tet.edgeMapping(enAdj)
+                    triangles = annulus.triangles(
+                            teti, verAdj[0] ).safeLongValue()
+                    if verAdj[0] == start:
+                        adjacent = ( eiAdj, triangles + qDepth )
+                    else:
+                        adjacent = ( eiAdj, triangles + q - qDepth )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
