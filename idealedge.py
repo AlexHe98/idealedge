@@ -222,23 +222,35 @@ def crushAnnuli(surfaces):
             continue
         annulusCount += 1
 
+        # Is the current annulus a thin edge link?
+        thin = surf.isThinEdgeLink()
+        if thin[0] is None:
+            thinAdorn = ""
+
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
         tri = PacketOfTriangulation3( surf.crush() )
+        tri.setLabel( "Crushed #{}".format(surfNum) )
+        thin = surf.isThinEdgeLink()
+        if thin[0] is not None:
+            # Adorn label with details of this thin edge link.
+            adorn = "Thin edge {}".format( thin[0].index() )
+            if thin [1] is not None:
+                adorn += " and {}".format( thin[1].index() )
+            tri.setLabel( tri.adornedLabel(adorn) )
         components = []
         results.insertChildLast(tri)
         idEdge = idealEdge(surf)
         idComp = None
         if tri.isEmpty():
-            tri.setLabel( "Crushed #{}: Empty".format(surfNum) )
+            tri.setLabel( tri.label() + ": Empty" )
         else:
             if tri.isConnected():
-                tri.setLabel( "Crushed #{}".format(surfNum) )
                 components.append(tri)
                 if idEdge is not None:
                     idComp = 0
             else:
-                tri.setLabel( "Crushed #{}: Disconnected".format(surfNum) )
+                tri.setLabel( tri.label() + ": Disconnected" )
                 for compNum, c in enumerate( tri.triangulateComponents() ):
                     comp = PacketOfTriangulation3(c)
                     comp.setLabel( "Component #{}".format(compNum) )
@@ -298,12 +310,40 @@ def crushAnnuli(surfaces):
                         summand.setLabel( "Summand #{}: {}".format(
                             sumNum, name ) )
             else:
+                # If this component contains the ideal edge, then attempt to
+                # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
+                    drilled = PacketOfTriangulation3(comp)
+                    comp.insertChildLast(drilled)
+                    ide = drilled.tetrahedron( idEdge[0] ).edge( idEdge[1] )
+
+                    # Need to label *before* drilling.
+                    drilled.setLabel( comp.adornedLabel(
+                        "Pinched edge {}".format( ide.index() ) ) )
                     comp.setLabel( comp.adornedLabel(
-                        "Ideal edge {}".format(
-                            comp.tetrahedron(
-                                idEdge[0] ).edge(
-                                    idEdge[1] ).index() ) ) )
+                        "Ideal edge {}".format( ide.index() ) ) )
+                    drilled.pinchEdge(ide)
+                    drilled.intelligentSimplify()
+
+                    # Try to recognise the drilled manifold.
+                    if drilled.isSolidTorus():
+                        name = "Ideal solid torus"
+                    else:
+                        # Try to combinatorially recognise after truncating
+                        # the ideal vertex.
+                        trunc = PacketOfTriangulation3(drilled)
+                        drilled.insertChildLast(trunc)
+                        trunc.idealToFinite()
+                        trunc.intelligentSimplify()
+                        std = StandardTriangulation.recognise(trunc)
+                        if std is None:
+                            name = "Not recognised"
+                        else:
+                            name = std.manifold().name()
+                        trunc.setLabel( drilled.adornedLabel(
+                            "Truncated" ) + ": {}".format(name) )
+                    drilled.setLabel(
+                            drilled.label() + ": {}".format(name) )
 
                 # Decompose this component into prime pieces.
                 summands = comp.summands()
@@ -319,9 +359,16 @@ def crushAnnuli(surfaces):
                     comp.setLabel( comp.label() + ": {}".format(name) )
                 else:
                     comp.setLabel( comp.label() + ": Non-prime" )
+                    if compNum == idComp:
+                        sumContainer = Container(
+                                "Summands (Total {})".format(
+                                    len(summands) ) )
+                        comp.insertChildLast(sumContainer)
+                    else:
+                        sumContainer = comp
                     for sumNum, s in enumerate(summands):
                         summand = PacketOfTriangulation3(s)
-                        comp.insertChildLast(summand)
+                        sumContainer.insertChildLast(summand)
 
                         # Try to combinatorially recognise this summand.
                         std = StandardTriangulation.recognise(summand)
