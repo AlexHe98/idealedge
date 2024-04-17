@@ -216,17 +216,97 @@ def crushAnnuli(surfaces):
     """
     results = Container( "Crush annuli" )
     surfaces.insertChildLast(results)
-    for i, surf in enumerate(surfaces):
+    annulusCount = 0
+    for surfNum, surf in enumerate(surfaces):
         if not isAnnulus(surf):
             continue
+        annulusCount += 1
 
-        # Crush and find ideal edge.
+        # Crush, and find the ideal edge amongst the components of the
+        # resulting triangulation.
         tri = PacketOfTriangulation3( surf.crush() )
-        idEdge = idealEdge(surf)
-        if idEdge is None:
-            tri.setLabel( "Crushed #{}: No ideal edge".format(i) )
-        else:
-            teti, en = idEdge
-            tri.setLabel( "Crushed #{}: Ideal edge {}".format(
-                i, tri.tetrahedron(teti).edge(en).index() ) )
+        components = []
         results.insertChildLast(tri)
+        idEdge = idealEdge(surf)
+        idComp = None
+        if tri.isEmpty():
+            tri.setLabel( "Crushed #{}: Empty".format(surfNum) )
+        else:
+            if tri.isConnected():
+                tri.setLabel( "Crushed #{}".format(surfNum) )
+                components.append(tri)
+                if idEdge is not None:
+                    idComp = 0
+            else:
+                tri.setLabel( "Crushed #{}: Disconnected".format(surfNum) )
+                for compNum, c in enumerate( tri.triangulateComponents() ):
+                    comp = PacketOfTriangulation3(c)
+                    comp.setLabel( "Component #{}".format(compNum) )
+                    components.append(comp)
+                    tri.insertChildLast(comp)
+
+                # Find the component containing the ideal edge, and adjust
+                # the ideal tetrahedron index.
+                if idEdge is not None:
+                    idComp = tri.tetrahedron( idEdge[0] ).component().index()
+                    idTeti = 0
+                    for tet in tri.tetrahedra():
+                        if tet.component().index() == idComp:
+                            if tet.index() == idEdge[0]:
+                                idEdge = ( idTeti, idEdge[1] )
+                                break
+                            else:
+                                idTeti += 1
+
+        # Go through the components and try to identify their topology.
+        for compNum, comp in enumerate(components):
+            if not comp.isValid():
+                comp.setLabel( comp.label() + ": INVALID" )
+
+                # Fill in invalid boundary.
+                filled = PacketOfTriangulation3(comp)
+                filled.finiteToIdeal()
+                filled.intelligentSimplify()
+                filledLabel = comp.adornedLabel(
+                        "Closed by \"making ideal\"" )
+                comp.insertChildLast(filled)
+
+                # Decompose the filled manifold into prime pieces.
+                summands = filled.summands()
+                if len(summands) == 0:
+                    filled.setLabel( filledLabel + ": S3" )
+                elif len(summands) == 1:
+                    # Try to combinatorially recognise this filled manifold.
+                    std = StandardTriangulation.recognise( summands[0] )
+                    if std is None:
+                        name = "Not recognised"
+                    else:
+                        name = std.manifold().name()
+                    filled.setLabel( filledLabel + ": {}".format(name) )
+                else:
+                    filled.setLabel( filledLabel + ": Non-prime" )
+                    for sumNum, s in enumerate(summands):
+                        summand = PacketOfTriangulation3(s)
+                        filled.insertChildLast(summand)
+
+                        # Try to combinatorially recognise this summand.
+                        std = StandardTriangulation.recognise(summand)
+                        if std is None:
+                            name = "Not recognised"
+                        else:
+                            name = std.manifold().name()
+                        summand.setLabel( "Summand #{}: {}".format(
+                            sumNum, name ) )
+            elif compNum == idComp:
+                # Decompose this component into prime pieces.
+                #TODO
+                pass
+            else:
+                # Decompose this component into prime pieces.
+                #TODO
+                pass
+            #TODO
+            pass
+        #TODO
+    results.setLabel( results.adornedLabel(
+        "Total {}".format(annulusCount) ) )
