@@ -231,6 +231,10 @@ def fillIdealEdge(tri):
     two-triangle 2-sphere with two of its three vertices pinched to form a
     single invalid vertex.
     """
+    # Check some basic pre-conditions.
+    if tri.isValid() or tri.countBoundaryTriangles() != 2:
+        return
+
     # Might need to layer one tetrahedron to achieve the generic case.
     layerEdge = None
     for edge in tri.edges():
@@ -279,8 +283,9 @@ def fillIdealEdge(tri):
             ver[0][3], ver[1][2] )
     me.join( myFace, you, gluing )
 
-    # All done!
-    return idEdge
+    # Now that the triangulation has changed, we can only access the ideal
+    # edge through one of the tetrahedra in which it is embedded.
+    return me.edge( ver[0][0], ver[0][1] )
 
 
 def crushAnnuli(surfaces):
