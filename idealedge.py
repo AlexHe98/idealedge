@@ -222,6 +222,67 @@ def printIdealEdges(surfaces):
             print( i, idealEdge(surf) )
 
 
+def fillIdealEdge(tri):
+    """
+    If tri is an invalid component resulting from crushing an annulus, then
+    closes this triangulation and returns the ideal edge.
+
+    This routine assumes that the boundary triangles of tri form a
+    two-triangle 2-sphere with two of its three vertices pinched to form a
+    single invalid vertex.
+    """
+    # Might need to layer one tetrahedron to achieve the generic case.
+    layerEdge = None
+    for edge in tri.edges():
+        if not edge.isBoundary():
+            continue
+
+        # Does this edge meet two distinct boundary triangles? If so, and if
+        # it is also the *only* boundary edge with this property, then we
+        # need to layer on this edge.
+        emb = [ edge.embedding(0),
+                edge.embedding( edge.degree() - 1 ) ]
+        face = []
+        for i in range(2):
+            tet = emb[i].tetrahedron()
+            faceNum = emb[i].vertices()[3-i]
+            face.append( tet.triangle(faceNum) )
+        if face[0] == face[1]:
+            continue
+        if layerEdge is None:
+            layerEdge = edge
+        else:
+            layerEdge = None
+            break
+    if layerEdge is not None:
+        tri.layerOn(layerEdge)
+
+    # Find the ideal edge. It suffices to look for a boundary edge whose
+    # endpoints are identified.
+    for idEdge in tri.edges():
+        if not idEdge.isBoundary():
+            continue
+        if idEdge.vertex(0) == idEdge.vertex(1):
+            break
+
+    # Finish by closing up the boundary.
+    emb = [ idEdge.embedding(0),
+            idEdge.embedding( idEdge.degree() - 1 ) ]
+    ver = [ emb[i].vertices() for i in range(2) ]
+    me = emb[0].tetrahedron()
+    you = emb[1].tetrahedron()
+    myFace = ver[0][3]
+    gluing = Perm4(
+            ver[0][0], ver[1][0],
+            ver[0][1], ver[1][1],
+            ver[0][2], ver[1][3],
+            ver[0][3], ver[1][2] )
+    me.join( myFace, you, gluing )
+
+    # All done!
+    return idEdge
+
+
 def crushAnnuli(surfaces):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
