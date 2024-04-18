@@ -2,6 +2,7 @@
 Find the ideal edge after crushing a separating annulus in a one-vertex
 triangulation of a 3-manifold with torus boundary.
 """
+from timeit import default_timer
 from regina import *
 
 
@@ -293,6 +294,7 @@ def crushAnnuli(surfaces):
     Crushes all annuli in the given packet of normal surfaces, and adds a
     Container of the resulting triangulations as a child of the given packet.
     """
+    start = default_timer()
     results = Container( "Crush annuli" )
     surfaces.insertChildLast(results)
     annulusCount = 0
@@ -503,5 +505,12 @@ def crushAnnuli(surfaces):
                             name = std.manifold().name()
                         summand.setLabel( "Summand #{}: {}".format(
                             sumNum, name ) )
+
+        # Print a progress update.
+        time = default_timer()
+        print( "Time: {:.6f}. Crushed #{}.".format(
+            time - start, surfNum ) )
+
+    # All done!
     results.setLabel( results.adornedLabel(
         "Total {}".format(annulusCount) ) )
