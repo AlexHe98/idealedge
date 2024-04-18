@@ -356,11 +356,39 @@ def crushAnnuli(surfaces):
 
                 # Fill in invalid boundary.
                 filled = PacketOfTriangulation3(comp)
-                filled.finiteToIdeal()
-                filled.intelligentSimplify()
+                invIdEdge = fillIdealEdge(filled)
                 filledLabel = comp.adornedLabel(
-                        "Closed by \"making ideal\"" )
+                        "Closed, ideal edge {}".format(
+                            invIdEdge.index() ) )
                 comp.insertChildLast(filled)
+
+                # Just in case, let's see if we can simplify and identify the
+                # manifold given by drilling out the ideal edge.
+                drilled = PacketOfTriangulation3(filled)
+                filled.insertChildLast(drilled)
+                ide = drilled.edge( invIdEdge.index() )
+                drilled.setLabel( comp.adornedLabel(
+                    "Closed, drilled edge {}".format( ide.index() ) ) )
+                drilled.pinchEdge(ide)
+                drilled.intelligentSimplify()
+                if drilled.isSolidTorus():
+                    name = "Ideal solid torus"
+                else:
+                    # Try to combinatorially recognise after truncating the
+                    # ideal vertex.
+                    trunc = PacketOfTriangulation3(drilled)
+                    drilled.insertChildLast(trunc)
+                    trunc.idealToFinite()
+                    trunc.intelligentSimplify()
+                    std = StandardTriangulation.recognise(trunc)
+                    if std is None:
+                        name = "Not recognised"
+                    else:
+                        name = std.manifold().name()
+                    trunc.setLabel( drilled.adornedLabel(
+                        "Truncated" ) + ": {}".format(name) )
+                drilled.setLabel(
+                        drilled.label() + ": {}".format(name) )
 
                 # Decompose the filled manifold into prime pieces.
                 summands = filled.summands()
@@ -376,9 +404,27 @@ def crushAnnuli(surfaces):
                     filled.setLabel( filledLabel + ": {}".format(name) )
                 else:
                     filled.setLabel( filledLabel + ": Non-prime" )
+
+                    # Find *all* quad vertex normal 2-spheres.
+                    surfs = NormalSurfaces( filled, NS_QUAD, NS_VERTEX )
+                    sphereFilter = SurfaceFilterProperties()
+                    sphereFilter.setEulerChars( [2] )
+                    sphereFilter.setCompactness( BoolSet(True) )
+                    sphereFilter.setOrientability( BoolSet(True) )
+                    sphereFilter.setRealBoundary( BoolSet(False) )
+                    spheres = PacketOfNormalSurfaces( surfs, sphereFilter )
+                    spheres.setLabel(
+                            "Quad vertex spheres (Total: {})".format(
+                                spheres.size() ) )
+                    filled.insertChildLast(spheres)
+
+                    # Classify the summands.
+                    sumContainer = Container( "Summands (Total: {})".format(
+                        len(summands) ) )
+                    filled.insertChildLast(sumContainer)
                     for sumNum, s in enumerate(summands):
                         summand = PacketOfTriangulation3(s)
-                        filled.insertChildLast(summand)
+                        sumContainer.insertChildLast(summand)
 
                         # Try to combinatorially recognise this summand.
                         std = StandardTriangulation.recognise(summand)
