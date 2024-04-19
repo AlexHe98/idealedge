@@ -6,6 +6,9 @@ from timeit import default_timer
 from regina import *
 
 
+THRESHOLD = 30
+
+
 def isAnnulus(s):
     """
     Is the given normal surface s an annulus?
@@ -302,6 +305,8 @@ def crushAnnuli(surfaces):
         if not isAnnulus(surf):
             continue
         annulusCount += 1
+        print( "Time: {:.6f}. Crush #{}.".format(
+            default_timer() - start, surfNum) )
 
         # Is the current annulus a thin edge link?
         thin = surf.isThinEdgeLink()
@@ -353,6 +358,8 @@ def crushAnnuli(surfaces):
 
         # Go through the components and try to identify their topology.
         for compNum, comp in enumerate(components):
+            print( "    Time: {:.6f}. Component #{}.".format(
+                default_timer() - start, compNum ) )
             if not comp.isValid():
                 comp.setLabel( comp.label() + ": INVALID" )
 
@@ -370,7 +377,7 @@ def crushAnnuli(surfaces):
                 filled.insertChildLast(drilled)
                 ide = drilled.edge( invIdEdge.index() )
                 drilled.setLabel( comp.adornedLabel(
-                    "Closed, drilled edge {}".format( ide.index() ) ) )
+                    "Closed, pinched edge {}".format( ide.index() ) ) )
                 drilled.pinchEdge(ide)
                 drilled.intelligentSimplify()
                 if drilled.isSolidTorus():
@@ -392,7 +399,10 @@ def crushAnnuli(surfaces):
                 drilled.setLabel(
                         drilled.label() + ": {}".format(name) )
 
-                # Decompose the filled manifold into prime pieces.
+                # Decompose the filled manifold into prime pieces (unless it
+                # has too many tetrahedra).
+                if filled.size() >= THRESHOLD:
+                    continue
                 summands = filled.summands()
                 if len(summands) == 0:
                     filled.setLabel( filledLabel + ": S3" )
@@ -400,7 +410,7 @@ def crushAnnuli(surfaces):
                     # Try to combinatorially recognise this filled manifold.
                     std = StandardTriangulation.recognise( summands[0] )
                     if std is None:
-                        name = "Not recognised"
+                        name = "Prime, not recognised"
                     else:
                         name = std.manifold().name()
                     filled.setLabel( filledLabel + ": {}".format(name) )
@@ -431,7 +441,7 @@ def crushAnnuli(surfaces):
                         # Try to combinatorially recognise this summand.
                         std = StandardTriangulation.recognise(summand)
                         if std is None:
-                            name = "Not recognised"
+                            name = "Prime, not recognised"
                         else:
                             name = std.manifold().name()
                         summand.setLabel( "Summand #{}: {}".format(
@@ -472,7 +482,10 @@ def crushAnnuli(surfaces):
                     drilled.setLabel(
                             drilled.label() + ": {}".format(name) )
 
-                # Decompose this component into prime pieces.
+                # Decompose this component into prime pieces (unless this
+                # component has too many tetrahedra).
+                if comp.size() >= THRESHOLD:
+                    continue
                 summands = comp.summands()
                 if len(summands) == 0:
                     comp.setLabel( comp.label() + ": S3" )
@@ -480,7 +493,7 @@ def crushAnnuli(surfaces):
                     # Try to combinatorially recognise this component.
                     std = StandardTriangulation.recognise( summands[0] )
                     if std is None:
-                        name = "Not recognised"
+                        name = "Prime, not recognised"
                     else:
                         name = std.manifold().name()
                     comp.setLabel( comp.label() + ": {}".format(name) )
@@ -500,17 +513,14 @@ def crushAnnuli(surfaces):
                         # Try to combinatorially recognise this summand.
                         std = StandardTriangulation.recognise(summand)
                         if std is None:
-                            name = "Not recognised"
+                            name = "Prime, not recognised"
                         else:
                             name = std.manifold().name()
                         summand.setLabel( "Summand #{}: {}".format(
                             sumNum, name ) )
 
-        # Print a progress update.
-        time = default_timer()
-        print( "Time: {:.6f}. Crushed #{}.".format(
-            time - start, surfNum ) )
-
     # All done!
+    print( "Time: {:.6f}. All done!".format(
+        default_timer() - start ) )
     results.setLabel( results.adornedLabel(
         "Total {}".format(annulusCount) ) )
