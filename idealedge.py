@@ -6,9 +6,6 @@ from timeit import default_timer
 from regina import *
 
 
-THRESHOLD = 30
-
-
 def isAnnulus(s):
     """
     Is the given normal surface s an annulus?
@@ -292,10 +289,16 @@ def fillIdealEdge(tri):
     return me.edge( ver[0][0], ver[0][1] )
 
 
-def recogniseSummands(tri):
+def recogniseSummands( tri, threshold=40 ):
     """
     Attempts to recognise the prime summands of the given triangulation.
+
+    This routine only proceeds with performing the prime decomposition if the
+    number of tetrahedra in tri is strictly less than the threshold (default
+    40), and returns True if and only if this is the case.
     """
+    if tri.size() >= threshold:
+        return False
     summands = tri.summands()
     if len(summands) == 0:
         tri.setLabel( tri.label() + ": S3" )
@@ -338,12 +341,20 @@ def recogniseSummands(tri):
                 name = std.manifold().name()
             summand.setLabel( "Summand #{}: {}".format(
                 sumNum, name ) )
+    return True
 
 
-def crushAnnuli(surfaces):
+def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
     Container of the resulting triangulations as a child of the given packet.
+
+    This routine attempts to identify the topology of the manifold that
+    results from crushing. The main strategy is to simplify and attempt
+    combinatorial recognition. Additionally, whenever this routine encounters
+    a component whose number of tetrahedra is strictly less than the
+    threshold (default 30), it will also use more computationally intensive
+    recognition algorithms involving normal surfaces.
     """
     start = default_timer()
     results = Container( "Crush annuli" )
@@ -353,6 +364,7 @@ def crushAnnuli(surfaces):
         if not isAnnulus(surf):
             continue
         annulusCount += 1
+        print()
         print( "Time: {:.6f}. Crush #{}.".format(
             default_timer() - start, surfNum) )
 
@@ -428,7 +440,9 @@ def crushAnnuli(surfaces):
                     "Closed, pinched edge {}".format( ide.index() ) ) )
                 drilled.pinchEdge(ide)
                 drilled.intelligentSimplify()
-                if drilled.isSolidTorus():
+                if ( ( drilled.knowsSolidTorus() or
+                    drilled.size() < threshold ) and
+                    drilled.isSolidTorus() ):
                     name = "Ideal solid torus"
                 else:
                     # Try to combinatorially recognise after truncating the
@@ -440,6 +454,8 @@ def crushAnnuli(surfaces):
                     std = StandardTriangulation.recognise(trunc)
                     if std is None:
                         name = "Not recognised"
+                        if drilled.knowsSolidTorus():
+                            name += ", not solid torus"
                     else:
                         name = std.manifold().name()
                     trunc.setLabel( drilled.adornedLabel(
@@ -449,8 +465,8 @@ def crushAnnuli(surfaces):
 
                 # Decompose the filled manifold into prime pieces (unless it
                 # has too many tetrahedra).
-                if filled.size() < THRESHOLD:
-                    recogniseSummands(filled)
+                print( "        Attempted prime decomposition: {}.".format(
+                    recogniseSummands( filled, threshold ) ) )
             else:
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
@@ -468,7 +484,9 @@ def crushAnnuli(surfaces):
                     drilled.intelligentSimplify()
 
                     # Try to recognise the drilled manifold.
-                    if drilled.isSolidTorus():
+                    if ( ( drilled.knowsSolidTorus() or
+                        drilled.size() < threshold ) and
+                        drilled.isSolidTorus() ):
                         name = "Ideal solid torus"
                     else:
                         # Try to combinatorially recognise after truncating
@@ -480,6 +498,8 @@ def crushAnnuli(surfaces):
                         std = StandardTriangulation.recognise(trunc)
                         if std is None:
                             name = "Not recognised"
+                            if drilled.knowsSolidTorus():
+                                name += ", not solid torus"
                         else:
                             name = std.manifold().name()
                         trunc.setLabel( drilled.adornedLabel(
@@ -489,10 +509,11 @@ def crushAnnuli(surfaces):
 
                 # Decompose this component into prime pieces (unless this
                 # component has too many tetrahedra).
-                if comp.size() < THRESHOLD:
-                    recogniseSummands(comp)
+                print( "        Attempted prime decomposition: {}.".format(
+                    recogniseSummands( comp, threshold ) ) )
 
     # All done!
+    print()
     print( "Time: {:.6f}. All done!".format(
         default_timer() - start ) )
     results.setLabel( results.adornedLabel(
