@@ -292,6 +292,54 @@ def fillIdealEdge(tri):
     return me.edge( ver[0][0], ver[0][1] )
 
 
+def recogniseSummands(tri):
+    """
+    Attempts to recognise the prime summands of the given triangulation.
+    """
+    summands = tri.summands()
+    if len(summands) == 0:
+        tri.setLabel( tri.label() + ": S3" )
+    elif len(summands) == 1:
+        # Try combinatorial recognition.
+        std = StandardTriangulation.recognise( summands[0] )
+        if std is None:
+            name = "Prime, not recognised"
+        else:
+            name = std.manifold().name()
+        tri.setLabel( tri.label() + ": {}".format(name) )
+    else:
+        tri.setLabel( tri.label() + ": Non-prime" )
+
+        # Find *all* quad vertex normal 2-spheres.
+        surfs = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
+        sphereFilter = SurfaceFilterProperties()
+        sphereFilter.setEulerChars( [2] )
+        sphereFilter.setCompactness( BoolSet(True) )
+        sphereFilter.setOrientability( BoolSet(True) )
+        sphereFilter.setRealBoundary( BoolSet(False) )
+        spheres = PacketOfNormalSurfaces( surfs, sphereFilter )
+        spheres.setLabel( "Quad vertex 2-spheres (Total: {})".format(
+            spheres.size() ) )
+        tri.insertChildLast(spheres)
+
+        # Classify the summands.
+        sumContainer = Container( "Summands (Total: {})".format(
+            len(summands) ) )
+        tri.insertChildLast(sumContainer)
+        for sumNum, s in enumerate(summands):
+            summand = PacketOfTriangulation3(s)
+            sumContainer.insertChildLast(summand)
+
+            # Try to combinatorially recognise this summand.
+            std = StandardTriangulation.recognise(summand)
+            if std is None:
+                name = "Prime, not recognised"
+            else:
+                name = std.manifold().name()
+            summand.setLabel( "Summand #{}: {}".format(
+                sumNum, name ) )
+
+
 def crushAnnuli(surfaces):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
@@ -366,9 +414,9 @@ def crushAnnuli(surfaces):
                 # Fill in invalid boundary.
                 filled = PacketOfTriangulation3(comp)
                 invIdEdge = fillIdealEdge(filled)
-                filledLabel = comp.adornedLabel(
-                        "Closed, ideal edge {}".format(
-                            invIdEdge.index() ) )
+                filled.setLabel( comp.adornedLabel(
+                    "Closed, ideal edge {}".format(
+                        invIdEdge.index() ) ) )
                 comp.insertChildLast(filled)
 
                 # Just in case, let's see if we can simplify and identify the
@@ -401,51 +449,8 @@ def crushAnnuli(surfaces):
 
                 # Decompose the filled manifold into prime pieces (unless it
                 # has too many tetrahedra).
-                if filled.size() >= THRESHOLD:
-                    continue
-                summands = filled.summands()
-                if len(summands) == 0:
-                    filled.setLabel( filledLabel + ": S3" )
-                elif len(summands) == 1:
-                    # Try to combinatorially recognise this filled manifold.
-                    std = StandardTriangulation.recognise( summands[0] )
-                    if std is None:
-                        name = "Prime, not recognised"
-                    else:
-                        name = std.manifold().name()
-                    filled.setLabel( filledLabel + ": {}".format(name) )
-                else:
-                    filled.setLabel( filledLabel + ": Non-prime" )
-
-                    # Find *all* quad vertex normal 2-spheres.
-                    surfs = NormalSurfaces( filled, NS_QUAD, NS_VERTEX )
-                    sphereFilter = SurfaceFilterProperties()
-                    sphereFilter.setEulerChars( [2] )
-                    sphereFilter.setCompactness( BoolSet(True) )
-                    sphereFilter.setOrientability( BoolSet(True) )
-                    sphereFilter.setRealBoundary( BoolSet(False) )
-                    spheres = PacketOfNormalSurfaces( surfs, sphereFilter )
-                    spheres.setLabel(
-                            "Quad vertex spheres (Total: {})".format(
-                                spheres.size() ) )
-                    filled.insertChildLast(spheres)
-
-                    # Classify the summands.
-                    sumContainer = Container( "Summands (Total: {})".format(
-                        len(summands) ) )
-                    filled.insertChildLast(sumContainer)
-                    for sumNum, s in enumerate(summands):
-                        summand = PacketOfTriangulation3(s)
-                        sumContainer.insertChildLast(summand)
-
-                        # Try to combinatorially recognise this summand.
-                        std = StandardTriangulation.recognise(summand)
-                        if std is None:
-                            name = "Prime, not recognised"
-                        else:
-                            name = std.manifold().name()
-                        summand.setLabel( "Summand #{}: {}".format(
-                            sumNum, name ) )
+                if filled.size() < THRESHOLD:
+                    recogniseSummands(filled)
             else:
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
@@ -484,40 +489,8 @@ def crushAnnuli(surfaces):
 
                 # Decompose this component into prime pieces (unless this
                 # component has too many tetrahedra).
-                if comp.size() >= THRESHOLD:
-                    continue
-                summands = comp.summands()
-                if len(summands) == 0:
-                    comp.setLabel( comp.label() + ": S3" )
-                elif len(summands) == 1:
-                    # Try to combinatorially recognise this component.
-                    std = StandardTriangulation.recognise( summands[0] )
-                    if std is None:
-                        name = "Prime, not recognised"
-                    else:
-                        name = std.manifold().name()
-                    comp.setLabel( comp.label() + ": {}".format(name) )
-                else:
-                    comp.setLabel( comp.label() + ": Non-prime" )
-                    if compNum == idComp:
-                        sumContainer = Container(
-                                "Summands (Total {})".format(
-                                    len(summands) ) )
-                        comp.insertChildLast(sumContainer)
-                    else:
-                        sumContainer = comp
-                    for sumNum, s in enumerate(summands):
-                        summand = PacketOfTriangulation3(s)
-                        sumContainer.insertChildLast(summand)
-
-                        # Try to combinatorially recognise this summand.
-                        std = StandardTriangulation.recognise(summand)
-                        if std is None:
-                            name = "Prime, not recognised"
-                        else:
-                            name = std.manifold().name()
-                        summand.setLabel( "Summand #{}: {}".format(
-                            sumNum, name ) )
+                if comp.size() < THRESHOLD:
+                    recogniseSummands(comp)
 
     # All done!
     print( "Time: {:.6f}. All done!".format(
