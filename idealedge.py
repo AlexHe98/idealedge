@@ -14,39 +14,20 @@ def isAnnulus(s):
             s.hasRealBoundary() and s.eulerChar() == 0 )
 
 
-def idealEdge(annulus):
+def survivingSegments(surf):
     """
-    Returns details of the ideal edge after crushing the given annulus.
-
-    Specifically, if the ideal edge belongs to a component that gets
-    destroyed after crushing, then this routine returns None. Otherwise, this
-    routine returns a pair (t,e), where t is the index (after crushing) of a
-    tetrahedron that will meet the ideal edge after crushing, and e is an
-    edge number of this tetrahedron that corresponds to the ideal edge.
-
-    Warning:
-    --> This routine assumes that the annulus is a separating surface in a
-        one-vertex triangulation of a 3-manifold with torus boundary. This
-        routine does not check that these conditions are satisfied.
+    Uses the given normal surface to divide the edges of the ambient
+    triangulation into segments, and returns a dictionary describing the
+    segments that would survive after crushing surf.
     """
-    tri = annulus.triangulation()
-
-    # Use annulus to divide edges of tri into segments.
-    segments = []
-    for e in tri.edges():
-        ei = e.index()
-        wt = annulus.edgeWeight(ei).safeLongValue()
-        for s in range( wt + 1 ):
-            segments.append( (ei,s) )
-
-    # Find "target" segments.
-    targets = dict()
+    tri = surf.triangulation()
+    survivors = dict()
     shift = 0
     for tet in tri.tetrahedra():
         teti = tet.index()
         hasQuads = False
         for q in range(3):
-            if annulus.quads( teti, q ).safeLongValue() > 0:
+            if surf.quads( teti, q ).safeLongValue() > 0:
                 hasQuads = True
                 break
         if hasQuads:
@@ -58,23 +39,33 @@ def idealEdge(annulus):
         for en in range(6):
             v = tet.edgeMapping(en)[0]
             ei = tet.edge(en).index()
-            s = annulus.triangles( teti, v ).safeLongValue()
-            targets[ (ei,s) ] = ( teti - shift, en )
+            s = surf.triangles( teti, v ).safeLongValue()
+            survivors[ (ei,s) ] = ( teti - shift, en )
 
-    # Starting segment for depth-first search.
-    for e in tri.edges():
-        ei = e.index()
-        if ( e.isBoundary() and
-                annulus.edgeWeight(ei).safeLongValue() >= 2 ):
-            start = ( ei, 1 )
+    # Done!
+    return survivors
 
-            # If the starting segment is one of the targets, then we are
-            # already done.
-            output = targets.get( start, None )
-            if output is not None:
-                return output
 
-    # Find ideal edge using depth-first search.
+def _findIdealEdge( surf, start ):
+    """
+    Returns details of the ideal edge that corresponds to the given start
+    segment after crushing surf.
+
+    Specifically, if the ideal edge belongs to a component that gets
+    destroyed after crushing, then this routine returns None. Otherwise, this
+    routine returns a pair (t,e), where t is the index (after crushing) of a
+    tetrahedron that will meet the ideal edge after crushing, and e is an
+    edge number of this tetrahedron that corresponds to the ideal edge.
+    """
+    tri = surf.triangulation()
+    targets = survivingSegments(surf)
+
+    # If the start segment is one of the targets, then we are already done.
+    output = targets.get( start, None )
+    if output is not None:
+        return output
+
+    # Otherwise, we find ideal edge using depth-first search.
     stack = [start]
     visited = set()
     while stack:
@@ -86,7 +77,7 @@ def idealEdge(annulus):
         # segments that are adjacent to it along parallel cells or faces.
         ei, seg = current
         e = tri.edge(ei)
-        wt = annulus.edgeWeight(ei).safeLongValue()
+        wt = surf.edgeWeight(ei).safeLongValue()
         visited.add(current)    # Record as visited now, so we don't forget.
         for emb in e.embeddings():
             tet = emb.tetrahedron()
@@ -96,14 +87,14 @@ def idealEdge(annulus):
 
             # To locate the relevant parallel cells and faces in tet, need to
             # get the normal coordinates incident to e.
-            f = [ annulus.triangles( teti, ver[i] ).safeLongValue()
+            f = [ surf.triangles( teti, ver[i] ).safeLongValue()
                     for i in range(2) ]
             q = 0
             qType = None
             for qt in range(3):
                 if qt in { en, 5-en }:
                     continue
-                quads = annulus.quads( teti, qt ).safeLongValue()
+                quads = surf.quads( teti, qt ).safeLongValue()
                 if quads > 0:
                     q = quads
                     qType = qt
@@ -126,7 +117,7 @@ def idealEdge(annulus):
                     if verOther[0] == ver[0]:
                         adjacent = ( eiOther, seg )
                     else:
-                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
+                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - seg )
 
                     # If the adjacent segment is one of the targets, then we
@@ -151,7 +142,7 @@ def idealEdge(annulus):
                     if verOther[0] == ver[1]:
                         adjacent = ( eiOther, wt - seg )
                     else:
-                        wtOther = annulus.edgeWeight(eiOther).safeLongValue()
+                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
 
                     # If the adjacent segment is one of the targets, then we
@@ -191,7 +182,7 @@ def idealEdge(annulus):
                     eiAdj = tet.edge( start, end ).index()
                     enAdj = Edge3.edgeNumber[start][end]
                     verAdj = tet.edgeMapping(enAdj)
-                    triangles = annulus.triangles(
+                    triangles = surf.triangles(
                             teti, verAdj[0] ).safeLongValue()
                     if verAdj[0] == start:
                         adjacent = ( eiAdj, triangles + qDepth )
@@ -211,6 +202,32 @@ def idealEdge(annulus):
     # If the search terminates without finding the ideal edge, then the ideal
     # edge must belong to a component that gets destroyed.
     return None
+
+
+def idealEdge(annulus):
+    """
+    Returns details of the ideal edge after crushing the given annulus.
+
+    Specifically, if the ideal edge belongs to a component that gets
+    destroyed after crushing, then this routine returns None. Otherwise, this
+    routine returns a pair (t,e), where t is the index (after crushing) of a
+    tetrahedron that will meet the ideal edge after crushing, and e is an
+    edge number of this tetrahedron that corresponds to the ideal edge.
+
+    Warning:
+    --> This routine assumes that the annulus is a separating surface in a
+        one-vertex triangulation of a 3-manifold with torus boundary. This
+        routine does not check that these conditions are satisfied.
+    """
+    tri = annulus.triangulation()
+    for e in tri.edges():
+        ei = e.index()
+        if ( e.isBoundary() and
+                annulus.edgeWeight(ei).safeLongValue() >= 2 ):
+            # Found suitable start segment.
+            start = ( ei, 1 )
+            break
+    return _findIdealEdge( annulus, start )
 
 
 def printIdealEdges(surfaces):
