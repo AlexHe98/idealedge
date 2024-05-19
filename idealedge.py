@@ -264,6 +264,12 @@ def idealEdges( surf, idealEdgeIndices=set() ):
     """
     tri = surf.triangulation()
     if isAnnulus(surf):
+        # We currently don't allow any pre-existing ideal edges.
+        if len(idealEdgeIndices) > 0:
+            msg = ( "For annuli, this routine currently requires " +
+                    "idealEdgeIndices to be empty." )
+            raise ValueError(msg)
+
         # If this annulus meets two distinct boundary components, then we get
         # two ideal edges that are not directly obtained by crushing (rather,
         # they are obtained by filling),
@@ -283,6 +289,20 @@ def idealEdges( surf, idealEdgeIndices=set() ):
         ans.add( _findIdealEdge( surf, start ) )
         return ans
     elif isSphere(surf):
+        # We currently insist that there is exactly one pre-existing ideal
+        # edge, and that this edge intersects surf exactly twice.
+        if len(idealEdgeIndices) != 1:
+            msg = ( "For 2-spheres, this routine currently requires " +
+                    "idealEdgeIndices to consist of exactly one edge." )
+            raise ValueError(msg)
+        index = idealEdgeIndices.pop()
+        if surf.edgeWeight(index) != 2:
+            msg = ( "For 2-spheres, this routine currently requires " +
+                    "the ideal edge to intersect the given surface " +
+                    "exactly twice." )
+            raise ValueError(msg)
+
+        #TODO
         raise NotImplementedError()
     else:
         allowed = "annuli and 2-spheres"
