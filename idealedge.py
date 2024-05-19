@@ -9,9 +9,43 @@ from regina import *
 def isAnnulus(s):
     """
     Is the given normal surface s an annulus?
+
+    Pre-condition:
+    --> It is known in advance that s is connected.
     """
     return ( s.isCompact() and s.isOrientable() and
             s.hasRealBoundary() and s.eulerChar() == 0 )
+
+
+def isSphere(s):
+    """
+    Is the given normal surface s a 2-sphere?
+
+    Pre-condition:
+    --> It is known in advance that s is connected.
+    """
+    return ( s.isCompact() and s.isOrientable() and
+            not s.hasRealBoundary() and s.eulerChar() == 2 )
+
+
+def countIncidentBoundaries(s):
+    """
+    In the triangulation containing the given normal surface s, counts the
+    number of boundary components that are incident to s.
+
+    Pre-condition:
+    --> The surface s lies inside a triangulation with only real boundary
+        components.
+    """
+    tri = s.triangulation()
+    incident = set()
+    for e in tri.edges():
+        bdy = e.boundaryComponent()
+        if ( bdy is None ) or ( bdy.index() in incident ):
+            continue
+        if s.edgeWeight( e.index() ) > 0:
+            incident.add( bdy.index() )
+    return len(incident)
 
 
 def survivingSegments(surf):
@@ -230,7 +264,14 @@ def idealEdges( surf, idealEdgeIndices=set() ):
     """
     tri = surf.triangulation()
     if isAnnulus(surf):
-        #TODO Check how many boundary components surf meets.
+        # If this annulus meets two distinct boundary components, then we get
+        # two ideal edges that are not directly obtained by crushing (rather,
+        # they are obtained by filling),
+        if countIncidentBoundaries(surf) == 2:
+            return set()
+
+        # If this annulus only meets one boundary component, then one of the
+        # two ideal edges is obtained by crushing, so we need to find it.
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
