@@ -204,40 +204,64 @@ def _findIdealEdge( surf, start ):
     return None
 
 
-def idealEdge(annulus):
+def idealEdges( surf, idealEdgeIndices=set() ):
     """
-    Returns details of the ideal edge after crushing the given annulus.
+    Returns information about the ideal edges after crushing surf.
 
-    Specifically, if the ideal edge belongs to a component that gets
-    destroyed after crushing, then this routine returns None. Otherwise, this
-    routine returns a pair (t,e), where t is the index (after crushing) of a
-    tetrahedron that will meet the ideal edge after crushing, and e is an
-    edge number of this tetrahedron that corresponds to the ideal edge.
+    The given idealEdgeIndices should be a set (empty by default) of
+    pre-existing ideal edges that intersect surf.
 
-    Warning:
-    --> This routine assumes that the annulus is a separating surface in a
-        one-vertex triangulation of a 3-manifold with torus boundary. This
-        routine does not check that these conditions are satisfied.
+    In detail, this routine returns a (possibly empty) set of pairs of the
+    form (t,e), where:
+    --> t is the index (after crushing) of a tetrahedron that will meet one
+        of the ideal edges after crushing; and
+    --> e is an edge number of this tetrahedron that corresponds to the ideal
+        edge in question.
+
+    This routine currently only accepts inputs of the following forms:
+    --> a normal annulus, together with an empty set of ideal edges; or
+    --> a normal 2-sphere, together with a set consisting of a single ideal
+        edge that meets the 2-sphere exactly twice.
+    In every other case, this routine raises ValueError.
+
+    Pre-condition:
+    --> If surf has real boundary, then each boundary component that it meets
+        must be a two-triangle torus.
     """
-    tri = annulus.triangulation()
-    for e in tri.edges():
-        ei = e.index()
-        if ( e.isBoundary() and
-                annulus.edgeWeight(ei).safeLongValue() >= 2 ):
-            # Found suitable start segment.
-            start = ( ei, 1 )
-            break
-    return _findIdealEdge( annulus, start )
+    tri = surf.triangulation()
+    if isAnnulus(surf):
+        #TODO Check how many boundary components surf meets.
+        for e in tri.edges():
+            ei = e.index()
+            if ( e.isBoundary() and
+                    surf.edgeWeight(ei).safeLongValue() >= 2 ):
+                # Found suitable start segment.
+                start = ( ei, 1 )
+                break
+        ans = set()
+        ans.add( _findIdealEdge( surf, start ) )
+        return ans
+    elif isSphere(surf):
+        raise NotImplementedError()
+    else:
+        allowed = "annuli and 2-spheres"
+        msg = ( "This routine currently only accepts {} ".format(allowed) +
+                "for the input surface." )
+        raise ValueError(msg)
 
 
-def printIdealEdges(surfaces):
+def printAnnulusIdealEdges(surfaces):
     """
     Prints details of all ideal edges obtained by crushing annuli in the
     given list of normal surfaces.
+
+    Pre-condition:
+    --> For each annulus in the given list of surfaces, every boundary
+        component incident to this annulus must be a two-triangle torus.
     """
     for i, surf in enumerate(surfaces):
         if isAnnulus(surf):
-            print( i, idealEdge(surf) )
+            print( i, idealEdges(surf) )
 
 
 def fillIdealEdge(tri):
@@ -372,6 +396,10 @@ def crushAnnuli( surfaces, threshold=30 ):
     a component whose number of tetrahedra is strictly less than the
     threshold (default 30), it will also use more computationally intensive
     recognition algorithms involving normal surfaces.
+
+    Pre-condition:
+    --> For each annulus in the given list of surfaces, every boundary
+        component incident to this annulus must be a two-triangle torus.
     """
     start = default_timer()
     results = Container( "Crush annuli" )
@@ -403,7 +431,11 @@ def crushAnnuli( surfaces, threshold=30 ):
             tri.setLabel( tri.adornedLabel(adorn) )
         components = []
         results.insertChildLast(tri)
-        idEdge = idealEdge(surf)
+        idEdgeDetails = idealEdges(surf)
+        if idEdgeDetails:
+            idEdge = idealEdges(surf).pop()
+        else:
+            idEdge = None
         idComp = None
         if tri.isEmpty():
             tri.setLabel( tri.label() + ": Empty" )
