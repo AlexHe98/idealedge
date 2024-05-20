@@ -494,13 +494,14 @@ def decomposeAlong( surf, idealEdgeIndices ):
 
     In detail, each item in the returned list is a pair (T,I), where:
     --> T is a 3-manifold triangulation;
-    --> I is a collection of ideal edge loops in T; and
+    --> I is a list of ideal edge loops in T, specified using pairs of
+        tetrahedron indices and edge numbers; and
     --> the corresponding component is obtained by drilling out I from T.
 
     Pre-condition
     --> The given surf is a vertex normal surface.
     """
-    loopInfo = idealLoops(surf)
+    loopInfo = idealLoops( surf, idealEdgeIndices )
     crushed = surf.crush()
 
     # Split crushed into its components.
@@ -508,7 +509,7 @@ def decomposeAlong( surf, idealEdgeIndices ):
         components = [crushed]
         compLoopInfo = [loopInfo]
     else:
-        components = list( tri.triangulateComponents() )
+        components = list( crushed.triangulateComponents() )
 
         # Work out what the new tetrahedron indices are in all the components
         # of crushed.
@@ -521,14 +522,62 @@ def decomposeAlong( surf, idealEdgeIndices ):
 
         # Shift tetrahedron indices for the ideal loops to account for the
         # renumbering computed above.
-        compLoopInfo = []
+        compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
         for seq in loopInfo:
             shiftedSeq = []
             for t, e in seq:
+                compi = crushed.tetrahedron(t).component().index()
                 shiftedSeq.append( ( shiftedIndex[t], e ) )
-            compLoopInfo.append(shiftedSeq)
+            compLoopInfo[compi].append(shiftedSeq)
 
-    #
+    # Use compLoopInfo to find the ideal loops in each component, and (if
+    # necessary) modify the components to ensure that each ideal loop is
+    # formed by a single edge.
+    output = []
+    for compi in range( crushed.countComponents() ):
+        tri = components[compi]
+        loopInfo = compLoopInfo[compi]
+        loops = []
+        for seq in loopInfo:
+            for t, e in seq[1:]:
+                tri.pinchEdge( tri.tetrahedron(t).edge(e) )
+            loops.append( seq[0] )
+        output.append( (tri, loops) )
+    return output
+
+
+def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
+    """
+    """
+    results = Container( "Decompose along 2-spheres" )
+    surfaces.insertChildLast(results)
+    for surfNum, surf in enumerate(surfaces):
+        if not isSphere(surf):
+            continue
+        try:
+            pieces = decomposeAlong( surf, {idealEdgeIndex} )
+        except ValueError:
+            continue
+        container = Container( "Decompose along #{}".format(surfNum) )
+        results.insertChildLast(container)
+        for i, piece in enumerate(pieces):
+            tri = PacketOfTriangulation3( piece[0] )
+            loops = piece[1]
+            tri.setLabel( "Component #{}: {}".format(
+                i, loops ) )
+            container.insertChildLast(tri)
+
+            # Build drilled 3-manifold.
+            drilled = PacketOfTriangulation3(tri)
+            drilled.setLabel( tri.adornedLabel(
+                "Pinched ideal edges" ) )
+            tri.insertChildLast(drilled)
+            for t, e in loops:
+                drilled.pinchEdge( drilled.tetrahedron(t).edge(e) )
+            #TODO
+            pass
+        #TODO
+        pass
     #TODO
     return
 
