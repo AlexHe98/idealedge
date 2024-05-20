@@ -43,7 +43,7 @@ def countIncidentBoundaries(s):
         bdy = e.boundaryComponent()
         if ( bdy is None ) or ( bdy.index() in incident ):
             continue
-        if s.edgeWeight( e.index() ) > 0:
+        if s.edgeWeight( e.index() ).safeLongValue() > 0:
             incident.add( bdy.index() )
     return len(incident)
 
@@ -80,7 +80,7 @@ def survivingSegments(surf):
     return survivors
 
 
-def _findIdealEdge( surf, start ):
+def _findIdealEdge( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
@@ -92,7 +92,8 @@ def _findIdealEdge( surf, start ):
     edge number of this tetrahedron that corresponds to the ideal edge.
     """
     tri = surf.triangulation()
-    targets = survivingSegments(surf)
+    if targets is None:
+        targets = survivingSegments(surf)
 
     # If the start segment is one of the targets, then we are already done.
     output = targets.get( start, None )
@@ -261,6 +262,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
     In every other case, this routine raises ValueError.
 
     Pre-condition:
+    --> The given surf should be a vertex normal surface.
     --> If surf has real boundary, then each boundary component that it meets
         must be a two-triangle torus.
     """
@@ -280,6 +282,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
 
         # If this annulus only meets one boundary component, then one of the
         # two ideal edges is obtained by crushing, so we need to find it.
+        loops = set()
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
@@ -287,10 +290,10 @@ def idealLoops( surf, idealEdgeIndices=set() ):
                 # Found suitable start segment.
                 start = ( ei, 1 )
                 break
-        ans = set()
         idEdge = _findIdealEdge( surf, start )
-        ans.add( (idEdge,) )
-        return ans
+        if idEdge is not None:
+            loops.add( (idEdge,) )
+        return loops
     elif isSphere(surf):
         # We currently insist that there is exactly one pre-existing ideal
         # edge, and that this edge intersects surf exactly twice.
@@ -298,16 +301,39 @@ def idealLoops( surf, idealEdgeIndices=set() ):
             msg = ( "For 2-spheres, this routine currently requires " +
                     "idealEdgeIndices to consist of exactly one edge." )
             raise ValueError(msg)
-        index = idealEdgeIndices.pop()
-        if surf.edgeWeight(index) != 2:
+        ei = idealEdgeIndices.pop()
+        if surf.edgeWeight(ei).safeLongValue() != 2:
             msg = ( "For 2-spheres, this routine currently requires " +
                     "the ideal edge to intersect the given surface " +
                     "exactly twice." )
             raise ValueError(msg)
 
-        # 
-        #TODO
-        raise NotImplementedError()
+        # This 2-sphere splits the ideal edge into two pieces, each of which
+        # could form a new ideal loop after crushing. One of the potential
+        # ideal loops would consist of a single ideal edge, while the other
+        # would be a sequence of two ideal edges.
+        loops = set()
+        targets = survivingSegments(surf)
+
+        # Start by searching for the single-edge ideal loop.
+        start = ( ei, 1 )
+        idEdge = _findIdealEdge( surf, start, targets )
+        if idEdge is not None:
+            loops.add( (idEdge,) )
+
+        # Now search for the two-edge ideal loop.
+        start = ( ei, 0 )
+        first = _findIdealEdge( surf, start, targets )
+        if first is not None:
+            start = ( ei, 2 )
+            second = _findIdealEdge( surf, start, targets )
+            if second is None:
+                raise RuntimeError(
+                        "Unexpectedly failed to find ideal edge." )
+            loops.add( ( first, second ) )
+
+        # Done!
+        return loops
     else:
         allowed = "annuli and 2-spheres"
         msg = ( "This routine currently only accepts {} ".format(allowed) +
@@ -318,7 +344,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
 def printAnnulusIdealEdges(surfaces):
     """
     Prints details of all ideal edges obtained by crushing annuli in the
-    given list of normal surfaces.
+    given list of vertex normal surfaces.
 
     Pre-condition:
     --> For each annulus in the given list of surfaces, every boundary
@@ -327,6 +353,18 @@ def printAnnulusIdealEdges(surfaces):
     for i, surf in enumerate(surfaces):
         if isAnnulus(surf):
             print( i, idealLoops(surf) )
+
+
+def printSphereIdealEdges( surfaces, idealEdgeIndex ):
+    """
+    Prints details of all ideal edges obtained by crushing 2-spheres in the
+    given list of vertex normal surfaces.
+    """
+    for i, surf in enumerate(surfaces):
+        if isSphere(surf):
+            if surf.edgeWeight(idealEdgeIndex).safeLongValue() != 2:
+                continue
+            print( i, idealLoops( surf, {idealEdgeIndex} ) )
 
 
 def fillIdealEdge(tri):
