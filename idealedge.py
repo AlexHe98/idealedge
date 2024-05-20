@@ -238,21 +238,23 @@ def _findIdealEdge( surf, start ):
     return None
 
 
-def idealEdges( surf, idealEdgeIndices=set() ):
+def idealLoops( surf, idealEdgeIndices=set() ):
     """
-    Returns information about the ideal edges after crushing surf.
+    Returns information about the ideal loops after crushing surf.
 
     The given idealEdgeIndices should be a set (empty by default) of
     pre-existing ideal edges that intersect surf.
 
-    In detail, this routine returns a (possibly empty) set of pairs of the
-    form (t,e), where:
+    In detail, each ideal loop after crushing is given by a sequence of ideal
+    edges. Each such sequence is encoded as a tuple of pairs of the form
+    (t,e), where:
     --> t is the index (after crushing) of a tetrahedron that will meet one
-        of the ideal edges after crushing; and
+        of the ideal edges; and
     --> e is an edge number of this tetrahedron that corresponds to the ideal
         edge in question.
+    This routine returns a set containing all of these ideal loop sequences.
 
-    This routine currently only accepts inputs of the following forms:
+    Currently, this routine only accepts inputs of the following forms:
     --> a normal annulus, together with an empty set of ideal edges; or
     --> a normal 2-sphere, together with a set consisting of a single ideal
         edge that meets the 2-sphere exactly twice.
@@ -286,7 +288,8 @@ def idealEdges( surf, idealEdgeIndices=set() ):
                 start = ( ei, 1 )
                 break
         ans = set()
-        ans.add( _findIdealEdge( surf, start ) )
+        idEdge = _findIdealEdge( surf, start )
+        ans.add( (idEdge,) )
         return ans
     elif isSphere(surf):
         # We currently insist that there is exactly one pre-existing ideal
@@ -302,6 +305,7 @@ def idealEdges( surf, idealEdgeIndices=set() ):
                     "exactly twice." )
             raise ValueError(msg)
 
+        # 
         #TODO
         raise NotImplementedError()
     else:
@@ -322,7 +326,7 @@ def printAnnulusIdealEdges(surfaces):
     """
     for i, surf in enumerate(surfaces):
         if isAnnulus(surf):
-            print( i, idealEdges(surf) )
+            print( i, idealLoops(surf) )
 
 
 def fillIdealEdge(tri):
@@ -492,9 +496,11 @@ def crushAnnuli( surfaces, threshold=30 ):
             tri.setLabel( tri.adornedLabel(adorn) )
         components = []
         results.insertChildLast(tri)
-        idEdgeDetails = idealEdges(surf)
+        idEdgeDetails = idealLoops(surf)
         if idEdgeDetails:
-            idEdge = idealEdges(surf).pop()
+            # There is only one ideal loop, given by a length-1 sequence of
+            # ideal edges.
+            idEdge = idEdgeDetails.pop()[0]
         else:
             idEdge = None
         idComp = None
