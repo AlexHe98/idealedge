@@ -243,8 +243,8 @@ def idealLoops( surf, idealEdgeIndices=set() ):
     """
     Returns information about the ideal loops after crushing surf.
 
-    The given idealEdgeIndices should be a set (empty by default) of
-    pre-existing ideal edges that intersect surf.
+    The given idealEdgeIndices should be a set (empty by default) of indices
+    of pre-existing ideal edges.
 
     In detail, each ideal loop after crushing is given by a sequence of ideal
     edges. Each such sequence is encoded as a tuple of pairs of the form
@@ -253,7 +253,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
         of the ideal edges; and
     --> e is an edge number of this tetrahedron that corresponds to the ideal
         edge in question.
-    This routine returns a set containing all of these ideal loop sequences.
+    This routine returns a list containing all of these ideal loop sequences.
 
     Currently, this routine only accepts inputs of the following forms:
     --> a normal annulus, together with an empty set of ideal edges; or
@@ -278,11 +278,11 @@ def idealLoops( surf, idealEdgeIndices=set() ):
         # two ideal edges that are not directly obtained by crushing (rather,
         # they are obtained by filling),
         if countIncidentBoundaries(surf) == 2:
-            return set()
+            return []
 
         # If this annulus only meets one boundary component, then one of the
         # two ideal edges is obtained by crushing, so we need to find it.
-        loops = set()
+        loops = []
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
@@ -292,7 +292,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
                 break
         idEdge = _findIdealEdge( surf, start )
         if idEdge is not None:
-            loops.add( (idEdge,) )
+            loops.append( (idEdge,) )
         return loops
     elif isSphere(surf):
         # We currently insist that there is exactly one pre-existing ideal
@@ -312,14 +312,14 @@ def idealLoops( surf, idealEdgeIndices=set() ):
         # could form a new ideal loop after crushing. One of the potential
         # ideal loops would consist of a single ideal edge, while the other
         # would be a sequence of two ideal edges.
-        loops = set()
+        loops = []
         targets = survivingSegments(surf)
 
         # Start by searching for the single-edge ideal loop.
         start = ( ei, 1 )
         idEdge = _findIdealEdge( surf, start, targets )
         if idEdge is not None:
-            loops.add( (idEdge,) )
+            loops.append( (idEdge,) )
 
         # Now search for the two-edge ideal loop.
         start = ( ei, 0 )
@@ -330,7 +330,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
             if second is None:
                 raise RuntimeError(
                         "Unexpectedly failed to find ideal edge." )
-            loops.add( ( first, second ) )
+            loops.append( ( first, second ) )
 
         # Done!
         return loops
@@ -488,6 +488,51 @@ def recogniseSummands( tri, threshold=40 ):
     return True
 
 
+def decomposeAlong( surf, idealEdgeIndices ):
+    """
+    Decomposes along surf, and returns a list of the resulting components.
+
+    In detail, each item in the returned list is a pair (T,I), where:
+    --> T is a 3-manifold triangulation;
+    --> I is a collection of ideal edge loops in T; and
+    --> the corresponding component is obtained by drilling out I from T.
+
+    Pre-condition
+    --> The given surf is a vertex normal surface.
+    """
+    loopInfo = idealLoops(surf)
+    crushed = surf.crush()
+
+    # Split crushed into its components.
+    if crushed.isConnected():
+        components = [crushed]
+        compLoopInfo = [loopInfo]
+    else:
+        components = list( tri.triangulateComponents() )
+
+        # Work out what the new tetrahedron indices are in all the components
+        # of crushed.
+        shiftedIndex = []
+        compSize = [0] * crushed.countComponents()
+        for i in range( crushed.size() ):
+            compi = crushed.tetrahedron(i).component().index()
+            shiftedIndex.append( compSize[compi] )
+            compSize[compi] += 1
+
+        # Shift tetrahedron indices for the ideal loops to account for the
+        # renumbering computed above.
+        compLoopInfo = []
+        for seq in loopInfo:
+            shiftedSeq = []
+            for t, e in seq:
+                shiftedSeq.append( ( shiftedIndex[t], e ) )
+            compLoopInfo.append(shiftedSeq)
+
+    #
+    #TODO
+    return
+
+
 def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
@@ -538,7 +583,7 @@ def crushAnnuli( surfaces, threshold=30 ):
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
             # ideal edges.
-            idEdge = idEdgeDetails.pop()[0]
+            idEdge = idEdgeDetails[0][0]
         else:
             idEdge = None
         idComp = None
