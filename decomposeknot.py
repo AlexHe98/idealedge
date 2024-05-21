@@ -3,12 +3,10 @@ Decompose knots into prime knots.
 """
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong
+from idealedge import decomposeAlong, isSphere
 
 
 def embeddedLoopPacket( tri, tetIndex, edgeNum ):
-    """
-    """
     packet = PacketOfTriangulation3(tri)
     drilled = PacketOfTriangulation3(tri)
     packet.insertChildLast(drilled)
@@ -78,7 +76,10 @@ def decompose( knot, insertAsChild=False, timeout=10 ):
         # Keep attempting to crush 2-spheres until we make progress, either
         # by reducing the total number of tetrahedra, or by decomposing into
         # two nontrivial knots. If this fails, then we have a prime piece.
-        enumeration = TreeEnumeration_EulerPositive( tri, NS_STANDARD )
+        #NOTE In practice, enumerating in quad coordinates (without any extra
+        #   constraints) seems to be much faster than enumerating in standard
+        #   coordinates (both with and without a positive Euler constraint).
+        enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
             if default_timer() - start > timeout:
                 msg = ( "Timed out with {} ".format( len(toProcess) ) +
@@ -94,6 +95,8 @@ def decompose( knot, insertAsChild=False, timeout=10 ):
             # We only want 2-spheres that intersect the ideal edge in either
             # 0 points or 2 points.
             sphere = enumeration.buildSurface()
+            if not isSphere(sphere):
+                continue
             wt = sphere.edgeWeight(edgeIndex).safeLongValue()
             if wt == 0:
                 # In this case, crushing does nothing topologically, except
