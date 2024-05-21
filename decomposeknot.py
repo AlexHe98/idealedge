@@ -1,11 +1,24 @@
 """
 Decompose knots into prime knots.
 """
+from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong
 
 
-def embedInTriangulation(knot):
+def embeddedLoopPacket( tri, tetIndex, edgeNum ):
+    """
+    """
+    packet = PacketOfTriangulation3(tri)
+    drilled = PacketOfTriangulation3(tri)
+    packet.insertChildLast(drilled)
+    drilled.pinchEdge( drilled.tetrahedron(tetIndex).edge(edgeNum) )
+    drilled.intelligentSimplify()
+    drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
+    return packet
+
+
+def embedInTriangulation( knot, insertAsChild=False ):
     """
     Constructs a triangulation of the 3-sphere in which the given knot is
     embedded as an edge loop.
@@ -41,9 +54,100 @@ def embedInTriangulation(knot):
     # Close up the boundary.
     layer = tri.layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
-    if isinstance( knot, PacketOfLink ):
-        packet = PacketOfTriangulation3(tri)
+    if insertAsChild and isinstance( knot, PacketOfLink ):
+        packet = embeddedLoopPacket( tri, tet.index(), edgeNum )
         packet.setLabel( knot.adornedLabel(
             "Embedded as edge #{}".format( tet.edge(edgeNum).index() ) ) )
         knot.insertChildLast(packet)
     return ( tri, tet.index(), edgeNum )
+
+
+def decompose( knot, insertAsChild=False, timeout=10 ):
+    """
+    Decomposes the given knot into prime pieces, represented as 3-spheres
+    in which the prime knots are embedded as edge loops.
+    """
+    start = default_timer()
+    primes = []
+    toProcess = [ embedInTriangulation(knot) ]
+    while toProcess:
+        initial = toProcess.pop()
+        tri, tetIndex, edgeNum = initial
+        edgeIndex = tri.tetrahedron(tetIndex).edge(edgeNum).index()
+
+        # Keep attempting to crush 2-spheres until we make progress, either
+        # by reducing the total number of tetrahedra, or by decomposing into
+        # two nontrivial knots. If this fails, then we have a prime piece.
+        enumeration = TreeEnumeration_EulerPositive( tri, NS_STANDARD )
+        while True:
+            if default_timer() - start > timeout:
+                msg = ( "Timed out with {} ".format( len(toProcess) ) +
+                        "triangulation(s) still to process." )
+                raise RuntimeError(msg)
+            if not enumeration.next():
+                # We exhausted all the vertex 2-spheres without making
+                # progress, which can only happen if the initial edge loop
+                # was prime.
+                primes.append(initial)
+                break
+
+            # We only want 2-spheres that intersect the ideal edge in either
+            # 0 points or 2 points.
+            sphere = enumeration.buildSurface()
+            wt = sphere.edgeWeight(edgeIndex).safeLongValue()
+            if wt == 0:
+                # In this case, crushing does nothing topologically, except
+                # possibly splitting off trivial 3-sphere components.
+                decomposed = decomposeAlong( sphere, {edgeIndex} )
+                for pieceTri, pieceLoops in decomposed:
+                    if pieceLoops:
+                        # Found the piece containing the knot.
+                        break
+
+                # Just to be sure, check that we made progress by reducing
+                # the number of tetrahedra.
+                if pieceTri.size() < tri.size():
+                    pieceTetIndex, pieceEdgeNum = pieceLoops[0]
+                    toProcess.append( (
+                        pieceTri, pieceTetIndex, pieceEdgeNum ) )
+                    break
+                else:
+                    continue
+            if wt != 2:
+                continue
+
+            # At this point, we have a 2-sphere that intersects the ideal
+            # edge in 2 points. Do we make progress after decomposing?
+            decomposed = decomposeAlong( sphere, {edgeIndex} )
+            nontrivialPieces = []
+            nontrivialSize = 0
+            for pieceTri, pieceLoops in decomposed:
+                # Is the edge loop a nontrivial knot?
+                pieceTetIndex, pieceEdgeNum = pieceLoops[0]
+                drilled = Triangulation3(pieceTri)
+                drilled.pinchEdge( drilled.tetrahedron(
+                    pieceTetIndex ).edge(pieceEdgeNum) )
+                drilled.intelligentSimplify()
+                if drilled.isSolidTorus():
+                    continue
+                nontrivialPieces.append( (
+                    pieceTri, pieceTetIndex, pieceEdgeNum ) )
+                nontrivialSize += pieceTri.size()
+            if ( nontrivialSize < tri.size()
+                    or len(nontrivialPieces) > 1 ):
+                # We made progress!
+                toProcess.extend(nontrivialPieces)
+                break
+    time = default_timer() - start
+    msg = "{:.6f} seconds".format(time)
+    print(msg)
+    if insertAsChild and isinstance( knot, PacketOfLink ):
+        container = Container( "Primes: {}".format(msg) )
+        knot.insertChildLast(container)
+        for i, p in enumerate(primes):
+            tri, tetIndex, edgeNum = p
+            packet = embeddedLoopPacket( tri, tetIndex, edgeNum )
+            packet.setLabel( "Prime knot #{} (Embedded as edge #{})".format(
+                i, tri.tetrahedron(tetIndex).edge(edgeNum).index() ) )
+            container.insertChildLast(packet)
+    return primes
