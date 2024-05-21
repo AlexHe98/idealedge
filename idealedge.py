@@ -567,6 +567,16 @@ def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
                 i, loops ) )
             container.insertChildLast(tri)
 
+            # Is tri a 3-sphere?
+            if ( tri.knowsSphere() or tri.size() < threshold ):
+                if tri.isSphere():
+                    name = "S3"
+                else:
+                    name = "Not S3"
+            else:
+                name = "Not recognised"
+            tri.setLabel( tri.label() + ": {}".format(name) )
+
             # Build drilled 3-manifold.
             drilled = PacketOfTriangulation3(tri)
             drilled.setLabel( tri.adornedLabel(
@@ -574,6 +584,19 @@ def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
             tri.insertChildLast(drilled)
             for t, e in loops:
                 drilled.pinchEdge( drilled.tetrahedron(t).edge(e) )
+                drilled.intelligentSimplify()
+
+                # Is drilled a solid torus?
+                if ( drilled.knowsSolidTorus() or
+                        drilled.size() < threshold ):
+                    if drilled.isSolidTorus():
+                        name = "Ideal solid torus"
+                    else:
+                        name = "Ideal, not solid torus"
+                else:
+                    name = "Ideal, not recognised"
+                drilled.setLabel(
+                        drilled.label() + ": {}".format(name) )
             #TODO
             pass
         #TODO
