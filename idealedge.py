@@ -258,7 +258,7 @@ def idealLoops( surf, idealEdgeIndices=set() ):
     Currently, this routine only accepts inputs of the following forms:
     --> a normal annulus, together with an empty set of ideal edges; or
     --> a normal 2-sphere, together with a set consisting of a single ideal
-        edge that meets the 2-sphere exactly twice.
+        edge that intersects the 2-sphere in either 0 points or 2 points.
     In every other case, this routine raises ValueError.
 
     Pre-condition:
@@ -296,44 +296,55 @@ def idealLoops( surf, idealEdgeIndices=set() ):
         return loops
     elif isSphere(surf):
         # We currently insist that there is exactly one pre-existing ideal
-        # edge, and that this edge intersects surf exactly twice.
+        # edge.
         if len(idealEdgeIndices) != 1:
             msg = ( "For 2-spheres, this routine currently requires " +
                     "idealEdgeIndices to consist of exactly one edge." )
             raise ValueError(msg)
+
+        # We also currently insist that the ideal edge intersects the
+        # 2-sphere in either 0 points or 2 points.
         ei = idealEdgeIndices.pop()
-        if surf.edgeWeight(ei).safeLongValue() != 2:
-            msg = ( "For 2-spheres, this routine currently requires " +
-                    "the ideal edge to intersect the given surface " +
-                    "exactly twice." )
+        wt = surf.edgeWeight(ei).safeLongValue()
+        if wt == 0:
+            # This 2-sphere is disjoint from the ideal edge, so crushing
+            # should leave the ideal edge untouched.
+            targets = survivingSegments(surf)
+            start = ( ei, 0 )
+            idEdge = _findIdealEdge( surf, start, targets )
+            return [ (idEdge,) ]
+        elif wt == 2:
+            # This 2-sphere splits the ideal edge into two pieces, each of
+            # which could form a new ideal loop after crushing. One of the
+            # potential ideal loops would consist of a single ideal edge,
+            # while the other would be a sequence of two ideal edges.
+            loops = []
+            targets = survivingSegments(surf)
+
+            # Start by searching for the single-edge ideal loop.
+            start = ( ei, 1 )
+            idEdge = _findIdealEdge( surf, start, targets )
+            if idEdge is not None:
+                loops.append( (idEdge,) )
+
+            # Now search for the two-edge ideal loop.
+            start = ( ei, 0 )
+            first = _findIdealEdge( surf, start, targets )
+            if first is not None:
+                start = ( ei, 2 )
+                second = _findIdealEdge( surf, start, targets )
+                if second is None:
+                    raise RuntimeError(
+                            "Unexpectedly failed to find ideal edge." )
+                loops.append( ( first, second ) )
+
+            # Done!
+            return loops
+        else:
+            msg = ( "For 2-spheres, this routine currently requires the " +
+                    "ideal edge to intersect the given surface in either " +
+                    "0 points or 2 points." )
             raise ValueError(msg)
-
-        # This 2-sphere splits the ideal edge into two pieces, each of which
-        # could form a new ideal loop after crushing. One of the potential
-        # ideal loops would consist of a single ideal edge, while the other
-        # would be a sequence of two ideal edges.
-        loops = []
-        targets = survivingSegments(surf)
-
-        # Start by searching for the single-edge ideal loop.
-        start = ( ei, 1 )
-        idEdge = _findIdealEdge( surf, start, targets )
-        if idEdge is not None:
-            loops.append( (idEdge,) )
-
-        # Now search for the two-edge ideal loop.
-        start = ( ei, 0 )
-        first = _findIdealEdge( surf, start, targets )
-        if first is not None:
-            start = ( ei, 2 )
-            second = _findIdealEdge( surf, start, targets )
-            if second is None:
-                raise RuntimeError(
-                        "Unexpectedly failed to find ideal edge." )
-            loops.append( ( first, second ) )
-
-        # Done!
-        return loops
     else:
         allowed = "annuli and 2-spheres"
         msg = ( "This routine currently only accepts {} ".format(allowed) +
