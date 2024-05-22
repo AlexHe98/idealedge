@@ -80,23 +80,32 @@ def decompose( knot, insertAsChild=False, timeout=10 ):
         #   constraints) seems to be much faster than enumerating in standard
         #   coordinates (both with and without a positive Euler constraint).
         enumeration = TreeEnumeration( tri, NS_QUAD )
+        quadExhausted = False
         while True:
             if default_timer() - start > timeout:
                 msg = ( "Timed out with {} ".format( len(toProcess) ) +
                         "triangulation(s) still to process." )
                 raise RuntimeError(msg)
-            if not enumeration.next():
-                # We exhausted all the vertex 2-spheres without making
-                # progress, which can only happen if the initial edge loop
-                # was prime.
-                primes.append(initial)
-                break
+            if not quadExhausted:
+                #print("Quad search")
+                if enumeration.next():
+                    sphere = enumeration.buildSurface()
+                    if not isSphere(sphere):
+                        continue
+                else:
+                    quadExhausted = True
+                    standard = TreeEnumeration_EulerPositive(
+                            tri, NS_STANDARD )
+            if quadExhausted:
+                #print("Standard search")
+                if standard.next():
+                    sphere = standard.buildSurface()
+                else:
+                    primes.append(initial)
+                    break
 
             # We only want 2-spheres that intersect the ideal edge in either
             # 0 points or 2 points.
-            sphere = enumeration.buildSurface()
-            if not isSphere(sphere):
-                continue
             wt = sphere.edgeWeight(edgeIndex).safeLongValue()
             if wt == 0:
                 # In this case, crushing does nothing topologically, except
