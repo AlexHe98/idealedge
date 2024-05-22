@@ -60,14 +60,17 @@ def embedInTriangulation( knot, insertAsChild=False ):
     return ( tri, tet.index(), edgeNum )
 
 
-def decompose( knot, insertAsChild=False, timeout=10 ):
+def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as edge loops.
     """
     start = default_timer()
+    if verbose:
+        prev = start
     primes = []
     toProcess = [ embedInTriangulation(knot) ]
+    steps = 0
     while toProcess:
         initial = toProcess.pop()
         tri, tetIndex, edgeNum = initial
@@ -82,10 +85,17 @@ def decompose( knot, insertAsChild=False, timeout=10 ):
         enumeration = TreeEnumeration( tri, NS_QUAD )
         quadExhausted = False
         while True:
-            if default_timer() - start > timeout:
-                msg = ( "Timed out with {} ".format( len(toProcess) ) +
-                        "triangulation(s) still to process." )
+            steps += 1
+            time = default_timer()
+            elapsed = time - start
+            if elapsed > timeout:
+                msg = "Timed out after {} step(s).".format(steps)
                 raise RuntimeError(msg)
+            elif verbose and time - prev > 5:
+                prev = time
+                msg = "Time: {:.6f}. Steps: {}.".format(
+                        elapsed, steps )
+                print(msg)
             if not quadExhausted:
                 #print("Quad search")
                 if enumeration.next():
@@ -150,11 +160,11 @@ def decompose( knot, insertAsChild=False, timeout=10 ):
                 # We made progress!
                 toProcess.extend(nontrivialPieces)
                 break
-    time = default_timer() - start
-    msg = "{:.6f} seconds".format(time)
+    elapsed = default_timer() - start
+    msg = "Time: {:.6f}. Steps: {}.".format( elapsed, steps )
     print(msg)
     if insertAsChild and isinstance( knot, PacketOfLink ):
-        container = Container( "Primes: {}".format(msg) )
+        container = Container( "Primes ({})".format(msg) )
         knot.insertChildLast(container)
         for i, p in enumerate(primes):
             tri, tetIndex, edgeNum = p
