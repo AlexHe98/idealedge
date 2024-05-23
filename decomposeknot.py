@@ -79,11 +79,10 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         # Keep attempting to crush 2-spheres until we make progress, either
         # by reducing the total number of tetrahedra, or by decomposing into
         # two nontrivial knots. If this fails, then we have a prime piece.
-        #NOTE In practice, enumerating in quad coordinates (without any extra
-        #   constraints) seems to be much faster than enumerating in standard
-        #   coordinates (both with and without a positive Euler constraint).
+        #NOTE Brief experimentation suggests that quad coordinates perform
+        #   much better than standard coordinates (regardless of whether we
+        #   add positive Euler characteristic as an extra constraint).
         enumeration = TreeEnumeration( tri, NS_QUAD )
-        quadExhausted = False
         while True:
             steps += 1
             time = default_timer()
@@ -96,23 +95,16 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 msg = "Time: {:.6f}. Steps: {}.".format(
                         elapsed, steps )
                 print(msg)
-            if not quadExhausted:
-                #print("Quad search")
-                if enumeration.next():
-                    sphere = enumeration.buildSurface()
-                    if not isSphere(sphere):
-                        continue
-                else:
-                    quadExhausted = True
-                    standard = TreeEnumeration_EulerPositive(
-                            tri, NS_STANDARD )
-            if quadExhausted:
-                #print("Standard search")
-                if standard.next():
-                    sphere = standard.buildSurface()
-                else:
-                    primes.append(initial)
-                    break
+
+            # Get next 2-sphere. If there are no more 2-spheres, then we must
+            # have found a prime piece.
+            if enumeration.next():
+                sphere = enumeration.buildSurface()
+                if not isSphere(sphere):
+                    continue
+            else:
+                primes.append(initial)
+                break
 
             # We only want 2-spheres that intersect the ideal edge in either
             # 0 points or 2 points.
@@ -160,6 +152,8 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 # We made progress!
                 toProcess.extend(nontrivialPieces)
                 break
+
+    # Output some auxiliary information before returning the list of primes.
     elapsed = default_timer() - start
     msg = "Time: {:.6f}. Steps: {}.".format( elapsed, steps )
     print(msg)
