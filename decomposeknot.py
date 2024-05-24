@@ -126,7 +126,9 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                         pieceTri, pieceTetIndex, pieceEdgeNum ) )
                     break
                 else:
-                    continue
+                    msg = ( "Unexpected failure to reduce the number " +
+                            "of tetrahedra." )
+                    raise RuntimeError(msg)
             if wt != 2:
                 continue
 
@@ -152,6 +154,10 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 # We made progress!
                 toProcess.extend(nontrivialPieces)
                 break
+            else:
+                #TODO This must be an error, otherwise algorithm doesn't
+                #   actually work.
+                raise RuntimeError( "Unexpected failure to make progress." )
 
     # Output some auxiliary information before returning the list of primes.
     elapsed = default_timer() - start
