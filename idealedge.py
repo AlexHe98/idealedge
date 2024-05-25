@@ -239,15 +239,15 @@ def _findIdealEdge( surf, start, targets=None ):
     return None
 
 
-def idealLoops( surf, idealEdgeIndices=set() ):
+def idealLoops( surf, oldLoops=set() ):
     """
     Returns information about the ideal loops after crushing surf.
 
-    The given idealEdgeIndices should be a set (empty by default) of indices
-    of pre-existing ideal edges.
+    The given oldLoops list (which is empty by default) should be a list
+    consisting of pre-existing ideal edges.
 
     In detail, each ideal loop after crushing is given by a sequence of ideal
-    edges. Each such sequence is encoded as a tuple of pairs of the form
+    edges. Each such sequence is encoded as a list of pairs of the form
     (t,e), where:
     --> t is the index (after crushing) of a tetrahedron that will meet one
         of the ideal edges; and
@@ -256,9 +256,9 @@ def idealLoops( surf, idealEdgeIndices=set() ):
     This routine returns a list containing all of these ideal loop sequences.
 
     Currently, this routine only accepts inputs of the following forms:
-    --> a normal annulus, together with an empty set of ideal edges; or
+    --> a normal annulus, together with an empty list of ideal loops; or
     --> a normal 2-sphere, together with a set consisting of a single ideal
-        edge that intersects the 2-sphere in either 0 points or 2 points.
+        loop that intersects the 2-sphere in either 0 points or 2 points.
     In every other case, this routine raises ValueError.
 
     Pre-condition:
@@ -268,10 +268,10 @@ def idealLoops( surf, idealEdgeIndices=set() ):
     """
     tri = surf.triangulation()
     if isAnnulus(surf):
-        # We currently don't allow any pre-existing ideal edges.
-        if len(idealEdgeIndices) > 0:
+        # We currently don't allow any pre-existing ideal loops.
+        if len(oldLoops) > 0:
             msg = ( "For annuli, this routine currently requires " +
-                    "idealEdgeIndices to be empty." )
+                    "oldLoops to be empty." )
             raise ValueError(msg)
 
         # If this annulus meets two distinct boundary components, then we get
@@ -296,31 +296,33 @@ def idealLoops( surf, idealEdgeIndices=set() ):
         return loops
     elif isSphere(surf):
         # We currently insist that there is exactly one pre-existing ideal
-        # edge.
-        if len(idealEdgeIndices) != 1:
+        # loop.
+        if len(oldLoops) != 1:
             msg = ( "For 2-spheres, this routine currently requires " +
-                    "idealEdgeIndices to consist of exactly one edge." )
+                    "oldLoops to consist of exactly one ideal loop." )
             raise ValueError(msg)
 
-        # We also currently insist that the ideal edge intersects the
+        # We also currently insist that the ideal loop intersects the
         # 2-sphere in either 0 points or 2 points.
-        ei = idealEdgeIndices.pop()
-        wt = surf.edgeWeight(ei).safeLongValue()
+        oldLoop = oldLoops[0]
+        wt = oldLoop.weight(surf)
         if wt == 0:
-            # This 2-sphere is disjoint from the ideal edge, so crushing
-            # should leave the ideal edge untouched.
+            # This 2-sphere is disjoint from the ideal loop, so crushing
+            # should leave the ideal loop untouched.
             targets = survivingSegments(surf)
-            start = ( ei, 0 )
-            idEdge = _findIdealEdge( surf, start, targets )
-            return [ (idEdge,) ]
+            newLoop = []
+            for edgeIndex in oldLoop:
+                start = ( edgeIndex, 0 )
+                newLoop.append( _findIdealEdge( surf, start, targets ) )
+            return [newLoop]
         elif wt == 2:
-            # This 2-sphere splits the ideal edge into two pieces, each of
-            # which could form a new ideal loop after crushing. One of the
-            # potential ideal loops would consist of a single ideal edge,
-            # while the other would be a sequence of two ideal edges.
-            loops = []
+            # This 2-sphere splits the ideal loop into two pieces, each of
+            # which could form a new ideal loop after crushing.
+            newLoops = []
             targets = survivingSegments(surf)
 
+            #
+            #TODO Account for multi-edge loop case.
             # Start by searching for the single-edge ideal loop.
             start = ( ei, 1 )
             idEdge = _findIdealEdge( surf, start, targets )

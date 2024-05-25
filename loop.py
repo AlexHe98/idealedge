@@ -62,3 +62,25 @@ class IdealLoop:
 
     def __len__(self):
         return len( self._edgeIndices )
+
+    def __iter__(self):
+        return iter( self._edgeIndices )
+
+    def triangulation(self):
+        """
+        Returns the triangulation that contains this ideal loop.
+        """
+        return self._tri
+
+    def weight( self, surf ):
+        """
+        Returns the number of times this ideal loop intersects the given
+        normal surface surf.
+
+        Pre-condition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        wt = 0
+        for i in self._edgeIndices:
+            wt += surf.edgeWeight(i).safeLongValue()
+        return wt
