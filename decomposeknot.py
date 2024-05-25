@@ -69,6 +69,7 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     if verbose:
         prev = start
     primes = []
+    #TODO Account for multi-edge ideal loops.
     toProcess = [ embedInTriangulation(knot) ]
     steps = 0
     while toProcess:
