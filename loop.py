@@ -40,6 +40,7 @@ class IdealLoop:
         self._tri = edge.triangulation()
         self._edgeIndices = []
         self._vertIndices = set()
+        self._tails = []
         firstVert = edge.vertex(0)
         lastVert = edge.vertex(0)
         error = False
@@ -47,14 +48,16 @@ class IdealLoop:
             self._edgeIndices.append( edge.index() )
             self._vertIndices.add( lastVert.index() )
             if edge.vertex(0) == lastVert:
+                self._tails.append(0)
                 lastVert = edge.vertex(1)
             elif edge.vertex(1) == lastVert:
+                self._tails.append(1)
                 lastVert = edge.vertex(0)
             else:
                 error = True
                 break
         if ( error or ( lastVert != firstVert ) or
-                ( len( self._vertIndices() ) != len(edges) ) ):
+                ( len( self._vertIndices ) != len(edges) ) ):
             msg = ( "Sequence of edges does not describe an embedded " +
                     "closed loop." )
             raise ValueError(msg)
@@ -84,3 +87,56 @@ class IdealLoop:
         for i in self._edgeIndices:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
+
+    def components( self, surf ):
+        """
+        Returns a list describing the components into which the given normal
+        surface surf splits this ideal loop.
+
+        In detail, each item of the returned list is a list of edge segments.
+        """
+        lastComponent = []
+        splitIndex = None
+        for i in range( len(self) ):
+            edgeIndex = self._edgeIndices[i]
+            wt = surf.edgeWeight(edgeIndex).safeLongValue()
+            if wt > 0:
+                if self._tails[i] == 0:
+                    lastComponent.append( ( edgeIndex, 0 ) )
+                    headSeg = ( edgeIndex, wt )
+                else:
+                    lastComponent.append( ( edgeIndex, wt ) )
+                    headSeg = ( edgeIndex, 0 )
+                splitIndex = i
+                break
+            else:
+                lastComponent.append( ( edgeIndex, 0 ) )
+        if splitIndex is None:
+            return [lastComponent]
+
+        # The given surf splits this ideal loop into multiple components, so
+        # we need to do a bit more work.
+        components = []
+        while splitIndex is not None:
+            for seg in range( 1, wt ):
+                components.append( [ ( edgeIndex, seg ) ] )
+            nextComponent = [headSeg]
+            continuation = splitIndex + 1
+            splitIndex = None
+            for i in range( continuation, len(self) ):
+                edgeIndex = self._edgeIndices[i]
+                wt = surf.edgeWeight(edgeIndex).safeLongValue()
+                if wt > 0:
+                    if self._tails[i] == 0:
+                        nextComponent.append( ( edgeIndex, 0 ) )
+                        headSeg = ( edgeIndex, wt )
+                    else:
+                        nextComponent.append( ( edgeIndex, wt ) )
+                        headSeg = ( edgeIndex, 0 )
+                    splitIndex = i
+                    components.append(nextComponent)
+                    break
+                else:
+                    nextComponent.append( ( edgeIndex, 0 ) )
+        components.append( [ *nextComponent, *lastComponent ] )
+        return components
