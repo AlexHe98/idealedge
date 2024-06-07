@@ -244,7 +244,7 @@ def idealLoops( surf, oldLoops=set() ):
     Returns information about the ideal loops after crushing surf.
 
     The given oldLoops list (which is empty by default) should be a list
-    consisting of pre-existing ideal edges.
+    consisting of pre-existing ideal loops.
 
     In detail, each ideal loop after crushing is given by a sequence of ideal
     edges. Each such sequence is encoded as a list of pairs of the form
@@ -255,6 +255,12 @@ def idealLoops( surf, oldLoops=set() ):
         edge in question.
     This routine returns a list containing all of these ideal loop sequences.
 
+    A caveat to the above is that when the given surf is a 2-sphere, there is
+    one possible degenerate ideal loop: a pair of edges giving an unknotted
+    loop, such that the two edges get merged to become a single non-loop edge
+    after crushing. This routine does not check for such degenerate cases, so
+    they might appear in the returned list.
+
     Currently, this routine only accepts inputs of the following forms:
     --> a normal annulus, together with an empty list of ideal loops; or
     --> a normal 2-sphere, together with a set consisting of a single ideal
@@ -262,7 +268,7 @@ def idealLoops( surf, oldLoops=set() ):
     In every other case, this routine raises ValueError.
 
     Pre-condition:
-    --> The given surf should be a vertex normal surface.
+    --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf has real boundary, then each boundary component that it meets
         must be a two-triangle torus.
     """
