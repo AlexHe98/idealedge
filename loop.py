@@ -38,15 +38,29 @@ class IdealLoop:
         """
         edge = edges[0]
         self._tri = edge.triangulation()
+
+        # Store edges of this loop in order. If we think of each edge as
+        # being oriented from tail to head, so that we have an orientation on
+        # the entire loop, then it's also useful to know whether vertex 0 or
+        # vertex 1 is the tail.
         self._edgeIndices = []
-        self._vertIndices = set()
         self._tails = []
+
+        # Store vertices of this loop as a set, to make it as easy as
+        # possible to check whether two loops are disjoint.
+        self._vertIndices = set()
+
+        # While populating the member variables, also test that the given
+        # list of edges actually describes an embedded closed loop.
         firstVert = edge.vertex(0)
         lastVert = edge.vertex(0)
-        error = False
+        broken = False
         for edge in edges:
             self._edgeIndices.append( edge.index() )
             self._vertIndices.add( lastVert.index() )
+
+            # Find the tail of the current edge, which should join up with
+            # the last vertex that we have found so far.
             if edge.vertex(0) == lastVert:
                 self._tails.append(0)
                 lastVert = edge.vertex(1)
@@ -54,9 +68,11 @@ class IdealLoop:
                 self._tails.append(1)
                 lastVert = edge.vertex(0)
             else:
-                error = True
+                # Neither vertex of the current edge joins up with the last
+                # vertex.
+                broken = True
                 break
-        if ( error or ( lastVert != firstVert ) or
+        if ( broken or ( lastVert != firstVert ) or
                 ( len( self._vertIndices ) != len(edges) ) ):
             msg = ( "Sequence of edges does not describe an embedded " +
                     "closed loop." )
@@ -95,12 +111,18 @@ class IdealLoop:
 
         In detail, each item of the returned list is a list of edge segments.
         """
+        # We find all the components by simply walking around the loop. Take
+        # the first component to be the one that begins *after* the first
+        # point at which this loop gets split by the given surf. Thus, our
+        # walk starts in the middle of the last component, so we need to make
+        # sure to remember all the segments of the last component.
         lastComponent = []
         splitIndex = None
         for i in range( len(self) ):
             edgeIndex = self._edgeIndices[i]
             wt = surf.edgeWeight(edgeIndex).safeLongValue()
             if wt > 0:
+                # We found the point at which the first component begins.
                 if self._tails[i] == 0:
                     lastComponent.append( ( edgeIndex, 0 ) )
                     headSeg = ( edgeIndex, wt )
@@ -110,8 +132,12 @@ class IdealLoop:
                 splitIndex = i
                 break
             else:
+                # We are still in the middle of the last component.
                 lastComponent.append( ( edgeIndex, 0 ) )
         if splitIndex is None:
+            # If this loop is disjoint from the surface, then there is only
+            # one component, and we have already found all the constituent
+            # segments of this component.
             return [lastComponent]
 
         # The given surf splits this ideal loop into multiple components, so
@@ -119,14 +145,24 @@ class IdealLoop:
         components = []
         while splitIndex is not None:
             for seg in range( 1, wt ):
+                # For wt >= 2, we get a sequence of short components given by
+                # type-2 segments.
                 components.append( [ ( edgeIndex, seg ) ] )
+
+            # We now need to find all the segments that comprise the next
+            # (long) component.
             nextComponent = [headSeg]
             continuation = splitIndex + 1
+
+            # Unless we have already returned to the last component, we must
+            # eventually find another split point at which the next component
+            # begins.
             splitIndex = None
             for i in range( continuation, len(self) ):
                 edgeIndex = self._edgeIndices[i]
                 wt = surf.edgeWeight(edgeIndex).safeLongValue()
                 if wt > 0:
+                    # Found the next split point.
                     if self._tails[i] == 0:
                         nextComponent.append( ( edgeIndex, 0 ) )
                         headSeg = ( edgeIndex, wt )
@@ -137,6 +173,9 @@ class IdealLoop:
                     components.append(nextComponent)
                     break
                 else:
+                    # We are still in the middle of the current component.
                     nextComponent.append( ( edgeIndex, 0 ) )
+
+        # Don't forget to include the last component.
         components.append( [ *nextComponent, *lastComponent ] )
         return components
