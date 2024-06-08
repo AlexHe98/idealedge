@@ -322,32 +322,24 @@ def idealLoops( surf, oldLoops=set() ):
                 newLoop.append( _findIdealEdge( surf, start, targets ) )
             return [newLoop]
         elif wt == 2:
+            #TODO Does the same logic work for any weight?
             # This 2-sphere splits the ideal loop into two pieces, each of
             # which could form a new ideal loop after crushing.
             newLoops = []
             targets = survivingSegments(surf)
+            for comp in oldLoop.components():
+                seg = comp[0]
+                idEdge = _findIdealEdge( surf, seg, targets )
+                if idEdge is None:
+                    # The current component does not survive after crushing.
+                    continue
 
-            #
-            #TODO Account for multi-edge loop case.
-            # Start by searching for the single-edge ideal loop.
-            start = ( ei, 1 )
-            idEdge = _findIdealEdge( surf, start, targets )
-            if idEdge is not None:
-                loops.append( (idEdge,) )
-
-            # Now search for the two-edge ideal loop.
-            start = ( ei, 0 )
-            first = _findIdealEdge( surf, start, targets )
-            if first is not None:
-                start = ( ei, 2 )
-                second = _findIdealEdge( surf, start, targets )
-                if second is None:
-                    raise RuntimeError(
-                            "Unexpectedly failed to find ideal edge." )
-                loops.append( ( first, second ) )
-
-            # Done!
-            return loops
+                # The current component survives after crushing.
+                newLoop = [idEdge]
+                for seg in comp[1:]:
+                    newLoop.append( _findIdealEdge( surf, seg, targets ) )
+                newLoops.append(newLoop)
+            return newLoops
         else:
             msg = ( "For 2-spheres, this routine currently requires the " +
                     "ideal edge to intersect the given surface in either " +
