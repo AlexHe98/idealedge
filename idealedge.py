@@ -239,7 +239,7 @@ def _findIdealEdge( surf, start, targets=None ):
     return None
 
 
-def idealLoops( surf, oldLoops=set() ):
+def idealLoops( surf, oldLoops=[] ):
     """
     Returns information about the ideal loops after crushing surf.
 
@@ -263,7 +263,7 @@ def idealLoops( surf, oldLoops=set() ):
 
     Currently, this routine only accepts inputs of the following forms:
     --> a normal annulus, together with an empty list of ideal loops; or
-    --> a normal 2-sphere, together with a set consisting of a single ideal
+    --> a normal 2-sphere, together with a list consisting of a single ideal
         loop that intersects the 2-sphere in either 0 points or 2 points.
     In every other case, this routine raises ValueError.
 
@@ -272,6 +272,8 @@ def idealLoops( surf, oldLoops=set() ):
     --> If surf has real boundary, then each boundary component that it meets
         must be a two-triangle torus.
     """
+    #TODO Allow extra ideal loops disjoint from the surface.
+    #TODO Update usage of this routine.
     tri = surf.triangulation()
     if isAnnulus(surf):
         # We currently don't allow any pre-existing ideal loops.
