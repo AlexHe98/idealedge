@@ -91,6 +91,19 @@ class IdealLoop:
         """
         return self._tri
 
+    def intersects( self, surf ):
+        """
+        Returns True if and only if this ideal loop has nonempty intersection
+        with the given normal surface surf.
+
+        Pre-condition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        for i in self._edgeIndices:
+            if surf.edgeWeight(i).safeLongValue() > 0:
+                return True
+        return False
+
     def weight( self, surf ):
         """
         Returns the number of times this ideal loop intersects the given
