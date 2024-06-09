@@ -246,14 +246,17 @@ def idealLoops( surf, oldLoops=[] ):
     The given oldLoops list (which is empty by default) should be a list of
     pre-existing ideal loops, encoded as instances of IdealLoop.
 
-    The given surface should be either:
-    --> a quadrilateral vertex normal annulus or 2-sphere that is disjoint
-        from all of the pre-existing ideal loops; or
-    --> a quadrilateral vertex normal 2-sphere that intersects one of the
-        pre-existing ideal loops in exactly two points, and is disjoint from
-        all of the other pre-existing ideal loops.
-    This routine raises ValueError if the given surface is not one of these
-    allowed types.
+    The given normal surface surf should be either:
+    --> an annulus or 2-sphere that is disjoint from all of the pre-existing
+        ideal loops; or
+    --> a separating 2-sphere that intersects one of the pre-existing ideal
+        loops in exactly two points, and is disjoint from all of the other
+        pre-existing ideal loops.
+    This routine raises ValueError if surf is not of one of these allowed
+    types.
+
+    We also require surf to be a quadrilateral vertex normal surface, but
+    this routine does not check this condition.
 
     This routine returns a list describing the ideal loops that would arise
     after crushing the given surface. Each such ideal loop is encoded as a
@@ -269,149 +272,78 @@ def idealLoops( surf, oldLoops=[] ):
     might appear in the returned list.
 
     Pre-condition:
+    --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
     """
+    #TODO Update usage of this routine.
+    # The given surf must be either a 2-sphere or an annulus. Moreover:
+    # - In the 2-sphere case, we allow one of the ideal loops to have
+    #   nonempty intersection with the surface.
+    # - In the annulus case, we might create a new ideal loop by flattening
+    #   a chain of boundary bigon faces.
+    if isSphere(surf):
+        loopMustBeDisjoint = False
+        possibleLoopFromBoundary = False
+    elif isAnnulus(surf):
+        loopMustBeDisjoint = True
+        possibleLoopFromBoundary = True
+    else:
+        allowed = "annuli and 2-spheres"
+        msg = ( "This routine currently only accepts {} ".format(allowed) +
+                "for the input surface." )
+        raise ValueError(msg)
+
+    # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
     newLoops = []
-
-    # Start by dealing with the pre-existing ideal loops that are disjoint
-    # from the given surface.
-    intLoops = []
+    targets = survivingSegments(surf)
     for oldLoop in oldLoops:
-        if oldLoop.intersects(surf):
-            intLoops.append(oldLoop)
-            continue
-
-        #TODO
-        pass
-    #TODO
-    if isAnnulus(surf):
-        # We insist that every ideal loop is disjoint from the given annulus.
-        for oldLoop in oldLoops:
-            if oldLoop.intersects(surf):
-                msg = ( "For annuli, this routine requires every " +
-                        "pre-existing ideal loop to be disjoint from " +
-                        "the surface." )
+        wt = oldLoop.weight(surf)
+        if wt == 2:
+            if loopMustBeDisjoint:
+                msg = ( "Too many intersections between the surface and " +
+                        "the pre-existing ideal loops." )
                 raise ValueError(msg)
 
-        # First find all the ideal loops that come from the pre-existing
-        # ideal loops.
-        newLoops = []
-        #TODO
+            # For a 2-sphere, we currently only allow at most one ideal loop
+            # to intersect the surface.
+            loopMustBeDisjoint = True
+        elif wt != 0:
+            msg = ( "Each ideal loop must intersect the surface in " +
+                    "either exactly 0 points or exactly 2 points." )
+            raise ValueError(msg)
 
-        # There are also two ways to get *new* ideal loops:
-        # - We can crush an orbit of type-2 segments to create a single new
-        #   edge that forms an ideal loop.
-        # - We can create new ideal loops by filling in pinched 2-sphere
-        #   boundary components that arise after crushing.
-        # This routine only finds ideal loops of the first type, and these
-        # only occur when both boundary curves of the given annulus lie in
-        # the same boundary component.
-        if countIncidentBoundaries(surf) == 2:
-            return newLoops
+        # What happens to the current oldLoop after crushing?
+        for comp in oldLoop.components():
+            seg = comp[0]
+            idEdge = _findIdealEdge( surf, seg, targets )
+            if idEdge is None:
+                # This component does not survive after crushing.
+                continue
+
+            # This component survives after crushing.
+            newLoop = [idEdge]
+            for seg in comp[1:]:
+                newLoop.append( _findIdealEdge( surf, seg, targets ) )
+            newLoops.append(newLoop)
+
+    # Will there also be an entirely new ideal loop created by flattening a
+    # chain of boundary bigons?
+    if possibleLoopFromBoundary and countIncidentBoundaries(surf) == 1:
+        # Find a segment incident to the chain of boundary bigons.
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
                     surf.edgeWeight(ei).safeLongValue() >= 2 ):
-                # Found suitable start segment.
-                start = ( ei, 1 )
+                seg = ( ei, 1 )
                 break
-        idEdge = _findIdealEdge( surf, start )
+        idEdge = _findIdealEdge( surf, seg )
         if idEdge is not None:
             newLoops.append( [idEdge] )
-        return newLoops
-    elif isSphere(surf):
-        #
-        #TODO
-        pass
-    else:
-        allowed = "annuli and 2-spheres"
-        msg = ( "This routine currently only accepts {} ".format(allowed) +
-                "for the input surface." )
-        raise ValueError(msg)
-    #TODO
-    #
-    #TODO Allow extra ideal loops disjoint from the surface.
-    #TODO Update usage of this routine.
-    tri = surf.triangulation()
-    if isAnnulus(surf):
-        # We currently don't allow any pre-existing ideal loops.
-        if len(oldLoops) > 0:
-            msg = ( "For annuli, this routine currently requires " +
-                    "oldLoops to be empty." )
-            raise ValueError(msg)
 
-        # If this annulus meets two distinct boundary components, then we get
-        # two ideal edges that are not directly obtained by crushing (rather,
-        # they are obtained by filling),
-        if countIncidentBoundaries(surf) == 2:
-            return []
-
-        # If this annulus only meets one boundary component, then one of the
-        # two ideal edges is obtained by crushing, so we need to find it.
-        loops = []
-        for e in tri.edges():
-            ei = e.index()
-            if ( e.isBoundary() and
-                    surf.edgeWeight(ei).safeLongValue() >= 2 ):
-                # Found suitable start segment.
-                start = ( ei, 1 )
-                break
-        idEdge = _findIdealEdge( surf, start )
-        if idEdge is not None:
-            loops.append( (idEdge,) )
-        return loops
-    elif isSphere(surf):
-        # We currently insist that there is exactly one pre-existing ideal
-        # loop.
-        if len(oldLoops) != 1:
-            msg = ( "For 2-spheres, this routine currently requires " +
-                    "oldLoops to consist of exactly one ideal loop." )
-            raise ValueError(msg)
-
-        # We also currently insist that the ideal loop intersects the
-        # 2-sphere in either 0 points or 2 points.
-        oldLoop = oldLoops[0]
-        wt = oldLoop.weight(surf)
-        if wt == 0:
-            # This 2-sphere is disjoint from the ideal loop, so crushing
-            # should leave the ideal loop untouched.
-            targets = survivingSegments(surf)
-            newLoop = []
-            for edgeIndex in oldLoop:
-                start = ( edgeIndex, 0 )
-                newLoop.append( _findIdealEdge( surf, start, targets ) )
-            return [newLoop]
-        elif wt == 2:
-            #TODO Does the same logic work for any weight?
-            # This 2-sphere splits the ideal loop into two pieces, each of
-            # which could form a new ideal loop after crushing.
-            newLoops = []
-            targets = survivingSegments(surf)
-            for comp in oldLoop.components():
-                seg = comp[0]
-                idEdge = _findIdealEdge( surf, seg, targets )
-                if idEdge is None:
-                    # The current component does not survive after crushing.
-                    continue
-
-                # The current component survives after crushing.
-                newLoop = [idEdge]
-                for seg in comp[1:]:
-                    newLoop.append( _findIdealEdge( surf, seg, targets ) )
-                newLoops.append(newLoop)
-            return newLoops
-        else:
-            msg = ( "For 2-spheres, this routine currently requires the " +
-                    "ideal edge to intersect the given surface in either " +
-                    "0 points or 2 points." )
-            raise ValueError(msg)
-    else:
-        allowed = "annuli and 2-spheres"
-        msg = ( "This routine currently only accepts {} ".format(allowed) +
-                "for the input surface." )
-        raise ValueError(msg)
+    # Done!
+    return newLoops
 
 
 def printAnnulusIdealEdges(surfaces):
