@@ -4,6 +4,7 @@ triangulation of a 3-manifold with torus boundary.
 """
 from timeit import default_timer
 from regina import *
+from loop import IdealLoop
 
 
 def isAnnulus(s):
@@ -276,7 +277,6 @@ def idealLoops( surf, oldLoops=[] ):
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
     """
-    #TODO Update usage of this routine.
     # The given surf must be either a 2-sphere or an annulus. Moreover:
     # - In the 2-sphere case, we allow one of the ideal loops to have
     #   nonempty intersection with the surface.
@@ -369,7 +369,9 @@ def printSphereIdealEdges( surfaces, idealEdgeIndex ):
         if isSphere(surf):
             if surf.edgeWeight(idealEdgeIndex).safeLongValue() != 2:
                 continue
-            print( i, idealLoops( surf, {idealEdgeIndex} ) )
+            idealLoop = IdealLoop( [
+                surf.triangulation().edge(idealEdgeIndex) ] )
+            print( i, idealLoops( surf, [idealLoop] ) )
 
 
 def fillIdealEdge(tri):
@@ -555,7 +557,11 @@ def decomposeAlong( surf, idealEdgeIndices ):
     Pre-condition
     --> The given surf is a vertex normal surface.
     """
-    loopInfo = idealLoops( surf, idealEdgeIndices )
+    oldLoops = []
+    for ei in idealEdgeIndices:
+        oldLoops.append( IdealLoop( [
+            surf.triangulation().edge(ei) ] ) )
+    loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
 
     # Split crushed into its components.
