@@ -4,9 +4,11 @@ Decompose knots into prime knots.
 from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
+from loop import IdealLoop
 
 
-def embeddedLoopPacket( tri, tetIndex, edgeNum ):
+def embeddedLoopPacket( tri, loop ):
+    #TODO Update.
     packet = PacketOfTriangulation3(tri)
     drilled = PacketOfTriangulation3(tri)
     packet.insertChildLast(drilled)
@@ -19,13 +21,11 @@ def embeddedLoopPacket( tri, tetIndex, edgeNum ):
 def embedInTriangulation( knot, insertAsChild=False ):
     """
     Constructs a triangulation of the 3-sphere in which the given knot is
-    embedded as an edge loop.
+    embedded as an ideal loop.
 
-    This routine returns a triple (t,i,e), where:
-    --> t is a triangulation of the 3-sphere;
-    --> i is the index of a tetrahedron incident to the knot edge; and
-    --> e is an edge number of tetrahedron i that corresponds to the knot
-        edge.
+    This routine returns a pair (T,L), where:
+    --> T is a triangulation of the 3-sphere; and
+    --> L is an instance of IdealLoop in T.
 
     Warning:
     --> This routine currently uses fast heuristics to attempt to construct
@@ -49,13 +49,15 @@ def embedInTriangulation( knot, insertAsChild=False ):
     tet = emb.tetrahedron()
     edgeNum = emb.face()
 
-    # Close up the boundary.
+    # Close up the boundary and build the IdealLoop.
     layer = tri.layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
+    idealEdge = tet.edge(edgeNum)
+    loop = IdealLoop( [idealEdge] )
     if insertAsChild and isinstance( knot, PacketOfLink ):
         packet = embeddedLoopPacket( tri, tet.index(), edgeNum )
         packet.setLabel( knot.adornedLabel(
-            "Embedded as edge #{}".format( tet.edge(edgeNum).index() ) ) )
+            "Embedded as edge #{}".format( idealEdge.index() ) ) )
         knot.insertChildLast(packet)
     return ( tri, tet.index(), edgeNum )
 
@@ -69,20 +71,27 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     if verbose:
         prev = start
     primes = []
-    #TODO Account for multi-edge ideal loops.
-    toProcess = [ embedInTriangulation(knot) ]
+    if knot.complement().isSolidTorus():
+        toProcess = []
+    else:
+        toProcess = [ embedInTriangulation(knot) ]
     steps = 0
     while toProcess:
-        initial = toProcess.pop()
-        tri, tetIndex, edgeNum = initial
+        # INVARIANT:
+        #   At this point, the following are guaranteed to hold:
+        #   --> Each element of toProcess is an edge-ideal triangulation of a
+        #       nontrivial knot.
+        #   --> Each element of primes is an edge-ideal triangulation of a
+        #       nontrivial *prime* knot.
+        #   --> The input knot is given by composing all of the knots
+        #       represented in toProcess and primes.
+        current = toProcess.pop()
+        tri, tetIndex, edgeNum = current
         edgeIndex = tri.tetrahedron(tetIndex).edge(edgeNum).index()
 
-        # Keep attempting to crush 2-spheres until we make progress, either
-        # by reducing the total number of tetrahedra, or by decomposing into
-        # two nontrivial knots. If this fails, then we have a prime piece.
-        #NOTE Brief experimentation suggests that quad coordinates perform
-        #   much better than standard coordinates (regardless of whether we
-        #   add positive Euler characteristic as an extra constraint).
+        # Search for a suitable quadrilateral vertex normal 2-sphere to
+        # crush. If no such 2-sphere exists, then the current edge-ideal
+        # triangulation represents a nontrivial prime knot.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
             steps += 1
@@ -107,6 +116,13 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 primes.append(initial)
                 break
 
+            # We only want 2-spheres that intersect the ideal loop in either
+            # exactly 0 points or exactly 2 points.
+            #TODO
+            pass
+        #TODO
+        pass
+    #TODO Account for multi-edge ideal loops.
             # We only want 2-spheres that intersect the ideal edge in either
             # 0 points or 2 points.
             wt = sphere.edgeWeight(edgeIndex).safeLongValue()
