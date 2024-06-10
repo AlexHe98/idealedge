@@ -4,7 +4,7 @@ triangulation of a 3-manifold with torus boundary.
 """
 from timeit import default_timer
 from regina import *
-from loop import IdealLoop
+from loop import NotLoop, IdealLoop
 
 
 def isAnnulus(s):
@@ -613,7 +613,14 @@ def decomposeAlong( surf, oldLoops=[] ):
             edgeList = []
             for t, e in seq:
                 edgeList.append( tri.tetrahedron(t).edge(e) )
-            loops.append( IdealLoop(edgeList) )
+
+            # Note that we could have a degenerate loop.
+            try:
+                loop = IdealLoop(edgeList)
+            except NotLoop:
+                continue
+            else:
+                loops.append(loop)
         #TODO Simplify if possible.
         output.append( ( tri, loops ) )
     return output

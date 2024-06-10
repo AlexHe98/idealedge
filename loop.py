@@ -19,6 +19,18 @@ def persistentLocation(face):
     return ( emb.tetrahedron().index(), emb.face() )
 
 
+class NotLoop(Exception):
+    """
+    Raised when attempting to build an ideal loop from a list of edges that
+    does not described an embedded closed loop.
+    """
+    def __init__( self, edges ):
+        indices = [ e.index() for e in edges ]
+        msg = ( "The edge sequence {} does not describe ".format(indices) +
+                "an embedded closed loop." )
+        super().__init__(msg)
+
+
 class IdealLoop:
     """
     A sequence of edges representing an embedded ideal loop in a 3-manifold
@@ -28,9 +40,9 @@ class IdealLoop:
         """
         Creates an ideal loop from the given list of edges.
 
-        Raises ValueError if the given list of edges does not form an
-        embedded closed loop, or if the order of the edges in the given list
-        does not match the order in which the edges appear in the loop.
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
 
         Pre-condition:
         --> The given list of edges is nonempty, and consists of edges that
@@ -52,10 +64,8 @@ class IdealLoop:
 
         # Check for degenerate case that isn't guaranteed to be ruled out by
         # the subsequent tests.
-        notLoop = ( "Sequence of edges does not describe an embedded " +
-                "closed loop." )
         if edges[0] == edges[1]:
-            raise ValueError(notLoop)
+            raise NotLoop(edges)
 
         # While populating the member variables, also test that the given
         # list of edges actually describes an embedded closed loop.
@@ -81,7 +91,7 @@ class IdealLoop:
                 break
         if ( broken or ( lastVert != firstVert ) or
                 ( len( self._vertIndices ) != len(edges) ) ):
-            raise ValueError(notLoop)
+            raise NotLoop(edges)
         return
 
     def __len__(self):
