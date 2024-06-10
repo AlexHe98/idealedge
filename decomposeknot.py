@@ -8,6 +8,10 @@ from loop import IdealLoop
 
 
 def embeddedLoopPacket( tri, loop ):
+    """
+    Returns a packet containing the given edge-ideal triangulation, with an
+    ideal triangulation of the drilled 3-manifold as a child.
+    """
     # Ideal triangulation given by drilling.
     drilled = PacketOfTriangulation3(tri)
     drillLocations = []
@@ -62,7 +66,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     idealEdge = tet.edge(edgeNum)
     loop = IdealLoop( [idealEdge] )
     if insertAsChild and isinstance( knot, PacketOfLink ):
-        packet = embeddedLoopPacket( tri, tet.index(), edgeNum )
+        packet = embeddedLoopPacket( tri, loop )
         packet.setLabel( knot.adornedLabel(
             "Embedded as edge #{}".format( idealEdge.index() ) ) )
         knot.insertChildLast(packet)
@@ -191,9 +195,17 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         container = Container( "Primes ({})".format(msg) )
         knot.insertChildLast(container)
         for i, p in enumerate(primes):
-            tri, tetIndex, edgeNum = p
-            packet = embeddedLoopPacket( tri, tetIndex, edgeNum )
-            packet.setLabel( "Prime knot #{} (Embedded as edge #{})".format(
-                i, tri.tetrahedron(tetIndex).edge(edgeNum).index() ) )
+            tri, loop = p
+            packet = embeddedLoopPacket( tri, loop )
+            loopEdgeIndices = list(loop)
+            if len(loop) == 1:
+                adorn = "Embedded as edge {}".format( loopEdgeIndices[0] )
+            else:
+                indices = ""
+                for ei in loopEdgeIndices[:-1]:
+                    indices += ", {}".format(ei)
+                adorn = "Embedded as edges {} and {}".format(
+                        indices[2:], loopEdgeIndices[-1] )
+            packet.setLabel( "Prime knot #{} ({})".format( i, adorn ) )
             container.insertChildLast(packet)
     return primes
