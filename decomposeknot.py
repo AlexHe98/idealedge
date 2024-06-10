@@ -76,7 +76,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
 def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
-    in which the prime knots are embedded as edge loops.
+    in which the prime knots are embedded as ideal loops.
     """
     start = default_timer()
     if verbose:
@@ -133,8 +133,13 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 # When the weight is 0, crushing does nothing topologically,
                 # except possibly splitting off a single 3-sphere component
                 # that doesn't even contain an ideal loop.
-                #TODO
-                pass
+                decomposed = decomposeAlong( sphere, [loop] )
+                for pieceTri, pieceLoops in decomposed:
+                    if pieceLoops:
+                        # Found the piece containing the knot.
+                        toProcess.append( ( pieceTri, pieceLoops[0] ) )
+                        break
+                break
             elif wt != 2:
                 continue
 
@@ -145,32 +150,6 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         #TODO
         pass
     #TODO Account for multi-edge ideal loops.
-            # We only want 2-spheres that intersect the ideal edge in either
-            # 0 points or 2 points.
-            wt = sphere.edgeWeight(edgeIndex).safeLongValue()
-            if wt == 0:
-                # In this case, crushing does nothing topologically, except
-                # possibly splitting off trivial 3-sphere components.
-                decomposed = decomposeAlong( sphere, {edgeIndex} )
-                for pieceTri, pieceLoops in decomposed:
-                    if pieceLoops:
-                        # Found the piece containing the knot.
-                        break
-
-                # Just to be sure, check that we made progress by reducing
-                # the number of tetrahedra.
-                if pieceTri.size() < tri.size():
-                    pieceTetIndex, pieceEdgeNum = pieceLoops[0]
-                    toProcess.append( (
-                        pieceTri, pieceTetIndex, pieceEdgeNum ) )
-                    break
-                else:
-                    msg = ( "Unexpected failure to reduce the number " +
-                            "of tetrahedra." )
-                    raise RuntimeError(msg)
-            if wt != 2:
-                continue
-
             # At this point, we have a 2-sphere that intersects the ideal
             # edge in 2 points. Do we make progress after decomposing?
             decomposed = decomposeAlong( sphere, {edgeIndex} )

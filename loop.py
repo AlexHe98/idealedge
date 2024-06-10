@@ -50,6 +50,13 @@ class IdealLoop:
         # possible to check whether two loops are disjoint.
         self._vertIndices = set()
 
+        # Check for degenerate case that isn't guaranteed to be ruled out by
+        # the subsequent tests.
+        notLoop = ( "Sequence of edges does not describe an embedded " +
+                "closed loop." )
+        if edges[0] == edges[1]:
+            raise ValueError(notLoop)
+
         # While populating the member variables, also test that the given
         # list of edges actually describes an embedded closed loop.
         firstVert = edge.vertex(0)
@@ -74,9 +81,7 @@ class IdealLoop:
                 break
         if ( broken or ( lastVert != firstVert ) or
                 ( len( self._vertIndices ) != len(edges) ) ):
-            msg = ( "Sequence of edges does not describe an embedded " +
-                    "closed loop." )
-            raise ValueError(msg)
+            raise ValueError(notLoop)
         return
 
     def __len__(self):

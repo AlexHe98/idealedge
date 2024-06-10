@@ -544,7 +544,7 @@ def snapEdge(edge):
     return True
 
 
-def decomposeAlong( surf, oldLoops ):
+def decomposeAlong( surf, oldLoops=[] ):
     """
     Decomposes along surf, and returns a list of the resulting components.
 
