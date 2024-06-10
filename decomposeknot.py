@@ -8,13 +8,20 @@ from loop import IdealLoop
 
 
 def embeddedLoopPacket( tri, loop ):
-    #TODO Update.
-    packet = PacketOfTriangulation3(tri)
+    # Ideal triangulation given by drilling.
     drilled = PacketOfTriangulation3(tri)
-    packet.insertChildLast(drilled)
-    drilled.pinchEdge( drilled.tetrahedron(tetIndex).edge(edgeNum) )
+    drillLocations = []
+    for ei in loop:
+        emb = tri.edge(ei).embedding(0)
+        drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+    for tet, edgeNum in drillLocations:
+        drilled.pinchEdge( tet.edge(edgeNum) )
     drilled.intelligentSimplify()
     drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
+
+    # Edge-ideal triangulation, with drilled triangulation as child.
+    packet = PacketOfTriangulation3(tri)
+    packet.insertChildLast(drilled)
     return packet
 
 
