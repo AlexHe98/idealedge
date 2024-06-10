@@ -68,9 +68,9 @@ def embedInTriangulation( knot, insertAsChild=False ):
     if insertAsChild and isinstance( knot, PacketOfLink ):
         packet = embeddedLoopPacket( tri, loop )
         packet.setLabel( knot.adornedLabel(
-            "Embedded as edge #{}".format( idealEdge.index() ) ) )
+            "Embedded as edge {}".format( idealEdge.index() ) ) )
         knot.insertChildLast(packet)
-    return ( tri, tet.index(), edgeNum )
+    return ( tri, loop )
 
 
 def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
@@ -97,8 +97,7 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
         current = toProcess.pop()
-        tri, tetIndex, edgeNum = current
-        edgeIndex = tri.tetrahedron(tetIndex).edge(edgeNum).index()
+        tri, loop = current
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the current edge-ideal
@@ -124,11 +123,23 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 if not isSphere(sphere):
                     continue
             else:
-                primes.append(initial)
+                primes.append(current)
                 break
 
             # We only want 2-spheres that intersect the ideal loop in either
             # exactly 0 points or exactly 2 points.
+            wt = loop.weight(sphere)
+            if wt == 0:
+                # When the weight is 0, crushing does nothing topologically,
+                # except possibly splitting off a single 3-sphere component
+                # that doesn't even contain an ideal loop.
+                #TODO
+                pass
+            elif wt != 2:
+                continue
+
+            # At this point, we have a 2-sphere that intersects the ideal
+            # loop in exactly 2 points.
             #TODO
             pass
         #TODO
