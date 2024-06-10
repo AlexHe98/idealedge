@@ -544,23 +544,36 @@ def snapEdge(edge):
     return True
 
 
-def decomposeAlong( surf, idealEdgeIndices ):
+def decomposeAlong( surf, oldLoops ):
     """
     Decomposes along surf, and returns a list of the resulting components.
 
     In detail, each item in the returned list is a pair (T,I), where:
     --> T is a 3-manifold triangulation;
-    --> I is a list of ideal edge loops in T, specified using pairs of
-        tetrahedron indices and edge numbers; and
+    --> I is a list of ideal loops in T, specified using instances of
+        IdealLoop; and
     --> the corresponding component is obtained by drilling out I from T.
 
+    The given oldLoops list (which is empty by default) should be a list of
+    pre-existing ideal loops, encoded as instances of IdealLoop.
+
+    The given normal surface surf should be either:
+    --> an annulus or 2-sphere that is disjoint from all of the pre-existing
+        ideal loops; or
+    --> a separating 2-sphere that intersects one of the pre-existing ideal
+        loops in exactly two points, and is disjoint from all of the other
+        pre-existing ideal loops.
+    This routine raises ValueError if surf is not of one of these allowed
+    types.
+
+    We also require surf to be a quadrilateral vertex normal surface, but
+    this routine does not check this condition.
+
     Pre-condition
-    --> The given surf is a vertex normal surface.
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> If surf is an annulus, then each boundary component that it meets
+        must be a two-triangle torus.
     """
-    oldLoops = []
-    for ei in idealEdgeIndices:
-        oldLoops.append( IdealLoop( [
-            surf.triangulation().edge(ei) ] ) )
     loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
 
@@ -590,19 +603,19 @@ def decomposeAlong( surf, idealEdgeIndices ):
                 shiftedSeq.append( ( shiftedIndex[t], e ) )
             compLoopInfo[compi].append(shiftedSeq)
 
-    # Use compLoopInfo to find the ideal loops in each component, and (if
-    # necessary) modify the components to ensure that each ideal loop is
-    # formed by a single edge.
+    # Use compLoopInfo to find the ideal loops in each component.
     output = []
     for compi in range( crushed.countComponents() ):
         tri = components[compi]
         loopInfo = compLoopInfo[compi]
         loops = []
         for seq in loopInfo:
-            for t, e in seq[1:]:
-                snapEdge( tri.tetrahedron(t).edge(e) )
-            loops.append( seq[0] )
-        output.append( (tri, loops) )
+            edgeList = []
+            for t, e in seq:
+                edgeList.append( tri.tetrahedron(t).edge(e) )
+            loops.append( IdealLoop(edgeList) )
+        #TODO Simplify if possible.
+        output.append( ( tri, loops ) )
     return output
 
 
