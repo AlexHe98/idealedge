@@ -134,36 +134,29 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 primes.append(oldLoop)
                 break
 
-            #TODO Can minimise repeated code, and also tidy up the logic.
             # We only want 2-spheres that intersect the oldLoop in either
-            # exactly 0 points or exactly 2 points.
+            # exactly 0 points or exactly 2 points, since crushing such a
+            # 2-sphere either:
+            # - simplifies the triangulation containing the ideal loop; or
+            # - decomposes the oldLoop into two simpler knots.
             wt = oldLoop.weight(sphere)
-            if wt == 0:
-                # When the weight is 0, crushing does nothing topologically,
-                # except possibly splitting off a single 3-sphere component
-                # that doesn't even contain an ideal loop.
-                decomposed = decomposeAlong( sphere, [oldLoop] )
-                for newLoops in decomposed:
-                    if newLoops:
-                        toProcess.append( newLoops[0] )
-                        break
-                break
-            elif wt != 2:
+            if wt != 0 and wt != 2:
                 continue
-
-            # When the weight is 2, crushing does one of the following:
-            # - The oldLoop gets decomposed into two new ideal loops, each of
-            #   which forms a knot. Moreover, at least one of these knots
-            #   must be nontrivial.
-            # - We get a single new ideal loop that is topologically
-            #   equivalent to the oldLoop, plus possibly a single extra
-            #   3-sphere component that doesn't even contain an ideal loop.
             decomposed = decomposeAlong( sphere, [oldLoop] )
             knots = []
             for newLoops in decomposed:
                 if newLoops:
                     knots.append( newLoop[0] )
-            #TODO
+            if len(knots) == 1:
+                toProcess.append( knots[0] )
+                break
+
+            # In the case where we decomposed oldLoop into simpler knots, we
+            # only want to keep the nontrivial pieces.
+            for newLoop in knots:
+                #TODO
+                pass
+            #TODO Double-check the effect of crushing.
             pass
         #TODO
         pass
