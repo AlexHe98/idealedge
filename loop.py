@@ -20,6 +20,55 @@ def persistentLocation(face):
     return ( emb.tetrahedron().index(), emb.face() )
 
 
+def snapEdge(edge):
+    """
+    If the endpoints of the given edge are distinct, then uses a snapped ball
+    to pinch these two endpoints together.
+
+    This operation is equivalent to performing the following two operations:
+    (1) Pinching the edge, which introduces a two-tetrahedron with a single
+        degree-one edge e at its heart.
+    (2) Performing a 2-1 edge move on e.
+
+    If the triangulation containing the given edge is currently oriented,
+    then this operation will preserve the orientation.
+
+    Pre-conditions:
+    --> The given edge belongs to a triangulation with no boundary faces.
+
+    TODO:
+    --> The stated pre-conditions are stronger than necessary.
+
+    Parameters:
+    --> edge    The edge whose endpoints should be snapped together.
+
+    Returns:
+        True if and only if snapping the given edge is possible.
+    """
+    if edge.vertex(0) == edge.vertex(1):
+        return False
+    tri = edge.triangulation()
+    tri.pinchEdge(edge)
+
+    # To find the degree-one edge at the heart of the pinch edge gadget, look
+    # at the last two tetrahedra in tri.
+    found = False
+    for tetIndex in [ tri.size() - 1, tri.size() - 2 ]:
+        for edgeNum in range(6):
+            e = tri.tetrahedron(tetIndex).edge(edgeNum)
+            if e.degree() == 1:
+                found = True
+                break
+        if found:
+            break
+
+    # Finish up by performing a 2-1 move on e.
+    if not tri.twoOneMove( e, 0 ):
+        if not tri.twoOneMove( e, 1 ):
+            raise RuntimeError( "Snap edge failed unexpectedly." )
+    return True
+
+
 class NotLoop(Exception):
     """
     Raised when attempting to build an ideal loop from a list of edges that
@@ -120,6 +169,14 @@ class IdealLoop:
         Returns the triangulation that contains this ideal loop.
         """
         return self._tri
+
+    def clone(self):
+        """
+        Returns a clone of this ideal loop.
+        """
+        newTri = Triangulation3( self._tri )
+        newEdges = [ newTri.edge(ei) for ei in self._edgeIndices ]
+        return IdealLoop(newEdges)
 
     def intersects( self, surf ):
         """
@@ -223,6 +280,36 @@ class IdealLoop:
         components.append( [ *nextComponent, *lastComponent ] )
         return components
 
+    def minimiseVertices(self):
+        """
+        Reduces the number of vertices in the ambient triangulation to one.
+
+        If the number of vertices is not already equal to one, then this
+        routine increases the number of tetrahedra to achieve its goal.
+        Otherwise, this routine leaves everything entirely untouched.
+        """
+        while self._tri.countVertices() > 1:
+            for edge in self._tri.edges():
+                if edge.vertex(0) != edge.vertex(1):
+                    break
+
+            # Make sure we'll be able to find the new ideal loop after
+            # snapping the endpoints of this edge together.
+            edgeLocations = []
+            for ei in self._edgeIndices:
+                if ei == edge.index():
+                    continue
+                emb = self._tri.edge(ei).embedding(0)
+                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+
+            # Perform the snap, and then update this ideal loop.
+            snapEdge(edge)
+            newEdges = []
+            for tet, edgeNum in edgeLocations:
+                newEdges.append( tet.edge(edgeNum) )
+            self.set(newEdges)
+        return
+
     def minimiseTetrahedra(self):
         """
         Monotonically reduces the number of tetrahedra in the ambient
@@ -286,26 +373,37 @@ class IdealLoop:
         """
         Attempts to simplify this ideal loop.
 
-        In detail, this routine attempts to reduce:
-        --> the number of tetrahedra in the ambient triangulation;
-        --> the number of vertices in the ambient triangulation; and
-        --> the number of edges in this ideal loop.
-        The priority is reducing the number of tetrahedra.
+        In detail, this routine attempts to reduce the number of vertices in
+        the ambient triangulation to one without increasing the number of
+        tetrahedra. If this fails, or if the number of vertices is already
+        equal to one, then this routine attempts to minimise the number of
+        tetrahedra without altering the number of vertices.
 
         Returns:
             True if and only if this ideal loop was successfully simplified.
             Otherwise, this ideal loop will not be modified at all.
         """
-        # Work with a clone so that we can roll back changes if we fail to
-        # improve the triangulation.
-        use = Triangulation3( self._tri )
+        # Try minimising the number of vertices.
+        if self._tri.countVertices() > 1:
+            minVer = self.clone()
+            minVer.minimiseVertices()
+            minVer.minimiseTetrahedra()
+            if minVer.triangulation().size() <= self._tri.size():
+                newEdges = []
+                for ei in minVer:
+                    newEdges.append( minVer.triangulation().edge(ei) )
+                self.set(newEdges)
+                return True
 
-        # Start
-        #TODO
-        changedNow = True
-        while changedNow:
-            changedNow = False
-            #TODO
-            pass
-        #TODO
-        return
+        # Try minimising the number of tetrahedra.
+        minTet = self.clone()
+        minTet.minimiseTetrahedra()
+        if minTet.triangulation().size() < self._tri.size():
+            newEdges = []
+            for ei in minTet:
+                newEdges.append( minTet.triangulation().edge(ei) )
+            self.set(newEdges)
+            return True
+
+        # Nothing further we can do.
+        return False

@@ -67,6 +67,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     loop = IdealLoop( [idealEdge] )
+    loop.simplify()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         packet = embeddedLoopPacket(loop)
         packet.setLabel( knot.adornedLabel(

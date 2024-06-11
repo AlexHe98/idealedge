@@ -495,55 +495,6 @@ def recogniseSummands( tri, threshold=40 ):
     return True
 
 
-def snapEdge(edge):
-    """
-    If the endpoints of the given edge are distinct, then uses a snapped ball
-    to pinch these two endpoints together.
-
-    This operation is equivalent to performing the following two operations:
-    (1) Pinching the edge, which introduces a two-tetrahedron with a single
-        degree-one edge e at its heart.
-    (2) Performing a 2-1 edge move on e.
-
-    If the triangulation containing the given edge is currently oriented,
-    then this operation will preserve the orientation.
-
-    Pre-conditions:
-    --> The given edge belongs to a triangulation with no boundary faces.
-
-    TODO:
-    --> The stated pre-conditions are stronger than necessary.
-
-    Parameters:
-    --> edge    The edge whose endpoints should be snapped together.
-
-    Returns:
-        True if and only if snapping the given edge is possible.
-    """
-    if edge.vertex(0) == edge.vertex(1):
-        return False
-    tri = edge.triangulation()
-    tri.pinchEdge(edge)
-
-    # To find the degree-one edge at the heart of the pinch edge gadget, look
-    # at the last two tetrahedra in tri.
-    found = False
-    for tetIndex in [ tri.size() - 1, tri.size() - 2 ]:
-        for edgeNum in range(6):
-            e = tri.tetrahedron(tetIndex).edge(edgeNum)
-            if e.degree() == 1:
-                found = True
-                break
-        if found:
-            break
-
-    # Finish up by performing a 2-1 move on e.
-    if not tri.twoOneMove( e, 0 ):
-        if not tri.twoOneMove( e, 1 ):
-            raise RuntimeError( "Snap edge failed unexpectedly." )
-    return True
-
-
 def decomposeAlong( surf, oldLoops ):
     """
     Decomposes along surf, and returns a list of the resulting components.
@@ -623,9 +574,8 @@ def decomposeAlong( surf, oldLoops ):
                 continue
             else:
                 loops.append(loop)
-        #TODO Simplify in a more sophisticated way?
         if len(loops) == 1:
-            loops[0].minimiseTetrahedra()
+            loops[0].simplify()
         output.append(loops)
     return output
 
