@@ -315,7 +315,7 @@ def idealLoops( surf, oldLoops=[] ):
             raise ValueError(msg)
 
         # What happens to the current oldLoop after crushing?
-        for comp in oldLoop.components():
+        for comp in oldLoop.components(surf):
             seg = comp[0]
             idEdge = _findIdealEdge( surf, seg, targets )
             if idEdge is None:

@@ -114,8 +114,8 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 raise RuntimeError(msg)
             elif verbose and time - prev > 5:
                 prev = time
-                msg = "Time: {:.6f}. Steps: {}.".format(
-                        elapsed, steps )
+                msg = "Time: {:.6f}. Steps: {}. Primes: {}.".format(
+                        elapsed, steps, len(primes) )
                 print(msg)
 
             # Get the next 2-sphere. If there are no more 2-spheres, then the
@@ -140,7 +140,7 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             knots = []
             for newLoops in decomposed:
                 if newLoops:
-                    knots.append( newLoop[0] )
+                    knots.append( newLoops[0] )
             if len(knots) == 1:
                 toProcess.append( knots[0] )
                 break
@@ -154,7 +154,8 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
 
     # Output some auxiliary information before returning the list of primes.
     elapsed = default_timer() - start
-    msg = "Time: {:.6f}. Steps: {}.".format( elapsed, steps )
+    msg = "Time: {:.6f}. Steps: {}. Primes: {}.".format(
+            elapsed, steps, len(primes) )
     print(msg)
     if insertAsChild and isinstance( knot, PacketOfLink ):
         container = Container( "Primes ({})".format(msg) )

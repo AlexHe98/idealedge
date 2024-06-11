@@ -64,7 +64,7 @@ class IdealLoop:
 
         # Check for degenerate case that isn't guaranteed to be ruled out by
         # the subsequent tests.
-        if edges[0] == edges[1]:
+        if len(edges) == 2 and edges[0] == edges[1]:
             raise NotLoop(edges)
 
         # While populating the member variables, also test that the given
