@@ -111,7 +111,8 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             time = default_timer()
             elapsed = time - start
             if elapsed > timeout:
-                msg = "Timed out after {} step(s).".format(steps)
+                msg = "Timed out ({:.6f}) after {} step(s).".format(
+                        elapsed, steps )
                 raise RuntimeError(msg)
             elif verbose and time - prev > 5:
                 prev = time

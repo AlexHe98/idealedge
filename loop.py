@@ -289,9 +289,15 @@ class IdealLoop:
         Otherwise, this routine leaves everything entirely untouched.
         """
         while self._tri.countVertices() > 1:
-            for edge in self._tri.edges():
-                if edge.vertex(0) != edge.vertex(1):
-                    break
+            # Find a suitable edge to collapse. Start with edges belonging to
+            # the ideal loop, since this ensures that the loop remains
+            # embedded after the collapse.
+            if len(self) > 1:
+                edge = self._tri.edge( self._edgeIndices[0] )
+            else:
+                for edge in self._tri.edges():
+                    if edge.vertex(0) != edge.vertex(1):
+                        break
 
             # Make sure we'll be able to find the new ideal loop after
             # snapping the endpoints of this edge together.
