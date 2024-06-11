@@ -12,8 +12,15 @@ def drill(loop):
     Returns an ideal triangulation of the 3-manifold given by drilling out
     the given loop.
     """
-    #TODO
-    return
+    drilled = Triangulation3( loop.triangulation() )
+    drillLocations = []
+    for ei in loop:
+        emb = drilled.edge(ei).embedding(0)
+        drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+    for tet, edgeNum in drillLocations:
+        drilled.pinchEdge( tet.edge(edgeNum) )
+    drilled.intelligentSimplify()
+    return drilled
 
 
 def embeddedLoopPacket(loop):
@@ -21,22 +28,9 @@ def embeddedLoopPacket(loop):
     Returns a packet of the triangulation containing the given loop, with an
     ideal triangulation of the drilled 3-manifold as a child.
     """
-    #TODO Update to use the drill() routine.
-    tri = loop.triangulation()
-
-    # Ideal triangulation given by drilling.
-    drilled = PacketOfTriangulation3(tri)
-    drillLocations = []
-    for ei in loop:
-        emb = tri.edge(ei).embedding(0)
-        drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-    for tet, edgeNum in drillLocations:
-        drilled.pinchEdge( tet.edge(edgeNum) )
-    drilled.intelligentSimplify()
+    drilled = PacketOfTriangulation3( drill(loop) )
     drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
-
-    # Edge-ideal triangulation, with drilled triangulation as child.
-    packet = PacketOfTriangulation3(tri)
+    packet = PacketOfTriangulation3( loop.triangulation() )
     packet.insertChildLast(drilled)
     return packet
 
@@ -154,39 +148,9 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             # In the case where we decomposed oldLoop into simpler knots, we
             # only want to keep the nontrivial pieces.
             for newLoop in knots:
-                #TODO
-                pass
-            #TODO Double-check the effect of crushing.
-            pass
-        #TODO
-        pass
-    #TODO Account for multi-edge ideal loops.
-            # At this point, we have a 2-sphere that intersects the ideal
-            # edge in 2 points. Do we make progress after decomposing?
-            decomposed = decomposeAlong( sphere, {edgeIndex} )
-            nontrivialPieces = []
-            nontrivialSize = 0
-            for pieceTri, pieceLoops in decomposed:
-                # Is the edge loop a nontrivial knot?
-                pieceTetIndex, pieceEdgeNum = pieceLoops[0]
-                drilled = Triangulation3(pieceTri)
-                drilled.pinchEdge( drilled.tetrahedron(
-                    pieceTetIndex ).edge(pieceEdgeNum) )
-                drilled.intelligentSimplify()
-                if drilled.isSolidTorus():
-                    continue
-                nontrivialPieces.append( (
-                    pieceTri, pieceTetIndex, pieceEdgeNum ) )
-                nontrivialSize += pieceTri.size()
-            if ( nontrivialSize < tri.size()
-                    or len(nontrivialPieces) > 1 ):
-                # We made progress!
-                toProcess.extend(nontrivialPieces)
-                break
-            else:
-                #TODO This must be an error, otherwise algorithm doesn't
-                #   actually work.
-                raise RuntimeError( "Unexpected failure to make progress." )
+                if not drill(newLoop).isSolidTorus():
+                    toProcess.append(newLoop)
+            break
 
     # Output some auxiliary information before returning the list of primes.
     elapsed = default_timer() - start
@@ -195,11 +159,10 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     if insertAsChild and isinstance( knot, PacketOfLink ):
         container = Container( "Primes ({})".format(msg) )
         knot.insertChildLast(container)
-        for i, p in enumerate(primes):
-            tri, loop = p
-            packet = embeddedLoopPacket( tri, loop )
-            loopEdgeIndices = list(loop)
-            if len(loop) == 1:
+        for i, primeLoop in enumerate(primes):
+            packet = embeddedLoopPacket(primeLoop)
+            loopEdgeIndices = list(primeLoop)
+            if len(primeLoop) == 1:
                 adorn = "Embedded as edge {}".format( loopEdgeIndices[0] )
             else:
                 indices = ""

@@ -544,7 +544,7 @@ def snapEdge(edge):
     return True
 
 
-def decomposeAlong( surf, oldLoops=[] ):
+def decomposeAlong( surf, oldLoops ):
     """
     Decomposes along surf, and returns a list of the resulting components.
 
@@ -554,8 +554,8 @@ def decomposeAlong( surf, oldLoops=[] ):
     --> the corresponding component is obtained by drilling out the loops in
         I from T.
 
-    The given oldLoops list (which is empty by default) should be a list of
-    pre-existing ideal loops, encoded as instances of IdealLoop.
+    The given oldLoops list should be a nonempty list of pre-existing ideal
+    loops, encoded as instances of IdealLoop.
 
     The given normal surface surf should be either:
     --> an annulus or 2-sphere that is disjoint from all of the pre-existing
@@ -573,6 +573,8 @@ def decomposeAlong( surf, oldLoops=[] ):
     --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
+    --> The given surf and each ideal loop in oldLoops must all lie in the
+        same triangulation.
     """
     loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
