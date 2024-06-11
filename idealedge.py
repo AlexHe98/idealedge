@@ -548,11 +548,11 @@ def decomposeAlong( surf, oldLoops=[] ):
     """
     Decomposes along surf, and returns a list of the resulting components.
 
-    In detail, each item in the returned list is a pair (T,I), where:
-    --> T is a 3-manifold triangulation;
-    --> I is a list of ideal loops in T, specified using instances of
-        IdealLoop; and
-    --> the corresponding component is obtained by drilling out I from T.
+    In detail, each item in the returned list is a list I of ideal loops,
+    encoded as instances of IdealLoop, such that:
+    --> each loop in I lies inside the same triangulation T; and
+    --> the corresponding component is obtained by drilling out the loops in
+        I from T.
 
     The given oldLoops list (which is empty by default) should be a list of
     pre-existing ideal loops, encoded as instances of IdealLoop.
@@ -622,7 +622,7 @@ def decomposeAlong( surf, oldLoops=[] ):
             else:
                 loops.append(loop)
         #TODO Simplify if possible.
-        output.append( ( tri, loops ) )
+        output.append(loops)
     return output
 
 
@@ -635,6 +635,7 @@ def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
         if not isSphere(surf):
             continue
         try:
+            #TODO This needs to be updated.
             pieces = decomposeAlong( surf, {idealEdgeIndex} )
         except ValueError:
             continue

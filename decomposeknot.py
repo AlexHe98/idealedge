@@ -16,12 +16,14 @@ def drill(loop):
     return
 
 
-def embeddedLoopPacket( tri, loop ):
+def embeddedLoopPacket(loop):
     """
-    Returns a packet containing the given edge-ideal triangulation, with an
+    Returns a packet of the triangulation containing the given loop, with an
     ideal triangulation of the drilled 3-manifold as a child.
     """
     #TODO Update to use the drill() routine.
+    tri = loop.triangulation()
+
     # Ideal triangulation given by drilling.
     drilled = PacketOfTriangulation3(tri)
     drillLocations = []
@@ -41,12 +43,8 @@ def embeddedLoopPacket( tri, loop ):
 
 def embedInTriangulation( knot, insertAsChild=False ):
     """
-    Constructs a triangulation of the 3-sphere in which the given knot is
-    embedded as an ideal loop.
-
-    This routine returns a pair (T,L), where:
-    --> T is a triangulation of the 3-sphere; and
-    --> L is an instance of IdealLoop in T.
+    Embeds the given knot as an ideal loop in a triangulation of the
+    3-sphere.
 
     Warning:
     --> This routine currently uses fast heuristics to attempt to construct
@@ -76,11 +74,11 @@ def embedInTriangulation( knot, insertAsChild=False ):
     idealEdge = tet.edge(edgeNum)
     loop = IdealLoop( [idealEdge] )
     if insertAsChild and isinstance( knot, PacketOfLink ):
-        packet = embeddedLoopPacket( tri, loop )
+        packet = embeddedLoopPacket(loop)
         packet.setLabel( knot.adornedLabel(
             "Embedded as edge {}".format( idealEdge.index() ) ) )
         knot.insertChildLast(packet)
-    return ( tri, loop )
+    return loop
 
 
 def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
@@ -100,18 +98,18 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     while toProcess:
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
-        #   --> Each element of toProcess is an edge-ideal triangulation of a
+        #   --> Each element of toProcess is an ideal loop forming a
         #       nontrivial knot.
-        #   --> Each element of primes is an edge-ideal triangulation of a
-        #       nontrivial *prime* knot.
+        #   --> Each element of primes is an ideal loop forming a nontrivial
+        #       *prime* knot.
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
-        current = toProcess.pop()
-        tri, loop = current
+        oldLoop = toProcess.pop()
+        tri = oldLoop.triangulation()
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
-        # crush. If no such 2-sphere exists, then the current edge-ideal
-        # triangulation represents a nontrivial prime knot.
+        # crush. If no such 2-sphere exists, then the oldLoop forms a
+        # nontrivial prime knot.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
             steps += 1
@@ -126,48 +124,45 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                         elapsed, steps )
                 print(msg)
 
-            # Get next 2-sphere. If there are no more 2-spheres, then we must
-            # have found a prime piece.
+            # Get the next 2-sphere. If there are no more 2-spheres, then the
+            # oldLoop must form a nontrivial prime knot.
             if enumeration.next():
                 sphere = enumeration.buildSurface()
                 if not isSphere(sphere):
                     continue
             else:
-                primes.append(current)
+                primes.append(oldLoop)
                 break
 
-            # We only want 2-spheres that intersect the ideal loop in either
+            #TODO Can minimise repeated code, and also tidy up the logic.
+            # We only want 2-spheres that intersect the oldLoop in either
             # exactly 0 points or exactly 2 points.
-            wt = loop.weight(sphere)
+            wt = oldLoop.weight(sphere)
             if wt == 0:
                 # When the weight is 0, crushing does nothing topologically,
                 # except possibly splitting off a single 3-sphere component
                 # that doesn't even contain an ideal loop.
-                decomposed = decomposeAlong( sphere, [loop] )
-                for pieceTri, pieceLoops in decomposed:
-                    if pieceLoops:
-                        # Found the piece containing the knot.
-                        toProcess.append( ( pieceTri, pieceLoops[0] ) )
+                decomposed = decomposeAlong( sphere, [oldLoop] )
+                for newLoops in decomposed:
+                    if newLoops:
+                        toProcess.append( newLoops[0] )
                         break
                 break
             elif wt != 2:
                 continue
 
             # When the weight is 2, crushing does one of the following:
-            # - The current knot gets decomposed into two pieces, at least
-            #   one of which is nontrivial.
-            # - We get a new edge-ideal triangulation of the current knot,
-            #   plus possibly a single extra 3-sphere component that doesn't
-            #   contain an ideal loop.
-            decomposed = decomposeAlong( sphere, [loop] )
-            nontrivial = []
-            for pieceTri, pieceLoops in decomposed:
-                if not pieceLoops:
-                    continue
-
-                #
-                #TODO
-                pass
+            # - The oldLoop gets decomposed into two new ideal loops, each of
+            #   which forms a knot. Moreover, at least one of these knots
+            #   must be nontrivial.
+            # - We get a single new ideal loop that is topologically
+            #   equivalent to the oldLoop, plus possibly a single extra
+            #   3-sphere component that doesn't even contain an ideal loop.
+            decomposed = decomposeAlong( sphere, [oldLoop] )
+            knots = []
+            for newLoops in decomposed:
+                if newLoops:
+                    knots.append( newLoop[0] )
             #TODO
             pass
         #TODO
