@@ -2,6 +2,7 @@
 Ideal loops for representing torus boundary components of a 3-manifold.
 """
 from regina import *
+from moves import threeTwo, twoZero, twoOne
 
 
 def persistentLocation(face):
@@ -39,6 +40,20 @@ class IdealLoop:
     def __init__( self, edges ):
         """
         Creates an ideal loop from the given list of edges.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        Pre-condition:
+        --> The given list of edges is nonempty, and consists of edges that
+            all belong to the same 3-manifold triangulation.
+        """
+        self.set(edges)
+
+    def set( self, edges ):
+        """
+        Sets this ideal loop using the given list of edges.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -207,3 +222,90 @@ class IdealLoop:
         # Don't forget to include the last component.
         components.append( [ *nextComponent, *lastComponent ] )
         return components
+
+    def minimiseTetrahedra(self):
+        """
+        Monotonically reduces the number of tetrahedra in the ambient
+        triangulation to a local minimum, while leaving this ideal loop
+        untouched.
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        changed = False     # Has anything changed ever?    (Return value.)
+        changedNow = True   # Did we just change something? (Loop control.)
+        while True:
+            changedNow = False
+            for edge in self._tri.edges():
+                # Make sure to leave the ideal loop untouched.
+                if edge.index() in self._edgeIndices:
+                    continue
+
+                # Try a 3-2 move.
+                renum = threeTwo(edge)
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+                # Try a 2-0 edge move.
+                renum = twoZero(edge)
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+                # Try a 2-1 edge move.
+                renum = twoOne( edge, 0 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+                renum = twoOne( edge, 1 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+            # Did we improve the triangulation? If so, then we need to update
+            # the details of the ideal loop, and then check whether we can
+            # improve further.
+            if not changedNow:
+                break
+            newEdges = []
+            for ei in self._edgeIndices:
+                newEdges.append( self._tri.edge( renum[ei] ) )
+            self.set(newEdges)
+
+        # Nothing further we can do.
+        return changed
+
+    def simplify(self):
+        """
+        Attempts to simplify this ideal loop.
+
+        In detail, this routine attempts to reduce:
+        --> the number of tetrahedra in the ambient triangulation;
+        --> the number of vertices in the ambient triangulation; and
+        --> the number of edges in this ideal loop.
+        The priority is reducing the number of tetrahedra.
+
+        Returns:
+            True if and only if this ideal loop was successfully simplified.
+            Otherwise, this ideal loop will not be modified at all.
+        """
+        # Work with a clone so that we can roll back changes if we fail to
+        # improve the triangulation.
+        use = Triangulation3( self._tri )
+
+        # Start
+        #TODO
+        changedNow = True
+        while changedNow:
+            changedNow = False
+            #TODO
+            pass
+        #TODO
+        return

@@ -623,7 +623,9 @@ def decomposeAlong( surf, oldLoops ):
                 continue
             else:
                 loops.append(loop)
-        #TODO Simplify if possible.
+        #TODO Simplify in a more sophisticated way?
+        if len(loops) == 1:
+            loops[0].minimiseTetrahedra()
         output.append(loops)
     return output
 
