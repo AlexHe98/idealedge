@@ -7,11 +7,21 @@ from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
 
 
+def drill(loop):
+    """
+    Returns an ideal triangulation of the 3-manifold given by drilling out
+    the given loop.
+    """
+    #TODO
+    return
+
+
 def embeddedLoopPacket( tri, loop ):
     """
     Returns a packet containing the given edge-ideal triangulation, with an
     ideal triangulation of the drilled 3-manifold as a child.
     """
+    #TODO Update to use the drill() routine.
     # Ideal triangulation given by drilling.
     drilled = PacketOfTriangulation3(tri)
     drillLocations = []
@@ -143,8 +153,21 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             elif wt != 2:
                 continue
 
-            # At this point, we have a 2-sphere that intersects the ideal
-            # loop in exactly 2 points.
+            # When the weight is 2, crushing does one of the following:
+            # - The current knot gets decomposed into two pieces, at least
+            #   one of which is nontrivial.
+            # - We get a new edge-ideal triangulation of the current knot,
+            #   plus possibly a single extra 3-sphere component that doesn't
+            #   contain an ideal loop.
+            decomposed = decomposeAlong( sphere, [loop] )
+            nontrivial = []
+            for pieceTri, pieceLoops in decomposed:
+                if not pieceLoops:
+                    continue
+
+                #
+                #TODO
+                pass
             #TODO
             pass
         #TODO
