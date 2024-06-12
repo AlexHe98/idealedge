@@ -3,7 +3,6 @@ Decompose knots into prime knots.
 """
 from sys import stdout
 from timeit import default_timer
-from threading import Timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
@@ -57,28 +56,6 @@ def embedInTriangulation( knot, insertAsChild=False ):
     tri.idealToFinite()
     tri.intelligentSimplify()
     tri.intelligentSimplify()
-    #TODO
-    #mer, lon = tri.meridianLongitude()
-    def terminator( signum, frame ):
-        raise TimeoutError()
-    timeout = 1
-    temp = Triangulation3(tri)
-    while True:
-        print( "    Attempt {}.".format(timeout) )
-        stdout.flush()
-        alarm = Timer( timeout, terminator )
-        try:
-            temp.meridianLongitude()
-        except TimeoutError:
-            timeout += 1
-            temp = Triangulation3(tri)
-            temp.subdivide()
-            temp.intelligentSimplify()
-            temp.intelligentSimplify()
-        else:
-            alarm.cancel()
-            break
-    tri = temp
     mer, lon = tri.meridianLongitude()
 
     # Get a tetrahedron index and edge number for the longitude, so that we
@@ -110,20 +87,30 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     if verbose:
         prev = start
     primes = []
-    if knot.complement().isSolidTorus():
-        toProcess = []
-    else:
-        toProcess = [ embedInTriangulation(knot) ]
+    #TODO
+    toProcess = [ embedInTriangulation(knot) ]
+#    if knot.complement().isSolidTorus():
+#        toProcess = []
+#    else:
+#        toProcess = [ embedInTriangulation(knot) ]
     steps = 0
     while toProcess:
+        #TODO
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
-        #   --> Each element of toProcess is an ideal loop forming a
-        #       nontrivial knot.
+        #   --> Each element of toProcess is an ideal loop forming a knot.
         #   --> Each element of primes is an ideal loop forming a nontrivial
-        #       *prime* knot.
+        #       prime knot.
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
+#        # INVARIANT:
+#        #   At this point, the following are guaranteed to hold:
+#        #   --> Each element of toProcess is an ideal loop forming a
+#        #       nontrivial knot.
+#        #   --> Each element of primes is an ideal loop forming a nontrivial
+#        #       *prime* knot.
+#        #   --> The input knot is given by composing all of the knots
+#        #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
         #TODO
@@ -133,8 +120,7 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             stdout.flush()
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
-        # crush. If no such 2-sphere exists, then the oldLoop forms a
-        # nontrivial prime knot.
+        # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
             steps += 1
@@ -150,21 +136,23 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                         elapsed, steps, len(primes) )
                 print(msg)
 
-            # Get the next 2-sphere. If there are no more 2-spheres, then the
-            # oldLoop must form a nontrivial prime knot.
+            # Get the next 2-sphere.
             if enumeration.next():
                 sphere = enumeration.buildSurface()
                 if not isSphere(sphere):
                     continue
             else:
-                primes.append(oldLoop)
+                # No suitable 2-sphere means oldLoop is prime.
+                if not drill(oldLoop).isSolidTorus():
+                    primes.append(oldLoop)
                 break
 
             # We only want 2-spheres that intersect the oldLoop in either
             # exactly 0 points or exactly 2 points, since crushing such a
             # 2-sphere either:
-            # - simplifies the triangulation containing the ideal loop; or
-            # - decomposes the oldLoop into two simpler knots.
+            # - simplifies the triangulation containing the ideal loop;
+            # - decomposes the oldLoop into two simpler knots; or
+            # - (if oldLoop is unknotted) destroys all traces of the loop.
             wt = oldLoop.weight(sphere)
             if wt != 0 and wt != 2:
                 continue
@@ -172,16 +160,19 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
             knots = []
             for newLoops in decomposed:
                 if newLoops:
+                    # We are guaranteed to have len(newLoops) == 1.
                     knots.append( newLoops[0] )
-            if len(knots) == 1:
-                toProcess.append( knots[0] )
-                break
-
-            # In the case where we decomposed oldLoop into simpler knots, we
-            # only want to keep the nontrivial pieces.
             for newLoop in knots:
-                if not drill(newLoop).isSolidTorus():
-                    toProcess.append(newLoop)
+                toProcess.append(newLoop)
+#            if len(knots) == 1:
+#                toProcess.append( knots[0] )
+#                break
+#
+#            # In the case where we decomposed oldLoop into simpler knots, we
+#            # only want to keep the nontrivial pieces.
+#            for newLoop in knots:
+#                if not drill(newLoop).isSolidTorus():
+#                    toProcess.append(newLoop)
             break
 
     # Output some auxiliary information before returning the list of primes.
