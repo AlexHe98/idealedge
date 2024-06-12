@@ -3,6 +3,7 @@ Ideal loops for representing torus boundary components of a 3-manifold.
 """
 from regina import *
 from moves import threeTwo, twoZero, twoOne
+#TODO Work harder to reduce the number of tetrahedra.
 
 
 def persistentLocation(face):

@@ -87,15 +87,9 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     if verbose:
         prev = start
     primes = []
-    #TODO
     toProcess = [ embedInTriangulation(knot) ]
-#    if knot.complement().isSolidTorus():
-#        toProcess = []
-#    else:
-#        toProcess = [ embedInTriangulation(knot) ]
     steps = 0
     while toProcess:
-        #TODO
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
         #   --> Each element of toProcess is an ideal loop forming a knot.
@@ -103,14 +97,6 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         #       prime knot.
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
-#        # INVARIANT:
-#        #   At this point, the following are guaranteed to hold:
-#        #   --> Each element of toProcess is an ideal loop forming a
-#        #       nontrivial knot.
-#        #   --> Each element of primes is an ideal loop forming a nontrivial
-#        #       *prime* knot.
-#        #   --> The input knot is given by composing all of the knots
-#        #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
         #TODO
@@ -164,15 +150,6 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                     knots.append( newLoops[0] )
             for newLoop in knots:
                 toProcess.append(newLoop)
-#            if len(knots) == 1:
-#                toProcess.append( knots[0] )
-#                break
-#
-#            # In the case where we decomposed oldLoop into simpler knots, we
-#            # only want to keep the nontrivial pieces.
-#            for newLoop in knots:
-#                if not drill(newLoop).isSolidTorus():
-#                    toProcess.append(newLoop)
             break
 
     # Output some auxiliary information before returning the list of primes.
