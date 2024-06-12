@@ -1,7 +1,9 @@
 """
 Decompose knots into prime knots.
 """
+from sys import stdout
 from timeit import default_timer
+from threading import Timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
@@ -54,6 +56,29 @@ def embedInTriangulation( knot, insertAsChild=False ):
     tri.intelligentSimplify()
     tri.idealToFinite()
     tri.intelligentSimplify()
+    tri.intelligentSimplify()
+    #TODO
+    #mer, lon = tri.meridianLongitude()
+    def terminator( signum, frame ):
+        raise TimeoutError()
+    timeout = 1
+    temp = Triangulation3(tri)
+    while True:
+        print( "    Attempt {}.".format(timeout) )
+        stdout.flush()
+        alarm = Timer( timeout, terminator )
+        try:
+            temp.meridianLongitude()
+        except TimeoutError:
+            timeout += 1
+            temp = Triangulation3(tri)
+            temp.subdivide()
+            temp.intelligentSimplify()
+            temp.intelligentSimplify()
+        else:
+            alarm.cancel()
+            break
+    tri = temp
     mer, lon = tri.meridianLongitude()
 
     # Get a tetrahedron index and edge number for the longitude, so that we
@@ -101,6 +126,11 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
+        #TODO
+        if verbose:
+            print( "    {}-vertex, {}-tet.".format(
+                tri.countVertices(), tri.size() ) )
+            stdout.flush()
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop forms a
