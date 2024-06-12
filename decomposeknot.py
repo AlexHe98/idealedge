@@ -83,6 +83,9 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
     """
+    template = "Time: {:.6f}. Steps: {}. Primes: {}. #Tri: {}. Max#Tet: {}."
+    numTri = 0
+    maxTet = 0
     start = default_timer()
     if verbose:
         prev = start
@@ -99,11 +102,15 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
-        #TODO
-        if verbose:
-            print( "    {}-vertex, {}-tet.".format(
-                tri.countVertices(), tri.size() ) )
-            stdout.flush()
+        numTri += 1
+        if tri.size() > maxTet:
+            maxTet = tri.size()
+            if verbose:
+                prev = default_timer()
+                msg = template.format(
+                        prev - start, steps, len(primes), numTri, maxTet )
+                print(msg)
+                stdout.flush()
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
@@ -118,9 +125,10 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 raise RuntimeError(msg)
             elif verbose and time - prev > 5:
                 prev = time
-                msg = "Time: {:.6f}. Steps: {}. Primes: {}.".format(
-                        elapsed, steps, len(primes) )
+                msg = template.format(
+                        elapsed, steps, len(primes), numTri, maxTet )
                 print(msg)
+                stdout.flush()
 
             # Get the next 2-sphere.
             if enumeration.next():
@@ -154,9 +162,9 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
 
     # Output some auxiliary information before returning the list of primes.
     elapsed = default_timer() - start
-    msg = "Time: {:.6f}. Steps: {}. Primes: {}.".format(
-            elapsed, steps, len(primes) )
+    msg = template.format( elapsed, steps, len(primes), numTri, maxTet )
     print(msg)
+    stdout.flush()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         container = Container( "Primes ({})".format(msg) )
         knot.insertChildLast(container)
