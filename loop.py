@@ -3,7 +3,6 @@ Ideal loops for representing torus boundary components of a 3-manifold.
 """
 from regina import *
 from moves import threeTwo, twoZero, twoOne
-#TODO Work harder to reduce the number of tetrahedra.
 
 
 def persistentLocation(face):
@@ -99,9 +98,9 @@ class IdealLoop:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
-        self.set(edges)
+        self.setFromEdges(edges)
 
-    def set( self, edges ):
+    def setFromEdges( self, edges ):
         """
         Sets this ideal loop using the given list of edges.
 
@@ -159,6 +158,25 @@ class IdealLoop:
             raise NotLoop(edges)
         return
 
+    def setFromLoop( self, loop, copyTri=True ):
+        """
+        Sets this ideal loop to be a clone of the given loop.
+
+        If copyTri is True (the default), then this ideal loop will be
+        embedded in a copy of the triangulation containing the given loop.
+        Otherwise, if copyTri is False, then this ideal loop will be embedded
+        in the same triangulation as the given loop.
+        """
+        if copyTri:
+            tri = Triangulation3( loop.triangulation() )
+        else:
+            tri = loop.triangulation()
+        edges = []
+        for ei in loop:
+            edges.append( tri.edge(ei) )
+        self.setFromEdges(edges)
+        return
+
     def __len__(self):
         return len( self._edgeIndices )
 
@@ -174,6 +192,9 @@ class IdealLoop:
     def clone(self):
         """
         Returns a clone of this ideal loop.
+
+        The cloned ideal loop will always be embedded in a copy of the
+        triangulation containing this ideal loop.
         """
         newTri = Triangulation3( self._tri )
         newEdges = [ newTri.edge(ei) for ei in self._edgeIndices ]
@@ -314,14 +335,20 @@ class IdealLoop:
             newEdges = []
             for tet, edgeNum in edgeLocations:
                 newEdges.append( tet.edge(edgeNum) )
-            self.set(newEdges)
+            self.setFromEdges(newEdges)
         return
 
-    def minimiseTetrahedra(self):
+    def simplifyMonotonic(self):
         """
         Monotonically reduces the number of tetrahedra in the ambient
         triangulation to a local minimum, while leaving this ideal loop
         untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() and
+        simplifyWithFourFour() routines.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
 
         Returns:
             True if and only if the ambient triangulation was successfully
@@ -371,20 +398,71 @@ class IdealLoop:
             newEdges = []
             for ei in self._edgeIndices:
                 newEdges.append( self._tri.edge( renum[ei] ) )
-            self.set(newEdges)
+            self.setFromEdges(newEdges)
 
         # Nothing further we can do.
+        return changed
+
+    def simplifyWithFourFour(self):
+        """
+        With the assistance of random 4-4 moves, attempts to reduce the
+        number of tetrahedra in the ambient triangulation, while leaving this
+        ideal loop untouched.
+
+        In more detail, this routine uses simplifyMonotonic() until it
+        reaches a local minimum, and then uses random 4-4 moves to attempt to
+        escape this local minimum.
+
+        Unlike the simplify() routine, this routine never changes the number
+        of vertices.
+
+        Adapted from Regina's Triangulation3.intelligentSimplify().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        changed = self.simplifyMonotonic()
+        temp = self.clone()
+
+        # Use random 4-4 moves until it feels like even this is not helping
+        # us make any further progress.
+        #
+        # In detail, we keep track of a cap on the number of consecutive 4-4
+        # moves that we are allowed to perform without successfully
+        # simplifying the triangulation. We give up whenever we reach or
+        # exceed this cap. The cap is scaled up based on our "perseverance".
+        perseverance = 5        # Hard-coded value copied from Regina.
+        fourFourAttempts = 0
+        fourFourCap = 0
+        while True:
+            # Find all available 4-4 moves.
+            fourFourAvailable = []
+            #TODO
+            pass
+        #TODO
+
+        # If the 4-4 moves were successful, then sync this ideal loop
+        # with the now-simplified temp loop.
+        if temp.triangulation().size() < self.triangulation().size():
+            self.setFromLoop(temp)
+            changed = True
         return changed
 
     def simplify(self):
         """
         Attempts to simplify this ideal loop.
 
-        In detail, this routine attempts to reduce the number of vertices in
-        the ambient triangulation to one without increasing the number of
-        tetrahedra. If this fails, or if the number of vertices is already
-        equal to one, then this routine attempts to minimise the number of
-        tetrahedra without altering the number of vertices.
+        The rationale of this routine is to combine the functionality of the
+        minimiseVertices() and simplifyWithFourFour() routines. In detail,
+        this routine attempts to reduce the number of vertices in the ambient
+        triangulation to one without increasing the number of tetrahedra. If
+        this fails, or if the number of vertices is already equal to one,
+        then this routine attempts to minimise the number of tetrahedra
+        without altering the number of vertices.
+
+        Adapted from Regina's Triangulation3.intelligentSimplify().
 
         Returns:
             True if and only if this ideal loop was successfully simplified.
@@ -394,22 +472,18 @@ class IdealLoop:
         if self._tri.countVertices() > 1:
             minVer = self.clone()
             minVer.minimiseVertices()
-            minVer.minimiseTetrahedra()
+            #TODO
+            minVer.simplifyMonotonic()
             if minVer.triangulation().size() <= self._tri.size():
-                newEdges = []
-                for ei in minVer:
-                    newEdges.append( minVer.triangulation().edge(ei) )
-                self.set(newEdges)
+                self.setFromLoop( minVer, False )
                 return True
 
         # Try minimising the number of tetrahedra.
         minTet = self.clone()
-        minTet.minimiseTetrahedra()
+        #TODO
+        minTet.simplifyMonotonic()
         if minTet.triangulation().size() < self._tri.size():
-            newEdges = []
-            for ei in minTet:
-                newEdges.append( minTet.triangulation().edge(ei) )
-            self.set(newEdges)
+            self.setFromLoop( minTet, False )
             return True
 
         # Nothing further we can do.
