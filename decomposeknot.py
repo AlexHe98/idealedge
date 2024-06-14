@@ -83,12 +83,13 @@ def decompose( knot, verbose=False, insertAsChild=False ):
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
     """
-    template = "Time: {:.6f}. Steps: {}. Primes: {}. #Tri: {}. Max#Tet: {}."
+    template = "        Time: {:.6f}. Steps: {}. Primes: {}. #Tri: {}."
     numTri = 0
-    maxTet = 0
     start = default_timer()
     if verbose:
         prev = start
+        if insertAsChild:
+            log = ""
     primes = []
     toProcess = [ embedInTriangulation(knot) ]
     steps = 0
@@ -103,14 +104,19 @@ def decompose( knot, verbose=False, insertAsChild=False ):
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
         numTri += 1
-        if tri.size() > maxTet:
-            maxTet = tri.size()
-            if verbose:
-                prev = default_timer()
-                msg = template.format(
-                        prev - start, steps, len(primes), numTri, maxTet )
-                print(msg)
-                stdout.flush()
+        if verbose:
+            prev = default_timer()
+            msg = "Edge-ideal: "
+            if tri.size() == 1:
+                msg += "1 tetrahedron.\n"
+            else:
+                msg += "{} tetrahedra.\n".format( tri.size() )
+            msg += template.format(
+                    prev - start, steps, len(primes), numTri )
+            print(msg)
+            stdout.flush()
+            if insertAsChild:
+                log += msg + "\n"
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
@@ -120,10 +126,12 @@ def decompose( knot, verbose=False, insertAsChild=False ):
             time = default_timer()
             if verbose and time - prev > 5:
                 prev = time
-                msg = template.format( time - start, steps,
-                        len(primes), numTri, maxTet )
+                msg = template.format(
+                        time - start, steps, len(primes), numTri )
                 print(msg)
                 stdout.flush()
+                if insertAsChild:
+                    log += msg + "\n"
 
             # Get the next 2-sphere.
             if enumeration.next():
@@ -137,27 +145,39 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                     # Let the user know that we are about to check
                     # nontriviality, which is typically a bottleneck.
                     time = default_timer()
-                    msg = template.format( time - start, steps,
-                            len(primes), numTri, maxTet )
+                    msg = template.format(
+                            time - start, steps, len(primes), numTri )
+                    msg += "\nFound prime knot! Is it nontrivial?"
+                    drilled = drill(oldLoop)
+                    drilled.idealToFinite()
+                    drilled.intelligentSimplify()
+                    drilled.intelligentSimplify()
+                    msg += "\nDrilled: "
+                    if drilled.size() == 1:
+                        msg += "1 tetrahedron."
+                    else:
+                        msg += "{} tetrahedra.".format( drilled.size() )
                     print(msg)
-                    print( "    Found prime knot! Is it nontrivial?" )
                     stdout.flush()
+                    if insertAsChild:
+                        log += msg + "\n"
 
                     # Perform the nontriviality check.
-                    if drill(oldLoop).isSolidTorus():
-                        ans = "    No!"
+                    if drilled.isSolidTorus():
+                        ans = "\nNo, it's the unknot."
                     else:
-                        ans = "    Yes!"
+                        ans = "\nYes, found a nontrivial prime knot!"
                         primes.append(oldLoop)
 
                     # Let the user know that we made it out the other side.
-                    time = default_timer()
-                    prev = time
-                    msg = template.format( time - start, steps,
-                            len(primes), numTri, maxTet )
+                    prev = default_timer()
+                    msg = template.format(
+                            prev - start, steps, len(primes), numTri )
+                    msg += ans
                     print(msg)
-                    print(ans)
                     stdout.flush()
+                    if insertAsChild:
+                        log += msg + "\n"
                 elif not drill(oldLoop).isSolidTorus():
                     primes.append(oldLoop)
                 break
@@ -179,15 +199,28 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                     knots.append( newLoops[0] )
             for newLoop in knots:
                 toProcess.append(newLoop)
+            if verbose:
+                prev = default_timer()
+                msg = template.format(
+                        prev - start, steps, len(primes), numTri )
+                print(msg)
+                stdout.flush()
+                if insertAsChild:
+                    log += msg + "\n"
             break
 
     # Output some auxiliary information before returning the list of primes.
-    elapsed = default_timer() - start
-    msg = template.format( elapsed, steps, len(primes), numTri, maxTet )
+    msg = template.format(
+            default_timer() - start, steps, len(primes), numTri )
     print(msg)
     stdout.flush()
     if insertAsChild and isinstance( knot, PacketOfLink ):
-        container = Container( "Primes ({})".format(msg) )
+        if verbose:
+            log += msg
+            container = Text(log)
+        else:
+            container = Container()
+        container.setLabel( "Primes ({})".format( msg.lstrip() ) )
         knot.insertChildLast(container)
         for i, primeLoop in enumerate(primes):
             packet = embeddedLoopPacket(primeLoop)
