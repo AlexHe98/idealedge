@@ -78,7 +78,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     return loop
 
 
-def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
+def decompose( knot, verbose=False, insertAsChild=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
@@ -118,15 +118,10 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
         while True:
             steps += 1
             time = default_timer()
-            elapsed = time - start
-            if elapsed > timeout:
-                msg = "Timed out ({:.6f}) after {} step(s).".format(
-                        elapsed, steps )
-                raise RuntimeError(msg)
-            elif verbose and time - prev > 5:
+            if verbose and time - prev > 5:
                 prev = time
-                msg = template.format(
-                        elapsed, steps, len(primes), numTri, maxTet )
+                msg = template.format( time - start, steps,
+                        len(primes), numTri, maxTet )
                 print(msg)
                 stdout.flush()
 
@@ -136,8 +131,34 @@ def decompose( knot, insertAsChild=False, timeout=10, verbose=False ):
                 if not isSphere(sphere):
                     continue
             else:
-                # No suitable 2-sphere means oldLoop is prime.
-                if not drill(oldLoop).isSolidTorus():
+                # No suitable 2-sphere means oldLoop is prime. But we only
+                # care about the case where this prime is nontrivial.
+                if verbose:
+                    # Let the user know that we are about to check
+                    # nontriviality, which is typically a bottleneck.
+                    time = default_timer()
+                    msg = template.format( time - start, steps,
+                            len(primes), numTri, maxTet )
+                    print(msg)
+                    print( "    Found prime knot! Is it nontrivial?" )
+                    stdout.flush()
+
+                    # Perform the nontriviality check.
+                    if drill(oldLoop).isSolidTorus():
+                        ans = "    No!"
+                    else:
+                        ans = "    Yes!"
+                        primes.append(oldLoop)
+
+                    # Let the user know that we made it out the other side.
+                    time = default_timer()
+                    prev = time
+                    msg = template.format( time - start, steps,
+                            len(primes), numTri, maxTet )
+                    print(msg)
+                    print(ans)
+                    stdout.flush()
+                elif not drill(oldLoop).isSolidTorus():
                     primes.append(oldLoop)
                 break
 
