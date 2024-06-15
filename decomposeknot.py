@@ -6,6 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
+from knotted import isKnotted
 
 
 def embeddedLoopPacket(loop):
@@ -110,18 +111,25 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                 # No suitable 2-sphere means oldLoop is prime. But we only
                 # care about the case where this prime is nontrivial.
                 if verbose:
-                    drilled = oldLoop.drill()
-                    drilled.idealToFinite()
-                    drilled.intelligentSimplify()
-                    drilled.intelligentSimplify()
-                    tracker.unknownPrime( drilled.size() )
-                    #TODO Use ideal-edge machinery here.
-                    isKnotted = not drilled.isSolidTorus()
-                    if isKnotted:
+                    tracker.unknownPrime()
+                    isNontrivial = isKnotted( oldLoop, tracker )
+                    if isNontrivial:
                         primes.append(oldLoop)
-                    tracker.knownPrime(isKnotted)
-                elif not oldLoop.drill().isSolidTorus():
+                    tracker.knownPrime(isNontrivial)
+                elif isKnotted(oldLoop):
                     primes.append(oldLoop)
+#                if verbose:
+#                    drilled = oldLoop.drill()
+#                    drilled.idealToFinite()
+#                    drilled.intelligentSimplify()
+#                    drilled.intelligentSimplify()
+#                    tracker.unknownPrime( drilled.size() )
+#                    isKnotted = not drilled.isSolidTorus()
+#                    if isKnotted:
+#                        primes.append(oldLoop)
+#                    tracker.knownPrime(isKnotted)
+#                elif not oldLoop.drill().isSolidTorus():
+#                    primes.append(oldLoop)
                 break
 
             # We only want 2-spheres that intersect the oldLoop in either
@@ -274,33 +282,26 @@ class DecompositionTracker:
         self.reportIfStalled()
         return
 
-    def unknownPrime( self, size ):
+    def unknownPrime(self):
         """
         Informs this tracker that the tracked computation has found a prime
         knot, but it is not yet known whether this prime is nontrivial.
 
-        The given size should be the number of tetrahedra in an ideal
-        triangulation of the found prime knot.
-
         This routine will also automatically print a progress report.
         """
         self.report()
-        msg = "Found prime knot! Is it nontrivial?\nDrilled: "
-        if size == 1:
-            msg += "1 tetrahedron."
-        else:
-            msg += "{} tetrahedra.".format(size)
+        msg = "Found prime knot! Is it nontrivial?"
         self._printMessage(msg)
         return
 
-    def knownPrime( self, isKnotted ):
+    def knownPrime( self, isNontrivial ):
         """
         Informs this tracker that the tracked computation has certified
         whether a prime knot is nontrivially knotted.
 
         This routine will also automatically print a progress report.
         """
-        if isKnotted:
+        if isNontrivial:
             self._numPrimes += 1
             msg = "Yes, found a nontrivial prime knot!"
         else:
