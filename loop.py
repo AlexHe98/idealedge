@@ -227,6 +227,21 @@ class IdealLoop:
         """
         return self._tri
 
+    def drill(self):
+        """
+        Returns an ideal triangulation of the 3-manifold given by drilling
+        out this loop.
+        """
+        drilled = Triangulation3( self._tri )
+        drillLocations = []
+        for ei in self._edgeIndices:
+            emb = drilled.edge(ei).embedding(0)
+            drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+        for tet, edgeNum in drillLocations:
+            drilled.pinchEdge( tet.edge(edgeNum) )
+        drilled.intelligentSimplify()
+        return drilled
+
     def clone(self):
         """
         Returns a clone of this ideal loop.

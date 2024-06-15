@@ -8,28 +8,12 @@ from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
 
 
-def drill(loop):
-    """
-    Returns an ideal triangulation of the 3-manifold given by drilling out
-    the given loop.
-    """
-    drilled = Triangulation3( loop.triangulation() )
-    drillLocations = []
-    for ei in loop:
-        emb = drilled.edge(ei).embedding(0)
-        drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-    for tet, edgeNum in drillLocations:
-        drilled.pinchEdge( tet.edge(edgeNum) )
-    drilled.intelligentSimplify()
-    return drilled
-
-
 def embeddedLoopPacket(loop):
     """
     Returns a packet of the triangulation containing the given loop, with an
     ideal triangulation of the drilled 3-manifold as a child.
     """
-    drilled = PacketOfTriangulation3( drill(loop) )
+    drilled = PacketOfTriangulation3( loop.drill() )
     drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
     packet = PacketOfTriangulation3( loop.triangulation() )
     packet.insertChildLast(drilled)
@@ -151,7 +135,7 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                     msg = template.format(
                             time - start, steps, len(primes), numTri )
                     msg += "\nFound prime knot! Is it nontrivial?"
-                    drilled = drill(oldLoop)
+                    drilled = oldLoop.drill()
                     drilled.idealToFinite()
                     drilled.intelligentSimplify()
                     drilled.intelligentSimplify()
@@ -181,7 +165,7 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                     stdout.flush()
                     if insertAsChild:
                         log += msg + "\n"
-                elif not drill(oldLoop).isSolidTorus():
+                elif not oldLoop.drill().isSolidTorus():
                     primes.append(oldLoop)
                 break
 
