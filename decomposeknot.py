@@ -69,17 +69,18 @@ def decompose( knot, verbose=False, insertAsChild=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
+
+    If verbose is True, then this routine will print regular progress
+    reports. If insertAsChild is True and the given knot is an instance of
+    PacketOfLink, then this routine will insert the results of the
+    computation as descendents of the given knot packet. Both of these
+    features are switched off by default.
     """
-    template = "        Time: {:.6f}. Steps: {}. Primes: {}. #Tri: {}."
-    numTri = 0
-    start = default_timer()
     if verbose:
-        prev = start
-        if insertAsChild:
-            log = ""
+        tracker = DecompositionTracker()
+        tracker.start()
     primes = []
     toProcess = [ embedInTriangulation(knot) ]
-    steps = 0
     while toProcess:
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
@@ -90,35 +91,15 @@ def decompose( knot, verbose=False, insertAsChild=False ):
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
-        numTri += 1
         if verbose:
-            prev = default_timer()
-            msg = "Edge-ideal: "
-            if tri.size() == 1:
-                msg += "1 tetrahedron.\n"
-            else:
-                msg += "{} tetrahedra.\n".format( tri.size() )
-            msg += template.format(
-                    prev - start, steps, len(primes), numTri )
-            print(msg)
-            stdout.flush()
-            if insertAsChild:
-                log += msg + "\n"
+            tracker.newTri( tri.size() )
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
-            steps += 1
-            time = default_timer()
-            if verbose and time - prev > 5:
-                prev = time
-                msg = template.format(
-                        time - start, steps, len(primes), numTri )
-                print(msg)
-                stdout.flush()
-                if insertAsChild:
-                    log += msg + "\n"
+            if verbose:
+                tracker.newSearch()
 
             # Get the next 2-sphere.
             if enumeration.next():
@@ -129,42 +110,16 @@ def decompose( knot, verbose=False, insertAsChild=False ):
                 # No suitable 2-sphere means oldLoop is prime. But we only
                 # care about the case where this prime is nontrivial.
                 if verbose:
-                    # Let the user know that we are about to check
-                    # nontriviality, which is typically a bottleneck.
-                    time = default_timer()
-                    msg = template.format(
-                            time - start, steps, len(primes), numTri )
-                    msg += "\nFound prime knot! Is it nontrivial?"
                     drilled = oldLoop.drill()
                     drilled.idealToFinite()
                     drilled.intelligentSimplify()
                     drilled.intelligentSimplify()
-                    msg += "\nDrilled: "
-                    if drilled.size() == 1:
-                        msg += "1 tetrahedron."
-                    else:
-                        msg += "{} tetrahedra.".format( drilled.size() )
-                    print(msg)
-                    stdout.flush()
-                    if insertAsChild:
-                        log += msg + "\n"
-
-                    # Perform the nontriviality check.
-                    if drilled.isSolidTorus():
-                        ans = "\nNo, it's the unknot."
-                    else:
-                        ans = "\nYes, found a nontrivial prime knot!"
+                    tracker.unknownPrime( drilled.size() )
+                    #TODO Use ideal-edge machinery here.
+                    isKnotted = not drilled.isSolidTorus()
+                    if isKnotted:
                         primes.append(oldLoop)
-
-                    # Let the user know that we made it out the other side.
-                    prev = default_timer()
-                    msg = template.format(
-                            prev - start, steps, len(primes), numTri )
-                    msg += ans
-                    print(msg)
-                    stdout.flush()
-                    if insertAsChild:
-                        log += msg + "\n"
+                    tracker.knownPrime(isKnotted)
                 elif not oldLoop.drill().isSolidTorus():
                     primes.append(oldLoop)
                 break
@@ -187,27 +142,18 @@ def decompose( knot, verbose=False, insertAsChild=False ):
             for newLoop in knots:
                 toProcess.append(newLoop)
             if verbose:
-                prev = default_timer()
-                msg = template.format(
-                        prev - start, steps, len(primes), numTri )
-                print(msg)
-                stdout.flush()
-                if insertAsChild:
-                    log += msg + "\n"
+                tracker.report()
             break
 
     # Output some auxiliary information before returning the list of primes.
-    msg = template.format(
-            default_timer() - start, steps, len(primes), numTri )
-    print(msg)
-    stdout.flush()
+    if verbose:
+        tracker.report()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         if verbose:
-            log += msg
-            container = Text(log)
+            container = Text( tracker.log() )
         else:
             container = Container()
-        container.setLabel( "Primes ({})".format( msg.lstrip() ) )
+        container.setLabel("Primes")
         knot.insertChildLast(container)
         for i, primeLoop in enumerate(primes):
             packet = embeddedLoopPacket(primeLoop)
@@ -223,3 +169,142 @@ def decompose( knot, verbose=False, insertAsChild=False ):
             packet.setLabel( "Prime knot #{} ({})".format( i, adorn ) )
             container.insertChildLast(packet)
     return primes
+
+
+class DecompositionTracker:
+    """
+    A progress tracker for knot decomposition, whose main purpose is to print
+    progress reports when running decompose() with the verbose option.
+    """
+    def __init__( self, stallInterval=5 ):
+        """
+        Create a new DecompositionTracker with the given stallInterval.
+
+        This DecompositionTracker will consider the tracked knot
+        decomposition computation to have stalled if the number of seconds
+        since the previous progress report exceeds the stallInterval.
+        """
+        self._template = ( "    " +
+                "Time: {:.6f}. Searches: {}. Primes: {}. #Tri: {}." )
+        self._stallInterval = stallInterval
+        self._numPrimes = 0
+        self._numTri = 0
+        self._searches = 0
+        self._log = ""
+        self._started = False
+        return
+
+    def start(self):
+        """
+        Starts the timer on the knot decomposition computation that is
+        tracked by this tracker.
+
+        This routine must only be called once.
+        """
+        if self._started:
+            raise RuntimeError( "Timer already started!" )
+        self._started = True
+        self._start = default_timer()
+        self._prev = self._start
+        return
+
+    def log(self):
+        """
+        Returns a log of all progress reports that have appeared so far.
+
+        The log will be a string that could consist of many lines of text.
+        """
+        return self._log
+
+    def _printMessage( self, msg ):
+        self._log += msg + "\n"
+        print(msg)
+        stdout.flush()
+        return
+
+    def _reportImpl( self, time ):
+        self._prev = time
+        msg = self._template.format( time - self._start,
+                self._searches, self._numPrimes, self._numTri )
+        self._printMessage(msg)
+        return
+
+    def report(self):
+        """
+        Prints a progress report.
+        """
+        self._reportImpl( default_timer() )
+        return
+
+    def reportIfStalled(self):
+        """
+        Prints a progress report if the tracked computation has stalled.
+        """
+        time = default_timer()
+        if time - self._prev > self._stallInterval:
+            self._reportImpl(time)
+        return
+
+    def newTri( self, size ):
+        """
+        Informs this tracker that the tracked computation has started
+        processing a new triangulation of the given size.
+
+        This routine will also automatically print a progress report.
+        """
+        self._numTri += 1
+        msg = "Edge-ideal: "
+        if size == 1:
+            msg += "1 tetrahedron."
+        else:
+            msg += "{} tetrahedra.".format(size)
+        self._printMessage(msg)
+        self.report()
+        return
+
+    def newSearch(self):
+        """
+        Informs this tracker that the tracked computation has started a new
+        search for a quadrilateral vertex normal surface.
+
+        This routine will also automatically print a progress report if the
+        tracked computation has stalled.
+        """
+        self._searches += 1
+        self.reportIfStalled()
+        return
+
+    def unknownPrime( self, size ):
+        """
+        Informs this tracker that the tracked computation has found a prime
+        knot, but it is not yet known whether this prime is nontrivial.
+
+        The given size should be the number of tetrahedra in an ideal
+        triangulation of the found prime knot.
+
+        This routine will also automatically print a progress report.
+        """
+        self.report()
+        msg = "Found prime knot! Is it nontrivial?\nDrilled: "
+        if size == 1:
+            msg += "1 tetrahedron."
+        else:
+            msg += "{} tetrahedra.".format(size)
+        self._printMessage(msg)
+        return
+
+    def knownPrime( self, isKnotted ):
+        """
+        Informs this tracker that the tracked computation has certified
+        whether a prime knot is nontrivially knotted.
+
+        This routine will also automatically print a progress report.
+        """
+        if isKnotted:
+            self._numPrimes += 1
+            msg = "Yes, found a nontrivial prime knot!"
+        else:
+            msg = "No, it's the unknot."
+        self.report()
+        self._printMessage(msg)
+        return
