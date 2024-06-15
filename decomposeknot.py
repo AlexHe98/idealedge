@@ -44,6 +44,9 @@ def embedInTriangulation( knot, insertAsChild=False ):
     Warning:
     --> This routine currently uses fast heuristics to attempt to construct
         the desired triangulation, and is not guaranteed to terminate.
+
+    Returns:
+        The constructed ideal loop.
     """
     if knot.countComponents() > 1:
         raise ValueError( "Can only embed knots in a triangulation." )
