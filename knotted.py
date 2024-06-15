@@ -3,6 +3,7 @@ Uses an ideal loop given by 0/1 Dehn surgery to test whether a knot is
 nontrivially knotted.
 """
 from regina import *
+from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
 
 
@@ -42,9 +43,11 @@ def surgery0(oldLoop):
     return newLoop
 
 
-def isKnotted(loop):
+def isKnotted( loop, tracker=None ):
     """
     Is the given ideal loop nontrivially knotted?
+
+    The tracker is an optional DecompositionTracker.
     """
     core = surgery0(loop)
     while True:
@@ -52,10 +55,12 @@ def isKnotted(loop):
         #   It is guaranteed that the original loop is unknotted if and only
         #   if there is a normal 2-sphere intersecting the current core loop
         #   in *exactly* one point.
-        #
-        # Our current task is to search for a quadrilateral vertex normal
-        # 2-sphere that intersects the current core loop in *at most* one
-        # point.
+        tri = core.triangulation()
+        if tracker is not None:
+            tracker.newTri( tri.size() )
+
+        # Search for a quadrilateral vertex normal 2-sphere that intersects
+        # the current core loop in *at most* one point.
         # - If no such 2-sphere exists, then the original loop is
         #   nontrivially knotted.
         # - If we find a 2-sphere intersecting the current core loop in
@@ -63,13 +68,36 @@ def isKnotted(loop):
         # - If we find a 2-sphere disjoint from the current core loop, then
         #   we can crush to obtain a new core loop that still satisfies the
         #   invariant.
-        tri = core.triangulation()
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
+            if tracker is not None:
+                tracker.newSearch()
+
             # Get the next 2-sphere.
-            #TODO
-            pass
-        #TODO
-        pass
-    #TODO
+            if enumeration.next():
+                sphere = enumeration.buildSurface()
+                if not isSphere(sphere):
+                    continue
+            else:
+                # As above, no suitable 2-sphere means the original loop is
+                # nontrivially knotted.
+                return True
+
+            # As above, we only want at most one point of intersection with
+            # the core loop.
+            wt = core.weight(sphere)
+            if wt == 1:
+                # The original loop is unknotted.
+                return False
+            elif wt == 0:
+                # Crushing is guaranteed to give us exactly one new component
+                # containing an ideal loop, and this new ideal loop will be
+                # our new core loop.
+                decomposed = decomposeAlong( sphere, [core] )
+                for newLoops in decomposed:
+                    if newLoops:
+                        # We are guaranteed to have len(newLoops) == 1.
+                        core = newLoops[0]
+                        break
+                break
     return
