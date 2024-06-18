@@ -70,17 +70,32 @@ def decompose( knot, verbose=False, insertAsChild=False ):
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
 
+    The given knot is allowed to be encoded in various ways:
+    --> It could be an instance of IdealLoop, in which case it is assumed
+        that the triangulation containing this loop is a 3-sphere.
+    --> It could be an instance of Regina's Edge3, in which case it is
+        assumed that the endpoints of this edge are identified, and that the
+        triangulation containing this edge is a 3-sphere.
+    --> It could be an instance of Regina's Link or PacketOfLink, in which
+        case it is assumed that this link has exactly one component.
+
     If verbose is True, then this routine will print regular progress
     reports. If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
     computation as descendents of the given knot packet. Both of these
     features are switched off by default.
     """
+    if isinstance( knot, IdealLoop ):
+        loop = knot.clone()
+    elif isinstance( knot, Edge3 ):
+        loop = IdealLoop( [knot] ).clone()
+    else:
+        loop = embedInTriangulation(knot)
     if verbose:
         tracker = DecompositionTracker()
         tracker.start()
     primes = []
-    toProcess = [ embedInTriangulation(knot) ]
+    toProcess = [loop]
     while toProcess:
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
