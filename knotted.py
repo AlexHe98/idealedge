@@ -59,83 +59,45 @@ def isKnotted( loop, tracker=None ):
         if tracker is not None:
             tracker.newTri( tri.size() )
 
-        # Let L denote the current core loop. If there is a normal 2-sphere
-        # intersecting L in exactly one point, then we have the following
-        # sequence of implications:
-        #   ==> There is a standard vertex normal 2-sphere meeting L in
-        #       either exactly zero points or exactly one point.
-        #   ==> After adding positive Euler characteristic as an extra linear
-        #       constraint, there is still a vertex normal 2-sphere meeting L
-        #       in either exactly zero points or exactly one point.
-        #
-        # With this in mind, we now proceed by searching for vertex surfaces
-        # with the positive Euler characteristic constraint included.
-        # - If every such surface intersects L in two or more points, then
-        #   the original loop is nontrivially knotted.
-        # - If we find a projective plane that intersects L in exactly one
-        #   point (assuming the original loop forms a knot in the 3-sphere,
-        #   note that it is not possible to find a projective plane disjoint
-        #   from L), then the original loop is nontrivially knotted.
-        # - If we find a 2-sphere that intersects L in exactly one point,
-        #   then the original loop is unknotted.
-        # - If we find a 2-sphere that is disjoint from L, then we can try to
-        #   crush to obtain a new core loop that still satisfies the
-        #   invariant. This might fail because it destroys an edge in the
-        #   core loop, but such a failure would certify that the original
-        #   loop is unknotted.
-        enumeration = TreeEnumeration_EulerPositive( tri, NS_STANDARD )
+        # Search for a quadrilateral vertex normal 2-sphere that intersects
+        # the current core loop in *at most* one point.
+        # - If no such 2-sphere exists, then the original loop is
+        #   nontrivially knotted.
+        # - If we find a 2-sphere intersecting the current core loop in
+        #   *exactly* one point, then the original loop is unknotted.
+        # - If we find a 2-sphere disjoint from the current core loop, then
+        #   we can crush to obtain a new core loop that still satisfies the
+        #   invariant.
+        enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
             if tracker is not None:
                 tracker.newSearch()
 
-            # Get the next surface.
+            # Get the next 2-sphere.
             if enumeration.next():
-                surface = enumeration.buildSurface()
-                wt = core.weight(surface)
-                if wt > 1:
+                sphere = enumeration.buildSurface()
+                if not isSphere(sphere):
                     continue
-                elif not isSphere(surface):
-                    # Projective plane with weight one implies that the
-                    # original loop is nontrivially knotted.
-                    return True
             else:
-                # As above, no suitable surface means the original loop is
+                # As above, no suitable 2-sphere means the original loop is
                 # nontrivially knotted.
                 return True
 
-            # At this point, we have a 2-sphere with weight at most one.
+            # As above, we only want at most one point of intersection with
+            # the core loop.
+            wt = core.weight(sphere)
             if wt == 1:
                 # The original loop is unknotted.
                 return False
-            else:
-                # As above, when the weight is zero, we try crushing. If
-                # anything goes wrong, then we certify that the original loop
-                # is unknotted.
-                try:
-                    decomposed = decomposeAlong( surface, [core] )
-                except Exception as e:
-                    print( "Certified unknotted by exception: {}".format(e) )
-                    return False
-                else:
-                    foundNewLoop = False
-                    for newLoops in decomposed:
-                        if not newLoops:
-                            continue
-                        elif len(newLoops) == 1:
-                            if len( newLoops[0] ) != len(core):
-                                print( "Certified unknotted by " +
-                                        "shortened loop." )
-                                return False
-                            core = newLoops[0]
-                            foundNewLoop = True
-                            break
-                        else:
-                            print( "Certified unknotted by multiple loops." )
-                            return False
-                    if foundNewLoop:
-                        # Start all over again.
+            elif wt == 0:
+                # Crushing is guaranteed to give us exactly one new component
+                # containing an ideal loop, and this new ideal loop will be
+                # our new core loop.
+                decomposed = decomposeAlong( sphere, [core] )
+                for newLoops in decomposed:
+                    if newLoops:
+                        # We are guaranteed to have len(newLoops) == 1.
+                        core = newLoops[0]
                         break
-                    else:
-                        print( "Certified unknotted by destroyed loop." )
-                        return False
+                break
     return
