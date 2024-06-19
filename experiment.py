@@ -9,12 +9,13 @@ from decomposeknot import decompose
 
 def clearExperiments(packet):
     """
-    Deletes all descendants of the given packet with the label "Primes".
+    Deletes all descendants of the given packet whose labels begin with the
+    string "Primes".
     """
     doomed = []
     for child in packet.children():
         clearExperiments(child)
-        if child.label() == "Primes":
+        if child.label()[:6] == "Primes":
             doomed.append(child)
     for d in doomed:
         d.makeOrphan()

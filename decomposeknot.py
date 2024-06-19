@@ -65,7 +65,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     return loop
 
 
-def decompose( knot, verbose=False, insertAsChild=False ):
+def decompose( knot, tracker=False, insertAsChild=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
@@ -79,21 +79,38 @@ def decompose( knot, verbose=False, insertAsChild=False ):
     --> It could be an instance of Regina's Link or PacketOfLink, in which
         case it is assumed that this link has exactly one component.
 
-    If verbose is True, then this routine will print regular progress
-    reports. If insertAsChild is True and the given knot is an instance of
+    If tracker is an instance of DecompositionTracker, then this routine will
+    use this given tracker to track the progress of the decomposition
+    computation, and to print regular progress reports. Otherwise, tracker
+    should be a boolean indicating whether this routine should create its own
+    tracker for the purpose of printing progress reports. This tracking
+    feature is switched off by default.
+
+    If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
-    computation as descendents of the given knot packet. Both of these
-    features are switched off by default.
+    computation as descendents of the given knot packet. This feature is also
+    switched off by default.
     """
+    # Build the IdealLoop on which we perform the decomposition computation.
+    # Make sure to create clones so as not to directly modify the input.
     if isinstance( knot, IdealLoop ):
         loop = knot.clone()
     elif isinstance( knot, Edge3 ):
         loop = IdealLoop( [knot] ).clone()
     else:
         loop = embedInTriangulation(knot)
-    if verbose:
-        tracker = DecompositionTracker()
+
+    # If necessary, start the progress tracker.
+    if isinstance( tracker, DecompositionTracker ):
+        verbose = True
         tracker.start()
+    else:
+        verbose = bool(tracker)
+        if verbose:
+            tracker = DecompositionTracker()
+            tracker.start()
+
+    # Do the decompositon.
     primes = []
     toProcess = [loop]
     while toProcess:
@@ -161,13 +178,15 @@ def decompose( knot, verbose=False, insertAsChild=False ):
 
     # Output some auxiliary information before returning the list of primes.
     if verbose:
-        tracker.report()
+        msg = tracker.report()
+        tracker.finish()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         if verbose:
             container = Text( tracker.log() )
+            container.setLabel( "Primes ({})".format(msg) )
         else:
             container = Container()
-        container.setLabel("Primes")
+            container.setLabel("Primes")
         knot.insertChildLast(container)
         for i, primeLoop in enumerate(primes):
             packet = embeddedLoopPacket(primeLoop)
@@ -188,7 +207,7 @@ def decompose( knot, verbose=False, insertAsChild=False ):
 class DecompositionTracker:
     """
     A progress tracker for knot decomposition, whose main purpose is to print
-    progress reports when running decompose() with the verbose option.
+    progress reports when running decompose() with the tracker feature.
     """
     def __init__( self, stallInterval=5 ):
         """
@@ -198,14 +217,16 @@ class DecompositionTracker:
         decomposition computation to have stalled if the number of seconds
         since the previous progress report exceeds the stallInterval.
         """
-        self._template = ( "    " +
-                "Time: {:.6f}. Searches: {}. Primes: {}. #Tri: {}." )
+        self._indent = "    "
+        self._template = "Time: {:.6f}. Searches: {}. Primes: {}. #Tri: {}."
         self._stallInterval = stallInterval
         self._numPrimes = 0
         self._numTri = 0
         self._searches = 0
         self._log = ""
-        self._started = False
+        self._startTime = None
+        self._prev = None
+        self._finishTime = None
         return
 
     def start(self):
@@ -215,12 +236,35 @@ class DecompositionTracker:
 
         This routine must only be called once.
         """
-        if self._started:
+        if self._startTime is not None:
             raise RuntimeError( "Timer already started!" )
-        self._started = True
-        self._start = default_timer()
-        self._prev = self._start
+        self._startTime = default_timer()
+        self._prev = self._startTime
         return
+
+    def finish(self):
+        """
+        Informs this tracker that the knot decomposition computation has
+        finished.
+
+        This routine must only be called after start() has been called. This
+        routine may be called more than once, but calls after the first time
+        will do nothing.
+        """
+        if self._startTime is None:
+            raise RuntimeError( "Timer hasn't started yet!" )
+        if self._finishTime is not None:
+            return
+        self._finishTime = default_timer()
+        return
+
+    def elapsed(self):
+        """
+        Returns the total time elapsed during the tracked computation.
+        """
+        if self._finishTime is None:
+            return default_timer() - self._startTime
+        return self._finishTime - self._startTime
 
     def log(self):
         """
@@ -238,26 +282,28 @@ class DecompositionTracker:
 
     def _reportImpl( self, time ):
         self._prev = time
-        msg = self._template.format( time - self._start,
+        msg = self._template.format( time - self._startTime,
                 self._searches, self._numPrimes, self._numTri )
-        self._printMessage(msg)
-        return
+        self._printMessage( self._indent + msg )
+        return msg
 
     def report(self):
         """
-        Prints a progress report.
+        Prints and returns a progress report.
         """
-        self._reportImpl( default_timer() )
-        return
+        return self._reportImpl( default_timer() )
 
     def reportIfStalled(self):
         """
-        Prints a progress report if the tracked computation has stalled.
+        Prints and returns a progress report if the tracked computation has
+        stalled.
+
+        This routine returns None if the computation has not stalled.
         """
         time = default_timer()
         if time - self._prev > self._stallInterval:
-            self._reportImpl(time)
-        return
+            return self._reportImpl(time)
+        return None
 
     def newTri( self, size ):
         """
