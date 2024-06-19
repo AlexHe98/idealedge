@@ -178,8 +178,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
 
     # Output some auxiliary information before returning the list of primes.
     if verbose:
-        msg = tracker.report()
         tracker.finish()
+        msg = tracker.report()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         if verbose:
             container = Text( tracker.log() )
@@ -261,6 +261,8 @@ class DecompositionTracker:
     def elapsed(self):
         """
         Returns the total time elapsed during the tracked computation.
+
+        This routine must never be called before start() has been called.
         """
         if self._finishTime is None:
             return default_timer() - self._startTime
@@ -290,19 +292,29 @@ class DecompositionTracker:
     def report(self):
         """
         Prints and returns a progress report.
+
+        This routine must never be called before start() has been called.
         """
-        return self._reportImpl( default_timer() )
+        if self._finishTime is None:
+            time = default_timer()
+        else:
+            time = self._finishTime
+        return self._reportImpl(time)
 
     def reportIfStalled(self):
         """
         Prints and returns a progress report if the tracked computation has
         stalled.
 
-        This routine returns None if the computation has not stalled.
+        This routine returns None if the computation is finished, or if the
+        computation is still going but has not stalled.
+
+        This routine must never be called before start() has been called.
         """
-        time = default_timer()
-        if time - self._prev > self._stallInterval:
-            return self._reportImpl(time)
+        if self._finishTime is None:
+            time = default_timer()
+            if time - self._prev > self._stallInterval:
+                return self._reportImpl(time)
         return None
 
     def newTri( self, size ):
@@ -311,6 +323,8 @@ class DecompositionTracker:
         processing a new triangulation of the given size.
 
         This routine will also automatically print a progress report.
+
+        This routine must never be called before start() has been called.
         """
         self._numTri += 1
         msg = "Edge-ideal: "
@@ -329,6 +343,8 @@ class DecompositionTracker:
 
         This routine will also automatically print a progress report if the
         tracked computation has stalled.
+
+        This routine must never be called before start() has been called.
         """
         self._searches += 1
         self.reportIfStalled()
@@ -343,6 +359,8 @@ class DecompositionTracker:
         triangulation of the found prime knot.
 
         This routine will also automatically print a progress report.
+
+        This routine must never be called before start() has been called.
         """
         self.report()
         msg = "Found prime knot! Is it nontrivial?\nDrilled: "
@@ -359,6 +377,8 @@ class DecompositionTracker:
         whether a prime knot is nontrivially knotted.
 
         This routine will also automatically print a progress report.
+
+        This routine must never be called before start() has been called.
         """
         if isNontrivial:
             self._numPrimes += 1
