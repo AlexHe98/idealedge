@@ -42,15 +42,23 @@ def decomposeAll( packet, verbose=True, insertChildren=False ):
     return
 
 
-def decomposeAllInTable(filename):
+def decomposeFromTable( filename, skip=0, cap=None ):
     """
-    Decomposes all knots listed in the table in the given file, and prints
-    the results to standard output.
+    Decomposes knots listed in the table in the given file, and prints the
+    results to standard output.
 
     The given file should be a CSV file that includes (at least) the
     following data:
     --> a column of knot names under the heading "name"; and
     --> a column of knot signatures under the heading "knot_sig".
+
+    It is possible to request that this routine skips the first few knots in
+    the given table. By default, this routine does not skip any knots.
+
+    This routine can be also run with an optional cap on the total number of
+    knots that it processes. If the number of knots in the given table
+    exceeds the cap, then this routine will terminate immediately after it
+    has reached the cap.
     """
     title = filename.split( "/" )[-1].split( "." )[0]
     print()
@@ -66,16 +74,44 @@ def decomposeAllInTable(filename):
         headings = table.readline().rstrip().split( "," )
         nameCol = headings.index( "name" )
         sigCol = headings.index( "knot_sig" )
+        skipCount = 0
         while True:
             row = table.readline()
             if row == "":
+                if knotCount == 0:
+                    if skipCount > 0:
+                        msg = "Skipped all knots."
+                    else:
+                        msg = "No knots found."
+                    print( "-"*len(msg) )
+                    print(msg)
+                    print( "-"*len(msg) )
+                    print()
                 break
             entries = row.rstrip().split( "," )
             knot = Link.fromKnotSig( entries[sigCol] )
             if knot.countComponents() != 1:
                 continue
+            if skipCount < skip:
+                skipCount += 1
+                continue
+            if skip > 0 and knotCount == 0:
+                if skip == 1:
+                    msg = "Skipped first knot."
+                else:
+                    msg = "Skipped first {} knots.".format(skip)
+                print( "-"*len(msg) )
+                print(msg)
+                print( "-"*len(msg) )
+                print()
+            if cap is not None and knotCount >= cap:
+                print( "----------------" )
+                print( "Reached the cap." )
+                print( "----------------" )
+                print()
+                break
             name = "Knot #{}: {}".format(
-                    knotCount, entries[nameCol] )
+                    skip + knotCount, entries[nameCol] )
             print(name)
             print( "-"*len(name) )
             knotCount += 1
@@ -105,4 +141,12 @@ def decomposeAllInTable(filename):
 
 
 if __name__ == "__main__":
-    decomposeAllInTable( argv[1] )
+    try:
+        cap = int( argv[3] )
+    except IndexError:
+        cap = None
+    try:
+        skip = int( argv[2] )
+    except IndexError:
+        skip = 0
+    decomposeFromTable( argv[1], skip, cap )
