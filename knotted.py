@@ -47,8 +47,42 @@ def isKnotted( loop, tracker=None ):
     """
     Is the given ideal loop nontrivially knotted?
 
-    The tracker is an optional DecompositionTracker.
+    This routine can be run with an optional DecompositionTracker. The
+    intended use case is when a larger decomposition routine needs to track
+    progress while running isKnotted() as a subroutine. Thus, this routine
+    assumes that tracker.start() has already been called, and it is
+    guaranteed that this routine will never call tracker.finish().
     """
+    # If we can certify hyperbolicity, then the loop must be knotted.
+    drilled = loop.drill()
+    if tracker is not None:
+        msg = "Drilled: {} tetrahedra.\n".format( drilled.size() )
+        msg += "Attempting to certify hyperbolic."
+        tracker.report(msg)
+    spt = SnapPeaTriangulation(drilled)
+    probablyHyperbolic = False
+    attempts = 0
+    while True:
+        if tracker is not None:
+            tracker.reportIfStalled()
+        attempts += 1
+        if ( spt.solutionType() == SolutionType.geometric_solution or
+                spt.solutionType() == SolutionType.nongeometric_solution ):
+            probablyHyperbolic = True
+            break
+        elif attempts < 4:
+            # Try again.
+            spt.randomise()
+        else:
+            break
+    if probablyHyperbolic and spt.hasStrictAngleStructure():
+        # Certified hyperbolic.
+        if tracker is not None:
+            tracker.report()
+        return True
+
+    #
+    #TODO
     core = surgery0(loop)
     while True:
         # INVARIANT:

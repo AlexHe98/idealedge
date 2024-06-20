@@ -289,9 +289,13 @@ class DecompositionTracker:
         self._printMessage( self._indent + msg )
         return msg
 
-    def report(self):
+    def report( self, message=None ):
         """
         Prints and returns a progress report.
+
+        This report may be optionally augmented by a custom message. If
+        supplied, this message will be printed immediately before the
+        standard progress report.
 
         This routine must never be called before start() has been called.
         """
@@ -299,6 +303,8 @@ class DecompositionTracker:
             time = default_timer()
         else:
             time = self._finishTime
+        if message is not None:
+            self._printMessage(message)
         return self._reportImpl(time)
 
     def reportIfStalled(self):
@@ -332,8 +338,7 @@ class DecompositionTracker:
             msg += "1 tetrahedron."
         else:
             msg += "{} tetrahedra.".format(size)
-        self._printMessage(msg)
-        self.report()
+        self.report(msg)
         return
 
     def newSearch(self):
@@ -382,9 +387,9 @@ class DecompositionTracker:
         """
         if isNontrivial:
             self._numPrimes += 1
-            msg = "Yes, found a nontrivial prime knot!"
+            msg = "Found a nontrivial prime knot!"
         else:
-            msg = "No, it's the unknot."
+            msg = "Found an unknot."
         self.report()
         self._printMessage(msg)
         return
