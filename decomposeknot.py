@@ -95,8 +95,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     computation as descendents of the given knot packet. This feature is also
     switched off by default.
     """
-    if not isinstance( tracker, DecompositionTracker ):
-        tracker = DecompositionTracker( bool(tracker) )
+    if isinstance( tracker, DecompositionTracker ):
+        verbose = tracker.isVerbose()
+    else:
+        verbose = bool(tracker)
+        tracker = DecompositionTracker(verbose)
     tracker.start()
 
     # Build the IdealLoop on which we perform the decomposition computation.
@@ -108,7 +111,6 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     else:
         loop = embedInTriangulation(knot)
 
-    #TODO Update usage of tracker.
     # Do the decompositon.
     primes = []
     toProcess = [loop]
@@ -122,15 +124,13 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
-        if verbose:
-            tracker.newTri( tri.size() )
+        tracker.newTri( tri.size() )
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
-            if verbose:
-                tracker.newSearch()
+            tracker.newSearch()
 
             # Get the next 2-sphere.
             if enumeration.next():
@@ -140,14 +140,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             else:
                 # No suitable 2-sphere means oldLoop is prime. But we only
                 # care about the case where this prime is nontrivial.
-                if verbose:
-                    tracker.unknownPrime()
-                    isNontrivial = isKnotted( oldLoop, tracker )
-                    if isNontrivial:
-                        primes.append(oldLoop)
-                    tracker.knownPrime(isNontrivial)
-                elif isKnotted(oldLoop):
+                tracker.unknownPrime()
+                isNontrivial = isKnotted( oldLoop, tracker )
+                if isNontrivial:
                     primes.append(oldLoop)
+                tracker.knownPrime(isNontrivial)
                 break
 
             # We only want 2-spheres that intersect the oldLoop in either
@@ -172,8 +169,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             break
 
     # Output some auxiliary information before returning the list of primes.
+    tracker.finish()
     if verbose:
-        tracker.finish()
         msg = tracker.report()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         if verbose:
@@ -335,7 +332,7 @@ class DecompositionTracker:
             self._printMessage(after)
         return rep
 
-    def _newEvent( self, before, after ):
+    def _newEvent( self, before=None, after=None ):
         if self._verbose:
             return self.report( before, after )
         self._previousEventTime = default_timer()
@@ -399,7 +396,7 @@ class DecompositionTracker:
         This routine must never be called before start() has been called.
         """
         self._searches += 1
-        self._newEvent()
+        self._newEventIfStalled()
         return
 
     def unknownPrime(self):
