@@ -21,6 +21,47 @@ def embeddedLoopPacket(loop):
     return packet
 
 
+def reversePinch( knotComplement, packet=None ):
+    """
+    Builds an ideal loop representing the same knot as the given ideal
+    triangulation.
+
+    Warning:
+    --> This routine currently uses fast heuristics to attempt to construct
+        the desired triangulation, and is not guaranteed to terminate.
+
+    Returns:
+        The constructed ideal loop.
+    """
+    # Triangulate the exterior with boundary edges appearing as the meridian
+    # and longitude. The last step is not guaranteed to terminate in theory,
+    # but it should be fine in practice.
+    knotComplement.idealToFinite()
+    knotComplement.intelligentSimplify()
+    knotComplement.intelligentSimplify()
+    mer, lon = knotComplement.meridianLongitude()
+
+    # Get a tetrahedron index and edge number for the longitude, so that we
+    # can remember its location after closing up the boundary.
+    emb = lon.embedding(0)
+    tet = emb.tetrahedron()
+    edgeNum = emb.face()
+
+    # Close up the boundary and build the IdealLoop.
+    layer = knotComplement.layerOn(mer)
+    layer.join( 0, layer, Perm4(0,1) )
+    idealEdge = tet.edge(edgeNum)
+    loop = IdealLoop( [idealEdge] )
+    loop.simplify()
+    loop.simplify()
+    if packet is not None:
+        child = embeddedLoopPacket(loop)
+        child.setLabel( packet.adornedLabel(
+            "Embedded as edge {}".format( idealEdge.index() ) ) )
+        packet.insertChildLast(child)
+    return loop
+
+
 def embedInTriangulation( knot, insertAsChild=False ):
     """
     Embeds the given knot as an ideal loop in a triangulation of the
@@ -35,37 +76,14 @@ def embedInTriangulation( knot, insertAsChild=False ):
     """
     if knot.countComponents() > 1:
         raise ValueError( "Can only embed knots in a triangulation." )
-
-    # Triangulate the exterior with boundary edges appearing as the meridian
-    # and longitude. The last step is not guaranteed to terminate in theory,
-    # but it should be fine in practice.
-    tri = knot.complement()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
-    tri.idealToFinite()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
-    mer, lon = tri.meridianLongitude()
-
-    # Get a tetrahedron index and edge number for the longitude, so that we
-    # can remember its location after closing up the boundary.
-    emb = lon.embedding(0)
-    tet = emb.tetrahedron()
-    edgeNum = emb.face()
-
-    # Close up the boundary and build the IdealLoop.
-    layer = tri.layerOn(mer)
-    layer.join( 0, layer, Perm4(0,1) )
-    idealEdge = tet.edge(edgeNum)
-    loop = IdealLoop( [idealEdge] )
-    loop.simplify()
-    loop.simplify()
     if insertAsChild and isinstance( knot, PacketOfLink ):
-        packet = embeddedLoopPacket(loop)
-        packet.setLabel( knot.adornedLabel(
-            "Embedded as edge {}".format( idealEdge.index() ) ) )
-        knot.insertChildLast(packet)
-    return loop
+        packet = knot
+    else:
+        packet = None
+    knotComplement = knot.complement()
+    knotComplement.intelligentSimplify()
+    knotComplement.intelligentSimplify()
+    return reversePinch( knotComplement, packet )
 
 
 def decompose( knot, tracker=False, insertAsChild=False ):
@@ -129,36 +147,29 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
-        stallCount = 0
-        stallCap = 1
         while True:
             if tracker.hasStalled():
-                stallCount += 1
-                if stallCount >= stallCap:
-                    stallCap *= 2
-
-                    # We have spent a comparatively long time on the current
-                    # triangulation, so it might be worthwhile to try harder
-                    # to simplify this triangulation, and to restart the
-                    # surface enumeration on a smaller triangulation.
-                    tracker.report( None, "Try to simplify." )
-                    simpLoop = oldLoop.clone()
-                    success = False
-                    if simpLoop.simplify():
-                        success = True
-                    if simpLoop.simplify():
-                        success = True
-                    if success:
-                        oldLoop.setFromLoop( simpLoop, False )
-                        tri = oldLoop.triangulation()
-                        beforeReport = "Simplified to {} tetrahedra.".format(
-                                tri.size() )
-                        tracker.report(beforeReport)
-                        continue
-                    else:
-                        beforeReport = ( "Could not simplify. " +
-                                "Continuing with current triangulation." )
-                        tracker.report(beforeReport)
+                # We have spent a comparatively long time on the current
+                # triangulation, so it might be worthwhile to try harder to
+                # simplify this triangulation, and to restart the surface
+                # enumeration on a smaller triangulation.
+                tracker.report( None, "Try to simplify." )
+                drilled = SnapPeaTriangulation( oldLoop.drill() )
+                drilled.randomise()
+                simpLoop = reversePinch(
+                        Triangulation3.fromIsoSig( drilled.isoSig() ) )
+                if simpLoop.triangulation().size() < tri.size():
+                    oldLoop.setFromLoop( simpLoop, False )
+                    tri = oldLoop.triangulation()
+                    enumeration = TreeEnumeration( tri, NS_QUAD )
+                    beforeReport = "Simplified to {} tetrahedra.".format(
+                            tri.size() )
+                    tracker.report(beforeReport)
+                    continue
+                else:
+                    beforeReport = ( "Could not simplify. " +
+                            "Continuing with current triangulation." )
+                    tracker.report(beforeReport)
             tracker.newSearch()
 
             # Get the next 2-sphere.
