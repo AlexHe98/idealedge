@@ -85,16 +85,18 @@ def isKnotted( loop, tracker=None ):
             tracker.report( None, afterReport )
         return True
 
-    # Try enumerating subgroups of the fundamental group.
+    # Try enumerating covers on the fundamental group.
     if tracker is not None:
-        beforeReport = "Attempting to enumerate covers."
+        beforeReport = "Attempting to enumerate covers of index 2 to 6."
         tracker.report(beforeReport)
     gp = drilled.group()
     for index in range(2,8):
         if tracker is not None:
-            # Do this just in case, even though we do not expect these
-            # cover enumerations to take a long time.
-            tracker.reportIfStalled()
+            if index == 7:
+                beforeReport = "Attempting to enumerate covers of index 7."
+                tracker.report(beforeReport)
+            else:
+                tracker.reportIfStalled()
         covers = gp.enumerateCovers( index, lambda h: None )
         if covers != 1:
             # The unknot has only one cover, so the given loop must be
