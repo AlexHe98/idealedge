@@ -67,9 +67,8 @@ def decomposeFromTable( filename, skip=0, cap=None ):
     print( "+-" + "-"*len(title) + "-+" )
     print()
     knotCount = 0
-    longestName = None
-    longestTime = 0
-    start = default_timer()
+    data = []
+    totalTime = 0
     with open( filename, "r" ) as table:
         headings = table.readline().rstrip().split( "," )
         nameCol = headings.index( "name" )
@@ -126,16 +125,20 @@ def decomposeFromTable( filename, skip=0, cap=None ):
             for i, loop in enumerate(primes):
                 print( "    Drilled iso sig for prime #{}: {}".format(
                     i, loop.drill().isoSig() ) )
-            if tracker.elapsed() > longestTime:
-                longestName = name
-                longestTime = tracker.elapsed()
+
+            # Store data for post-processing.
+            data.append( ( name, tracker.elapsed() ) )
+            totalTime += tracker.elapsed()
             print()
     print( "="*32 )
     print( "Total knots: {}.".format(knotCount) )
-    print( "Total time: {:.6f}.".format( default_timer() - start ) )
+    print( "Total time: {:.6f}.".format(totalTime) )
     if knotCount:
-        print( "Longest:\n    {}. {:.6f}.".format(
-            longestName, longestTime ) )
+        average = totalTime / knotCount
+        print( "Comparatively slow cases:" )
+        for name, time in data:
+            if time > 1.5 * average:
+                print( "    Name: {}. Time: {:.6f}.".format( name, time ) )
     print()
     return
 
