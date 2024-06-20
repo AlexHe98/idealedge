@@ -114,7 +114,7 @@ def decomposeFromTable( filename, skip=0, cap=None ):
             print(name)
             print( "-"*len(name) )
             knotCount += 1
-            tracker = DecompositionTracker()
+            tracker = DecompositionTracker(True)
             primes = decompose( knot, tracker )
             if len(primes) == 0:
                 print( "Unknot!" )

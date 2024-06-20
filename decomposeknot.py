@@ -84,16 +84,24 @@ def decompose( knot, tracker=False, insertAsChild=False ):
 
     If tracker is an instance of DecompositionTracker, then this routine will
     use this given tracker to track the progress of the decomposition
-    computation, and to print regular progress reports. Otherwise, tracker
-    should be a boolean indicating whether this routine should create its own
-    tracker for the purpose of printing progress reports. This tracking
-    feature is switched off by default.
+    computation; if the tracker has the verbose option switched on, then this
+    routine will also use the tracker to print regular progress reports.
+    Otherwise, the routine will create its own DecompositionTracker, and the
+    tracker parameter should be either True or False depending on whether the
+    newly-created tracker should have the verbose option switched on.
 
     If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
     computation as descendents of the given knot packet. This feature is also
     switched off by default.
     """
+    if isinstance( tracker, DecompositionTracker ):
+        verbose = tracker.isVerbose()
+    else:
+        verbose = bool(tracker)
+        tracker = DecompositionTracker(verbose)
+    tracker.start()
+
     # Build the IdealLoop on which we perform the decomposition computation.
     # Make sure to create clones so as not to directly modify the input.
     if isinstance( knot, IdealLoop ):
@@ -102,16 +110,6 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         loop = IdealLoop( [knot] ).clone()
     else:
         loop = embedInTriangulation(knot)
-
-    # If necessary, start the progress tracker.
-    if isinstance( tracker, DecompositionTracker ):
-        verbose = True
-        tracker.start()
-    else:
-        verbose = bool(tracker)
-        if verbose:
-            tracker = DecompositionTracker()
-            tracker.start()
 
     # Do the decompositon.
     primes = []
@@ -126,15 +124,13 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
         tri = oldLoop.triangulation()
-        if verbose:
-            tracker.newTri( tri.size() )
+        tracker.newTri( tri.size() )
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
         while True:
-            if verbose:
-                tracker.newSearch()
+            tracker.newSearch()
 
             # Get the next 2-sphere.
             if enumeration.next():
@@ -144,14 +140,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             else:
                 # No suitable 2-sphere means oldLoop is prime. But we only
                 # care about the case where this prime is nontrivial.
-                if verbose:
-                    tracker.unknownPrime()
-                    isNontrivial = isKnotted( oldLoop, tracker )
-                    if isNontrivial:
-                        primes.append(oldLoop)
-                    tracker.knownPrime(isNontrivial)
-                elif isKnotted(oldLoop):
+                tracker.unknownPrime()
+                isNontrivial = isKnotted( oldLoop, tracker )
+                if isNontrivial:
                     primes.append(oldLoop)
+                tracker.knownPrime(isNontrivial)
                 break
 
             # We only want 2-spheres that intersect the oldLoop in either
@@ -176,8 +169,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             break
 
     # Output some auxiliary information before returning the list of primes.
+    tracker.finish()
     if verbose:
-        tracker.finish()
         msg = tracker.report()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         if verbose:
@@ -205,17 +198,42 @@ def decompose( knot, tracker=False, insertAsChild=False ):
 
 class DecompositionTracker:
     """
-    A progress tracker for knot decomposition, whose main purpose is to print
-    progress reports when running decompose() with the tracker feature.
-    """
-    def __init__( self, stallInterval=5 ):
-        """
-        Create a new DecompositionTracker with the given stallInterval.
+    A progress tracker for knot decomposition.
 
-        This DecompositionTracker will consider the tracked knot
-        decomposition computation to have stalled if the number of seconds
-        since the previous progress report exceeds the stallInterval.
+    In detail, this tracker provides the following functionality:
+    --> Times the tracked knot decomposition computation.
+    --> Prints progress reports (either upon request, or upon being notified
+        of a significant event).
+    --> Tracks whether the computation has stalled, meaning that the number
+        of seconds since the most recent event has exceeded some set value.
+
+    This tracker recognises the following significant events:
+    --> The computation started.
+    --> The computation finished.
+    --> A progress report was printed.
+    --> The computation has begun processing a new triangulation.
+    --> The computation has begun a new search for a quadrilateral vertex
+        normal surface.
+    --> The computation has found a prime knot, but it has not yet
+        established whether this prime knot is nontrivially knotted.
+    --> The computation has certified whether a prime knot is nontrivially
+        knotted.
+    """
+    def __init__( self, verbose=False, stallInterval=5 ):
         """
+        Creates a new DecompositionTracker.
+
+        If verbose is True, then this tracker will automatically print
+        progress reports to standard output whenever it is notified of
+        significant events; this feature is switched off by default.
+        Regardless of whether this feature is switched on or off, it will
+        always be possible to manually request a progress report.
+
+        This tracker will consider the tracked knot decomposition computation
+        to have stalled if the number of seconds since the last event exceeds
+        the given stallInterval.
+        """
+        self._verbose = verbose
         self._indent = "    "
         self._template = "Time: {:.6f}. Searches: {}. Primes: {}. #Tri: {}."
         self._stallInterval = stallInterval
@@ -224,9 +242,15 @@ class DecompositionTracker:
         self._searches = 0
         self._log = ""
         self._startTime = None
-        self._prev = None
+        self._previousEventTime = None
         self._finishTime = None
         return
+
+    def isVerbose(self):
+        """
+        Is the verbose option switched on for this tracker?
+        """
+        return self._verbose
 
     def start(self):
         """
@@ -238,7 +262,7 @@ class DecompositionTracker:
         if self._startTime is not None:
             raise RuntimeError( "Timer already started!" )
         self._startTime = default_timer()
-        self._prev = self._startTime
+        self._previousEventTime = self._startTime
         return
 
     def finish(self):
@@ -282,7 +306,7 @@ class DecompositionTracker:
         return
 
     def _reportImpl( self, time ):
-        self._prev = time
+        self._previousEventTime = time
         msg = self._template.format( time - self._startTime,
                 self._searches, self._numPrimes, self._numTri )
         self._printMessage( self._indent + msg )
@@ -308,6 +332,19 @@ class DecompositionTracker:
             self._printMessage(after)
         return rep
 
+    def _newEvent( self, before=None, after=None ):
+        if self._verbose:
+            return self.report( before, after )
+        self._previousEventTime = default_timer()
+        return None
+
+    def _getTimeIfStalled(self):
+        if self._finishTime is None:
+            time = default_timer()
+            if time - self._previousEventTime > self._stallInterval:
+                return time
+        return None
+
     def reportIfStalled(self):
         """
         Prints and returns a progress report if the tracked computation has
@@ -318,10 +355,15 @@ class DecompositionTracker:
 
         This routine must never be called before start() has been called.
         """
-        if self._finishTime is None:
-            time = default_timer()
-            if time - self._prev > self._stallInterval:
-                return self._reportImpl(time)
+        time = self._getTimeIfStalled()
+        if time is not None:
+            return self._reportImpl(time)
+        return None
+
+    def _newEventIfStalled(self):
+        time = self._getTimeIfStalled()
+        if time is not None:
+            return self._newEvent()
         return None
 
     def newTri( self, size ):
@@ -329,7 +371,8 @@ class DecompositionTracker:
         Informs this tracker that the tracked computation has started
         processing a new triangulation of the given size.
 
-        This routine will also automatically print a progress report.
+        If this tracker is verbose, then this routine will automatically
+        print a progress report.
 
         This routine must never be called before start() has been called.
         """
@@ -339,7 +382,7 @@ class DecompositionTracker:
             beforeReport += "1 tetrahedron."
         else:
             beforeReport += "{} tetrahedra.".format(size)
-        self.report(beforeReport)
+        self._newEvent(beforeReport)
         return
 
     def newSearch(self):
@@ -347,13 +390,13 @@ class DecompositionTracker:
         Informs this tracker that the tracked computation has started a new
         search for a quadrilateral vertex normal surface.
 
-        This routine will also automatically print a progress report if the
-        tracked computation has stalled.
+        If this tracker is verbose and the tracked computation has stalled,
+        then this routine will automatically print a progress report.
 
         This routine must never be called before start() has been called.
         """
         self._searches += 1
-        self.reportIfStalled()
+        self._newEventIfStalled()
         return
 
     def unknownPrime(self):
@@ -361,12 +404,13 @@ class DecompositionTracker:
         Informs this tracker that the tracked computation has found a prime
         knot, but it is not yet known whether this prime is nontrivial.
 
-        This routine will also automatically print a progress report.
+        If this tracker is verbose, then this routine will automatically
+        print a progress report.
 
         This routine must never be called before start() has been called.
         """
         afterReport = "Found a prime knot! Is it nontrivial?"
-        self.report( None, afterReport )
+        self._newEvent( None, afterReport )
         return
 
     def knownPrime( self, isNontrivial ):
@@ -374,7 +418,8 @@ class DecompositionTracker:
         Informs this tracker that the tracked computation has certified
         whether a prime knot is nontrivially knotted.
 
-        This routine will also automatically print a progress report.
+        If this tracker is verbose, then this routine will automatically
+        print a progress report.
 
         This routine must never be called before start() has been called.
         """
@@ -383,5 +428,5 @@ class DecompositionTracker:
             beforeReport = "The prime knot is nontrivial!"
         else:
             beforeReport = "The prime knot is the unknot."
-        self.report(beforeReport)
+        self._newEvent(beforeReport)
         return
