@@ -240,6 +240,7 @@ class IdealLoop:
         for tet, edgeNum in drillLocations:
             drilled.pinchEdge( tet.edge(edgeNum) )
         drilled.intelligentSimplify()
+        drilled.intelligentSimplify()
         return drilled
 
     def clone(self):

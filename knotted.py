@@ -40,6 +40,7 @@ def surgery0(oldLoop):
     idealEdge = tet.edge(edgeNum)
     newLoop = IdealLoop( [idealEdge] )
     newLoop.simplify()
+    newLoop.simplify()
     return newLoop
 
 

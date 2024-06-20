@@ -576,6 +576,7 @@ def decomposeAlong( surf, oldLoops ):
                 loops.append(loop)
         if len(loops) == 1:
             loops[0].simplify()
+            loops[0].simplify()
         output.append(loops)
     return output
 
@@ -619,6 +620,7 @@ def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
             tri.insertChildLast(drilled)
             for t, e in loops:
                 drilled.pinchEdge( drilled.tetrahedron(t).edge(e) )
+                drilled.intelligentSimplify()
                 drilled.intelligentSimplify()
 
                 # Is drilled a solid torus?
@@ -746,6 +748,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     "Closed, pinched edge {}".format( ide.index() ) ) )
                 drilled.pinchEdge(ide)
                 drilled.intelligentSimplify()
+                drilled.intelligentSimplify()
                 if ( ( drilled.knowsSolidTorus() or
                     drilled.size() < threshold ) and
                     drilled.isSolidTorus() ):
@@ -756,6 +759,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     trunc = PacketOfTriangulation3(drilled)
                     drilled.insertChildLast(trunc)
                     trunc.idealToFinite()
+                    trunc.intelligentSimplify()
                     trunc.intelligentSimplify()
                     std = StandardTriangulation.recognise(trunc)
                     if std is None:
@@ -788,6 +792,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         "Ideal edge {}".format( ide.index() ) ) )
                     drilled.pinchEdge(ide)
                     drilled.intelligentSimplify()
+                    drilled.intelligentSimplify()
 
                     # Try to recognise the drilled manifold.
                     if ( ( drilled.knowsSolidTorus() or
@@ -800,6 +805,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         trunc = PacketOfTriangulation3(drilled)
                         drilled.insertChildLast(trunc)
                         trunc.idealToFinite()
+                        trunc.intelligentSimplify()
                         trunc.intelligentSimplify()
                         std = StandardTriangulation.recognise(trunc)
                         if std is None:

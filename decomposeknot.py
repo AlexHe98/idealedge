@@ -41,6 +41,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     # but it should be fine in practice.
     tri = knot.complement()
     tri.intelligentSimplify()
+    tri.intelligentSimplify()
     tri.idealToFinite()
     tri.intelligentSimplify()
     tri.intelligentSimplify()
@@ -57,6 +58,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     loop = IdealLoop( [idealEdge] )
+    loop.simplify()
     loop.simplify()
     if insertAsChild and isinstance( knot, PacketOfLink ):
         packet = embeddedLoopPacket(loop)
