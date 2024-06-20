@@ -134,10 +134,12 @@ def decomposeFromTable( filename, skip=0, cap=None ):
     print( "Total knots: {}.".format(knotCount) )
     print( "Total time: {:.6f}.".format(totalTime) )
     if knotCount:
+        slowCoefficient = 2
         average = totalTime / knotCount
-        print( "Comparatively slow cases:" )
+        print( "Cases slower than {} times the average:".format(
+            slowCoefficient ) )
         for name, time in data:
-            if time > 1.5 * average:
+            if time > slowCoefficient * average:
                 print( "    Name: {}. Time: {:.6f}.".format( name, time ) )
     print()
     return
