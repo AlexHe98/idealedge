@@ -129,7 +129,36 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
         enumeration = TreeEnumeration( tri, NS_QUAD )
+        stallCount = 0
+        stallCap = 1
         while True:
+            if tracker.hasStalled():
+                stallCount += 1
+                if stallCount >= stallCap:
+                    stallCap *= 2
+
+                    # We have spent a comparatively long time on the current
+                    # triangulation, so it might be worthwhile to try harder
+                    # to simplify this triangulation, and to restart the
+                    # surface enumeration on a smaller triangulation.
+                    tracker.report( None, "Try to simplify." )
+                    simpLoop = oldLoop.clone()
+                    success = False
+                    if simpLoop.simplify():
+                        success = True
+                    if simpLoop.simplify():
+                        success = True
+                    if success:
+                        oldLoop.setFromLoop( simpLoop, False )
+                        tri = oldLoop.triangulation()
+                        beforeReport = "Simplified to {} tetrahedra.".format(
+                                tri.size() )
+                        tracker.report(beforeReport)
+                        continue
+                    else:
+                        beforeReport = ( "Could not simplify. " +
+                                "Continuing with current triangulation." )
+                        tracker.report(beforeReport)
             tracker.newSearch()
 
             # Get the next 2-sphere.
@@ -337,6 +366,15 @@ class DecompositionTracker:
             return self.report( before, after )
         self._previousEventTime = default_timer()
         return None
+
+    def hasStalled(self):
+        """
+        Has the tracked computation stalled?
+        """
+        if self._finishTime is None:
+            return ( default_timer() - self._previousEventTime >
+                    self._stallInterval )
+        return False
 
     def _getTimeIfStalled(self):
         if self._finishTime is None:
