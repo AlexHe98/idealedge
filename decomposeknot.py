@@ -6,6 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
+from knotted import isKnotted
 
 
 def embeddedLoopPacket(loop):
@@ -142,16 +143,12 @@ def decompose( knot, tracker=False, insertAsChild=False ):
                 # No suitable 2-sphere means oldLoop is prime. But we only
                 # care about the case where this prime is nontrivial.
                 if verbose:
-                    drilled = oldLoop.drill()
-                    drilled.idealToFinite()
-                    drilled.intelligentSimplify()
-                    drilled.intelligentSimplify()
-                    tracker.unknownPrime( drilled.size() )
-                    isNontrivial = not drilled.isSolidTorus()
+                    tracker.unknownPrime()
+                    isNontrivial = isKnotted( oldLoop, tracker )
                     if isNontrivial:
                         primes.append(oldLoop)
                     tracker.knownPrime(isNontrivial)
-                elif not oldLoop.drill().isSolidTorus():
+                elif isKnotted(oldLoop):
                     primes.append(oldLoop)
                 break
 
@@ -289,13 +286,12 @@ class DecompositionTracker:
         self._printMessage( self._indent + msg )
         return msg
 
-    def report( self, message=None ):
+    def report( self, before=None, after=None ):
         """
         Prints and returns a progress report.
 
-        This report may be optionally augmented by a custom message. If
-        supplied, this message will be printed immediately before the
-        standard progress report.
+        This report may be optionally augmented with messages to appear
+        immediately before and/or after the standard progress report.
 
         This routine must never be called before start() has been called.
         """
@@ -303,9 +299,12 @@ class DecompositionTracker:
             time = default_timer()
         else:
             time = self._finishTime
-        if message is not None:
-            self._printMessage(message)
-        return self._reportImpl(time)
+        if before is not None:
+            self._printMessage(before)
+        rep = self._reportImpl(time)
+        if after is not None:
+            self._printMessage(after)
+        return rep
 
     def reportIfStalled(self):
         """
@@ -333,12 +332,12 @@ class DecompositionTracker:
         This routine must never be called before start() has been called.
         """
         self._numTri += 1
-        msg = "Edge-ideal: "
+        beforeReport = "Edge-ideal: "
         if size == 1:
-            msg += "1 tetrahedron."
+            beforeReport += "1 tetrahedron."
         else:
-            msg += "{} tetrahedra.".format(size)
-        self.report(msg)
+            beforeReport += "{} tetrahedra.".format(size)
+        self.report(beforeReport)
         return
 
     def newSearch(self):
@@ -355,25 +354,17 @@ class DecompositionTracker:
         self.reportIfStalled()
         return
 
-    def unknownPrime( self, size ):
+    def unknownPrime(self):
         """
         Informs this tracker that the tracked computation has found a prime
         knot, but it is not yet known whether this prime is nontrivial.
-
-        The given size should be the number of tetrahedra in an ideal
-        triangulation of the found prime knot.
 
         This routine will also automatically print a progress report.
 
         This routine must never be called before start() has been called.
         """
-        self.report()
-        msg = "Found prime knot! Is it nontrivial?\nDrilled: "
-        if size == 1:
-            msg += "1 tetrahedron."
-        else:
-            msg += "{} tetrahedra.".format(size)
-        self._printMessage(msg)
+        afterReport = "Found a prime knot! Is it nontrivial?"
+        self.report( None, afterReport )
         return
 
     def knownPrime( self, isNontrivial ):
@@ -387,9 +378,8 @@ class DecompositionTracker:
         """
         if isNontrivial:
             self._numPrimes += 1
-            msg = "Found a nontrivial prime knot!"
+            beforeReport = "The prime knot is nontrivial!"
         else:
-            msg = "Found an unknot."
-        self.report()
-        self._printMessage(msg)
+            beforeReport = "The prime knot is the unknot."
+        self.report(beforeReport)
         return

@@ -56,14 +56,16 @@ def isKnotted( loop, tracker=None ):
     # If we can certify hyperbolicity, then the loop must be knotted.
     drilled = loop.drill()
     if tracker is not None:
-        msg = "Drilled: {} tetrahedra.\n".format( drilled.size() )
-        msg += "Attempting to certify hyperbolic."
-        tracker.report(msg)
+        beforeReport = "Drilled: {} tetrahedra.\n".format( drilled.size() )
+        beforeReport += "Attempting to certify hyperbolic."
+        tracker.report(beforeReport)
     spt = SnapPeaTriangulation(drilled)
     probablyHyperbolic = False
     attempts = 0
     while True:
         if tracker is not None:
+            # Do this just in case, even though we do not expect these
+            # hyperbolic tests to take a long time.
             tracker.reportIfStalled()
         attempts += 1
         if ( spt.solutionType() == SolutionType.geometric_solution or
@@ -78,60 +80,42 @@ def isKnotted( loop, tracker=None ):
     if probablyHyperbolic and spt.hasStrictAngleStructure():
         # Certified hyperbolic.
         if tracker is not None:
-            tracker.report()
+            afterReport = "Certified hyperbolic!"
+            tracker.report( None, afterReport )
         return True
 
-    #
-    #TODO
-    core = surgery0(loop)
-    while True:
-        # INVARIANT:
-        #   It is guaranteed that the original loop is unknotted if and only
-        #   if there is a normal 2-sphere intersecting the current core loop
-        #   in *exactly* one point.
-        tri = core.triangulation()
+    # Try enumerating subgroups of the fundamental group.
+    if tracker is not None:
+        beforeReport = "Attempting to enumerate covers."
+        tracker.report(beforeReport)
+    gp = drilled.group()
+    for index in range(2,8):
         if tracker is not None:
-            tracker.newTri( tri.size() )
-
-        # Search for a quadrilateral vertex normal 2-sphere that intersects
-        # the current core loop in *at most* one point.
-        # - If no such 2-sphere exists, then the original loop is
-        #   nontrivially knotted.
-        # - If we find a 2-sphere intersecting the current core loop in
-        #   *exactly* one point, then the original loop is unknotted.
-        # - If we find a 2-sphere disjoint from the current core loop, then
-        #   we can crush to obtain a new core loop that still satisfies the
-        #   invariant.
-        enumeration = TreeEnumeration( tri, NS_QUAD )
-        while True:
+            # Do this just in case, even though we do not expect these
+            # cover enumerations to take a long time.
+            tracker.reportIfStalled()
+        covers = gp.enumerateCovers( index, lambda h: None )
+        if covers != 1:
+            # The unknot has only one cover, so the given loop must be
+            # nontrivially knotted.
             if tracker is not None:
-                tracker.newSearch()
+                afterReport = "Found {} covers of index {}!".format(
+                        covers, index )
+                tracker.report( None, afterReport )
+            return True
 
-            # Get the next 2-sphere.
-            if enumeration.next():
-                sphere = enumeration.buildSurface()
-                if not isSphere(sphere):
-                    continue
-            else:
-                # As above, no suitable 2-sphere means the original loop is
-                # nontrivially knotted.
-                return True
-
-            # As above, we only want at most one point of intersection with
-            # the core loop.
-            wt = core.weight(sphere)
-            if wt == 1:
-                # The original loop is unknotted.
-                return False
-            elif wt == 0:
-                # Crushing is guaranteed to give us exactly one new component
-                # containing an ideal loop, and this new ideal loop will be
-                # our new core loop.
-                decomposed = decomposeAlong( sphere, [core] )
-                for newLoops in decomposed:
-                    if newLoops:
-                        # We are guaranteed to have len(newLoops) == 1.
-                        core = newLoops[0]
-                        break
-                break
-    return
+    # If we survive to this point, then the given loop is probably not a
+    # hyperbolic knot, and looks unknotted from an algebraic perspective. In
+    # practice, it probably *is* unknotted. Anyway, our last resort is to
+    # run solid torus recognition directly.
+    drilled.idealToFinite()
+    drilled.intelligentSimplify()
+    drilled.intelligentSimplify()
+    if tracker is not None:
+        beforeReport = "Resorting to solid torus recognition.\n"
+        beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
+        tracker.report(beforeReport)
+    isNontrivial = not drilled.isSolidTorus()
+    if tracker is not None:
+        tracker.report()
+    return isNontrivial
