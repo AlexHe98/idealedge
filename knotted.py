@@ -10,11 +10,14 @@ try:
     # build for Regina.
     from multiprocessing import Process, Pipe
 except ModuleNotFoundError:
-    print( "Warning: Proceeding without access to multiprocessing." )
-    _inSeries = True
+    warning = "Warning: Proceeding without access to multiprocessing."
+    print( "+-" + "-"*len(warning) + "-+" )
+    print( "| {} |".format(warning) )
+    print( "+-" + "-"*len(warning) + "-+" )
+    _serial = True
 else:
     from time import sleep
-    _inSeries = False
+    _serial = False
 
 
 def surgery0(oldLoop):
@@ -85,7 +88,7 @@ def _notSolidTorus( isoSig, sender ):
     return
 
 
-def _isKnottedInSeries( drilled, tracker ):
+def _isKnottedSerial( drilled, tracker ):
     # Try enumerating covers on the fundamental group.
     if tracker is not None:
         beforeReport = "Attempting to enumerate covers of index 2 to 6."
@@ -243,7 +246,7 @@ def isKnotted( loop, tracker=None ):
 
     # Now try enumerating covers on the fundamental group and/or simply
     # resorting to running solid torus recognition directly.
-    if _inSeries:
-        return _isKnottedInSeries( drilled, tracker )
+    if _serial:
+        return _isKnottedSerial( drilled, tracker )
     else:
         return _isKnottedParallel( drilled, tracker )

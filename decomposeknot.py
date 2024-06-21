@@ -7,6 +7,14 @@ from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
 from knotted import isKnotted
+try:
+    # The multiprocessing package doesn't work with the standard Windows
+    # build for Regina.
+    from multiprocessing import Process, Pipe
+except ModuleNotFoundError:
+    _serial = True
+else:
+    _serial = False
 
 
 def embeddedLoopPacket(loop):
@@ -86,6 +94,70 @@ def embedInTriangulation( knot, insertAsChild=False ):
     return reversePinch( knotComplement, packet )
 
 
+def _enumerateSerial( oldLoop, tracker ):
+    tri = oldLoop.triangulation()
+    tracker.newTri( tri.size() )
+    enumeration = TreeEnumeration( tri, NS_QUAD )
+    while True:
+        if tracker.hasStalled():
+            # We have spent a comparatively long time on the current
+            # triangulation, so it might be worthwhile to try harder to
+            # simplify this triangulation, and to restart the surface
+            # enumeration on a smaller triangulation.
+            tracker.report( None, "Try to simplify." )
+            drilled = SnapPeaTriangulation( oldLoop.drill() )
+            drilled.randomise()
+            simpLoop = reversePinch(
+                    Triangulation3.fromIsoSig( drilled.isoSig() ) )
+            if simpLoop.triangulation().size() < tri.size():
+                oldLoop.setFromLoop( simpLoop, False )
+                tri = oldLoop.triangulation()
+                enumeration = TreeEnumeration( tri, NS_QUAD )
+                beforeReport = "Simplified to {} tetrahedra.".format(
+                        tri.size() )
+                tracker.report(beforeReport)
+                continue
+            else:
+                beforeReport = ( "Could not simplify. " +
+                        "Continuing with current triangulation." )
+                tracker.report(beforeReport)
+        tracker.newSearch()
+
+        # Get the next 2-sphere.
+        if enumeration.next():
+            sphere = enumeration.buildSurface()
+            if not isSphere(sphere):
+                continue
+        else:
+            # No suitable 2-sphere means oldLoop is prime.
+            # Return ( foundPrime, newLoops ).
+            return ( True, None )
+
+        # We only want 2-spheres that intersect the oldLoop in either exactly
+        # 0 points or exactly 2 points, since crushing such a 2-sphere has
+        # one of the following effects:
+        #   --> simplifies the triangulation containing the ideal loop;
+        #   --> decomposes the oldLoop into two simpler knots; or
+        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
+        wt = oldLoop.weight(sphere)
+        if wt != 0 and wt != 2:
+            continue
+        decomposed = decomposeAlong( sphere, [oldLoop] )
+        newLoops = []
+        for decomposedLoops in decomposed:
+            if decomposedLoops:
+                # We are guaranteed to have len(decomposedLoops) == 1.
+                newLoops.append( decomposedLoops[0] )
+
+        # Return ( foundPrime, newLoops ).
+        return ( False, newLoops )
+
+
+def _enumerateParallel( oldLoop, tracker ):
+    #TODO Use multiprocessing to simplify in parallel with enumeration.
+    raise NotImplementedError()
+
+
 def decompose( knot, tracker=False, insertAsChild=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
@@ -141,72 +213,26 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
-        tri = oldLoop.triangulation()
-        tracker.newTri( tri.size() )
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
-        enumeration = TreeEnumeration( tri, NS_QUAD )
-        while True:
-            if tracker.hasStalled():
-                # We have spent a comparatively long time on the current
-                # triangulation, so it might be worthwhile to try harder to
-                # simplify this triangulation, and to restart the surface
-                # enumeration on a smaller triangulation.
-                tracker.report( None, "Try to simplify." )
-                drilled = SnapPeaTriangulation( oldLoop.drill() )
-                drilled.randomise()
-                simpLoop = reversePinch(
-                        Triangulation3.fromIsoSig( drilled.isoSig() ) )
-                if simpLoop.triangulation().size() < tri.size():
-                    oldLoop.setFromLoop( simpLoop, False )
-                    tri = oldLoop.triangulation()
-                    enumeration = TreeEnumeration( tri, NS_QUAD )
-                    beforeReport = "Simplified to {} tetrahedra.".format(
-                            tri.size() )
-                    tracker.report(beforeReport)
-                    continue
-                else:
-                    beforeReport = ( "Could not simplify. " +
-                            "Continuing with current triangulation." )
-                    tracker.report(beforeReport)
-            tracker.newSearch()
-
-            # Get the next 2-sphere.
-            if enumeration.next():
-                sphere = enumeration.buildSurface()
-                if not isSphere(sphere):
-                    continue
-            else:
-                # No suitable 2-sphere means oldLoop is prime. But we only
-                # care about the case where this prime is nontrivial.
-                tracker.unknownPrime()
-                isNontrivial = isKnotted( oldLoop, tracker )
-                if isNontrivial:
-                    primes.append(oldLoop)
-                tracker.knownPrime(isNontrivial)
-                break
-
-            # We only want 2-spheres that intersect the oldLoop in either
-            # exactly 0 points or exactly 2 points, since crushing such a
-            # 2-sphere either:
-            # - simplifies the triangulation containing the ideal loop;
-            # - decomposes the oldLoop into two simpler knots; or
-            # - (if oldLoop is unknotted) destroys all traces of the loop.
-            wt = oldLoop.weight(sphere)
-            if wt != 0 and wt != 2:
-                continue
-            decomposed = decomposeAlong( sphere, [oldLoop] )
-            knots = []
-            for newLoops in decomposed:
-                if newLoops:
-                    # We are guaranteed to have len(newLoops) == 1.
-                    knots.append( newLoops[0] )
-            for newLoop in knots:
-                toProcess.append(newLoop)
+        # Otherwise, crushing this 2-sphere decomposes the oldLoop into a
+        # collection of simpler newLoops.
+        if _serial:
+            foundPrime, newLoops = _enumerateSerial( oldLoop, tracker )
+        else:
+            foundPrime, newLoops = _enumerateParallel( oldLoop, tracker )
+        if foundPrime:
+            # We only care about the case where the prime is nontrivial.
+            tracker.unknownPrime()
+            isNontrivial = isKnotted( oldLoop, tracker )
+            if isNontrivial:
+                primes.append(oldLoop)
+            tracker.knownPrime(isNontrivial)
+        else:
+            toProcess.extend(newLoops)
             if verbose:
                 tracker.report()
-            break
 
     # Output some auxiliary information before returning the list of primes.
     tracker.finish()
