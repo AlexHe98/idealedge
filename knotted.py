@@ -13,6 +13,7 @@ except ModuleNotFoundError:
     print( "Warning: Proceeding without access to multiprocessing." )
     _inSeries = True
 else:
+    from time import sleep
     _inSeries = False
 
 
@@ -53,12 +54,34 @@ def surgery0(oldLoop):
     return newLoop
 
 
-def _countCovers( gp, index ):
-    return gp.enumerateCovers( index, print )
+def _tooManyCovers( gp, index, tracker ):
+    covers = gp.enumerateCovers( index, lambda h: None )
+    if tracker is not None and covers != 1:
+        afterReport = "Found {} covers of index {}.".format(
+                covers, index )
+        tracker.report( None, afterReport )
+    return ( covers != 1 )
 
 
-def _notSolidTorus():
-    #TODO
+def _runCoversEnumeration( isoSig, index, sender ):
+    gp = Triangulation3.fromIsoSig(isoSig).group()
+    data = { "covers": 0, "early": False, "sender": sender }
+    def handleNewCover(c):
+        data["covers"] += 1
+        if data["covers"] > 1 and not data["early"]:
+            # Notify the parent process that we have already found too many
+            # covers, so we can choose to terminate early.
+            data["early"] = True
+            data["sender"].send( data["covers"] )
+        return None
+    covers = gp.enumerateCovers( index, handleNewCover )
+    sender.send(covers)
+    return
+
+
+def _notSolidTorus( isoSig, sender ):
+    drilled = Triangulation3.fromIsoSig(isoSig)
+    sender.send( not drilled.isSolidTorus() )
     return
 
 
@@ -75,14 +98,10 @@ def _isKnottedInSeries( drilled, tracker ):
                 tracker.report(beforeReport)
             else:
                 tracker.reportIfStalled()
-        covers = _countCovers( gp, index )
-        if covers != 1:
-            # The unknot has only one cover, so the given loop must be
-            # nontrivially knotted.
-            if tracker is not None:
-                afterReport = "Found {} covers of index {}!".format(
-                        covers, index )
-                tracker.report( None, afterReport )
+
+        # If there is more than one cover, then the given triangulation
+        # cannot be an ideal solid torus.
+        if _tooManyCovers( gp, index, tracker ):
             return True
 
     # If we survive to this point, then the given drilled triangulation is
@@ -102,10 +121,84 @@ def _isKnottedInSeries( drilled, tracker ):
     return isNontrivial
 
 
-def _isKnottedParallel():
-    #TODO Try using multiprocessing to enable both parallel computation and
-    #   early termination.
-    raise NotImplementedError()
+def _isKnottedParallel( drilled, tracker ):
+    # Try enumerating covers on the fundamental group.
+    if tracker is not None:
+        beforeReport = "Attempting to enumerate covers of index 2 to 6."
+        tracker.report(beforeReport)
+    isoSig = drilled.isoSig()
+    gp = drilled.group()
+    for index in range(2,7):
+        if tracker is not None:
+            tracker.reportIfStalled()
+
+        # If there is more than one cover, then the given triangulation
+        # cannot be an ideal solid torus.
+        if _tooManyCovers( gp, index, tracker ):
+            return True
+
+    # We can still try to enumerate covers of index 7, and if that fails we
+    # can resort to solid torus recognition. We use multiprocessing to:
+    #   (1) run both computations in parallel; and
+    #   (2) facilitate early termination.
+    if tracker is not None:
+        beforeReport = ( "Enumerating covers of index 7, and " +
+                "simultaneously running solid torus recognition." )
+        tracker.report(beforeReport)
+    coversReceiver, coversSender = Pipe(False)
+    notSolidTorusReceiver, notSolidTorusSender = Pipe(False)
+    coversProcess = Process(
+            target=_runCoversEnumeration, args=( isoSig, 7, coversSender ) )
+    notSolidTorusProcess = Process(
+            target=_notSolidTorus, args=( isoSig, notSolidTorusSender ) )
+    coversProcess.start()
+    notSolidTorusProcess.start()
+    coversRunning = True
+    while True:
+        sleep(0.01)
+        if tracker is not None:
+            tracker.reportIfStalled()
+
+        # Have we finished enumerating covers of index 7?
+        if coversProcess.is_alive():
+            # The enumeration is ongoing, but maybe we can terminate early.
+            if coversReceiver.poll():
+                covers = coversReceiver.recv()
+                if covers > 1:
+                    notSolidTorusProcess.terminate()
+                    msg = "There are at least {} covers of index 7.".format(
+                            covers )
+                    isNontrivial = True
+                    break
+        elif coversRunning:
+            coversRunning = False
+
+            # We must have an exact count of the number of covers.
+            while coversReceiver.poll():
+                covers = coversReceiver.recv()
+            if covers != 1:
+                notSolidTorusProcess.terminate()
+                msg = "Found {} covers of index 7.".format(covers)
+                isNontrivial = True
+                break
+
+        # Have we finished deciding whether we have the solid torus?
+        if not notSolidTorusProcess.is_alive():
+            # We must have received a conclusive answer.
+            coversProcess.terminate()
+            isNontrivial = notSolidTorusReceiver.recv()
+            if isNontrivial:
+                msg = "Not a solid torus!"
+            else:
+                msg = "Solid torus!"
+            break
+    if tracker is not None:
+        tracker.report( None, "Waiting for processes to join..." )
+    coversProcess.join()
+    notSolidTorusProcess.join()
+    if tracker is not None:
+        tracker.report( None, msg )
+    return isNontrivial
 
 
 def isKnotted( loop, tracker=None ):
