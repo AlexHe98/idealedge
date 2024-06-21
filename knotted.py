@@ -5,6 +5,15 @@ nontrivially knotted.
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
+try:
+    # The multiprocessing package doesn't work with the standard Windows
+    # build for Regina.
+    from multiprocessing import Process, Pipe
+except ModuleNotFoundError:
+    print( "Warning: Proceeding without access to multiprocessing." )
+    _inSeries = True
+else:
+    _inSeries = False
 
 
 def surgery0(oldLoop):
@@ -42,6 +51,61 @@ def surgery0(oldLoop):
     newLoop.simplify()
     newLoop.simplify()
     return newLoop
+
+
+def _countCovers( gp, index ):
+    return gp.enumerateCovers( index, print )
+
+
+def _notSolidTorus():
+    #TODO
+    return
+
+
+def _isKnottedInSeries( drilled, tracker ):
+    # Try enumerating covers on the fundamental group.
+    if tracker is not None:
+        beforeReport = "Attempting to enumerate covers of index 2 to 6."
+        tracker.report(beforeReport)
+    gp = drilled.group()
+    for index in range(2,8):
+        if tracker is not None:
+            if index == 7:
+                beforeReport = "Attempting to enumerate covers of index 7."
+                tracker.report(beforeReport)
+            else:
+                tracker.reportIfStalled()
+        covers = _countCovers( gp, index )
+        if covers != 1:
+            # The unknot has only one cover, so the given loop must be
+            # nontrivially knotted.
+            if tracker is not None:
+                afterReport = "Found {} covers of index {}!".format(
+                        covers, index )
+                tracker.report( None, afterReport )
+            return True
+
+    # If we survive to this point, then the given drilled triangulation is
+    # probably not the complement of a hyperbolic knot, and algebra suggests
+    # that it is likely to unknotted. Anyway, our last resort is to run solid
+    # torus recognition directly.
+    drilled.idealToFinite()
+    drilled.intelligentSimplify()
+    drilled.intelligentSimplify()
+    if tracker is not None:
+        beforeReport = "Resorting to solid torus recognition.\n"
+        beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
+        tracker.report(beforeReport)
+    isNontrivial = not drilled.isSolidTorus()
+    if tracker is not None:
+        tracker.report()
+    return isNontrivial
+
+
+def _isKnottedParallel():
+    #TODO Try using multiprocessing to enable both parallel computation and
+    #   early termination.
+    raise NotImplementedError()
 
 
 def isKnotted( loop, tracker=None ):
@@ -85,40 +149,9 @@ def isKnotted( loop, tracker=None ):
             tracker.report( None, afterReport )
         return True
 
-    # Try enumerating covers on the fundamental group.
-    if tracker is not None:
-        beforeReport = "Attempting to enumerate covers of index 2 to 6."
-        tracker.report(beforeReport)
-    gp = drilled.group()
-    for index in range(2,8):
-        if tracker is not None:
-            if index == 7:
-                beforeReport = "Attempting to enumerate covers of index 7."
-                tracker.report(beforeReport)
-            else:
-                tracker.reportIfStalled()
-        covers = gp.enumerateCovers( index, lambda h: None )
-        if covers != 1:
-            # The unknot has only one cover, so the given loop must be
-            # nontrivially knotted.
-            if tracker is not None:
-                afterReport = "Found {} covers of index {}!".format(
-                        covers, index )
-                tracker.report( None, afterReport )
-            return True
-
-    # If we survive to this point, then the given loop is probably not a
-    # hyperbolic knot, and looks unknotted from an algebraic perspective. In
-    # practice, it probably *is* unknotted. Anyway, our last resort is to
-    # run solid torus recognition directly.
-    drilled.idealToFinite()
-    drilled.intelligentSimplify()
-    drilled.intelligentSimplify()
-    if tracker is not None:
-        beforeReport = "Resorting to solid torus recognition.\n"
-        beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
-        tracker.report(beforeReport)
-    isNontrivial = not drilled.isSolidTorus()
-    if tracker is not None:
-        tracker.report()
-    return isNontrivial
+    # Now try enumerating covers on the fundamental group and/or simply
+    # resorting to running solid torus recognition directly.
+    if _inSeries:
+        return _isKnottedInSeries( drilled, tracker )
+    else:
+        return _isKnottedParallel( drilled, tracker )
