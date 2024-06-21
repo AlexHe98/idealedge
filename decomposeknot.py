@@ -116,7 +116,6 @@ def _enumerateSerial( oldLoop, tracker ):
                 beforeReport = "Simplified to {} tetrahedra.".format(
                         tri.size() )
                 tracker.report(beforeReport)
-                continue
             else:
                 beforeReport = ( "Could not simplify. " +
                         "Continuing with current triangulation." )
@@ -153,9 +152,80 @@ def _enumerateSerial( oldLoop, tracker ):
         return ( False, newLoops )
 
 
+def _perpetualSimplify( isoSig, size, sender ):
+    spt = SnapPeaTriangulation( Triangulation3.fromIsoSig(isoSig) )
+    attempts = 0
+    while True:
+        attempts += 1
+        spt.randomise()
+        loop = reversePinch( Triangulation3.fromIsoSig( spt.isoSig() ) )
+        if loop.triangulation().size() < size:
+            sender.send( ( loop.lightweightDescription(), attempts ) )
+            size = loop.triangulation().size()
+            spt = SnapPeaTriangulation( loop.drill() )
+            attempts = 0
+
+
 def _enumerateParallel( oldLoop, tracker ):
-    #TODO Use multiprocessing to simplify in parallel with enumeration.
-    raise NotImplementedError()
+    tri = oldLoop.triangulation()
+    tracker.newTri( tri.size() )
+    enumeration = TreeEnumeration( tri, NS_QUAD )
+    isoSig = oldLoop.drill().isoSig()
+    size = tri.size()
+    receiver, sender = Pipe(False)
+    simplifyProcess = Process(
+            target=_perpetualSimplify, args=( isoSig, size, sender ) )
+    simplifyProcess.start()
+    while True:
+        desc = None
+        while receiver.poll():
+            desc, attempts = receiver.recv()
+        if desc is not None:
+            # Successfully simplified! Restart enumeration.
+            oldLoop.setFromLightweight( *desc )
+            tri = oldLoop.triangulation()
+            enumeration = TreeEnumeration( tri, NS_QUAD )
+            beforeReport = "Simplified to {} ".format( tri.size() )
+            beforeReport += "tetrahedra after "
+            if attempts == 1:
+                beforeReport += "1 attempt."
+            else:
+                beforeReport += "{} attempts.".format(attempts)
+            tracker.report(beforeReport)
+        tracker.newSearch()
+
+        # Get the next 2-sphere.
+        if enumeration.next():
+            sphere = enumeration.buildSurface()
+            if not isSphere(sphere):
+                continue
+        else:
+            # No suitable 2-sphere means oldLoop is prime.
+            # Return ( foundPrime, newLoops ).
+            simplifyProcess.terminate()
+            simplifyProcess.join()
+            return ( True, None )
+
+        # We only want 2-spheres that intersect the oldLoop in either exactly
+        # 0 points or exactly 2 points, since crushing such a 2-sphere has
+        # one of the following effects:
+        #   --> simplifies the triangulation containing the ideal loop;
+        #   --> decomposes the oldLoop into two simpler knots; or
+        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
+        wt = oldLoop.weight(sphere)
+        if wt != 0 and wt != 2:
+            continue
+        decomposed = decomposeAlong( sphere, [oldLoop] )
+        newLoops = []
+        for decomposedLoops in decomposed:
+            if decomposedLoops:
+                # We are guaranteed to have len(decomposedLoops) == 1.
+                newLoops.append( decomposedLoops[0] )
+
+        # Return ( foundPrime, newLoops ).
+        simplifyProcess.terminate()
+        simplifyProcess.join()
+        return ( False, newLoops )
 
 
 def decompose( knot, tracker=False, insertAsChild=False ):

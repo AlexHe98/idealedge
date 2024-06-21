@@ -200,6 +200,18 @@ class IdealLoop:
         self.setFromEdges(edges)
         return
 
+    def setFromLightweight( self, sig, edgeLocations ):
+        """
+        Sets this ideal loop using a lightweight description, as constructed
+        by IdealLoop.lightweightDescription().
+        """
+        tri = Triangulation3.fromIsoSig(sig)
+        edges = []
+        for tetIndex, edgeNum in edgeLocations:
+            edges.append( tri.tetrahedron(tetIndex).edge(edgeNum) )
+        self.setFromEdges(edges)
+        return
+
     def _setFromRenum( self, renum ):
         """
         Sets this ideal loop using the given edge renumbering map.
@@ -226,6 +238,30 @@ class IdealLoop:
         Returns the triangulation that contains this ideal loop.
         """
         return self._tri
+
+    def lightweightDescription(self):
+        """
+        Returns an extremely lightweight description of this ideal loop.
+
+        In detail, this routine returns a pair (S,L), where:
+        --> S is the isomorphism signature for self.triangulation(); and
+        --> L is the list of edge locations in Triangulation3.fromIsoSig(S)
+            corresponding to this ideal loop, with each edge location being
+            given by a pair consisting of a tetrahedron index and an edge
+            number.
+        Thus, the returned description can be used to build an ideal loop
+        that is, up to combinatorial isomorphism, the same as this one.
+        """
+        sig, isom = self._tri.isoSigDetail()
+        newEdgeLocations = []
+        for ei in self._edgeIndices:
+            emb = self._tri.edge(ei).embedding(0)
+            oldIndex = emb.tetrahedron().index()
+            newIndex = isom.simpImage(oldIndex)
+            edgeNumber = Edge3.faceNumber(
+                    isom.facetPerm(oldIndex) * emb.vertices() )
+            newEdgeLocations.append( ( newIndex, edgeNumber ) )
+        return ( sig, newEdgeLocations )
 
     def drill(self):
         """
