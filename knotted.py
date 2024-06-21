@@ -165,6 +165,7 @@ def _isKnottedParallel( drilled, tracker ):
             if coversReceiver.poll():
                 covers = coversReceiver.recv()
                 if covers > 1:
+                    coversProcess.terminate()
                     notSolidTorusProcess.terminate()
                     msg = "There are at least {} covers of index 7.".format(
                             covers )
@@ -192,8 +193,6 @@ def _isKnottedParallel( drilled, tracker ):
             else:
                 msg = "Solid torus!"
             break
-    if tracker is not None:
-        tracker.report( None, "Waiting for processes to join..." )
     coversProcess.join()
     notSolidTorusProcess.join()
     if tracker is not None:
