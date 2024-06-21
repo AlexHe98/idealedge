@@ -36,6 +36,8 @@ def reversePinch( knotComplement, packet=None ):
     # Triangulate the exterior with boundary edges appearing as the meridian
     # and longitude. The last step is not guaranteed to terminate in theory,
     # but it should be fine in practice.
+    knotComplement.intelligentSimplify()
+    knotComplement.intelligentSimplify()
     knotComplement.idealToFinite()
     knotComplement.intelligentSimplify()
     knotComplement.intelligentSimplify()
@@ -81,8 +83,6 @@ def embedInTriangulation( knot, insertAsChild=False ):
     else:
         packet = None
     knotComplement = knot.complement()
-    knotComplement.intelligentSimplify()
-    knotComplement.intelligentSimplify()
     return reversePinch( knotComplement, packet )
 
 
