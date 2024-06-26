@@ -7,12 +7,12 @@ from regina import *
 from decomposeknot import decompose, DecompositionTracker
 
 
-def sample( filename, size=1 ):
+def sample( size=1, *filenames ):
     """
-    Returns a random sample of the given size from the knot table in the
-    given file.
+    Returns a random sample of the given size from the knot table(s) in the
+    given file(s).
 
-    The given file should be a CSV file that includes (at least) the
+    Each given file should be a CSV file that includes (at least) the
     following data:
     --> a column of knot names under the heading "name"; and
     --> a column of knot signatures under the heading "knot_sig".
@@ -23,53 +23,59 @@ def sample( filename, size=1 ):
     RandomEngine.reseedWithHardware()
     reservoir = []
     knotCount = 0
-    with open( filename, "r" ) as table:
-        headings = table.readline().rstrip().split( "," )
-        nameCol = headings.index( "name" )
-        sigCol = headings.index( "knot_sig" )
-        while True:
-            row = table.readline()
+    for filename in filenames:
+        with open( filename, "r" ) as table:
+            headings = table.readline().rstrip().split( "," )
+            nameCol = headings.index( "name" )
+            sigCol = headings.index( "knot_sig" )
+            while True:
+                row = table.readline()
 
-            # Does this row describe a knot?
-            if row == "":
-                # End of file.
-                msg = "Sampled {} out of {} knots. Time: {:.6f}.".format(
-                    min( size, knotCount ), knotCount,
-                    default_timer() - start )
-                print(msg)
-                print( "-"*len(msg) )
-                print()
-                return reservoir
-            entries = row.rstrip().split( "," )
-            knotSig = entries[sigCol]
-            if Link.fromKnotSig(knotSig).countComponents() != 1:
-                continue
+                # Does this row describe a knot?
+                if row == "":
+                    # End of file.
+                    break
+                entries = row.rstrip().split( "," )
+                knotSig = entries[sigCol]
+                if Link.fromKnotSig(knotSig).countComponents() != 1:
+                    continue
 
-            # Reservoir sampling: ensures that the current knotSig is
-            # included in the sample with probability (size//knotCount).
-            name = entries[nameCol]
-            knotCount += 1
-            if knotCount <= size:
-                reservoir.append( ( name, knotSig ) )
-            else:
-                i = RandomEngine.rand(knotCount)
-                if i < size:
-                    reservoir[i] = ( name, knotSig )
+                # Reservoir sampling: ensures that the current knotSig is
+                # included in the sample with probability (size//knotCount).
+                name = entries[nameCol]
+                knotCount += 1
+                if knotCount <= size:
+                    reservoir.append( ( name, knotSig ) )
+                else:
+                    i = RandomEngine.rand(knotCount)
+                    if i < size:
+                        reservoir[i] = ( name, knotSig )
+
+    # Finished sampling.
+    msg = "Sampled {} out of {} knots. Time: {:.6f}.".format(
+        min( size, knotCount ), knotCount, default_timer() - start )
+    print(msg)
+    print( "-"*len(msg) )
+    print()
+    return reservoir
 
 
-def decomposeFromSample( filename, size ):
+def decomposeFromSample( size, *filenames ):
     """
-    Generates a random sample of the given size from the knot table in the
-    given file, and decomposes the knots in this sample.
+    Generates a random sample of the given size from the knot table(s) in the
+    given file(s), and decomposes the knots in this sample.
 
-    The given file should be a CSV file that includes (at least) the
+    Each given file should be a CSV file that includes (at least) the
     following data:
     --> a column of knot names under the heading "name"; and
     --> a column of knot signatures under the heading "knot_sig".
 
     This routine prints the results of each decomposition to standard output.
     """
-    title = filename.split( "/" )[-1].split( "." )[0]
+    title = ""
+    for filename in filenames:
+        title += ", " + filename.split( "/" )[-1].split( "." )[0]
+    title = title[2:]
     print()
     print( "+-" + "-"*len(title) + "-+" )
     print( "| {} |".format(title) )
@@ -77,7 +83,7 @@ def decomposeFromSample( filename, size ):
     print()
     data = []
     totalTime = 0
-    knots = sample( filename, size )
+    knots = sample( size, *filenames )
     for name, knotSig in knots:
         print(name)
         print( "-"*len(name) )
@@ -117,8 +123,4 @@ def decomposeFromSample( filename, size ):
 
 
 if __name__ == "__main__":
-    try:
-        size = int( argv[2] )
-    except IndexError:
-        size = 1
-    decomposeFromSample( argv[1], size )
+    decomposeFromSample( int( argv[1] ), *argv[2:] )
