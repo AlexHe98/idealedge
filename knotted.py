@@ -1,6 +1,5 @@
 """
-Uses an ideal loop given by 0/1 Dehn surgery to test whether a knot is
-nontrivially knotted.
+Tests whether an ideal loop is nontrivially knotted.
 """
 from regina import *
 from idealedge import decomposeAlong, isSphere
@@ -55,6 +54,34 @@ def surgery0(oldLoop):
     newLoop.simplify()
     newLoop.simplify()
     return newLoop
+
+
+def knownHyperbolic(loop):
+    """
+    Is the given ideal loop known to represent a hyperbolic knot?
+
+    The given loop must be embedded in a triangulation of the 3-sphere. Under
+    this assumption, if this routine returns True, then the loop is
+    guaranteed to be a hyperbolic knot, and is therefore guaranteed to be a
+    nontrivial prime knot; otherwise, if this routine returns False, then we
+    have no guarantee about whether or not the loop is a hyperbolic knot.
+    """
+    drilled = loop.drill()
+    spt = SnapPeaTriangulation(drilled)
+    probablyHyperbolic = False
+    attempts = 0
+    while True:
+        attempts += 1
+        if ( spt.solutionType() == SolutionType.geometric_solution or
+                spt.solutionType() == SolutionType.nongeometric_solution ):
+            probablyHyperbolic = True
+            break
+        elif attempts < 4:  # Hard-coded limit on the number of attempts.
+            # Try again.
+            spt.randomise()
+        else:
+            break
+    return ( probablyHyperbolic and spt.hasStrictAngleStructure() )
 
 
 def _tooManyCovers( gp, index, tracker ):
@@ -213,39 +240,7 @@ def isKnotted( loop, tracker=None ):
     assumes that tracker.start() has already been called, and it is
     guaranteed that this routine will never call tracker.finish().
     """
-    # If we can certify hyperbolicity, then the loop must be knotted.
     drilled = loop.drill()
-    if tracker is not None:
-        beforeReport = "Drilled: {} tetrahedra.\n".format( drilled.size() )
-        beforeReport += "Attempting to certify hyperbolic."
-        tracker.report(beforeReport)
-    spt = SnapPeaTriangulation(drilled)
-    probablyHyperbolic = False
-    attempts = 0
-    while True:
-        if tracker is not None:
-            # Do this just in case, even though we do not expect these
-            # hyperbolic tests to take a long time.
-            tracker.reportIfStalled()
-        attempts += 1
-        if ( spt.solutionType() == SolutionType.geometric_solution or
-                spt.solutionType() == SolutionType.nongeometric_solution ):
-            probablyHyperbolic = True
-            break
-        elif attempts < 4:
-            # Try again.
-            spt.randomise()
-        else:
-            break
-    if probablyHyperbolic and spt.hasStrictAngleStructure():
-        # Certified hyperbolic.
-        if tracker is not None:
-            afterReport = "Certified hyperbolic!"
-            tracker.report( None, afterReport )
-        return True
-
-    # Now try enumerating covers on the fundamental group and/or simply
-    # resorting to running solid torus recognition directly.
     if _serial:
         return _isKnottedSerial( drilled, tracker )
     else:

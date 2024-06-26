@@ -6,7 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
-from knotted import isKnotted
+from knotted import isKnotted, knownHyperbolic
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.
@@ -96,7 +96,6 @@ def embedInTriangulation( knot, insertAsChild=False ):
 
 def _enumerateSerial( oldLoop, tracker ):
     tri = oldLoop.triangulation()
-    tracker.newTri( tri.size() )
     enumeration = TreeEnumeration( tri, NS_QUAD )
     while True:
         if tracker.hasStalled():
@@ -168,7 +167,6 @@ def _perpetualSimplify( isoSig, size, sender ):
 
 def _enumerateParallel( oldLoop, tracker ):
     tri = oldLoop.triangulation()
-    tracker.newTri( tri.size() )
     enumeration = TreeEnumeration( tri, NS_QUAD )
     isoSig = oldLoop.drill().isoSig()
     size = tri.size()
@@ -283,6 +281,12 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
+        tracker.newTri( oldLoop.triangulation().size() )
+        if knownHyperbolic(oldLoop):
+            # Hyperbolic knots are nontrivial and prime.
+            primes.append(oldLoop)
+            tracker.foundHyperbolic()
+            continue
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
         # crush. If no such 2-sphere exists, then the oldLoop is prime.
@@ -574,4 +578,19 @@ class DecompositionTracker:
         else:
             beforeReport = "The prime knot is the unknot."
         self._newEvent(beforeReport)
+        return
+
+    def foundHyperbolic(self):
+        """
+        Informs this tracker that the tracked computation has found a
+        hyperbolic (and hence nontrivial prime) knot.
+
+        If this tracker is verbose, then this routine will automatically
+        print a progress report.
+
+        This routine must never be called before start() has been called.
+        """
+        self._numPrimes += 1
+        afterReport = "Found a hyperbolic knot!"
+        self._newEvent( None, afterReport )
         return

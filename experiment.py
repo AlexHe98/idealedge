@@ -138,9 +138,13 @@ def decomposeFromTable( filename, skip=0, cap=None ):
         average = totalTime / knotCount
         print( "Cases slower than {} times the average:".format(
             slowCoefficient ) )
+        noSlowCases = True
         for name, time in data:
             if time > slowCoefficient * average:
+                noSlowCases = False
                 print( "    Name: {}. Time: {:.6f}.".format( name, time ) )
+        if noSlowCases:
+            print( "    (None)" )
     print()
     return
 
