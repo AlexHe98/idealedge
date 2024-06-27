@@ -115,7 +115,7 @@ def decomposeFromTable( filename, skip=0, cap=None ):
             print(name)
             print( "-"*len(name) )
             knotCount += 1
-            tracker = DecompositionTracker( True, 60 )  # 60 second timeout.
+            tracker = DecompositionTracker( True, 120 )  # 120 second timeout.
             try:
                 primes = decompose( knot, tracker )
             except TimeoutError as timeout:

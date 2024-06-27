@@ -72,7 +72,7 @@ def decomposeComposites( numKnots, numSummands, *filenames ):
     for name, knot in knots:
         print(name)
         print( "-"*len(name) )
-        tracker = DecompositionTracker( True, 60 )  # 60 second timeout.
+        tracker = DecompositionTracker( True, 120 )  # 120 second timeout.
         try:
             primes = decompose( knot, tracker )
         except TimeoutError as timeout:
