@@ -67,6 +67,7 @@ def decomposeFromTable( filename, skip=0, cap=None ):
     print( "+-" + "-"*len(title) + "-+" )
     print()
     knotCount = 0
+    timedOutCases = []
     data = []
     totalTime = 0
     with open( filename, "r" ) as table:
@@ -114,8 +115,14 @@ def decomposeFromTable( filename, skip=0, cap=None ):
             print(name)
             print( "-"*len(name) )
             knotCount += 1
-            tracker = DecompositionTracker(True)
-            primes = decompose( knot, tracker )
+            tracker = DecompositionTracker( True, 60 )  # 60 second timeout.
+            try:
+                primes = decompose( knot, tracker )
+            except TimeoutError as timeout:
+                timedOutCases.append(name)
+                print(timeout)
+                print()
+                continue
             if len(primes) == 0:
                 print( "Unknot!" )
             elif len(primes) == 1:
@@ -133,9 +140,15 @@ def decomposeFromTable( filename, skip=0, cap=None ):
     print( "="*32 )
     print( "Total knots: {}.".format(knotCount) )
     print( "Total time: {:.6f}.".format(totalTime) )
-    if knotCount:
+    if timedOutCases:
+        print( "Cases that timed out ({} in total):".format(
+            len(timedOutCases) ) )
+        for name in timedOutCases:
+            print( "    Name: {}.".format(name) )
+    completedCount = knotCount - len(timedOutCases)
+    if completedCount:
         slowCoefficient = 2
-        average = totalTime / knotCount
+        average = totalTime / completedCount
         print( "Cases slower than {} times the average:".format(
             slowCoefficient ) )
         noSlowCases = True

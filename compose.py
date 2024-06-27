@@ -65,14 +65,21 @@ def decomposeComposites( numKnots, numSummands, *filenames ):
         print( "    {}".format(
             filename.split( "/" )[-1].split( "." )[0] ) )
     print()
+    timedOutCases = []
     data = []
     totalTime = 0
     knots = generateComposites( numKnots, numSummands, *filenames )
     for name, knot in knots:
         print(name)
         print( "-"*len(name) )
-        tracker = DecompositionTracker(True)
-        primes = decompose( knot, tracker )
+        tracker = DecompositionTracker( True, 60 )  # 60 second timeout.
+        try:
+            primes = decompose( knot, tracker )
+        except TimeoutError as timeout:
+            timedOutCases.append(name)
+            print(timeout)
+            print()
+            continue
         if len(primes) == 0:
             print( "Unknot!" )
         elif len(primes) == 1:
@@ -90,9 +97,15 @@ def decomposeComposites( numKnots, numSummands, *filenames ):
     print( "="*32 )
     print( "Total knots: {}.".format(numKnots) )
     print( "Total time: {:.6f}.".format(totalTime) )
-    if knots:
+    if timedOutCases:
+        print( "Cases that timed out ({} in total):".format(
+            len(timedOutCases) ) )
+        for name in timedOutCases:
+            print( "    Name: {}.".format(name) )
+    completedCount = numKnots - len(timedOutCases)
+    if completedCount:
         slowCoefficient = 2
-        average = totalTime / numKnots
+        average = totalTime / completedCount
         print( "Cases slower than {} times the average:".format(
             slowCoefficient ) )
         noSlowCases = True

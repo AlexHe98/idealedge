@@ -187,7 +187,15 @@ def _isKnottedParallel( drilled, tracker ):
     while True:
         sleep(0.01)
         if tracker is not None:
-            tracker.reportIfStalled()
+            try:
+                tracker.reportIfStalled()
+            except TimeoutError as timeout:
+                # Terminate child processes before timing out.
+                notSolidTorusProcess.terminate()
+                notSolidTorusProcess.join()
+                coversProcess.terminate()
+                coversProcess.join()
+                raise timeout
 
         # Have we finished enumerating covers of index 7?
         if coversProcess.is_alive():

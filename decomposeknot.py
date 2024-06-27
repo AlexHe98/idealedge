@@ -189,8 +189,20 @@ def _enumerateParallel( oldLoop, tracker ):
                 beforeReport += "1 attempt."
             else:
                 beforeReport += "{} attempts.".format(attempts)
-            tracker.report(beforeReport)
-        tracker.newSearch()
+            try:
+                tracker.report(beforeReport)
+            except TimeoutError as timeout:
+                # Terminate child process before timing out.
+                simplifyProcess.terminate()
+                simplifyProcess.join()
+                raise timeout
+        try:
+            tracker.newSearch()
+        except TimeoutError as timeout:
+            # Terminate child process before timing out.
+            simplifyProcess.terminate()
+            simplifyProcess.join()
+            raise timeout
 
         # Get the next 2-sphere.
         if enumeration.next():
@@ -247,6 +259,19 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     Otherwise, the routine will create its own DecompositionTracker, and the
     tracker parameter should be either True or False depending on whether the
     newly-created tracker should have the verbose option switched on.
+
+    If tracker is True or False, then the tracker created by this routine
+    will have the timeout feature switched off. Thus, the only way to use the
+    timeout feature with this routine is to explicitly supply a tracker.
+
+    If timeout is None (the default), then this routine continues attempting
+    to decompose the given knot, regardless of how long this takes.
+    Otherwise, timeout should be a positive integer indicating the number of
+    seconds after which this routine should attempt to terminate early,
+    without completing the decomposition. Such early termination might not
+    occur immediately once the allotted time has elapsed, and indeed it might
+    not occur at all. Whenever early termination does occur, this routine
+    will raise TimeoutError.
 
     If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
@@ -346,6 +371,11 @@ class DecompositionTracker:
         of a significant event).
     --> Tracks whether the computation has stalled, meaning that the number
         of seconds since the most recent event has exceeded some set value.
+    --> Provides a timeout option, which raises TimeoutError if one of the
+        following occurs after some allotted number of seconds has elapsed:
+        (a) This tracker is notified of a significant event.
+        (b) This tracker is asked to check whether the computation has
+            stalled.
 
     This tracker recognises the following significant events:
     --> The computation started.
@@ -359,7 +389,7 @@ class DecompositionTracker:
     --> The computation has certified whether a prime knot is nontrivially
         knotted.
     """
-    def __init__( self, verbose=False, stallInterval=5 ):
+    def __init__( self, verbose=False, timeout=None, stallInterval=5 ):
         """
         Creates a new DecompositionTracker.
 
@@ -369,11 +399,17 @@ class DecompositionTracker:
         Regardless of whether this feature is switched on or off, it will
         always be possible to manually request a progress report.
 
+        If timeout is None (the default), then the timeout feature will be
+        switched off. Otherwise, timeout should be a positive number
+        indicating the number of seconds after which the tracked computation
+        should be timed out.
+
         This tracker will consider the tracked knot decomposition computation
         to have stalled if the number of seconds since the last event exceeds
         the given stallInterval.
         """
         self._verbose = verbose
+        self._timeout = timeout
         self._indent = "    "
         self._template = "Time: {:.6f}. Searches: {}. Primes: {}. #Tri: {}."
         self._stallInterval = stallInterval
@@ -431,6 +467,21 @@ class DecompositionTracker:
             return default_timer() - self._startTime
         return self._finishTime - self._startTime
 
+    def checkTimeout(self):
+        """
+        Checks whether the tracked computation should be timed out, and if so
+        raises TimeoutError.
+
+        This routine does nothing if the timeout option is switched off or
+        the allotted number of seconds has not yet elapsed.
+        """
+        if self._timeout is not None and self.elapsed() > self._timeout:
+            self.finish()
+            msg = "Decomposition timed out after {:.6f} seconds.".format(
+                    self.elapsed() )
+            raise TimeoutError(msg)
+        return
+
     def log(self):
         """
         Returns a log of all progress reports that have appeared so far.
@@ -459,6 +510,9 @@ class DecompositionTracker:
         This report may be optionally augmented with messages to appear
         immediately before and/or after the standard progress report.
 
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
+
         This routine must never be called before start() has been called.
         """
         if self._finishTime is None:
@@ -470,24 +524,31 @@ class DecompositionTracker:
         rep = self._reportImpl(time)
         if after is not None:
             self._printMessage(after)
+        self.checkTimeout()
         return rep
 
     def _newEvent( self, before=None, after=None ):
         if self._verbose:
             return self.report( before, after )
+        self.checkTimeout()
         self._previousEventTime = default_timer()
         return None
 
     def hasStalled(self):
         """
         Has the tracked computation stalled?
+
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
         """
+        self.checkTimeout()
         if self._finishTime is None:
             return ( default_timer() - self._previousEventTime >
                     self._stallInterval )
         return False
 
     def _getTimeIfStalled(self):
+        self.checkTimeout()
         if self._finishTime is None:
             time = default_timer()
             if time - self._previousEventTime > self._stallInterval:
@@ -501,6 +562,9 @@ class DecompositionTracker:
 
         This routine returns None if the computation is finished, or if the
         computation is still going but has not stalled.
+
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
 
         This routine must never be called before start() has been called.
         """
@@ -523,6 +587,9 @@ class DecompositionTracker:
         If this tracker is verbose, then this routine will automatically
         print a progress report.
 
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
+
         This routine must never be called before start() has been called.
         """
         self._numTri += 1
@@ -542,6 +609,9 @@ class DecompositionTracker:
         If this tracker is verbose and the tracked computation has stalled,
         then this routine will automatically print a progress report.
 
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
+
         This routine must never be called before start() has been called.
         """
         self._searches += 1
@@ -556,6 +626,9 @@ class DecompositionTracker:
         If this tracker is verbose, then this routine will automatically
         print a progress report.
 
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
+
         This routine must never be called before start() has been called.
         """
         afterReport = "Found a prime knot! Is it nontrivial?"
@@ -569,6 +642,9 @@ class DecompositionTracker:
 
         If this tracker is verbose, then this routine will automatically
         print a progress report.
+
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
 
         This routine must never be called before start() has been called.
         """
@@ -587,6 +663,9 @@ class DecompositionTracker:
 
         If this tracker is verbose, then this routine will automatically
         print a progress report.
+
+        This routine raises TimeoutError if it detects that the tracked
+        computation should be timed out.
 
         This routine must never be called before start() has been called.
         """

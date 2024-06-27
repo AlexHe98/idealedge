@@ -102,14 +102,21 @@ def decomposeFromSample( size, *filenames ):
     print( "| {} |".format(title) )
     print( "+-" + "-"*len(title) + "-+" )
     print()
+    timedOutCases = []
     data = []
     totalTime = 0
     knots = sample( size, *filenames )
     for name, knotSig in knots:
         print(name)
         print( "-"*len(name) )
-        tracker = DecompositionTracker(True)
-        primes = decompose( Link.fromKnotSig(knotSig), tracker )
+        tracker = DecompositionTracker( True, 60 )  # 60 second timeout.
+        try:
+            primes = decompose( Link.fromKnotSig(knotSig), tracker )
+        except TimeoutError as timeout:
+            timedOutCases.append(name)
+            print(timeout)
+            print()
+            continue
         if len(primes) == 0:
             print( "Unknot!" )
         elif len(primes) == 1:
@@ -127,9 +134,15 @@ def decomposeFromSample( size, *filenames ):
     print( "="*32 )
     print( "Total knots: {}.".format( len(knots) ) )
     print( "Total time: {:.6f}.".format(totalTime) )
-    if knots:
+    if timedOutCases:
+        print( "Cases that timed out ({} in total):".format(
+            len(timedOutCases) ) )
+        for name in timedOutCases:
+            print( "    Name: {}.".format(name) )
+    completedCount = len(knots) - len(timedOutCases)
+    if completedCount:
         slowCoefficient = 2
-        average = totalTime / len(knots)
+        average = totalTime / completedCount
         print( "Cases slower than {} times the average:".format(
             slowCoefficient ) )
         noSlowCases = True
