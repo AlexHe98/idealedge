@@ -344,7 +344,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         loop = IdealLoop( [knot] ).clone()
     else:
         if verbose:
-            beforeReport = "Embedding knot as an ideal loop."
+            beforeReport = "Knot sig: {}.\n".format( knot.knotSig() )
+            beforeReport += "Embedding knot as an ideal loop."
             tracker.report(beforeReport)
         if _serial:
             loop = embedInTriangulation(knot)
