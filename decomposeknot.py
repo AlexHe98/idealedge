@@ -98,6 +98,7 @@ def embedInTriangulation( knot, insertAsChild=False ):
 
 
 def _runEmbed( knotSig, sender ):
+    RandomEngine.reseedWithHardware()
     loop = embedInTriangulation( Link.fromKnotSig(knotSig) )
     sender.send( loop.lightweightDescription() )
     return
@@ -187,6 +188,7 @@ def _enumerateSerial( oldLoop, tracker ):
 
 
 def _perpetualSimplify( isoSig, size, sender ):
+    RandomEngine.reseedWithHardware()
     tri = Triangulation3.fromIsoSig(isoSig)
     attempts = 0
     while True:
