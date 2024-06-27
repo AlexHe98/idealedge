@@ -7,20 +7,9 @@ from regina import *
 from decomposeknot import decompose, DecompositionTracker
 
 
-def sample( size=1, *filenames ):
-    """
-    Returns a random sample of the given size from the knot table(s) in the
-    given file(s).
-
-    Each given file should be a CSV file that includes (at least) the
-    following data:
-    --> a column of knot names under the heading "name"; and
-    --> a column of knot signatures under the heading "knot_sig".
-    This routine returns a list of ( knot name, knot signature ) pairs,
-    sampled uniformly at random, without replacement, from the given data.
-    """
-    start = default_timer()
-    RandomEngine.reseedWithHardware()
+def _sampleImpl( size, *filenames ):
+    # Use reservoir sampling to limit memory usage to the size of the sample,
+    # rather than the total size of all the given files.
     reservoir = []
     knotCount = 0
     for filename in filenames:
@@ -50,14 +39,46 @@ def sample( size=1, *filenames ):
                     i = RandomEngine.rand(knotCount)
                     if i < size:
                         reservoir[i] = ( name, knotSig )
+    return ( reservoir, knotCount )
 
-    # Finished sampling.
-    msg = "Sampled {} out of {} knots. Time: {:.6f}.".format(
-        min( size, knotCount ), knotCount, default_timer() - start )
+
+def sample( size, *filenames ):
+    """
+    Returns a random sample of the given size from the knot table(s) in the
+    given file(s).
+
+    Each given file should be a CSV file that includes (at least) the
+    following data:
+    --> a column of knot names under the heading "name"; and
+    --> a column of knot signatures under the heading "knot_sig".
+
+    This routine returns a list of ( knot name, knot signature ) pairs,
+    sampled uniformly at random, without replacement, from the given data.
+
+    If the requested sample size is larger than the total number of knots in
+    the given data, then this routine will simply repeatedly sample the
+    entire data set until it reaches the required sample size.
+    """
+    if size < 1:
+        raise ValueError( "Sample size must be positive." )
+    start = default_timer()
+    RandomEngine.reseedWithHardware()
+    sampleData, knotCount = _sampleImpl( size, *filenames )
+    if knotCount == 0:
+        # Just in case the given files do not contain any knots.
+        return []
+
+    # Keep sampling until we have enough knots.
+    remaining = size - knotCount
+    while remaining > 0:
+        sampleData.extend( _sampleImpl( remaining, *filenames )[0] )
+        remaining -= knotCount
+    msg = "Sampled {} knots from set of {}. Time: {:.6f}.".format(
+            size, knotCount, default_timer() - start )
     print(msg)
     print( "-"*len(msg) )
     print()
-    return reservoir
+    return sampleData
 
 
 def decomposeFromSample( size, *filenames ):
