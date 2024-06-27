@@ -86,9 +86,13 @@ class IdealLoop:
     A sequence of edges representing an embedded ideal loop in a 3-manifold
     triangulation.
     """
-    def __init__( self, edges ):
+    def __init__( self, edges=None ):
         """
         Creates an ideal loop from the given list of edges.
+
+        If no edges are supplied, then creates an empty ideal loop with no
+        data. In this case, one of the "set from" routines must be called on
+        the ideal loop before performing any computations.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -98,7 +102,8 @@ class IdealLoop:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
-        self.setFromEdges(edges)
+        if edges is not None:
+            self.setFromEdges(edges)
 
     def setFromEdges( self, edges ):
         """
@@ -276,6 +281,7 @@ class IdealLoop:
         for tet, edgeNum in drillLocations:
             drilled.pinchEdge( tet.edge(edgeNum) )
         drilled.intelligentSimplify()
+        drilled.minimiseVertices()
         drilled.intelligentSimplify()
         return drilled
 

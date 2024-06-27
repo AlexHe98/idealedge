@@ -14,6 +14,7 @@ try:
 except ModuleNotFoundError:
     _serial = True
 else:
+    from time import sleep
     _serial = False
 
 
@@ -44,6 +45,7 @@ def reversePinch( knotComplement, packet=None ):
     # Triangulate the exterior with boundary edges appearing as the meridian
     # and longitude. The last step is not guaranteed to terminate in theory,
     # but it should be fine in practice.
+    knotComplement.minimiseVertices()
     knotComplement.intelligentSimplify()
     knotComplement.intelligentSimplify()
     knotComplement.idealToFinite()
@@ -92,6 +94,38 @@ def embedInTriangulation( knot, insertAsChild=False ):
         packet = None
     knotComplement = knot.complement()
     return reversePinch( knotComplement, packet )
+
+
+def _runEmbed( knotSig, sender ):
+    loop = embedInTriangulation( Link.fromKnotSig(knotSig) )
+    sender.send( loop.lightweightDescription() )
+    return
+
+
+def _embedParallel( knot, tracker ):
+    receiver, sender = Pipe(False)
+    embedProcess = Process(
+            target=_runEmbed, args=( knot.knotSig(), sender ) )
+    embedProcess.start()
+    while True:
+        sleep(0.01)
+        if tracker is not None:
+            try:
+                tracker.reportIfStalled()
+            except TimeoutError as timeout:
+                # Terminate child process before timing out.
+                embedProcess.terminate()
+                embedProcess.join()
+                raise timeout
+
+        # Have we finished the embedding the knot as an ideal loop?
+        if not embedProcess.is_alive():
+            embedProcess.terminate()
+            embedProcess.join()
+            loop = IdealLoop()
+            loop.setFromLightweight( *receiver.recv() )
+            return loop
+    return
 
 
 def _enumerateSerial( oldLoop, tracker ):
@@ -152,17 +186,31 @@ def _enumerateSerial( oldLoop, tracker ):
 
 
 def _perpetualSimplify( isoSig, size, sender ):
-    spt = SnapPeaTriangulation( Triangulation3.fromIsoSig(isoSig) )
+    tri = Triangulation3.fromIsoSig(isoSig)
     attempts = 0
     while True:
         attempts += 1
-        spt.randomise()
-        loop = reversePinch( Triangulation3.fromIsoSig( spt.isoSig() ) )
+        tri.subdivide()
+        tri.intelligentSimplify()
+        tri.minimiseVertices()
+        tri.intelligentSimplify()
+        loop = reversePinch(tri)
         if loop.triangulation().size() < size:
             sender.send( ( loop.lightweightDescription(), attempts ) )
             size = loop.triangulation().size()
-            spt = SnapPeaTriangulation( loop.drill() )
+            tri = loop.drill()
             attempts = 0
+#    spt = SnapPeaTriangulation( Triangulation3.fromIsoSig(isoSig) )
+#    attempts = 0
+#    while True:
+#        attempts += 1
+#        spt.randomise()
+#        loop = reversePinch( Triangulation3.fromIsoSig( spt.isoSig() ) )
+#        if loop.triangulation().size() < size:
+#            sender.send( ( loop.lightweightDescription(), attempts ) )
+#            size = loop.triangulation().size()
+#            spt = SnapPeaTriangulation( loop.drill() )
+#            attempts = 0
 
 
 def _enumerateParallel( oldLoop, tracker ):
@@ -292,7 +340,13 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     elif isinstance( knot, Edge3 ):
         loop = IdealLoop( [knot] ).clone()
     else:
-        loop = embedInTriangulation(knot)
+        if verbose:
+            beforeReport = "Embedding knot as an ideal loop."
+            tracker.report(beforeReport)
+        if _serial:
+            loop = embedInTriangulation(knot)
+        else:
+            loop = _embedParallel( knot, tracker )
 
     # Do the decompositon.
     primes = []
