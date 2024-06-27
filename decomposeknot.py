@@ -36,6 +36,7 @@ def reversePinch( knotComplement, packet=None ):
     triangulation.
 
     Warning:
+    --> This routine modifies the given knotComplement triangulation.
     --> This routine currently uses fast heuristics to attempt to construct
         the desired triangulation, and is not guaranteed to terminate.
 
@@ -194,7 +195,7 @@ def _perpetualSimplify( isoSig, size, sender ):
         tri.intelligentSimplify()
         tri.minimiseVertices()
         tri.intelligentSimplify()
-        loop = reversePinch(tri)
+        loop = reversePinch( Triangulation3(tri) )
         if loop.triangulation().size() < size:
             sender.send( ( loop.lightweightDescription(), attempts ) )
             size = loop.triangulation().size()
