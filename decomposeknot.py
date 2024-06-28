@@ -50,8 +50,10 @@ def reversePinch( knotComplement, packet=None ):
     knotComplement.intelligentSimplify()
     knotComplement.intelligentSimplify()
     knotComplement.idealToFinite()
-    knotComplement.intelligentSimplify()
-    knotComplement.intelligentSimplify()
+    noSimplification = 0
+    while noSimplification < 2:
+        if not knotComplement.intelligentSimplify():
+            noSimplification += 1
     mer, lon = knotComplement.meridianLongitude()
 
     # Get a tetrahedron index and edge number for the longitude, so that we
@@ -65,8 +67,10 @@ def reversePinch( knotComplement, packet=None ):
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     loop = IdealLoop( [idealEdge] )
-    loop.simplify()
-    loop.simplify()
+    noSimplification = 0
+    while noSimplification < 2:
+        if not loop.simplify():
+            noSimplification += 1
     if packet is not None:
         child = embeddedLoopPacket(loop)
         child.setLabel( packet.adornedLabel(
@@ -202,7 +206,6 @@ def _perpetualSimplify( isoSig, size, sender ):
             sender.send( ( loop.lightweightDescription(), attempts ) )
             size = loop.triangulation().size()
             tri = loop.drill()
-            attempts = 0
 #    spt = SnapPeaTriangulation( Triangulation3.fromIsoSig(isoSig) )
 #    attempts = 0
 #    while True:
@@ -213,7 +216,6 @@ def _perpetualSimplify( isoSig, size, sender ):
 #            sender.send( ( loop.lightweightDescription(), attempts ) )
 #            size = loop.triangulation().size()
 #            spt = SnapPeaTriangulation( loop.drill() )
-#            attempts = 0
 
 
 def _enumerateParallel( oldLoop, tracker ):
