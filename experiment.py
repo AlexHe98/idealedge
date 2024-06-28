@@ -1,7 +1,7 @@
 """
 Perform knot decomposition experiments in bulk.
 """
-from sys import argv
+from sys import argv, stdout
 from timeit import default_timer
 from regina import *
 from decomposeknot import decompose, DecompositionTracker
@@ -66,6 +66,7 @@ def decomposeFromTable( filename, skip=0, cap=None ):
     print( "| {} |".format(title) )
     print( "+-" + "-"*len(title) + "-+" )
     print()
+    stdout.flush()
     knotCount = 0
     timedOutCases = []
     data = []

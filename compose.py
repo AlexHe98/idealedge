@@ -1,7 +1,7 @@
 """
 Generate random composite knots by sampling from knot tables.
 """
-from sys import argv
+from sys import argv, stdout
 from regina import *
 from sample import sample
 from decomposeknot import decompose, DecompositionTracker
@@ -65,6 +65,7 @@ def decomposeComposites( numKnots, numSummands, *filenames ):
         print( "    {}".format(
             filename.split( "/" )[-1].split( "." )[0] ) )
     print()
+    stdout.flush()
     timedOutCases = []
     data = []
     totalTime = 0

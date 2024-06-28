@@ -1,7 +1,7 @@
 """
 Sample random knots from a table of knots.
 """
-from sys import argv
+from sys import argv, stdout
 from timeit import default_timer
 from regina import *
 from decomposeknot import decompose, DecompositionTracker
@@ -102,6 +102,7 @@ def decomposeFromSample( size, *filenames ):
     print( "| {} |".format(title) )
     print( "+-" + "-"*len(title) + "-+" )
     print()
+    stdout.flush()
     timedOutCases = []
     data = []
     totalTime = 0
