@@ -527,6 +527,17 @@ class DecompositionTracker:
             return default_timer() - self._startTime
         return self._finishTime - self._startTime
 
+    def extendTimeout( self, seconds ):
+        """
+        Extends the allotted time by the given number of seconds.
+
+        This routine does nothing if the timeout feature is switched off or
+        the tracked computation has already finished.
+        """
+        if self._timeout is not None and self._finishTime is None:
+            self._timeout += seconds
+        return
+
     def checkTimeout(self):
         """
         Checks whether the tracked computation should be timed out, and if so
@@ -534,6 +545,8 @@ class DecompositionTracker:
 
         This routine does nothing if the timeout option is switched off or
         the allotted number of seconds has not yet elapsed.
+
+        This routine must never be called before start() has been called.
         """
         if self._timeout is not None and self.elapsed() > self._timeout:
             self.finish()
@@ -639,7 +652,7 @@ class DecompositionTracker:
             return self._newEvent()
         return None
 
-    def newTri( self, size ):
+    def newTri( self, size, extend=True ):
         """
         Informs this tracker that the tracked computation has started
         processing a new triangulation of the given size.
@@ -650,6 +663,10 @@ class DecompositionTracker:
         This routine raises TimeoutError if it detects that the tracked
         computation should be timed out.
 
+        If extend is True (the default) and the timeout feature is switched
+        on, then this routine extends the allotted time by a number of
+        seconds equal to the given size.
+
         This routine must never be called before start() has been called.
         """
         self._numTri += 1
@@ -659,6 +676,8 @@ class DecompositionTracker:
         else:
             beforeReport += "{} tetrahedra.".format(size)
         self._newEvent(beforeReport)
+        if extend:
+            self.extendTimeout(size)
         return
 
     def newSearch(self):

@@ -109,9 +109,12 @@ def decomposeFromSample( size, *filenames ):
     for name, knotSig in knots:
         print(name)
         print( "-"*len(name) )
-        tracker = DecompositionTracker( True, 120 )  # 120 second timeout.
+        knot = Link.fromKnotSig(knotSig)
+
+        # Scale timeout time with the number of crossings.
+        tracker = DecompositionTracker( True, knot.size() )
         try:
-            primes = decompose( Link.fromKnotSig(knotSig), tracker )
+            primes = decompose( knot, tracker )
         except TimeoutError as timeout:
             timedOutCases.append(name)
             print(timeout)
