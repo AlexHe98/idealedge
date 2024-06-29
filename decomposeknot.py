@@ -109,28 +109,35 @@ def _runEmbed( knotSig, sender ):
 
 
 def _embedParallel( knot, tracker ):
-    receiver, sender = Pipe(False)
-    embedProcess = Process(
-            target=_runEmbed, args=( knot.knotSig(), sender ) )
-    embedProcess.start()
+    receiver = [None,None]
+    sender = [None,None]
+    embedProcess = [None,None]
+    for i in range(2):
+        receiver[i], sender[i] = Pipe(False)
+        embedProcess[i] = Process(
+                target=_runEmbed, args=( knot.knotSig(), sender[i] ) )
+        embedProcess[i].start()
     while True:
         sleep(0.01)
         if tracker is not None:
             try:
                 tracker.reportIfStalled()
             except TimeoutError as timeout:
-                # Terminate child process before timing out.
-                embedProcess.terminate()
-                embedProcess.join()
+                # Terminate child processes before timing out.
+                for i in range(2):
+                    embedProcess[i].terminate()
+                    embedProcess[i].join()
                 raise timeout
 
-        # Have we finished the embedding the knot as an ideal loop?
-        if not embedProcess.is_alive():
-            embedProcess.terminate()
-            embedProcess.join()
-            loop = IdealLoop()
-            loop.setFromLightweight( *receiver.recv() )
-            return loop
+        # Have we finished embedding the knot as an ideal loop?
+        for i in range(2):
+            if not embedProcess[i].is_alive():
+                embedProcess[1-i].terminate()
+                embedProcess[1-i].join()
+                embedProcess[i].join()
+                loop = IdealLoop()
+                loop.setFromLightweight( *receiver[i].recv() )
+                return loop
     return
 
 
