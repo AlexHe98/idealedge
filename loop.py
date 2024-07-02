@@ -104,22 +104,9 @@ class IdealLoop:
         """
         if edges is not None:
             self.setFromEdges(edges)
+        return
 
-    def setFromEdges( self, edges ):
-        """
-        Sets this ideal loop using the given list of edges.
-
-        Raises NotLoop if the given list of edges does not form an embedded
-        closed loop, or if the order of the edges in the given list does not
-        match the order in which the edges appear in the loop.
-
-        Pre-condition:
-        --> The given list of edges is nonempty, and consists of edges that
-            all belong to the same 3-manifold triangulation.
-        """
-        edge = edges[0]
-        self._tri = edge.triangulation()
-
+    def _reset(self):
         # Store edges of this loop in order. If we think of each edge as
         # being oriented from tail to head, so that we have an orientation on
         # the entire loop, then it's also useful to know whether vertex 0 or
@@ -131,16 +118,8 @@ class IdealLoop:
         # possible to check whether two loops are disjoint.
         self._vertIndices = set()
 
-        # Check for degenerate case that isn't guaranteed to be ruled out by
-        # the subsequent tests.
-        if len(edges) == 2 and edges[0] == edges[1]:
-            raise NotLoop(edges)
-
-        # While populating the member variables, also test that the given
-        # list of edges actually describes an embedded closed loop.
-        firstVert = edge.vertex(0)
-        lastVert = edge.vertex(0)
-        broken = False
+    def _traverse( self, edges, firstVert ):
+        lastVert = firstVert
         for edge in edges:
             self._edgeIndices.append( edge.index() )
             self._vertIndices.add( lastVert.index() )
@@ -156,9 +135,43 @@ class IdealLoop:
             else:
                 # Neither vertex of the current edge joins up with the last
                 # vertex.
-                broken = True
-                break
-        if ( broken or ( lastVert != firstVert ) or
+                self._reset()
+                return None
+        return lastVert
+
+    def setFromEdges( self, edges ):
+        """
+        Sets this ideal loop using the given list of edges.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        Pre-condition:
+        --> The given list of edges is nonempty, and consists of edges that
+            all belong to the same 3-manifold triangulation.
+        """
+        edge = edges[0]
+        self._tri = edge.triangulation()
+        self._reset()
+
+        # Check for degenerate case that isn't guaranteed to be ruled out by
+        # the subsequent tests.
+        if len(edges) == 2 and edges[0] == edges[1]:
+            raise NotLoop(edges)
+
+        # We don't know which direction is the correct way to traverse the
+        # given sequence of edges, so try both.
+        firstVert = edge.vertex(0)
+        lastVert = self._traverse( edges, firstVert )
+        if lastVert is None:
+            firstVert = edge.vertex(1)
+            lastVert = self._traverse( edges, firstVert )
+            if lastVert is None:
+                raise NotLoop(edges)
+
+        # Check that we actually have an embedded closed loop.
+        if ( ( lastVert != firstVert ) or
                 ( len( self._vertIndices ) != len(edges) ) ):
             raise NotLoop(edges)
         return

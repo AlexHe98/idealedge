@@ -2,6 +2,7 @@
 Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
+from loop import IdealLoop
 
 
 class CrossingGadget:
@@ -202,3 +203,88 @@ class CrossingGadget:
         """
         return self._tetrahedra[1+strand].edge(
                 *self._verticalEdgeEndpoints[strand] )
+
+
+def embedFromDiagram( knot, simplify=True ):
+    """
+    Uses a planar diagram to embed the given knot as an ideal loop in a
+    triangulation of the 3-sphere.
+
+    If simplify is True (the default), then this routine will try to simplify
+    the constructed ideal loop before returning. Otherwise, if simplify is
+    False, then this routine will return an ideal loop embedded in a
+    triangulation of size 25 times the number of crossings in the given knot.
+
+    In the special case where the given knot has no crossings, this routine
+    simply returns an unknotted ideal loop embedded in a triangulation with
+    just one tetrahedron.
+
+    Returns:
+        The constructed ideal loop.
+    """
+    if knot.countComponents() > 1:
+        raise ValueError( "Can only embed knots in a triangulation." )
+
+    # If no crossings, use the unknotted edge in the 1-tetrahedron 3-sphere.
+    if knot.size() == 0:
+        tri = Triangulation3.fromIsoSig( "bkaagj" )
+        return IdealLoop( [ tri.edge(0) ] )
+
+    # Build the triangulation.
+    tri = Triangulation3()
+    crossings = knot.pdData()
+    gadgets = []
+    strandToCrossing = dict()
+    crossingToStrand = dict()
+    for i, crossing in enumerate(crossings):
+        gadgets.append( CrossingGadget(tri) )
+        for j, strand in enumerate(crossing):
+            if strand in strandToCrossing:
+                # We have already seen the current strand from the other end,
+                # which means that we need to join the two corresponding
+                # crossing gadgets.
+                ii, jj = strandToCrossing[strand][0]
+                gadgets[i].join( j, gadgets[ii], jj )
+            else:
+                strandToCrossing[strand] = []
+            strandToCrossing[strand].append( (i,j) )
+            crossingToStrand[ (i,j) ] = strand
+
+    # Find the edges that form the ideal loop.
+    edges = []
+    firstCrossing = strandToCrossing[1][0]
+    currentCrossing = strandToCrossing[1][0]
+    strand = 1
+    while True:
+        # Find the next crossing.
+        if currentCrossing == strandToCrossing[strand][0]:
+            nextCrossing = strandToCrossing[strand][1]
+        else:
+            nextCrossing = strandToCrossing[strand][0]
+
+        # Include the edge coming from the current crossing, and check
+        # whether an extra edge is needed to ensure that the current edge is
+        # connected to the edge that will come from the next crossing.
+        currentGadget = gadgets[ currentCrossing[0] ]
+        if currentCrossing[1] % 2 == 0:
+            edges.append( currentGadget.underCrossingEdge() )
+        else:
+            edges.append( currentGadget.overCrossingEdge() )
+        if currentCrossing[1] % 2 != nextCrossing[1] % 2:
+            # Either current edge is over-crossing and next edge is
+            # under-crossing, or vice versa. We use an extra vertical edge
+            # to connect the current edge to the next edge.
+            edges.append( currentGadget.verticalEdge( currentCrossing[1] ) )
+
+        # Repeat with the next crossing.
+        currentCrossing = ( nextCrossing[0], (2 + nextCrossing[1]) % 4 )
+        if currentCrossing == firstCrossing:
+            # All done!
+            loop = IdealLoop(edges)
+            if simplify:
+                noSimplification = 0
+                while noSimplification < 2:
+                    if not loop.simplify():
+                        noSimplification += 1
+            return loop
+        strand = crossingToStrand[currentCrossing]
