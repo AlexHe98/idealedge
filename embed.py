@@ -1,6 +1,7 @@
 """
 Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
+from regina import *
 
 
 class CrossingGadget:
@@ -8,6 +9,49 @@ class CrossingGadget:
     A triangulation with edges that can be used to realise a crossing in a
     knot diagram.
     """
+    # Data for finding the ideal loop.
+    _underEdgeEndpoints = (0,2)
+    _overEdgeEndpoints = (1,3)
+    _verticalEdgeEndpoints = [ (0,3), (2,1), (3,0), (1,2) ]
+
+    # Data for gluing gadgets together.
+    _lowerLeftTet = [18,15,16,17]
+    _lowerLeftVer = [
+            Perm4(2,0,3,1),
+            Perm4(1,2,3,0),
+            Perm4(1,3,0,2),
+            Perm4(2,1,0,3) ]
+    _lowerRightTet = [15,16,17,18]
+    _lowerRightVer = [
+            Perm4(1,0,3,2),
+            Perm4(1,2,0,3),
+            Perm4(2,3,0,1),
+            Perm4(2,1,3,0) ]
+    _middleLeftTet = [5,7,9,11]
+    _middleLeftVer = [
+            Perm4(0,2,1,3),
+            Perm4(3,1,2,0),
+            Perm4(2,0,3,1),
+            Perm4(1,3,0,2) ]
+    _middleRightTet = [6,8,10,12]
+    _middleRightVer = [
+            Perm4(0,2,3,1),
+            Perm4(3,1,0,2),
+            Perm4(2,0,1,3),
+            Perm4(1,3,2,0) ]
+    _upperLeftTet = [21,22,23,24]
+    _upperLeftVer = [
+            Perm4(3,0,1,2),
+            Perm4(1,0,2,3),
+            Perm4(0,3,2,1),
+            Perm4(2,3,1,0) ]
+    _upperRightTet = [22,23,24,21]
+    _upperRightVer = [
+            Perm4(3,0,2,1),
+            Perm4(1,3,2,0),
+            Perm4(0,3,1,2),
+            Perm4(2,0,1,3) ]
+
     def __init__( self, tri ):
         """
         Creates a new crossing gadget and inserts it into the given
@@ -63,30 +107,98 @@ class CrossingGadget:
                 middle.join( i, other, Perm4(2,3) )
 
         # Join lower tetrahedra to each other.
-        #TODO
+        self._tetrahedra[13].join( 3, self._tetrahedra[14], Perm4(1,3) )
+        self._tetrahedra[13].join( 2, self._tetrahedra[15], Perm4(2,3) )
+        self._tetrahedra[13].join( 0, self._tetrahedra[16], Perm4(2,3) )
+        self._tetrahedra[14].join( 0, self._tetrahedra[17], Perm4(2,3) )
+        self._tetrahedra[14].join( 2, self._tetrahedra[18], Perm4(2,3) )
 
         # Join upper tetrahedra to each other.
-        #TODO
+        self._tetrahedra[19].join( 2, self._tetrahedra[20], Perm4(0,2) )
+        self._tetrahedra[19].join( 1, self._tetrahedra[21], Perm4(2,3) )
+        self._tetrahedra[19].join( 3, self._tetrahedra[22], Perm4(2,3) )
+        self._tetrahedra[20].join( 3, self._tetrahedra[23], Perm4(2,3) )
+        self._tetrahedra[20].join( 1, self._tetrahedra[24], Perm4(2,3) )
+
+        # All done!
         return
 
-    def centralTet(self):
+    def join( self, ownStrand, other, otherStrand ):
         """
-        Returns the central tetrahedron.
-        """
-        return self._tetrahedra[0]
+        Joins the given strand of this crossing gadget to the given strand of
+        the other crossing gadget.
 
-    def innerMiddleTet( self, index ):
+        Both ownStrand and otherStrand should be integers between 0 and 3,
+        inclusive.
         """
-        Returns the inner middle tetrahedron at the given index.
+        # Glue lower left face.
+        myLeft = self._tetrahedra[ self._lowerLeftTet[ownStrand] ]
+        myLeftFace = self._lowerLeftVer[ownStrand][3]
+        yourRight = other._tetrahedra[ other._lowerRightTet[otherStrand] ]
+        myLeftGluing = ( other._lowerRightVer[otherStrand] *
+                self._lowerLeftVer[ownStrand].inverse() )
+        myLeft.join( myLeftFace, yourRight, myLeftGluing )
 
-        The index should be between 0 and 3, inclusive.
-        """
-        return self._tetrahedra[index+1]
+        # Glue lower right face.
+        myRight = self._tetrahedra[ self._lowerRightTet[ownStrand] ]
+        myRightFace = self._lowerRightVer[ownStrand][3]
+        yourLeft = other._tetrahedra[ other._lowerLeftTet[otherStrand] ]
+        myRightGluing = ( other._lowerLeftVer[otherStrand] *
+                self._lowerRightVer[ownStrand].inverse() )
+        myRight.join( myRightFace, yourLeft, myRightGluing )
 
-    def outerMiddleTet( self, index ):
-        """
-        Returns the outer middle tetrahedron at the given index.
+        # Glue middle left face.
+        myLeft = self._tetrahedra[ self._middleLeftTet[ownStrand] ]
+        myLeftFace = self._middleLeftVer[ownStrand][3]
+        yourRight = other._tetrahedra[ other._middleRightTet[otherStrand] ]
+        myLeftGluing = ( other._middleRightVer[otherStrand] *
+                self._middleLeftVer[ownStrand].inverse() )
+        myLeft.join( myLeftFace, yourRight, myLeftGluing )
 
-        The index should be between 0 and 7, inclusive.
+        # Glue middle right face.
+        myRight = self._tetrahedra[ self._middleRightTet[ownStrand] ]
+        myRightFace = self._middleRightVer[ownStrand][3]
+        yourLeft = other._tetrahedra[ other._middleLeftTet[otherStrand] ]
+        myRightGluing = ( other._middleLeftVer[otherStrand] *
+                self._middleRightVer[ownStrand].inverse() )
+        myRight.join( myRightFace, yourLeft, myRightGluing )
+
+        # Glue upper left face.
+        myLeft = self._tetrahedra[ self._upperLeftTet[ownStrand] ]
+        myLeftFace = self._upperLeftVer[ownStrand][3]
+        yourRight = other._tetrahedra[ other._upperRightTet[otherStrand] ]
+        myLeftGluing = ( other._upperRightVer[otherStrand] *
+                self._upperLeftVer[ownStrand].inverse() )
+        myLeft.join( myLeftFace, yourRight, myLeftGluing )
+
+        # Glue upper right face.
+        myRight = self._tetrahedra[ self._upperRightTet[ownStrand] ]
+        myRightFace = self._upperRightVer[ownStrand][3]
+        yourLeft = other._tetrahedra[ other._upperLeftTet[otherStrand] ]
+        myRightGluing = ( other._upperLeftVer[otherStrand] *
+                self._upperRightVer[ownStrand].inverse() )
+        myRight.join( myRightFace, yourLeft, myRightGluing )
+
+        # All done!
+        return
+
+    def underCrossingEdge(self):
         """
-        return self._tetrahedra[index+5]
+        Returns the under-crossing edge of this crossing gadget.
+        """
+        return self._tetrahedra[0].edge( *self._underEdgeEndpoints )
+
+    def overCrossingEdge(self):
+        """
+        Returns the over-crossing edge of this crossing gadget.
+        """
+        return self._tetrahedra[0].edge( *self._overEdgeEndpoints )
+
+    def verticalEdge( self, strand ):
+        """
+        Returns the vertical edge at the given strand index.
+
+        The strand index should be an integer between 0 and 3, inclusive.
+        """
+        return self._tetrahedra[1+strand].edge(
+                *self._verticalEdgeEndpoints[strand] )
