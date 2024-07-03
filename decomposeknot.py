@@ -114,8 +114,7 @@ def _enumerateSerial( oldLoop, tracker ):
                 continue
         else:
             # No suitable 2-sphere means oldLoop is prime.
-            # Return ( foundPrime, newLoops ).
-            return ( True, None )
+            return None
 
         # We only want 2-spheres that intersect the oldLoop in either exactly
         # 0 points or exactly 2 points, since crushing such a 2-sphere has
@@ -132,12 +131,11 @@ def _enumerateSerial( oldLoop, tracker ):
             if decomposedLoops:
                 # We are guaranteed to have len(decomposedLoops) == 1.
                 newLoops.append( decomposedLoops[0] )
-
-        # Return ( foundPrime, newLoops ).
-        return ( False, newLoops )
+        return newLoops
 
 
 def _perpetualSimplify( isoSig, size, sender ):
+    #TODO Do we still want this?
     RandomEngine.reseedWithHardware()
     tri = Triangulation3.fromIsoSig(isoSig)
     attempts = 0
@@ -164,7 +162,162 @@ def _perpetualSimplify( isoSig, size, sender ):
 #            spt = SnapPeaTriangulation( loop.drill() )
 
 
+def _perpetualRetriangulate( description, size, sender ):
+    RandomEngine.reseedWithHardware()
+    loop = IdealLoop()
+    loop.setFromLightweight( *description )
+    attempts = 0
+    while True:
+        attempts += 1
+        tri = loop.drill()
+        tri.subdivide()
+        tri.intelligentSimplify()
+        tri.minimiseVertices()
+        tri.intelligentSimplify()
+        loop = reversePinch( Triangulation3(tri) )
+        if loop.triangulation().size() <= size:
+            sender.send( ( loop.lightweightDescription(), attempts ) )
+    return
+
+
+def _indefiniteEnumerate( receiver, sender ):
+    loop = IdealLoop()
+    while not receiver.poll():
+        sleep(0.01)
+    while True:
+        if receiver.poll():
+            # Restart the enumeration with a new ideal loop.
+            description, attempts = receiver.recv()
+            loop.setFromLightweight( *description )
+            tri = loop.triangulation()
+            enumeration = TreeEnumeration( tri, NS_QUAD )
+
+        # Get the next 2-sphere.
+        if enumeration.next():
+            sphere = enumeration.buildSurface()
+            if not isSphere(sphere):
+                continue
+        else:
+            # No suitable 2-sphere means the loop is prime.
+            # Send ( newLoopDescriptions, attempts, tri.size() ).
+            sender.send( ( None, attempts, tri.size() ) )
+            return
+
+        # We only want 2-spheres that intersect the loop in either exactly 0
+        # points or exactly 2 points, since crushing such a 2-sphere has one
+        # of the following effects:
+        #   --> simplifies the triangulation containing the ideal loop;
+        #   --> decomposes the loop into two simpler knots; or
+        #   --> (if the loop is unknotted) destroys all traces of the loop.
+        wt = loop.weight(sphere)
+        if wt != 0 and wt != 2:
+            continue
+        decomposed = decomposeAlong( sphere, [loop] )
+        newLoopDescriptions = []
+        for decomposedLoops in decomposed:
+            if decomposedLoops:
+                # We are guaranteed to have len(decomposedLoops) == 1.
+                newLoopDescriptions.append(
+                        decomposedLoops[0].lightweightDescription() )
+
+        # Send ( newLoopDescriptions, attempts, tri.size() ).
+        sender.send( ( newLoopDescriptions, attempts, tri.size() ) )
+        return
+    return
+
+
 def _enumerateParallel( oldLoop, tracker ):
+    # Set up child processes to run alternate enumerations that might
+    # terminate faster than the main enumeration that will be running here.
+    description = oldLoop.lightweightDescription()
+    tri = oldLoop.triangulation()
+    retriangulateReceiver, retriangulateSender = Pipe(False)
+    retriangulateProcess = Process( target=_perpetualRetriangulate,
+            args=( description, tri.size(), retriangulateSender ) )
+    retriangulateProcess.start()
+    alternateReceiver, alternateSender = Pipe(False)
+    alternateProcess = Process( target=_indefiniteEnumerate,
+            args=( retriangulateReceiver, alternateSender ) )
+    alternateProcess.start()
+
+    # Set up main enumeration.
+    enumeration = TreeEnumeration( tri, NS_QUAD )
+    msg = "Main enumeration succeeded."
+    while True:
+        if alternateReceiver.poll():
+            # The alternate enumeration gave an answer. Make sure to clean up
+            # child processes before returning.
+            retriangulateProcess.terminate()
+            alternateProcess.join()
+            retriangulateProcess.join()
+            newLoopDescriptions, attempts, size = alternateReceiver.recv()
+            msg = "Alternate enumeration succeeded on "
+            msg += "{}-tetrahedron triangulation.\n".format(size)
+            msg += "(Retriangulation attempts: {}.)".format(attempts)
+            if newLoopDescriptions is None:
+                # Found a prime!
+                return ( None, msg )
+            else:
+                # Build new loops and return them.
+                newLoops = []
+                for description in newLoopDescriptions:
+                    newLoop = IdealLoop()
+                    newLoop.setFromLightweight( *description )
+                    newLoops.append(newLoop)
+                return ( newLoops, msg )
+
+        # Continue with main enumeration (if not timed out).
+        try:
+            tracker.newSearch()
+        except TimeoutError as timeout:
+            # Terminate child processes before timing out.
+            alternateProcess.terminate()
+            retriangulateProcess.terminate()
+            alternateProcess.join()
+            retriangulateProcess.join()
+            raise timeout
+
+        # Get the next 2-sphere.
+        if enumeration.next():
+            sphere = enumeration.buildSurface()
+            if not isSphere(sphere):
+                continue
+        else:
+            # No suitable 2-sphere means oldLoop is prime.
+            # Clean up child processes before returning.
+            alternateProcess.terminate()
+            retriangulateProcess.terminate()
+            alternateProcess.join()
+            retriangulateProcess.join()
+            return ( None, msg )
+
+        # We only want 2-spheres that intersect the oldLoop in either exactly
+        # 0 points or exactly 2 points, since crushing such a 2-sphere has
+        # one of the following effects:
+        #   --> simplifies the triangulation containing the ideal loop;
+        #   --> decomposes the oldLoop into two simpler knots; or
+        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
+        wt = oldLoop.weight(sphere)
+        if wt != 0 and wt != 2:
+            continue
+        decomposed = decomposeAlong( sphere, [oldLoop] )
+        newLoops = []
+        for decomposedLoops in decomposed:
+            if decomposedLoops:
+                # We are guaranteed to have len(decomposedLoops) == 1.
+                newLoops.append( decomposedLoops[0] )
+
+        # Clean up child processes before returning.
+        alternateProcess.terminate()
+        retriangulateProcess.terminate()
+        alternateProcess.join()
+        retriangulateProcess.join()
+        return ( newLoops, msg )
+    return
+
+
+def _enumerateParallelOld( oldLoop, tracker ):
+    #TODO Do we still want this? If so, need to refactor return value.
     tri = oldLoop.triangulation()
     enumeration = TreeEnumeration( tri, NS_QUAD )
     isoSig = oldLoop.drill().isoSig()
@@ -328,12 +481,14 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         # Otherwise, crushing this 2-sphere decomposes the oldLoop into a
         # collection of simpler newLoops.
         if _serial:
-            foundPrime, newLoops = _enumerateSerial( oldLoop, tracker )
+            newLoops = _enumerateSerial( oldLoop, tracker )
+            msg = None
         else:
-            foundPrime, newLoops = _enumerateParallel( oldLoop, tracker )
-        if foundPrime:
-            # We only care about the case where the prime is nontrivial.
-            tracker.unknownPrime()
+            newLoops, msg = _enumerateParallel( oldLoop, tracker )
+        if newLoops is None:
+            # The oldLoop is prime! However, we only care about this case
+            # where this prime is nontrivial.
+            tracker.unknownPrime(msg)
             isNontrivial = isKnotted( oldLoop, tracker )
             if isNontrivial:
                 primes.append(oldLoop)
@@ -341,7 +496,7 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         else:
             toProcess.extend(newLoops)
             if verbose:
-                tracker.report()
+                tracker.report( None, msg )
 
     # Output some auxiliary information before returning the list of primes.
     tracker.finish()
@@ -647,13 +802,14 @@ class DecompositionTracker:
         self._newEventIfStalled()
         return
 
-    def unknownPrime(self):
+    def unknownPrime( self, msg=None ):
         """
         Informs this tracker that the tracked computation has found a prime
         knot, but it is not yet known whether this prime is nontrivial.
 
         If this tracker is verbose, then this routine will automatically
-        print a progress report.
+        print a progress report. This progress report may be preceded by an
+        additional message supplied via the optional msg argument.
 
         This routine raises TimeoutError if it detects that the tracked
         computation should be timed out.
@@ -661,6 +817,8 @@ class DecompositionTracker:
         This routine must never be called before start() has been called.
         """
         afterReport = "Found a prime knot! Is it nontrivial?"
+        if msg is not None:
+            afterReport = "{}\n{}".format( msg, afterReport )
         self._newEvent( None, afterReport )
         return
 
