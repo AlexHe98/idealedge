@@ -206,8 +206,7 @@ def _indefiniteEnumerate( receiver, sender ):
                 continue
         else:
             # No suitable 2-sphere means the loop is prime.
-            # Send ( newLoopDescriptions, attempts, tri.size() ).
-            sender.send( ( None, attempts, tri.size() ) )
+            sender.send( ( None, attempts, searches, tri.size() ) )
             return
 
         # We only want 2-spheres that intersect the loop in either exactly 0
@@ -226,9 +225,8 @@ def _indefiniteEnumerate( receiver, sender ):
                 # We are guaranteed to have len(decomposedLoops) == 1.
                 newLoopDescriptions.append(
                         decomposedLoops[0].lightweightDescription() )
-
-        # Send ( newLoopDescriptions, attempts, tri.size() ).
-        sender.send( ( newLoopDescriptions, attempts, tri.size() ) )
+        sender.send(
+                ( newLoopDescriptions, attempts, searches, tri.size() ) )
         return
     return
 
@@ -257,17 +255,18 @@ def _enumerateParallel( oldLoop, tracker ):
             retriangulateProcess.terminate()
             alternateProcess.join()
             retriangulateProcess.join()
-            newLoopDescriptions, attempts, size = alternateReceiver.recv()
+            newLoopDescs, attempts, searches, size = alternateReceiver.recv()
             msg = "Alternate enumeration succeeded on "
             msg += "{}-tetrahedron triangulation.\n".format(size)
-            msg += "(Retriangulation attempts: {}.)".format(attempts)
-            if newLoopDescriptions is None:
+            msg += "(Retriangulation attempts: {}. Searches: {}.)".format(
+                    attempts, searches )
+            if newLoopDescs is None:
                 # Found a prime!
                 return ( None, msg )
             else:
                 # Build new loops and return them.
                 newLoops = []
-                for description in newLoopDescriptions:
+                for description in newLoopDescs:
                     newLoop = IdealLoop()
                     newLoop.setFromLightweight( *description )
                     newLoops.append(newLoop)
