@@ -118,7 +118,7 @@ def decomposeFromTable( filename, skip=0, cap=None ):
             knotCount += 1
 
             # Scale timeout time with the number of crossings.
-            tracker = DecompositionTracker( True, knot.size() )
+            tracker = DecompositionTracker( True, 2*knot.size() )
             try:
                 primes = decompose( knot, tracker )
             except TimeoutError as timeout:
