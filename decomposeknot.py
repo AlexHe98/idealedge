@@ -162,19 +162,20 @@ def _perpetualSimplify( isoSig, size, sender ):
 #            spt = SnapPeaTriangulation( loop.drill() )
 
 
-def _perpetualRetriangulate( description, size, sender ):
+def _perpetualRandomise( description, size, sender ):
     RandomEngine.reseedWithHardware()
     loop = IdealLoop()
     loop.setFromLightweight( *description )
     attempts = 0
     while True:
         attempts += 1
-        tri = loop.drill()
-        tri.subdivide()
-        tri.intelligentSimplify()
-        tri.minimiseVertices()
-        tri.intelligentSimplify()
-        loop = reversePinch( Triangulation3(tri) )
+        loop.randomise()
+#        tri = loop.drill()
+#        tri.subdivide()
+#        tri.intelligentSimplify()
+#        tri.minimiseVertices()
+#        tri.intelligentSimplify()
+#        loop = reversePinch( Triangulation3(tri) )
         if loop.triangulation().size() <= size:
             sender.send( ( loop.lightweightDescription(), attempts ) )
     return
@@ -236,13 +237,13 @@ def _enumerateParallel( oldLoop, tracker ):
     # terminate faster than the main enumeration that will be running here.
     description = oldLoop.lightweightDescription()
     tri = oldLoop.triangulation()
-    retriangulateReceiver, retriangulateSender = Pipe(False)
-    retriangulateProcess = Process( target=_perpetualRetriangulate,
-            args=( description, tri.size(), retriangulateSender ) )
-    retriangulateProcess.start()
+    randomiseReceiver, randomiseSender = Pipe(False)
+    randomiseProcess = Process( target=_perpetualRandomise,
+            args=( description, tri.size(), randomiseSender ) )
+    randomiseProcess.start()
     alternateReceiver, alternateSender = Pipe(False)
     alternateProcess = Process( target=_indefiniteEnumerate,
-            args=( retriangulateReceiver, alternateSender ) )
+            args=( randomiseReceiver, alternateSender ) )
     alternateProcess.start()
 
     # Set up main enumeration.
@@ -252,13 +253,13 @@ def _enumerateParallel( oldLoop, tracker ):
         if alternateReceiver.poll():
             # The alternate enumeration gave an answer. Make sure to clean up
             # child processes before returning.
-            retriangulateProcess.terminate()
+            randomiseProcess.terminate()
             alternateProcess.join()
-            retriangulateProcess.join()
+            randomiseProcess.join()
             newLoopDescs, attempts, searches, size = alternateReceiver.recv()
             msg = "Alternate enumeration succeeded on "
             msg += "{}-tetrahedron triangulation.\n".format(size)
-            msg += "(Retriangulation attempts: {}. Searches: {}.)".format(
+            msg += "(Randomisation attempts: {}. Searches: {}.)".format(
                     attempts, searches )
             if newLoopDescs is None:
                 # Found a prime!
@@ -278,9 +279,9 @@ def _enumerateParallel( oldLoop, tracker ):
         except TimeoutError as timeout:
             # Terminate child processes before timing out.
             alternateProcess.terminate()
-            retriangulateProcess.terminate()
+            randomiseProcess.terminate()
             alternateProcess.join()
-            retriangulateProcess.join()
+            randomiseProcess.join()
             raise timeout
 
         # Get the next 2-sphere.
@@ -292,9 +293,9 @@ def _enumerateParallel( oldLoop, tracker ):
             # No suitable 2-sphere means oldLoop is prime.
             # Clean up child processes before returning.
             alternateProcess.terminate()
-            retriangulateProcess.terminate()
+            randomiseProcess.terminate()
             alternateProcess.join()
-            retriangulateProcess.join()
+            randomiseProcess.join()
             return ( None, msg )
 
         # We only want 2-spheres that intersect the oldLoop in either exactly
@@ -315,9 +316,9 @@ def _enumerateParallel( oldLoop, tracker ):
 
         # Clean up child processes before returning.
         alternateProcess.terminate()
-        retriangulateProcess.terminate()
+        randomiseProcess.terminate()
         alternateProcess.join()
-        retriangulateProcess.join()
+        randomiseProcess.join()
         return ( newLoops, msg )
     return
 

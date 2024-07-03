@@ -2,7 +2,7 @@
 Ideal loops for representing torus boundary components of a 3-manifold.
 """
 from regina import *
-from moves import threeTwo, twoZero, twoOne, fourFour
+from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 
 
 def persistentLocation(face):
@@ -418,6 +418,10 @@ class IdealLoop:
         If the number of vertices is not already equal to one, then this
         routine increases the number of tetrahedra to achieve its goal.
         Otherwise, this routine leaves everything entirely untouched.
+
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
         """
         while self._tri.countVertices() > 1:
             # Find a suitable edge to collapse. Start with edges belonging to
@@ -440,27 +444,12 @@ class IdealLoop:
                 edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
 
             # Perform the snap, and then update this ideal loop.
+            # This move can destroy the ideal loop if it is unknotted.
             snapEdge(edge)
             self.setFromEdgeLocations(edgeLocations)
         return
 
-    def simplifyMonotonic(self):
-        """
-        Monotonically reduces the number of tetrahedra in the ambient
-        triangulation to a local minimum, while leaving this ideal loop
-        untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify() and
-        simplifyWithFourFour() routines.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
+    def _simplifyImpl( self, include32 ):
         changed = False     # Has anything changed ever?    (Return value.)
         changedNow = True   # Did we just change something? (Loop control.)
         while True:
@@ -470,14 +459,16 @@ class IdealLoop:
                 if edge.index() in self._edgeIndices:
                     continue
 
-                # Try a 3-2 move.
-                renum = threeTwo(edge)
-                if renum is not None:
-                    changedNow = True
-                    changed = True
-                    break
+                # If requested, try a 3-2 move.
+                if include32:
+                    renum = threeTwo(edge)
+                    if renum is not None:
+                        changedNow = True
+                        changed = True
+                        break
 
                 # Try a 2-0 edge move.
+                # This move can destroy the ideal loop if it is unknotted.
                 renum = twoZero(edge)
                 if renum is not None:
                     changedNow = True
@@ -485,6 +476,7 @@ class IdealLoop:
                     break
 
                 # Try a 2-1 edge move.
+                # This move can destroy the ideal loop if it is unknotted.
                 renum = twoOne( edge, 0 )
                 if renum is not None:
                     changedNow = True
@@ -507,6 +499,53 @@ class IdealLoop:
         # Nothing further we can do.
         return changed
 
+    def simplifyBasic(self):
+        """
+        Uses 2-0 and 2-1 edge moves to reduce the number of tetrahedra in the
+        ambient triangulation, while leaving this ideal loop untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify(),
+        simplifyWithFourFour() and simplifyMonotonic() routines.
+
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
+
+        Adapted from SnapPea's check_for_cancellation().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Do not include 3-2 moves.
+        return self._simplifyImpl(False)
+
+    def simplifyMonotonic(self):
+        """
+        Monotonically reduces the number of tetrahedra in the ambient
+        triangulation to a local minimum, while leaving this ideal loop
+        untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() and
+        simplifyWithFourFour() routines.
+
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Include 3-2 moves.
+        return self._simplifyImpl(True)
+
     def simplifyWithFourFour(self):
         """
         With the assistance of random 4-4 moves, attempts to reduce the
@@ -519,6 +558,10 @@ class IdealLoop:
 
         Unlike the simplify() routine, this routine never changes the number
         of vertices.
+
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -592,6 +635,10 @@ class IdealLoop:
         then this routine attempts to minimise the number of tetrahedra
         without altering the number of vertices.
 
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
+
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
         Returns:
@@ -611,3 +658,34 @@ class IdealLoop:
 
         # Try minimising the number of tetrahedra.
         return self.simplifyWithFourFour()
+
+    def randomise(self):
+        """
+        Attempts to randomly retriangulate this ideal loop.
+
+        If this ideal loop bounds an embedded disc, then it is possible for
+        this routine to destroy the ideal loop, at which point this routine
+        will raise NotLoop.
+
+        Adapted from SnapPea's randomize_triangulation().
+        """
+        RandomEngine.reseedWithHardware()
+        randomisation = 4       # Hard-coded value copied from SnapPea.
+        count = randomisation * self._tri.size()
+        while count > 0:
+            count -= 1
+
+            # Attempt a random 2-3 move.
+            renum = twoThree( self._tri.triangle(
+                RandomEngine.rand( self._tri.countTriangles() ) ) )
+            if renum is not None:
+                self._setFromRenum(renum)
+
+                # Try to force future random 2-3 moves to make "interesting"
+                # changes.
+                self.simplifyBasic()
+
+        # Finish up by simplifying. The built-in randomness should hopefully
+        # take us somewhere new.
+        self.simplify()
+        return
