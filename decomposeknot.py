@@ -19,22 +19,30 @@ else:
     _serial = False
 
 
-def _runEmbed( knotSig, sender ):
+def _runFilling( knotSig, sender ):
     RandomEngine.reseedWithHardware()
     loop = embedByFilling( Link.fromKnotSig(knotSig) )
     sender.send( loop.lightweightDescription() )
     return
 
 
+def _runDiagram( knotSig, sender ):
+    RandomEngine.reseedWithHardware()
+    loop = embedFromDiagram( Link.fromKnotSig(knotSig) )
+    sender.send( loop.lightweightDescription() )
+    return
+
+
 def _embedParallel( knot, tracker ):
-    receiver = [None,None]
-    sender = [None,None]
-    embedProcess = [None,None]
-    for i in range(2):
-        receiver[i], sender[i] = Pipe(False)
-        embedProcess[i] = Process(
-                target=_runEmbed, args=( knot.knotSig(), sender[i] ) )
-        embedProcess[i].start()
+    knotSig = knot.knotSig()
+    fillingReceiver, fillingSender = Pipe(False)
+    fillingProcess = Process(
+            target=_runFilling, args=( knotSig, fillingSender ) )
+    fillingProcess.start()
+    diagramReceiver, diagramSender = Pipe(False)
+    diagramProcess = Process(
+            target=_runDiagram, args=( knotSig, diagramSender ) )
+    diagramProcess.start()
     while True:
         sleep(0.01)
         if tracker is not None:
@@ -42,20 +50,33 @@ def _embedParallel( knot, tracker ):
                 tracker.reportIfStalled()
             except TimeoutError as timeout:
                 # Terminate child processes before timing out.
-                for i in range(2):
-                    embedProcess[i].terminate()
-                    embedProcess[i].join()
+                fillingProcess.terminate()
+                diagramProcess.terminate()
+                fillingProcess.join()
+                diagramProcess.join()
                 raise timeout
 
         # Have we finished embedding the knot as an ideal loop?
-        for i in range(2):
-            if not embedProcess[i].is_alive():
-                embedProcess[1-i].terminate()
-                embedProcess[1-i].join()
-                embedProcess[i].join()
-                loop = IdealLoop()
-                loop.setFromLightweight( *receiver[i].recv() )
-                return loop
+        if not fillingProcess.is_alive():
+            diagramProcess.terminate()
+            fillingProcess.join()
+            diagramProcess.join()
+            loop = IdealLoop()
+            loop.setFromLightweight( *fillingReceiver.recv() )
+            if tracker is not None:
+                afterReport = "Built triangulation using 1/0 Dehn surgery."
+                tracker.report( None, afterReport )
+            return loop
+        if not diagramProcess.is_alive():
+            fillingProcess.terminate()
+            diagramProcess.join()
+            fillingProcess.join()
+            loop = IdealLoop()
+            loop.setFromLightweight( *diagramReceiver.recv() )
+            if tracker is not None:
+                afterReport = "Built triangulation from planar diagram."
+                tracker.report( None, afterReport )
+            return loop
     return
 
 
@@ -275,7 +296,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             beforeReport += "Embedding knot as an ideal loop."
             tracker.report(beforeReport)
         if _serial:
-            loop = embedByFilling(knot)
+            # In practice, embedFromDiagram(knot) is usually slower than
+            # embedByFilling(knot). However, embedFromDiagram(knot) is
+            # guaranteed to terminate, so it is the better option if we are
+            # not able to use multiprocessing.
+            loop = embedFromDiagram(knot)
         else:
             loop = _embedParallel( knot, tracker )
 
