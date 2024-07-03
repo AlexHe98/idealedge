@@ -182,17 +182,24 @@ def _perpetualRetriangulate( description, size, sender ):
 
 def _indefiniteEnumerate( receiver, sender ):
     loop = IdealLoop()
+    searches = 0
     while not receiver.poll():
         sleep(0.01)
+    description, attempts = receiver.recv()
+    loop.setFromLightweight( *description )
+    tri = loop.triangulation()
+    enumeration = TreeEnumeration( tri, NS_QUAD )
     while True:
-        if receiver.poll():
+        if searches > 20 and receiver.poll():
             # Restart the enumeration with a new ideal loop.
+            searches = 0
             description, attempts = receiver.recv()
             loop.setFromLightweight( *description )
             tri = loop.triangulation()
             enumeration = TreeEnumeration( tri, NS_QUAD )
 
         # Get the next 2-sphere.
+        searches += 1
         if enumeration.next():
             sphere = enumeration.buildSurface()
             if not isSphere(sphere):
