@@ -7,6 +7,7 @@ from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
 from knotted import isKnotted, knownHyperbolic
+from embed import loopPacket, reversePinch, embedByFilling, embedFromDiagram
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.
@@ -18,92 +19,9 @@ else:
     _serial = False
 
 
-def embeddedLoopPacket(loop):
-    """
-    Returns a packet of the triangulation containing the given loop, with an
-    ideal triangulation of the drilled 3-manifold as a child.
-    """
-    drilled = PacketOfTriangulation3( loop.drill() )
-    drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
-    packet = PacketOfTriangulation3( loop.triangulation() )
-    packet.insertChildLast(drilled)
-    return packet
-
-
-def reversePinch( knotComplement, packet=None ):
-    """
-    Builds an ideal loop representing the same knot as the given ideal
-    triangulation.
-
-    Warning:
-    --> This routine modifies the given knotComplement triangulation.
-    --> This routine currently uses fast heuristics to attempt to construct
-        the desired triangulation, and is not guaranteed to terminate.
-
-    Returns:
-        The constructed ideal loop.
-    """
-    # Triangulate the exterior with boundary edges appearing as the meridian
-    # and longitude. The last step is not guaranteed to terminate in theory,
-    # but it should be fine in practice.
-    knotComplement.minimiseVertices()
-    knotComplement.intelligentSimplify()
-    knotComplement.intelligentSimplify()
-    knotComplement.idealToFinite()
-    noSimplification = 0
-    while noSimplification < 2:
-        if not knotComplement.intelligentSimplify():
-            noSimplification += 1
-    mer, lon = knotComplement.meridianLongitude()
-
-    # Get a tetrahedron index and edge number for the longitude, so that we
-    # can remember its location after closing up the boundary.
-    emb = lon.embedding(0)
-    tet = emb.tetrahedron()
-    edgeNum = emb.face()
-
-    # Close up the boundary and build the IdealLoop.
-    layer = knotComplement.layerOn(mer)
-    layer.join( 0, layer, Perm4(0,1) )
-    idealEdge = tet.edge(edgeNum)
-    loop = IdealLoop( [idealEdge] )
-    noSimplification = 0
-    while noSimplification < 2:
-        if not loop.simplify():
-            noSimplification += 1
-    if packet is not None:
-        child = embeddedLoopPacket(loop)
-        child.setLabel( packet.adornedLabel(
-            "Embedded as edge {}".format( idealEdge.index() ) ) )
-        packet.insertChildLast(child)
-    return loop
-
-
-def embedInTriangulation( knot, insertAsChild=False ):
-    """
-    Embeds the given knot as an ideal loop in a triangulation of the
-    3-sphere.
-
-    Warning:
-    --> This routine currently uses fast heuristics to attempt to construct
-        the desired triangulation, and is not guaranteed to terminate.
-
-    Returns:
-        The constructed ideal loop.
-    """
-    if knot.countComponents() > 1:
-        raise ValueError( "Can only embed knots in a triangulation." )
-    if insertAsChild and isinstance( knot, PacketOfLink ):
-        packet = knot
-    else:
-        packet = None
-    knotComplement = knot.complement()
-    return reversePinch( knotComplement, packet )
-
-
 def _runEmbed( knotSig, sender ):
     RandomEngine.reseedWithHardware()
-    loop = embedInTriangulation( Link.fromKnotSig(knotSig) )
+    loop = embedByFilling( Link.fromKnotSig(knotSig) )
     sender.send( loop.lightweightDescription() )
     return
 
@@ -357,7 +275,7 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             beforeReport += "Embedding knot as an ideal loop."
             tracker.report(beforeReport)
         if _serial:
-            loop = embedInTriangulation(knot)
+            loop = embedByFilling(knot)
         else:
             loop = _embedParallel( knot, tracker )
 
@@ -413,7 +331,7 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             container.setLabel("Primes")
         knot.insertChildLast(container)
         for i, primeLoop in enumerate(primes):
-            packet = embeddedLoopPacket(primeLoop)
+            packet = loopPacket(primeLoop)
             loopEdgeIndices = list(primeLoop)
             if len(primeLoop) == 1:
                 adorn = "Embedded as edge {}".format( loopEdgeIndices[0] )
