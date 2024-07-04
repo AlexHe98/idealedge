@@ -5,7 +5,7 @@ from sys import stdout
 from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, isSphere
-from loop import IdealLoop
+from loop import IdealLoop, BoundsDisc
 from knotted import isKnotted, knownHyperbolic
 from embed import loopPacket, reversePinch, embedByFilling, embedFromDiagram
 try:
@@ -28,7 +28,11 @@ def _runFilling( knotSig, sender ):
 
 def _runDiagram( knotSig, sender ):
     RandomEngine.reseedWithHardware()
-    loop = embedFromDiagram( Link.fromKnotSig(knotSig) )
+    try:
+        loop = embedFromDiagram( Link.fromKnotSig(knotSig) )
+    except BoundsDisc:
+        # Send nothing if the given knot is unknotted.
+        return
     sender.send( loop.lightweightDescription() )
     return
 
@@ -71,8 +75,13 @@ def _embedParallel( knot, tracker ):
             fillingProcess.terminate()
             diagramProcess.join()
             fillingProcess.join()
-            loop = IdealLoop()
-            loop.setFromLightweight( *diagramReceiver.recv() )
+            if diagramReceiver.poll():
+                loop = IdealLoop()
+                loop.setFromLightweight( *diagramReceiver.recv() )
+            else:
+                # If diagramProcess terminated without sending information,
+                # then the given knot must be unknotted.
+                raise BoundsDisc()
             if tracker is not None:
                 afterReport = "Built triangulation from planar diagram."
                 tracker.report( None, afterReport )
@@ -90,10 +99,8 @@ def _enumerateSerial( oldLoop, tracker ):
             # simplify this triangulation, and to restart the surface
             # enumeration on a smaller triangulation.
             tracker.report( None, "Try to simplify." )
-            drilled = SnapPeaTriangulation( oldLoop.drill() )
-            drilled.randomise()
-            simpLoop = reversePinch(
-                    Triangulation3.fromIsoSig( drilled.isoSig() ) )
+            simpLoop = oldLoop.clone()
+            simpLoop.randomise()    # Might raise BoundsDisc.
             if simpLoop.triangulation().size() < tri.size():
                 oldLoop.setFromLoop( simpLoop, False )
                 tri = oldLoop.triangulation()
@@ -134,34 +141,6 @@ def _enumerateSerial( oldLoop, tracker ):
         return newLoops
 
 
-def _perpetualSimplify( isoSig, size, sender ):
-    #TODO Do we still want this?
-    RandomEngine.reseedWithHardware()
-    tri = Triangulation3.fromIsoSig(isoSig)
-    attempts = 0
-    while True:
-        attempts += 1
-        tri.subdivide()
-        tri.intelligentSimplify()
-        tri.minimiseVertices()
-        tri.intelligentSimplify()
-        loop = reversePinch( Triangulation3(tri) )
-        if loop.triangulation().size() < size:
-            sender.send( ( loop.lightweightDescription(), attempts ) )
-            size = loop.triangulation().size()
-            tri = loop.drill()
-#    spt = SnapPeaTriangulation( Triangulation3.fromIsoSig(isoSig) )
-#    attempts = 0
-#    while True:
-#        attempts += 1
-#        spt.randomise()
-#        loop = reversePinch( Triangulation3.fromIsoSig( spt.isoSig() ) )
-#        if loop.triangulation().size() < size:
-#            sender.send( ( loop.lightweightDescription(), attempts ) )
-#            size = loop.triangulation().size()
-#            spt = SnapPeaTriangulation( loop.drill() )
-
-
 def _perpetualRandomise( description, size, sender ):
     RandomEngine.reseedWithHardware()
     loop = IdealLoop()
@@ -169,13 +148,11 @@ def _perpetualRandomise( description, size, sender ):
     attempts = 0
     while True:
         attempts += 1
-        loop.randomise()
-#        tri = loop.drill()
-#        tri.subdivide()
-#        tri.intelligentSimplify()
-#        tri.minimiseVertices()
-#        tri.intelligentSimplify()
-#        loop = reversePinch( Triangulation3(tri) )
+        try:
+            loop.randomise()    # Might raise BoundsDisc.
+        except BoundsDisc:
+            # Use early termination to indicate that the loop is unknotted.
+            return
         if loop.triangulation().size() <= size:
             sender.send( ( loop.lightweightDescription(), attempts ) )
     return
@@ -250,9 +227,19 @@ def _enumerateParallel( oldLoop, tracker ):
     enumeration = TreeEnumeration( tri, NS_QUAD )
     msg = "Main enumeration succeeded."
     while True:
+        # Has the randomiseProcess determined that the oldLoop is unknotted?
+        if not randomiseProcess.is_alive():
+            # Make sure to clean up child processes before raising BoundsDisc
+            # to indicate that the oldLoop is unknotted.
+            alternateProcess.terminate()
+            randomiseProcess.join()
+            alternateProcess.join()
+            raise BoundsDisc()
+
+        # Has the alternateProcess given an answer?
         if alternateReceiver.poll():
-            # The alternate enumeration gave an answer. Make sure to clean up
-            # child processes before returning.
+            # Make sure to clean up child processes before returning the
+            # answer from the alternateProcess.
             randomiseProcess.terminate()
             alternateProcess.join()
             randomiseProcess.join()
@@ -323,80 +310,6 @@ def _enumerateParallel( oldLoop, tracker ):
     return
 
 
-def _enumerateParallelOld( oldLoop, tracker ):
-    #TODO Do we still want this? If so, need to refactor return value.
-    tri = oldLoop.triangulation()
-    enumeration = TreeEnumeration( tri, NS_QUAD )
-    isoSig = oldLoop.drill().isoSig()
-    size = tri.size()
-    receiver, sender = Pipe(False)
-    simplifyProcess = Process(
-            target=_perpetualSimplify, args=( isoSig, size, sender ) )
-    simplifyProcess.start()
-    while True:
-        desc = None
-        while receiver.poll():
-            desc, attempts = receiver.recv()
-        if desc is not None:
-            # Successfully simplified! Restart enumeration.
-            oldLoop.setFromLightweight( *desc )
-            tri = oldLoop.triangulation()
-            enumeration = TreeEnumeration( tri, NS_QUAD )
-            beforeReport = "Simplified to {} ".format( tri.size() )
-            beforeReport += "tetrahedra after "
-            if attempts == 1:
-                beforeReport += "1 attempt."
-            else:
-                beforeReport += "{} attempts.".format(attempts)
-            try:
-                tracker.report(beforeReport)
-            except TimeoutError as timeout:
-                # Terminate child process before timing out.
-                simplifyProcess.terminate()
-                simplifyProcess.join()
-                raise timeout
-        try:
-            tracker.newSearch()
-        except TimeoutError as timeout:
-            # Terminate child process before timing out.
-            simplifyProcess.terminate()
-            simplifyProcess.join()
-            raise timeout
-
-        # Get the next 2-sphere.
-        if enumeration.next():
-            sphere = enumeration.buildSurface()
-            if not isSphere(sphere):
-                continue
-        else:
-            # No suitable 2-sphere means oldLoop is prime.
-            # Return ( foundPrime, newLoops ).
-            simplifyProcess.terminate()
-            simplifyProcess.join()
-            return ( True, None )
-
-        # We only want 2-spheres that intersect the oldLoop in either exactly
-        # 0 points or exactly 2 points, since crushing such a 2-sphere has
-        # one of the following effects:
-        #   --> simplifies the triangulation containing the ideal loop;
-        #   --> decomposes the oldLoop into two simpler knots; or
-        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
-        wt = oldLoop.weight(sphere)
-        if wt != 0 and wt != 2:
-            continue
-        decomposed = decomposeAlong( sphere, [oldLoop] )
-        newLoops = []
-        for decomposedLoops in decomposed:
-            if decomposedLoops:
-                # We are guaranteed to have len(decomposedLoops) == 1.
-                newLoops.append( decomposedLoops[0] )
-
-        # Return ( foundPrime, newLoops ).
-        simplifyProcess.terminate()
-        simplifyProcess.join()
-        return ( False, newLoops )
-
-
 def decompose( knot, tracker=False, insertAsChild=False ):
     """
     Decomposes the given knot into prime pieces, represented as 3-spheres
@@ -460,13 +373,28 @@ def decompose( knot, tracker=False, insertAsChild=False ):
             # embedByFilling(knot). However, embedFromDiagram(knot) is
             # guaranteed to terminate, so it is the better option if we are
             # not able to use multiprocessing.
-            loop = embedFromDiagram(knot)
+            try:
+                loop = embedFromDiagram(knot)
+            except BoundsDisc:
+                # The given knot is unknotted.
+                loop = None
         else:
-            loop = _embedParallel( knot, tracker )
+            try:
+                loop = _embedParallel( knot, tracker )
+            except BoundsDisc:
+                # The given knot is unknotted.
+                loop = None
 
     # Do the decompositon.
     primes = []
-    toProcess = [loop]
+    if loop is None:
+        # The given knot is unknotted.
+        if verbose:
+            afterReport = "The knot bounds a disc!"
+            tracker.report( None, afterReport )
+        toProcess = []
+    else:
+        toProcess = [loop]
     while toProcess:
         # INVARIANT:
         #   At this point, the following are guaranteed to hold:
@@ -488,10 +416,20 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         # Otherwise, crushing this 2-sphere decomposes the oldLoop into a
         # collection of simpler newLoops.
         if _serial:
-            newLoops = _enumerateSerial( oldLoop, tracker )
+            try:
+                newLoops = _enumerateSerial( oldLoop, tracker )
+            except BoundsDisc:
+                # The oldLoop is unknotted.
+                tracker.knownPrime(False)
+                continue
             msg = None
         else:
-            newLoops, msg = _enumerateParallel( oldLoop, tracker )
+            try:
+                newLoops, msg = _enumerateParallel( oldLoop, tracker )
+            except BoundsDisc:
+                # The oldLoop is unknotted.
+                tracker.knownPrime(False)
+                continue
         if newLoops is None:
             # The oldLoop is prime! However, we only care about this case
             # where this prime is nontrivial.

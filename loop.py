@@ -65,11 +65,16 @@ def snapEdge(edge):
     # Finish up by performing a 2-1 move on e.
     if not tri.twoOneMove( e, 0 ):
         if not tri.twoOneMove( e, 1 ):
+            # This should never happen.
             raise RuntimeError( "Snap edge failed unexpectedly." )
     return True
 
 
-class NotLoop(Exception):
+class IdealLoopException(Exception):
+    pass
+
+
+class NotLoop(IdealLoopException):
     """
     Raised when attempting to build an ideal loop from a list of edges that
     does not described an embedded closed loop.
@@ -79,12 +84,28 @@ class NotLoop(Exception):
         msg = ( "The edge sequence {} does not describe ".format(indices) +
                 "an embedded closed loop." )
         super().__init__(msg)
+        return
+
+
+class BoundsDisc(IdealLoopException):
+    """
+    Raised when an ideal loop detects that it bounds an embedded disc.
+    """
+    def __init__(self):
+        super().__init__( "Ideal loop bounds an embedded disc." )
+        return
 
 
 class IdealLoop:
     """
     A sequence of edges representing an embedded ideal loop in a 3-manifold
     triangulation.
+
+    This class is mostly designed to work with ideal loops that are
+    *nontrivial* in the sense that they do not bound an embedded disc in the
+    ambient triangulation. Although this condition is never checked directly,
+    some of the routines provided by this class might nevertheless detect
+    that the loop bounds a disc and hence raise BoundsDisc.
     """
     def __init__( self, edges=None ):
         """
@@ -411,6 +432,73 @@ class IdealLoop:
         components.append( [ *nextComponent, *lastComponent ] )
         return components
 
+    def shorten(self):
+        """
+        Shortens this ideal loop.
+
+        In detail, if this ideal loop meets any triangle F in exactly two
+        distinct edges, then it can be shortened by replacing these two edges
+        with the third edge of F. This routine performs such shortenings
+        until no further shortening is possible.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful minimiseVertices()
+        and simplify() routines.
+
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        Returns:
+            True if and only if this ideal loop was successfully shortened.
+            Otherwise, this ideal loop will not be modified at all.
+        """
+        if len(self) < 2:
+            return False
+        changed = False
+        redirected = True
+        while redirected:
+            redirected = False
+
+            # Search for a triangle along which we can redirect.
+            for face in self._tri.triangles():
+                incidentLocations = set()
+                nonIncidentEdgeIndices = set()
+                for e in range(3):
+                    edgeIndex = face.edge(e).index()
+                    try:
+                        location = self._edgeIndices.index(edgeIndex)
+                    except ValueError:
+                        # Edge is not incident to the ideal loop.
+                        nonIncidentEdgeIndices.add(edgeIndex)
+                    else:
+                        # Edge is incident to the ideal loop.
+                        incidentLocations.add(location)
+
+                # Does the current face form an embedded disc bounded by the
+                # ideal loop?
+                if len(incidentLocations) == 3:
+                    raise BoundsDisc()
+
+                # Redirect if possible.
+                if len(incidentLocations) != 2:
+                    continue
+                first, second = incidentLocations
+                self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
+                self._edgeIndices.pop(second)
+
+                # Updating just the edge indices is not actually enough. Make
+                # sure to update all the data stored by this class.
+                newEdges = [ self._tri.edge(i) for i in self._edgeIndices ]
+                self.setFromEdges(newEdges)
+
+                # Back to the top.
+                changed = True
+                redirected = True
+                break
+
+        # No further shortening is possible.
+        return changed
+
     def minimiseVertices(self):
         """
         Reduces the number of vertices in the ambient triangulation to one.
@@ -419,14 +507,15 @@ class IdealLoop:
         routine increases the number of tetrahedra to achieve its goal.
         Otherwise, this routine leaves everything entirely untouched.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
         """
         while self._tri.countVertices() > 1:
+            # Might raise BoundsDisc.
+            self.shorten()
+
             # Find a suitable edge to collapse. Start with edges belonging to
-            # the ideal loop, since this ensures that the loop remains
-            # embedded after the collapse.
+            # the ideal loop.
             if len(self) > 1:
                 edge = self._tri.edge( self._edgeIndices[0] )
             else:
@@ -443,8 +532,10 @@ class IdealLoop:
                 emb = self._tri.edge(ei).embedding(0)
                 edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
 
-            # Perform the snap, and then update this ideal loop.
-            # This move can destroy the ideal loop if it is unknotted.
+            # Perform the snap, and then update this ideal loop. Note that
+            # this will not have any unintended side-effects on the ideal
+            # loop, both because we ran shorten() and because we chose to
+            # prioritise collapsing edges belonging to the ideal loop.
             snapEdge(edge)
             self.setFromEdgeLocations(edgeLocations)
         return
@@ -468,7 +559,7 @@ class IdealLoop:
                         break
 
                 # Try a 2-0 edge move.
-                # This move can destroy the ideal loop if it is unknotted.
+                # This move can destroy the ideal loop if it bounds a disc.
                 renum = twoZero(edge)
                 if renum is not None:
                     changedNow = True
@@ -476,7 +567,7 @@ class IdealLoop:
                     break
 
                 # Try a 2-1 edge move.
-                # This move can destroy the ideal loop if it is unknotted.
+                # This move can destroy the ideal loop if it bounds a disc.
                 renum = twoOne( edge, 0 )
                 if renum is not None:
                     changedNow = True
@@ -492,7 +583,14 @@ class IdealLoop:
             # the details of the ideal loop, and then check whether we can
             # improve further.
             if changedNow:
-                self._setFromRenum(renum)
+                try:
+                    # If we destroyed the ideal loop, then this will raise
+                    # NotLoop.
+                    self._setFromRenum(renum)
+                except NotLoop:
+                    # As noted above, the ideal loop can only get destroyed
+                    # if it bounds a disc.
+                    raise BoundsDisc()
             else:
                 break
 
@@ -508,9 +606,8 @@ class IdealLoop:
         the functionality is subsumed by the more powerful simplify(),
         simplifyWithFourFour() and simplifyMonotonic() routines.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
 
         Adapted from SnapPea's check_for_cancellation().
 
@@ -520,6 +617,7 @@ class IdealLoop:
             modified at all.
         """
         # Do not include 3-2 moves.
+        # Might raise BoundsDisc.
         return self._simplifyImpl(False)
 
     def simplifyMonotonic(self):
@@ -532,9 +630,8 @@ class IdealLoop:
         the functionality is subsumed by the more powerful simplify() and
         simplifyWithFourFour() routines.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
 
@@ -544,6 +641,7 @@ class IdealLoop:
             modified at all.
         """
         # Include 3-2 moves.
+        # Might raise BoundsDisc.
         return self._simplifyImpl(True)
 
     def simplifyWithFourFour(self):
@@ -559,9 +657,8 @@ class IdealLoop:
         Unlike the simplify() routine, this routine never changes the number
         of vertices.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -570,7 +667,7 @@ class IdealLoop:
             simplified. Otherwise, the ambient triangulation will not be
             modified at all.
         """
-        changed = self.simplifyMonotonic()
+        changed = self.simplifyMonotonic()  # Might raise BoundsDisc.
         tempLoop = self.clone()
         tempTri = tempLoop.triangulation()
 
@@ -608,7 +705,7 @@ class IdealLoop:
                     RandomEngine.rand(availableCount) ]
             renum = fourFour( *fourFourChoice )
             tempLoop._setFromRenum(renum)
-            if tempLoop.simplifyMonotonic():
+            if tempLoop.simplifyMonotonic():    # Might raise BoundsDisc.
                 # We successfully simplified!
                 # Start all over again.
                 fourFourAttempts = 0
@@ -635,9 +732,8 @@ class IdealLoop:
         then this routine attempts to minimise the number of tetrahedra
         without altering the number of vertices.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -650,22 +746,21 @@ class IdealLoop:
         # Try minimising the number of vertices.
         if self._tri.countVertices() > 1:
             minVer = self.clone()
-            minVer.minimiseVertices()
-            minVer.simplifyWithFourFour()
+            minVer.minimiseVertices()       # Might raise BoundsDisc.
+            minVer.simplifyWithFourFour()   # Might raise BoundsDisc.
             if minVer.triangulation().size() <= self._tri.size():
                 self.setFromLoop( minVer, False )
                 return True
 
         # Try minimising the number of tetrahedra.
-        return self.simplifyWithFourFour()
+        return self.simplifyWithFourFour()  # Might raise BoundsDisc.
 
     def randomise(self):
         """
         Attempts to randomly retriangulate this ideal loop.
 
-        If this ideal loop bounds an embedded disc, then it is possible for
-        this routine to destroy the ideal loop, at which point this routine
-        will raise NotLoop.
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
 
         Adapted from SnapPea's randomize_triangulation().
         """
@@ -683,9 +778,9 @@ class IdealLoop:
 
                 # Try to force future random 2-3 moves to make "interesting"
                 # changes.
-                self.simplifyBasic()
+                self.simplifyBasic()    # Might raise BoundsDisc.
 
         # Finish up by simplifying. The built-in randomness should hopefully
         # take us somewhere new.
-        self.simplify()
+        self.simplify()     # Might raise BoundsDisc.
         return

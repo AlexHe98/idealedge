@@ -571,12 +571,17 @@ def decomposeAlong( surf, oldLoops ):
             try:
                 loop = IdealLoop(edgeList)
             except NotLoop:
+                # Ignore degenerate loop.
                 continue
             else:
                 loops.append(loop)
         if len(loops) == 1:
-            loops[0].simplify()
-            loops[0].simplify()
+            try:
+                loops[0].simplify()
+                loops[0].simplify()
+            except BoundsDisc:
+                # Ignore unknotted loop.
+                continue
         output.append(loops)
     return output
 

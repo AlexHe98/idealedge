@@ -2,7 +2,7 @@
 Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
-from loop import IdealLoop
+from loop import IdealLoop, BoundsDisc
 
 
 def loopPacket(loop):
@@ -56,6 +56,7 @@ def reversePinch( knotComplement, packet=None ):
     loop = IdealLoop( [idealEdge] )
     noSimplification = 0
     while noSimplification < 2:
+        # Ideal loop has length one, so no risk of raising BoundsDisc.
         if not loop.simplify():
             noSimplification += 1
     if packet is not None:
@@ -100,20 +101,17 @@ def embedFromDiagram( knot, simplify=True ):
     False, then this routine will return an ideal loop embedded in a
     triangulation of size 25 times the number of crossings in the given knot.
 
-    In the special case where the given knot has no crossings, this routine
-    simply returns an unknotted ideal loop embedded in a triangulation with
-    just one tetrahedron.
+    This routine is mainly designed to work with *nontrivial* knots, although
+    it does not check nontriviality directly. If this routine does happen to
+    detect that the given knot is trivial, then it will raise BoundsDisc.
 
     Returns:
         The constructed ideal loop.
     """
     if knot.countComponents() > 1:
         raise ValueError( "Can only embed knots in a triangulation." )
-
-    # If no crossings, use the unknotted edge in the 1-tetrahedron 3-sphere.
     if knot.size() == 0:
-        tri = Triangulation3.fromIsoSig( "bkaagj" )
-        return IdealLoop( [ tri.edge(0) ] )
+        raise BoundsDisc()
 
     # Build the triangulation.
     tri = Triangulation3()
@@ -169,7 +167,7 @@ def embedFromDiagram( knot, simplify=True ):
             if simplify:
                 noSimplification = 0
                 while noSimplification < 2:
-                    if not loop.simplify():
+                    if not loop.simplify():     # Might raise BoundsDisc.
                         noSimplification += 1
             return loop
         strand = crossingToStrand[currentCrossing]
