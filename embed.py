@@ -17,10 +17,43 @@ def loopPacket(loop):
     return packet
 
 
+def embedByFilling( knot, insertAsChild=False ):
+    """
+    Uses a 1/0 Dehn surgery to embed the given knot as an ideal loop in a
+    triangulation of the 3-sphere.
+
+    If insertAsChild is True and the given knot is an instance of
+    PacketOfLink, then this routine will run loopPacket() on the constructed
+    ideal loop, and then insert the resulting packet as a child of the given
+    knot packet. This feature is switched off by default.
+
+    Warning:
+    --> This routine uses fast heuristics to attempt to construct the desired
+        triangulation, and is not guaranteed to terminate. Use the
+        embedFromDiagram() routine to build the ideal loop using an algorithm
+        that guarantees to terminate.
+
+    Returns:
+        The constructed ideal loop.
+    """
+    if knot.countComponents() > 1:
+        raise ValueError( "Can only embed knots in a triangulation." )
+    if insertAsChild and isinstance( knot, PacketOfLink ):
+        packet = knot
+    else:
+        packet = None
+    knotComplement = knot.complement()
+    return reversePinch( knotComplement, packet )
+
+
 def reversePinch( knotComplement, packet=None ):
     """
     Builds an ideal loop representing the same knot as the given ideal
     triangulation.
+
+    If the optional packet is supplied, then this routine will run
+    loopPacket() on the constructed ideal loop, and then insert the resulting
+    packet as a child of the given packet.
 
     Warning:
     --> This routine modifies the given knotComplement triangulation.
@@ -32,7 +65,7 @@ def reversePinch( knotComplement, packet=None ):
     """
     # Triangulate the exterior with boundary edges appearing as the meridian
     # and longitude. The last step is not guaranteed to terminate in theory,
-    # but it should be fine in practice.
+    # but it usually works pretty well in practice.
     knotComplement.minimiseVertices()
     knotComplement.intelligentSimplify()
     knotComplement.intelligentSimplify()
@@ -67,30 +100,6 @@ def reversePinch( knotComplement, packet=None ):
     return loop
 
 
-def embedByFilling( knot, insertAsChild=False ):
-    """
-    Uses a 1/0 Dehn surgery to embed the given knot as an ideal loop in a
-    triangulation of the 3-sphere.
-
-    Warning:
-    --> This routine uses fast heuristics to attempt to construct the desired
-        triangulation, and is not guaranteed to terminate. Use the
-        embedFromDiagram() routine to build the ideal loop using an algorithm
-        that guarantees to terminate.
-
-    Returns:
-        The constructed ideal loop.
-    """
-    if knot.countComponents() > 1:
-        raise ValueError( "Can only embed knots in a triangulation." )
-    if insertAsChild and isinstance( knot, PacketOfLink ):
-        packet = knot
-    else:
-        packet = None
-    knotComplement = knot.complement()
-    return reversePinch( knotComplement, packet )
-
-
 def embedFromDiagram( knot, simplify=True ):
     """
     Uses a planar diagram to embed the given knot as an ideal loop in a
@@ -113,7 +122,8 @@ def embedFromDiagram( knot, simplify=True ):
     if knot.size() == 0:
         raise BoundsDisc()
 
-    # Build the triangulation.
+    # Build a triangulation of the 3-sphere with a single "crossing gadget"
+    # for each crossing in a planar diagram of the given knot.
     tri = Triangulation3()
     crossings = knot.pdData()
     gadgets = []
