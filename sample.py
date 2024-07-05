@@ -7,48 +7,32 @@ from regina import *
 from decomposeknot import decompose, DecompositionTracker
 
 
-def _sampleImpl( size, *filenames ):
-    # Use reservoir sampling to limit memory usage to the size of the sample,
-    # rather than the total size of all the given files.
-    reservoir = []
-    knotCount = 0
-    for filename in filenames:
-        with open( filename, "r" ) as table:
-            headings = table.readline().rstrip().split( "," )
-            nameCol = headings.index( "name" )
-            sigCol = headings.index( "knot_sig" )
-            while True:
-                row = table.readline()
-
-                # Does this row describe a knot?
-                if row == "":
-                    # End of file.
-                    break
-                entries = row.rstrip().split( "," )
-                knotSig = entries[sigCol]
-                if Link.fromKnotSig(knotSig).countComponents() != 1:
-                    continue
-
-                # Reservoir sampling: ensures that the current knotSig is
-                # included in the sample with probability (size//knotCount).
-                name = entries[nameCol]
-                knotCount += 1
-                if knotCount <= size:
-                    reservoir.append( ( name, knotSig ) )
-                else:
-                    i = RandomEngine.rand(knotCount)
-                    if i < size:
-                        reservoir[i] = ( name, knotSig )
-    return ( reservoir, knotCount )
-
-
-def sample( size, *filenames ):
+def extractFilenames(nameFile):
     """
-    Returns a random sample of the given size from the knot table(s) in the
-    given file(s).
+    Extracts filenames from the given nameFile, which should be a text file
+    with one filename per line.
+    """
+    sep = nameFile.rfind("/")
+    if sep == -1:
+        directory = ""
+    else:
+        directory = nameFile[:sep+1]
+    output = []
+    with open( nameFile, "r" ) as filenames:
+        for line in filenames:
+            output.append( directory + line.rstrip() )
+    return output
 
-    Each given file should be a CSV file that includes (at least) the
-    following data:
+
+def sample( size, *datasets ):
+    """
+    Returns a random sample of the given size from the knot tables in the
+    given datasets.
+
+    Each given dataset should be the name of a text file containing a list of
+    filenames. Each listed filename should be a CSV file in the same
+    directory as the corresponding dataset file, and each such csv file
+    should include (at least) the following data:
     --> a column of knot names under the heading "name"; and
     --> a column of knot signatures under the heading "knot_sig".
 
@@ -63,15 +47,15 @@ def sample( size, *filenames ):
         raise ValueError( "Sample size must be positive." )
     start = default_timer()
     RandomEngine.reseedWithHardware()
-    sampleData, knotCount = _sampleImpl( size, *filenames )
+    sampleData, knotCount = _sampleImpl( size, *datasets )
     if knotCount == 0:
-        # Just in case the given files do not contain any knots.
+        # Just in case the given datasets do not contain any knots.
         return []
 
     # Keep sampling until we have enough knots.
     remaining = size - knotCount
     while remaining > 0:
-        sampleData.extend( _sampleImpl( remaining, *filenames )[0] )
+        sampleData.extend( _sampleImpl( remaining, *datasets )[0] )
         remaining -= knotCount
     msg = "Sampled {} knots from set of {}. Time: {:.6f}.".format(
             size, knotCount, default_timer() - start )
@@ -81,22 +65,24 @@ def sample( size, *filenames ):
     return sampleData
 
 
-def decomposeFromSample( size, *filenames ):
+def decomposeFromSample( size, *datasets ):
     """
-    Generates a random sample of the given size from the knot table(s) in the
-    given file(s), and decomposes the knots in this sample.
+    Generates a random sample of the given size from the knot tables in the
+    given datasets, and decomposes the knots in this sample.
 
-    Each given file should be a CSV file that includes (at least) the
-    following data:
-    --> a column of knot names under the heading "name"; and
-    --> a column of knot signatures under the heading "knot_sig".
+    The knots are sampled using the sample() routine, so the format of the
+    given datasets must adhere to the specifications stated in the
+    documentation for sample().
 
     This routine prints the results of each decomposition to standard output.
     """
-    title = ""
-    for filename in filenames:
-        title += ", " + filename.split( "/" )[-1].split( "." )[0]
-    title = title[2:]
+    strings = []
+    for dataset in datasets:
+        filenames = extractFilenames(dataset)
+        for filename in filenames:
+            strings.append(
+                    filename.split( "/" )[-1].split( "." )[0] )
+    title = ", ".join(strings)
     print()
     print( "+-" + "-"*len(title) + "-+" )
     print( "| {} |".format(title) )
@@ -106,7 +92,7 @@ def decomposeFromSample( size, *filenames ):
     timedOutCases = []
     data = []
     totalTime = 0
-    knots = sample( size, *filenames )
+    knots = sample( size, *datasets )
     for name, knotSig in knots:
         print(name)
         print( "-"*len(name) )
@@ -160,23 +146,43 @@ def decomposeFromSample( size, *filenames ):
     return
 
 
-def extractFilenames(nameFile):
-    """
-    Extracts filenames from the given nameFile, which should be a text file
-    with one filename per line.
-    """
-    sep = nameFile.rfind("/")
-    if sep == -1:
-        directory = ""
-    else:
-        directory = nameFile[:sep+1]
-    output = []
-    with open( nameFile, "r" ) as filenames:
-        for line in filenames:
-            output.append( directory + line.rstrip() )
-    return output
+def _sampleImpl( size, *datasets ):
+    # Use reservoir sampling to limit memory usage to the size of the sample,
+    # rather than the total size of all the given datasets.
+    reservoir = []
+    knotCount = 0
+    for dataset in datasets:
+        filenames = extractFilenames(dataset)
+        for filename in filenames:
+            with open( filename, "r" ) as table:
+                headings = table.readline().rstrip().split( "," )
+                nameCol = headings.index( "name" )
+                sigCol = headings.index( "knot_sig" )
+                while True:
+                    row = table.readline()
+
+                    # Does this row describe a knot?
+                    if row == "":
+                        # End of file.
+                        break
+                    entries = row.rstrip().split( "," )
+                    knotSig = entries[sigCol]
+                    if Link.fromKnotSig(knotSig).countComponents() != 1:
+                        continue
+
+                    # Reservoir sampling: the current knotSig should be
+                    # included in the sample with probability
+                    # (size // knotCount).
+                    name = entries[nameCol]
+                    knotCount += 1
+                    if knotCount <= size:
+                        reservoir.append( ( name, knotSig ) )
+                    else:
+                        i = RandomEngine.rand(knotCount)
+                        if i < size:
+                            reservoir[i] = ( name, knotSig )
+    return ( reservoir, knotCount )
 
 
 if __name__ == "__main__":
-    #TODO Use extractFilenames()?
     decomposeFromSample( int( argv[1] ), *argv[2:] )

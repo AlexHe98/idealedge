@@ -47,8 +47,8 @@ def generateComposites( numKnots, numSummands, *datasets ):
     # Randomly sample summands from each dataset.
     knotNamesAndSigs = []
     for setNumber in range(numSets):
-        summandSample = sample( sampleSizes[setNumber],
-                *extractFilenames( datasets[setNumber] ) )
+        summandSample = sample(
+                sampleSizes[setNumber], datasets[setNumber] )
         knotNamesAndSigs.append(summandSample)
 
         # Use Fisher-Yates to shuffle the sample (in-place).
@@ -95,7 +95,9 @@ def decomposeComposites( numKnots, numSummands, *datasets ):
     print( "| {} |".format(title) )
     print( "+-" + "-"*len(title) + "-+" )
     print()
-    print( "Sampling summands from the following data sets:" )
+    msg = "Sampling summands from the following data sets:"
+    print(msg)
+    print( "-"*len(msg) )
     for dataset in datasets:
         filenames = extractFilenames(dataset)
         strings = []

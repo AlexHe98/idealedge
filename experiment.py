@@ -7,41 +7,6 @@ from regina import *
 from decomposeknot import decompose, DecompositionTracker
 
 
-def clearExperiments(packet):
-    """
-    Deletes all descendants of the given packet whose labels begin with the
-    string "Primes".
-    """
-    doomed = []
-    for child in packet.children():
-        clearExperiments(child)
-        if child.label()[:6] == "Primes":
-            doomed.append(child)
-    for d in doomed:
-        d.makeOrphan()
-    return
-
-
-def decomposeAll( packet, verbose=True, insertChildren=False ):
-    """
-    Decomposes all knots appearing as descendants of the given packet.
-
-    With the verbose option (which is switched on by default), this routine
-    prints regular reports on the progress of the experiments. With the
-    insertChildren option (which is switched *off* by default), this routine
-    inserts the results of each decomposition as a child of the corresponding
-    PacketOfLink object.
-    """
-    for knot in packet.descendants():
-        if ( not isinstance( knot, PacketOfLink ) or
-                knot.countComponents() != 1 ):
-            continue
-        decompose( knot, verbose, insertChildren )
-        if verbose:
-            print()
-    return
-
-
 def decomposeFromTable( filename, skip=0, cap=None ):
     """
     Decomposes knots listed in the table in the given file, and prints the
@@ -162,6 +127,41 @@ def decomposeFromTable( filename, skip=0, cap=None ):
         if noSlowCases:
             print( "    (None)" )
     print()
+    return
+
+
+def decomposeAll( packet, verbose=True, insertChildren=False ):
+    """
+    Decomposes all knots appearing as descendants of the given packet.
+
+    With the verbose option (which is switched on by default), this routine
+    prints regular reports on the progress of the experiments. With the
+    insertChildren option (which is switched *off* by default), this routine
+    inserts the results of each decomposition as a child of the corresponding
+    PacketOfLink object.
+    """
+    for knot in packet.descendants():
+        if ( not isinstance( knot, PacketOfLink ) or
+                knot.countComponents() != 1 ):
+            continue
+        decompose( knot, verbose, insertChildren )
+        if verbose:
+            print()
+    return
+
+
+def clearExperiments(packet):
+    """
+    Deletes all descendants of the given packet whose labels begin with the
+    string "Primes".
+    """
+    doomed = []
+    for child in packet.children():
+        clearExperiments(child)
+        if child.label()[:6] == "Primes":
+            doomed.append(child)
+    for d in doomed:
+        d.makeOrphan()
     return
 
 
