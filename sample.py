@@ -160,5 +160,23 @@ def decomposeFromSample( size, *filenames ):
     return
 
 
+def extractFilenames(nameFile):
+    """
+    Extracts filenames from the given nameFile, which should be a text file
+    with one filename per line.
+    """
+    sep = nameFile.rfind("/")
+    if sep == -1:
+        directory = ""
+    else:
+        directory = nameFile[:sep+1]
+    output = []
+    with open( nameFile, "r" ) as filenames:
+        for line in filenames:
+            output.append( directory + line.rstrip() )
+    return output
+
+
 if __name__ == "__main__":
+    #TODO Use extractFilenames()?
     decomposeFromSample( int( argv[1] ), *argv[2:] )
