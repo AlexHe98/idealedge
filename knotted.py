@@ -19,43 +19,6 @@ else:
     _serial = False
 
 
-def surgery0(oldLoop):
-    """
-    Constructs a new ideal loop given by 0/1 Dehn surgery on the given ideal
-    loop.
-
-    Warning:
-    --> This routine currently uses fast heuristics to attempt to construct
-        the desired triangulation, and is not guaranteed to terminate.
-
-    Returns:
-        The newly constructed ideal loop.
-    """
-    # Triangulate the exterior with boundary edges appearing as the meridian
-    # and longitude. The last step is not guaranteed to terminate in theory,
-    # but it should be fine in practice.
-    tri = oldLoop.drill()
-    tri.idealToFinite()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
-    mer, lon = tri.meridianLongitude()
-
-    # Get a tetrahedron index and edge number for the meridian, so that we
-    # can remember its location after closing up the boundary.
-    emb = mer.embedding(0)
-    tet = emb.tetrahedron()
-    edgeNum = emb.face()
-
-    # Close up the boundary and build the new IdealLoop.
-    layer = tri.layerOn(lon)
-    layer.join( 0, layer, Perm4(0,1) )
-    idealEdge = tet.edge(edgeNum)
-    newLoop = IdealLoop( [idealEdge] )
-    newLoop.simplify()
-    newLoop.simplify()
-    return newLoop
-
-
 def knownHyperbolic(loop):
     """
     Is the given ideal loop known to represent a hyperbolic knot?
@@ -84,71 +47,21 @@ def knownHyperbolic(loop):
     return ( probablyHyperbolic and spt.hasStrictAngleStructure() )
 
 
-def _tooManyCovers( gp, index, tracker ):
-    covers = gp.enumerateCovers( index, lambda h: None )
-    if tracker is not None and covers != 1:
-        afterReport = "Found {} covers of index {}.".format(
-                covers, index )
-        tracker.report( None, afterReport )
-    return ( covers != 1 )
+def isKnotted( loop, tracker=None ):
+    """
+    Is the given ideal loop nontrivially knotted?
 
-
-def _runCoversEnumeration( isoSig, index, sender ):
-    gp = Triangulation3.fromIsoSig(isoSig).group()
-    data = { "covers": 0, "early": False, "sender": sender }
-    def handleNewCover(c):
-        data["covers"] += 1
-        if data["covers"] > 1 and not data["early"]:
-            # Notify the parent process that we have already found too many
-            # covers, so we can choose to terminate early.
-            data["early"] = True
-            data["sender"].send( data["covers"] )
-        return None
-    covers = gp.enumerateCovers( index, handleNewCover )
-    sender.send(covers)
-    return
-
-
-def _notSolidTorus( isoSig, sender ):
-    drilled = Triangulation3.fromIsoSig(isoSig)
-    sender.send( not drilled.isSolidTorus() )
-    return
-
-
-def _isKnottedSerial( drilled, tracker ):
-    # Try enumerating covers on the fundamental group.
-    if tracker is not None:
-        beforeReport = "Attempting to enumerate covers of index 2 to 6."
-        tracker.report(beforeReport)
-    gp = drilled.group()
-    for index in range(2,8):
-        if tracker is not None:
-            if index == 7:
-                beforeReport = "Attempting to enumerate covers of index 7."
-                tracker.report(beforeReport)
-            else:
-                tracker.reportIfStalled()
-
-        # If there is more than one cover, then the given triangulation
-        # cannot be an ideal solid torus.
-        if _tooManyCovers( gp, index, tracker ):
-            return True
-
-    # If we survive to this point, then the given drilled triangulation is
-    # probably not the complement of a hyperbolic knot, and algebra suggests
-    # that it is likely to unknotted. Anyway, our last resort is to run solid
-    # torus recognition directly.
-    drilled.idealToFinite()
-    drilled.intelligentSimplify()
-    drilled.intelligentSimplify()
-    if tracker is not None:
-        beforeReport = "Resorting to solid torus recognition.\n"
-        beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
-        tracker.report(beforeReport)
-    isNontrivial = not drilled.isSolidTorus()
-    if tracker is not None:
-        tracker.report()
-    return isNontrivial
+    This routine can be run with an optional DecompositionTracker. The
+    intended use case is when a larger decomposition routine needs to track
+    progress while running isKnotted() as a subroutine. Thus, this routine
+    assumes that tracker.start() has already been called, and it is
+    guaranteed that this routine will never call tracker.finish().
+    """
+    drilled = loop.drill()
+    if _serial:
+        return _isKnottedSerial( drilled, tracker )
+    else:
+        return _isKnottedParallel( drilled, tracker )
 
 
 def _isKnottedParallel( drilled, tracker ):
@@ -238,18 +151,108 @@ def _isKnottedParallel( drilled, tracker ):
     return isNontrivial
 
 
-def isKnotted( loop, tracker=None ):
-    """
-    Is the given ideal loop nontrivially knotted?
+def _tooManyCovers( gp, index, tracker ):
+    covers = gp.enumerateCovers( index, lambda h: None )
+    if tracker is not None and covers != 1:
+        afterReport = "Found {} covers of index {}.".format(
+                covers, index )
+        tracker.report( None, afterReport )
+    return ( covers != 1 )
 
-    This routine can be run with an optional DecompositionTracker. The
-    intended use case is when a larger decomposition routine needs to track
-    progress while running isKnotted() as a subroutine. Thus, this routine
-    assumes that tracker.start() has already been called, and it is
-    guaranteed that this routine will never call tracker.finish().
+
+def _runCoversEnumeration( isoSig, index, sender ):
+    gp = Triangulation3.fromIsoSig(isoSig).group()
+    data = { "covers": 0, "early": False, "sender": sender }
+    def handleNewCover(c):
+        data["covers"] += 1
+        if data["covers"] > 1 and not data["early"]:
+            # Notify the parent process that we have already found too many
+            # covers, so we can choose to terminate early.
+            data["early"] = True
+            data["sender"].send( data["covers"] )
+        return None
+    covers = gp.enumerateCovers( index, handleNewCover )
+    sender.send(covers)
+    return
+
+
+def _notSolidTorus( isoSig, sender ):
+    drilled = Triangulation3.fromIsoSig(isoSig)
+    sender.send( not drilled.isSolidTorus() )
+    return
+
+
+def _isKnottedSerial( drilled, tracker ):
+    # Try enumerating covers on the fundamental group.
+    if tracker is not None:
+        beforeReport = "Attempting to enumerate covers of index 2 to 6."
+        tracker.report(beforeReport)
+    gp = drilled.group()
+    for index in range(2,8):
+        if tracker is not None:
+            if index == 7:
+                beforeReport = "Attempting to enumerate covers of index 7."
+                tracker.report(beforeReport)
+            else:
+                tracker.reportIfStalled()
+
+        # If there is more than one cover, then the given triangulation
+        # cannot be an ideal solid torus.
+        if _tooManyCovers( gp, index, tracker ):
+            return True
+
+    # Our last resort is to run solid torus recognition directly. Since we
+    # survived to this point, the given drilled triangulation is "probably"
+    # an ideal solid torus, so this will hopefully terminate quickly.
+    drilled.idealToFinite()
+    drilled.intelligentSimplify()
+    drilled.intelligentSimplify()
+    if tracker is not None:
+        beforeReport = "Resorting to solid torus recognition.\n"
+        beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
+        tracker.report(beforeReport)
+    isNontrivial = not drilled.isSolidTorus()
+    if tracker is not None:
+        tracker.report()
+    return isNontrivial
+
+
+def surgery0(oldLoop):
     """
-    drilled = loop.drill()
-    if _serial:
-        return _isKnottedSerial( drilled, tracker )
-    else:
-        return _isKnottedParallel( drilled, tracker )
+    Constructs a new ideal loop given by 0/1 Dehn surgery on the given ideal
+    loop.
+
+    If the oldLoop is embedded in the 3-sphere, then it is unknotted if and
+    only if there is an embedded 2-sphere intersecting the new ideal loop in
+    exactly one point.
+
+    Warning:
+    --> This routine currently uses fast heuristics to attempt to construct
+        the desired triangulation, and is not guaranteed to terminate.
+
+    Returns:
+        The newly constructed ideal loop.
+    """
+    # Triangulate the exterior with boundary edges appearing as the meridian
+    # and longitude. The last step is not guaranteed to terminate in theory,
+    # but it should be fine in practice.
+    tri = oldLoop.drill()
+    tri.idealToFinite()
+    tri.intelligentSimplify()
+    tri.intelligentSimplify()
+    mer, lon = tri.meridianLongitude()
+
+    # Get a tetrahedron index and edge number for the meridian, so that we
+    # can remember its location after closing up the boundary.
+    emb = mer.embedding(0)
+    tet = emb.tetrahedron()
+    edgeNum = emb.face()
+
+    # Close up the boundary and build the new IdealLoop.
+    layer = tri.layerOn(lon)
+    layer.join( 0, layer, Perm4(0,1) )
+    idealEdge = tet.edge(edgeNum)
+    newLoop = IdealLoop( [idealEdge] )
+    newLoop.simplify()
+    newLoop.simplify()
+    return newLoop
