@@ -5,29 +5,14 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 
 
-def persistentLocation(face):
-    """
-    Returns a persistent identifier for the location of the given face.
-
-    In detail, this routine returns a pair (t,f), where:
-    --> t is the index of a tetrahedron meeting the given face; and
-    --> f is a face number of this tetrahedron that corresponds to the given
-        face.
-    This identifier remains valid as long as tetrahedron indices remain
-    unchanged (for example, as long as no tetrahedra are ever deleted).
-    """
-    emb = face.embedding(0)
-    return ( emb.tetrahedron().index(), emb.face() )
-
-
 def snapEdge(edge):
     """
     If the endpoints of the given edge are distinct, then uses a snapped ball
     to pinch these two endpoints together.
 
     This operation is equivalent to performing the following two operations:
-    (1) Pinching the edge, which introduces a two-tetrahedron with a single
-        degree-one edge e at its heart.
+    (1) Pinching the edge, which introduces a two-tetrahedron gadget with a
+        single degree-one edge e at its heart.
     (2) Performing a 2-1 edge move on e.
 
     If the triangulation containing the given edge is currently oriented,
@@ -127,39 +112,6 @@ class IdealLoop:
             self.setFromEdges(edges)
         return
 
-    def _reset(self):
-        # Store edges of this loop in order. If we think of each edge as
-        # being oriented from tail to head, so that we have an orientation on
-        # the entire loop, then it's also useful to know whether vertex 0 or
-        # vertex 1 is the tail.
-        self._edgeIndices = []
-        self._tails = []
-
-        # Store vertices of this loop as a set, to make it as easy as
-        # possible to check whether two loops are disjoint.
-        self._vertIndices = set()
-
-    def _traverse( self, edges, firstVert ):
-        lastVert = firstVert
-        for edge in edges:
-            self._edgeIndices.append( edge.index() )
-            self._vertIndices.add( lastVert.index() )
-
-            # Find the tail of the current edge, which should join up with
-            # the last vertex that we have found so far.
-            if edge.vertex(0) == lastVert:
-                self._tails.append(0)
-                lastVert = edge.vertex(1)
-            elif edge.vertex(1) == lastVert:
-                self._tails.append(1)
-                lastVert = edge.vertex(0)
-            else:
-                # Neither vertex of the current edge joins up with the last
-                # vertex.
-                self._reset()
-                return None
-        return lastVert
-
     def setFromEdges( self, edges ):
         """
         Sets this ideal loop using the given list of edges.
@@ -196,6 +148,39 @@ class IdealLoop:
                 ( len( self._vertIndices ) != len(edges) ) ):
             raise NotLoop(edges)
         return
+
+    def _reset(self):
+        # Store edges of this loop in order. If we think of each edge as
+        # being oriented from tail to head, so that we have an orientation on
+        # the entire loop, then it's also useful to know whether vertex 0 or
+        # vertex 1 is the tail.
+        self._edgeIndices = []
+        self._tails = []
+
+        # Store vertices of this loop as a set, to make it as easy as
+        # possible to check whether two loops are disjoint.
+        self._vertIndices = set()
+
+    def _traverse( self, edges, firstVert ):
+        lastVert = firstVert
+        for edge in edges:
+            self._edgeIndices.append( edge.index() )
+            self._vertIndices.add( lastVert.index() )
+
+            # Find the tail of the current edge, which should join up with
+            # the last vertex that we have found so far.
+            if edge.vertex(0) == lastVert:
+                self._tails.append(0)
+                lastVert = edge.vertex(1)
+            elif edge.vertex(1) == lastVert:
+                self._tails.append(1)
+                lastVert = edge.vertex(0)
+            else:
+                # Neither vertex of the current edge joins up with the last
+                # vertex.
+                self._reset()
+                return None
+        return lastVert
 
     def setFromLoop( self, loop, copyTri=True ):
         """
@@ -280,7 +265,7 @@ class IdealLoop:
 
     def lightweightDescription(self):
         """
-        Returns an extremely lightweight description of this ideal loop.
+        Returns a lightweight description of this ideal loop.
 
         In detail, this routine returns a pair (S,L), where:
         --> S is the isomorphism signature for self.triangulation(); and
@@ -361,7 +346,18 @@ class IdealLoop:
         Returns a list describing the components into which the given normal
         surface surf splits this ideal loop.
 
-        In detail, each item of the returned list is a list of edge segments.
+        In detail, each item of the returned list is a list of edge segments,
+        where:
+        --> Each list of edge segments is ordered according to the order in
+            which the segments appear as we traverse this ideal loop.
+        --> Each edge segment is encoded as a pair (ei, n) such that:
+            --- ei is the index of the edge containing the segment in
+                question; and
+            --- n is the segment number (from 0 to w, inclusive, where w is
+                the weight of the surface on edge ei).
+        Note that for each edge e, the segments are numbered in ascending
+        order from the segment incident to e.vertex(0) to the segment
+        incident to e.vertex(1).
         """
         # We find all the components by simply walking around the loop. Take
         # the first component to be the one that begins *after* the first
@@ -540,6 +536,53 @@ class IdealLoop:
             self.setFromEdgeLocations(edgeLocations)
         return
 
+    def simplifyBasic(self):
+        """
+        Uses 2-0 and 2-1 edge moves to reduce the number of tetrahedra in the
+        ambient triangulation, while leaving this ideal loop untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify(),
+        simplifyWithFourFour() and simplifyMonotonic() routines.
+
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        Adapted from SnapPea's check_for_cancellation().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Do not include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyImpl(False)
+
+    def simplifyMonotonic(self):
+        """
+        Monotonically reduces the number of tetrahedra in the ambient
+        triangulation to a local minimum, while leaving this ideal loop
+        untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() and
+        simplifyWithFourFour() routines.
+
+        If this ideal loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyImpl(True)
+
     def _simplifyImpl( self, include32 ):
         changed = False     # Has anything changed ever?    (Return value.)
         changedNow = True   # Did we just change something? (Loop control.)
@@ -596,53 +639,6 @@ class IdealLoop:
 
         # Nothing further we can do.
         return changed
-
-    def simplifyBasic(self):
-        """
-        Uses 2-0 and 2-1 edge moves to reduce the number of tetrahedra in the
-        ambient triangulation, while leaving this ideal loop untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify(),
-        simplifyWithFourFour() and simplifyMonotonic() routines.
-
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
-
-        Adapted from SnapPea's check_for_cancellation().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Do not include 3-2 moves.
-        # Might raise BoundsDisc.
-        return self._simplifyImpl(False)
-
-    def simplifyMonotonic(self):
-        """
-        Monotonically reduces the number of tetrahedra in the ambient
-        triangulation to a local minimum, while leaving this ideal loop
-        untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify() and
-        simplifyWithFourFour() routines.
-
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Include 3-2 moves.
-        # Might raise BoundsDisc.
-        return self._simplifyImpl(True)
 
     def simplifyWithFourFour(self):
         """
