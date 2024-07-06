@@ -2,109 +2,113 @@
 Perform knot decomposition experiments in bulk.
 """
 from sys import argv, stdout
-from timeit import default_timer
 from regina import *
 from decomposeknot import decompose, DecompositionTracker
 
 
-def decomposeFromTable( filename, skip=0, cap=None ):
+def extractFilenames(nameFile):
     """
-    Decomposes knots listed in the table in the given file, and prints the
-    results to standard output.
+    Extracts filenames from the given nameFile, which should be a text file
+    with one filename per line.
+    """
+    sep = nameFile.rfind("/")
+    if sep == -1:
+        directory = ""
+    else:
+        directory = nameFile[:sep+1]
+    output = []
+    with open( nameFile, "r" ) as filenames:
+        for line in filenames:
+            output.append( directory + line.rstrip() )
+    return output
 
-    The given file should be a CSV file that includes (at least) the
-    following data:
+
+def readKnots(*datasets):
+    """
+    Reads knots from the knot tables in the given datasets.
+
+    Each given dataset should be the name of a text file with one filename
+    per line. Each listed filename should be a CSV file in the same directory
+    as the corresponding dataset file. Each such CSV file should include (at
+    least) the following data:
     --> a column of knot names under the heading "name"; and
     --> a column of knot signatures under the heading "knot_sig".
+    For example, the knot tables available at
+        https://regina-normal.github.io/data.html
+    are given as CSV files that satisfy these requirements.
 
-    It is possible to request that this routine skips the first few knots in
-    the given table. By default, this routine does not skip any knots.
-
-    This routine can be also run with an optional cap on the total number of
-    knots that it processes. If the number of knots in the given table
-    exceeds the cap, then this routine will terminate immediately after it
-    has reached the cap.
+    For each knot in the given knot tables, this routine yields a pair
+    (S, K), where:
+    --> S is a string giving the name of the knot, as listed in the knot
+        table; and
+    --> K is the corresponding knot, encoded as a Regina Link object built
+        directly from the knot signature listed in the knot table.
     """
-    title = filename.split( "/" )[-1].split( "." )[0]
-    print()
-    print( "+-" + "-"*len(title) + "-+" )
-    print( "| {} |".format(title) )
-    print( "+-" + "-"*len(title) + "-+" )
-    print()
-    stdout.flush()
+    for dataset in datasets:
+        for filename in extractFilenames(dataset):
+            with open( filename, "r" ) as table:
+                headings = table.readline().rstrip().split( "," )
+                nameCol = headings.index( "name" )
+                sigCol = headings.index( "knot_sig" )
+                while True:
+                    row = table.readline()
+                    if row == "":
+                        # End of file.
+                        break
+
+                    # Extract data from row.
+                    entries = row.rstrip().split( "," )
+                    knot = Link.fromKnotSig( entries[sigCol] )
+                    if knot.countComponents() == 1:
+                        yield ( entries[nameCol], knot )
+    return
+
+
+def runDecompositionExperiment(knotIterator):
+    """
+    Decomposes all knots described by the given iterator, and prints the
+    results to standard output.
+
+    This is a helper routine for running decomposition experiments in bulk.
+    
+    The given iterator should supply pairs of the form (S, K), where:
+    --> S is a string giving a knot name; and
+    --> K is a corresponding Regina Link object.
+    """
     knotCount = 0
     timedOutCases = []
     data = []
     totalTime = 0
-    with open( filename, "r" ) as table:
-        headings = table.readline().rstrip().split( "," )
-        nameCol = headings.index( "name" )
-        sigCol = headings.index( "knot_sig" )
-        skipCount = 0
-        while True:
-            row = table.readline()
-            if row == "":
-                if knotCount == 0:
-                    if skipCount > 0:
-                        msg = "Skipped all knots."
-                    else:
-                        msg = "No knots found."
-                    print( "-"*len(msg) )
-                    print(msg)
-                    print( "-"*len(msg) )
-                    print()
-                break
-            entries = row.rstrip().split( "," )
-            knot = Link.fromKnotSig( entries[sigCol] )
-            if knot.countComponents() != 1:
-                continue
-            if skipCount < skip:
-                skipCount += 1
-                continue
-            if skip > 0 and knotCount == 0:
-                if skip == 1:
-                    msg = "Skipped first knot."
-                else:
-                    msg = "Skipped first {} knots.".format(skip)
-                print( "-"*len(msg) )
-                print(msg)
-                print( "-"*len(msg) )
-                print()
-            if cap is not None and knotCount >= cap:
-                print( "----------------" )
-                print( "Reached the cap." )
-                print( "----------------" )
-                print()
-                break
-            name = "Knot #{}: {}".format(
-                    skip + knotCount, entries[nameCol] )
-            print(name)
-            print( "-"*len(name) )
-            knotCount += 1
+    for name, knot in knotIterator:
+        knotCount += 1
+        print(name)
+        print( "-"*len(name) )
 
-            # Scale timeout time with the number of crossings.
-            tracker = DecompositionTracker( True, 2*knot.size() )
-            try:
-                primes = decompose( knot, tracker )
-            except TimeoutError as timeout:
-                timedOutCases.append(name)
-                print(timeout)
-                print()
-                continue
-            if len(primes) == 0:
-                print( "Unknot!" )
-            elif len(primes) == 1:
-                print( "Found 1 prime:" )
-            else:
-                print( "Found {} primes:".format( len(primes) ) )
-            for i, loop in enumerate(primes):
-                print( "    Drilled iso sig for prime #{}: {}".format(
-                    i, loop.drill().isoSig() ) )
-
-            # Store data for post-processing.
-            data.append( ( name, tracker.elapsed() ) )
-            totalTime += tracker.elapsed()
+        # Scale timeout time with the number of crossings.
+        tracker = DecompositionTracker( True, 2*knot.size() )
+        try:
+            primes = decompose( knot, tracker )
+        except TimeoutError as timeout:
+            timedOutCasses.append(name)
+            print(timeout)
             print()
+            continue
+        if len(primes) == 0:
+            print( "Unknot!" )
+        elif len(primes) == 1:
+            print( "Found 1 prime:" )
+        else:
+            print( "Found {} primes:".format( len(primes) ) )
+        for i, loop in enumerate(primes):
+            print( "    Drilled iso sig for prime #{}: {}".format(
+                i, loop.drill().isoSig() ) )
+
+        # Store data for post-processing.
+        data.append( ( tracker.elapsed(), name ) )
+        totalTime += tracker.elapsed()
+        print()
+
+    # Post-processing.
     print( "="*32 )
     print( "Total knots: {}.".format(knotCount) )
     print( "Total time: {:.6f}.".format(totalTime) )
@@ -112,7 +116,9 @@ def decomposeFromTable( filename, skip=0, cap=None ):
         print( "Cases that timed out ({} in total):".format(
             len(timedOutCases) ) )
         for name in timedOutCases:
-            print( "    Name: {}.".format(name) )
+            print(name)
+    else:
+        print( "All cases computed without timing out." )
     completedCount = knotCount - len(timedOutCases)
     if completedCount:
         slowCoefficient = 2
@@ -120,13 +126,56 @@ def decomposeFromTable( filename, skip=0, cap=None ):
         print( "Cases slower than {} times the average:".format(
             slowCoefficient ) )
         noSlowCases = True
-        for name, time in data:
+        for time, name in data:
             if time > slowCoefficient * average:
                 noSlowCases = False
-                print( "    Name: {}. Time: {:.6f}.".format( name, time ) )
+                print( "    Time: {:.6f}. Name: {}.".format( time, name ) )
         if noSlowCases:
             print( "    (None)" )
     print()
+    return
+
+
+def decomposeKnots(*datasets):
+    """
+    Decomposes all knots from the knot tables in the given datasets, and
+    prints the results to standard output.
+
+    This routine uses the readKnots() routine to extract the knots from the
+    given datasets, so the format of these datasets must adhere to the
+    specifications stated in the documentation for readKnots().
+    """
+    strings = []
+    for dataset in datasets:
+        strings.append(
+                dataset.split( "/" )[-1].split( "." )[0] )
+    title = ", ".join(strings)
+    print()
+    print( "+-" + "-"*len(title) + "-+" )
+    print( "| {} |".format(title) )
+    print( "+-" + "-"*len(title) + "-+" )
+    print()
+    msg = "Decomposing knots from the following datasets:"
+    print(msg)
+    print( "="*len(msg) )
+    printDatasetNames(*datasets)
+    print()
+    stdout.flush()
+    runDecompositionExperiment( readKnots(*datasets) )
+    return
+
+
+def printDatasetNames(*datasets):
+    """
+    Prints the names of the given datasets to standard output.
+
+    The format of the given datasets should adhere to the specifications
+    stated in the documentation for the readKnots() routine.
+    """
+    for dataset in datasets:
+        print( dataset.split( "/" )[-1].split( "." )[0] )
+        for filename in extractFilenames(dataset):
+            print( "    " + filename.split( "/" )[-1].split( "." )[0] )
     return
 
 
@@ -166,12 +215,4 @@ def clearExperiments(packet):
 
 
 if __name__ == "__main__":
-    try:
-        cap = int( argv[3] )
-    except IndexError:
-        cap = None
-    try:
-        skip = int( argv[2] )
-    except IndexError:
-        skip = 0
-    decomposeFromTable( argv[1], skip, cap )
+    decomposeKnots( *argv[1:] )
