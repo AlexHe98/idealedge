@@ -85,7 +85,7 @@ def runDecompositionExperiment(knotIterator):
         print( "-"*len(name) )
 
         # Scale timeout time with the number of crossings.
-        tracker = DecompositionTracker( True, 2*knot.size() )
+        tracker = DecompositionTracker( True, knot.size() )
         try:
             primes = decompose( knot, tracker )
         except TimeoutError as timeout:
