@@ -65,7 +65,7 @@ def isKnotted( loop, tracker=None ):
 
 
 def _isKnottedParallel( drilled, tracker ):
-    # Try enumerating covers on the fundamental group.
+    # Try enumerating connected k-sheeted covers of the knot exterior.
     if tracker is not None:
         beforeReport = "Attempting to enumerate covers of index 2 to 6."
         tracker.report(beforeReport)
@@ -75,9 +75,12 @@ def _isKnottedParallel( drilled, tracker ):
         if tracker is not None:
             tracker.reportIfStalled()
 
-        # If there is more than one cover, then the given triangulation
+        # The fundamental group of the solid torus is Z. Up to conjugacy,
+        # this admits exactly one transitive representation into Sym(index),
+        # and the abelianisation of the stabiliser subgroup is Z. Thus, if gp
+        # does not share these properties, then the given triangulation
         # cannot be an ideal solid torus.
-        if _tooManyCovers( gp, index, tracker ):
+        if _coversDoNotMatch( gp, index, tracker ):
             return True
 
     # We can still try to enumerate covers of index 7, and if that fails we
@@ -96,7 +99,6 @@ def _isKnottedParallel( drilled, tracker ):
             target=_notSolidTorus, args=( isoSig, notSolidTorusSender ) )
     coversProcess.start()
     notSolidTorusProcess.start()
-    coversRunning = True
     while True:
         sleep(0.01)
         if tracker is not None:
@@ -110,29 +112,15 @@ def _isKnottedParallel( drilled, tracker ):
                 coversProcess.join()
                 raise timeout
 
-        # Have we finished enumerating covers of index 7?
-        if coversProcess.is_alive():
-            # The enumeration is ongoing, but maybe we can terminate early.
-            if coversReceiver.poll():
-                covers = coversReceiver.recv()
-                if covers > 1:
-                    coversProcess.terminate()
-                    notSolidTorusProcess.terminate()
-                    msg = "There are at least {} covers of index 7.".format(
-                            covers )
-                    isNontrivial = True
-                    break
-        elif coversRunning:
-            coversRunning = False
-
-            # We must have an exact count of the number of covers.
-            while coversReceiver.poll():
-                covers = coversReceiver.recv()
-            if covers != 1:
-                notSolidTorusProcess.terminate()
-                msg = "Found {} covers of index 7.".format(covers)
-                isNontrivial = True
-                break
+        # Have we managed to certify nontriviality using covers of index 7?
+        if coversReceiver.poll():
+            # The _runCoversEnumeration() routine only sends data if it has
+            # successfully certified that the knot is nontrivial.
+            notSolidTorusProcess.terminate()
+            coversProcess.terminate()
+            msg = "Certified nontrivial using covers of index 7."
+            isNontrivial = True
+            break
 
         # Have we finished deciding whether we have the solid torus?
         if not notSolidTorusProcess.is_alive():
@@ -151,28 +139,34 @@ def _isKnottedParallel( drilled, tracker ):
     return isNontrivial
 
 
-def _tooManyCovers( gp, index, tracker ):
-    covers = gp.enumerateCovers( index, lambda h: None )
-    if tracker is not None and covers != 1:
-        afterReport = "Found {} covers of index {}.".format(
-                covers, index )
+def _coversDoNotMatch( gp, index, tracker ):
+    covers = gp.enumerateCovers(index)
+    certifiedNontrivial = ( len(covers) != 1 or
+            not covers[0].abelianisation().isZ() )
+    if tracker is not None and certifiedNontrivial:
+        afterReport = ( "Certified nontrivial using " +
+                "covers of index {}.".format(index) )
         tracker.report( None, afterReport )
-    return ( covers != 1 )
+    return certifiedNontrivial
 
 
 def _runCoversEnumeration( isoSig, index, sender ):
     gp = Triangulation3.fromIsoSig(isoSig).group()
-    data = { "covers": 0, "early": False, "sender": sender }
+    data = { "sender": sender,
+            "covers": 0,
+            "certifiedNontrivial": False }
     def handleNewCover(c):
-        data["covers"] += 1
-        if data["covers"] > 1 and not data["early"]:
-            # Notify the parent process that we have already found too many
-            # covers, so we can choose to terminate early.
-            data["early"] = True
-            data["sender"].send( data["covers"] )
+        # No point doing any extra work if we have already certified that the
+        # knot is nontrivial.
+        if not data["certifiedNontrivial"]:
+            data["covers"] += 1
+            if data["covers"] > 1 or not c.abelianisation().isZ():
+                # Notify the parent process that we have certified that the
+                # knot is nontrivial.
+                data["certifiedNontrivial"] = True
+                data["sender"].send(True)
         return None
-    covers = gp.enumerateCovers( index, handleNewCover )
-    sender.send(covers)
+    gp.enumerateCovers( index, handleNewCover )
     return
 
 
@@ -183,7 +177,7 @@ def _notSolidTorus( isoSig, sender ):
 
 
 def _isKnottedSerial( drilled, tracker ):
-    # Try enumerating covers on the fundamental group.
+    # Try enumerating connected k-sheeted covers of the knot exterior.
     if tracker is not None:
         beforeReport = "Attempting to enumerate covers of index 2 to 6."
         tracker.report(beforeReport)
@@ -196,9 +190,12 @@ def _isKnottedSerial( drilled, tracker ):
             else:
                 tracker.reportIfStalled()
 
-        # If there is more than one cover, then the given triangulation
+        # The fundamental group of the solid torus is Z. Up to conjugacy,
+        # this admits exactly one transitive representation into Sym(index),
+        # and the abelianisation of the stabiliser subgroup is Z. Thus, if gp
+        # does not share these properties, then the given triangulation
         # cannot be an ideal solid torus.
-        if _tooManyCovers( gp, index, tracker ):
+        if _coversDoNotMatch( gp, index, tracker ):
             return True
 
     # Our last resort is to run solid torus recognition directly. Since we
