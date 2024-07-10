@@ -8,4 +8,6 @@ from decomposeknot import decompose
 
 if __name__ == "__main__":
     # Run decompose() with the verbose option.
+    print()
     decompose( Link.fromKnotSig( argv[1] ), True )
+    print()

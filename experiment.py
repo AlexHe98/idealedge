@@ -75,12 +75,69 @@ def runDecompositionExperiment(knotIterator):
     --> S is a string giving a knot name; and
     --> K is a corresponding Regina Link object.
     """
-    knotCount = 0
-    timedOutCases = []
-    data = []
-    totalTime = 0
+    # Only want to keep the slow cases.
+    slowCoefficient = 2
+    slowKnots, slowTimes, timedOut, knotCount, totalTime = _experimentImpl(
+            knotIterator, slowCoefficient )
+
+    # Print summary.
+    print( "="*32 )
+    print( "Total knots: {}.".format(knotCount) )
+    print( "Total time: {:.6f}.".format(totalTime) )
+    if timedOut:
+        print( "Cases that timed out ({} in total):".format(
+            len(timedOut) ) )
+        for name in timedOut:
+            print(name)
+    else:
+        print( "All cases computed without timing out." )
+    if slowKnots:
+        print( "Cases slower than {} times the average:".format(
+            slowCoefficient ) )
+        for i, time, in enumerate(slowTimes):
+            name = slowKnots[i][0]
+            print( "    Time: {:.6f}. Name: {}.".format( time, name ) )
+    else:
+        print( "No cases slower than {} times the average.".format(
+            slowCoefficient ) )
+    print()
+
+    # Rerun computation on slow knots (if any).
+    if not slowKnots:
+        return
+    print( "="*32 )
+    print( "Rerunning slow cases." )
+    print()
+    knots, times, timedOut, knotCount, totalTime = _experimentImpl(
+            slowKnots, None )
+
+    # Print summary.
+    print( "="*32 )
+    print( "Total knots: {}.".format(knotCount) )
+    print( "Total time: {:.6f}.".format(totalTime) )
+    if timedOut:
+        print( "Cases that timed out ({} in total):".format(
+            len(timedOut) ) )
+        for name in timedOut:
+            print(name)
+    else:
+        print( "All cases computed without timing out." )
+    print()
+    for i, oldTime in enumerate(slowTimes):
+        newTime = times[i]
+        name = knots[i][0]
+        print( "Name: {}. Old time: {:.6f}. New time: {:.6f}.".format(
+            name, oldTime, newTime ) )
+    print()
+    return
+
+
+def _experimentImpl( knotIterator, slowCoefficient ):
+    timedOutNames = []
+    knots = []
+    times = []
     for name, knot in knotIterator:
-        knotCount += 1
+        knots.append( ( name, knot ) )
         print(name)
         print( "-"*len(name) )
 
@@ -89,7 +146,7 @@ def runDecompositionExperiment(knotIterator):
         try:
             primes = decompose( knot, tracker )
         except TimeoutError as timeout:
-            timedOutCasses.append(name)
+            timedOutNames.append(name)
             print(timeout)
             print()
             continue
@@ -103,37 +160,25 @@ def runDecompositionExperiment(knotIterator):
             print( "    Drilled iso sig for prime #{}: {}".format(
                 i, loop.drill().isoSig() ) )
 
-        # Store data for post-processing.
-        data.append( ( tracker.elapsed(), name ) )
-        totalTime += tracker.elapsed()
+        # Store elapsed time for post-processing.
+        times.append( tracker.elapsed() )
         print()
 
     # Post-processing.
-    print( "="*32 )
-    print( "Total knots: {}.".format(knotCount) )
-    print( "Total time: {:.6f}.".format(totalTime) )
-    if timedOutCases:
-        print( "Cases that timed out ({} in total):".format(
-            len(timedOutCases) ) )
-        for name in timedOutCases:
-            print(name)
-    else:
-        print( "All cases computed without timing out." )
-    completedCount = knotCount - len(timedOutCases)
+    knotCount = len(knots)
+    totalTime = sum(times)
+    if not slowCoefficient:
+        return ( knots, times, timedOutNames, knotCount, totalTime )
+    slowKnots = []
+    slowTimes = []
+    completedCount = knotCount - len(timedOutNames)
     if completedCount:
-        slowCoefficient = 2
         average = totalTime / completedCount
-        print( "Cases slower than {} times the average:".format(
-            slowCoefficient ) )
-        noSlowCases = True
-        for time, name in data:
+        for i, time in enumerate(times):
             if time > slowCoefficient * average:
-                noSlowCases = False
-                print( "    Time: {:.6f}. Name: {}.".format( time, name ) )
-        if noSlowCases:
-            print( "    (None)" )
-    print()
-    return
+                slowKnots.append( knots[i] )
+                slowTimes.append(time)
+    return ( slowKnots, slowTimes, timedOutNames, knotCount, totalTime )
 
 
 def decomposeKnots(*datasets):
