@@ -45,6 +45,16 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     will have the timeout feature switched off. Thus, the only way to use the
     timeout feature with this routine is to explicitly supply a tracker.
 
+    An explicitly supplied tracker may or may not already be started. If it
+    is already started, then it will be assumed that the tracker is tracking
+    a larger computation; hence, this routine will not call the tracker's
+    finish() routine. Otherwise, if the tracker is not already started, then
+    it will be assumed that the tracker is intended to track only the
+    progress of this routine; hence, this routine will call the tracker's
+    start() routine before performing the bulk of the computation, and it
+    will also call the tracker's finish() routine after it has performed the
+    bulk of the computation.
+
     If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
     computation as descendents of the given knot packet. This feature is also
@@ -55,7 +65,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     else:
         verbose = bool(tracker)
         tracker = DecompositionTracker(verbose)
-    tracker.start()
+    if tracker.isStarted():
+        needToFinish = False
+    else:
+        needToFinish = True
+        tracker.start()
 
     # Build the IdealLoop on which we perform the decomposition computation.
     # Make sure to create clones so as not to directly modify the input.
@@ -145,7 +159,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
                 tracker.report( None, msg )
 
     # Output some auxiliary information before returning the list of primes.
-    tracker.finish()
+    if needToFinish:
+        tracker.finish()
     if verbose:
         msg = tracker.report()
     if insertAsChild and isinstance( knot, PacketOfLink ):
@@ -494,6 +509,52 @@ def _enumerateSerial( oldLoop, tracker ):
         return newLoops
 
 
+def decomposeUsingAnnulus( knot, tracker=False, insertAsChild=False ):
+    """
+    Decomposes the given knot into prime pieces, represented as 3-spheres
+    in which the prime knots are embedded as ideal loops.
+
+    Unlike the decompose() routine, which works exclusively with ideal loops,
+    the first step of this routine is to search for a quadrilateral vertex
+    normal annulus in a triangulation of the knot exterior. If such an
+    annulus exists, then crushing the annulus produces edge-ideal
+    triangulations, and thereafter this routine also works entirely with
+    ideal loops.
+
+    The given knot should be provided as an instance of Regina's Link or
+    PacketOfLink.
+
+    If tracker is an instance of DecompositionTracker, then this routine will
+    use this given tracker to track the progress of the decomposition
+    computation; if the tracker has the verbose option switched on, then this
+    routine will also use the tracker to print regular progress reports.
+    Otherwise, the routine will create its own DecompositionTracker, and the
+    tracker parameter should be either True or False depending on whether the
+    newly-created tracker should have the verbose option switched on.
+
+    If tracker is True or False, then the tracker created by this routine
+    will have the timeout feature switched off. Thus, the only way to use the
+    timeout feature with this routine is to explicitly supply a tracker.
+
+    An explicitly supplied tracker may or may not already be started. If it
+    is already started, then it will be assumed that the tracker is tracking
+    a larger computation; hence, this routine will not call the tracker's
+    finish() routine. Otherwise, if the tracker is not already started, then
+    it will be assumed that the tracker is intended to track only the
+    progress of this routine; hence, this routine will call the tracker's
+    start() routine before performing the bulk of the computation, and it
+    will also call the tracker's finish() routine after it has performed the
+    bulk of the computation.
+
+    If insertAsChild is True and the given knot is an instance of
+    PacketOfLink, then this routine will insert the results of the
+    computation as descendents of the given knot packet. This feature is also
+    switched off by default.
+    """
+    #TODO
+    raise NotImplementedError()
+
+
 class DecompositionTracker:
     """
     A progress tracker for knot decomposition.
@@ -560,6 +621,12 @@ class DecompositionTracker:
         Is the verbose option switched on for this tracker?
         """
         return self._verbose
+
+    def isStarted(self):
+        """
+        Has this tracker already been started?
+        """
+        return ( self._startTime is not None )
 
     def start(self):
         """
