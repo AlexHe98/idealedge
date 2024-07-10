@@ -45,15 +45,6 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     will have the timeout feature switched off. Thus, the only way to use the
     timeout feature with this routine is to explicitly supply a tracker.
 
-    If timeout is None (the default), then this routine continues attempting
-    to decompose the given knot, regardless of how long this takes.
-    Otherwise, timeout should be a positive integer indicating the number of
-    seconds after which this routine should attempt to terminate early,
-    without completing the decomposition. Such early termination might not
-    occur immediately once the allotted time has elapsed, and indeed it might
-    not occur at all. Whenever early termination does occur, this routine
-    will raise TimeoutError.
-
     If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will insert the results of the
     computation as descendents of the given knot packet. This feature is also
