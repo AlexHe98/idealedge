@@ -5,20 +5,42 @@ loops without forgetting the meridian curve.
 from regina import *
 
 
-def subdivide(tri):
-    subTri = Triangulation3()
-    subTet = []
-    for tet in tri.tetrahedra():
-        subTet.append( DrillableTetrahedron(subTri) )
+def drill(loop):
+    # Build subdivided triangulation.
+    drillTri = Triangulation3()
+    drillTet = []
+    for tet in loop.triangulation().tetrahedra():
+        drillTet.append( DrillableTetrahedron(drillTri) )
         for face in range(4):
             adj = tet.adjacentTetrahedron(face)
             if ( adj is None or adj.index() > tet.index() or
                     ( adj.index() == tet.index() and
-                        tet.adjacentTriangle(face) > face ) ):
+                        tet.adjacentFace(face) > face ) ):
                 continue
-            subTet[ tet.index() ].join(
-                    face, subTet[ adj.index() ], tet.adjacentGluing(face) )
-    return subTri
+            drillTet[ tet.index() ].join(
+                    face, drillTet[ adj.index() ], tet.adjacentGluing(face) )
+
+    # Find tetrahedra to drill out.
+    doomedIndices = set()
+    for edgeIndex in loop:
+        for emb in loop.triangulation().edge(edgeIndex).embeddings():
+            t = emb.tetrahedron()
+            e = emb.edge()
+            for doomedTet in drillTet[ t.index() ].incidentSubTetrahedra(e):
+                doomedIndices.add( doomedTet.index() )
+            for i in range(2):
+                vertex = t.vertex( emb.vertices()[i] )
+                for vemb in vertex.embeddings():
+                    vti = vemb.tetrahedron().index()
+                    v = vemb.vertex()
+                    doomedIndices.add(
+                            drillTet[vti].vertexSubTetrahedron(v).index() )
+
+    # Drill.
+    for i in reversed( sorted(doomedIndices) ):
+        drillTri.removeTetrahedronAt(i)
+    drillTri.intelligentSimplify()
+    return drillTri
 
 
 class DrillableTetrahedron:
@@ -163,3 +185,36 @@ class DrillableTetrahedron:
 
         # All done!
         return
+
+    def vertexSubTetrahedron( self, vertex ):
+        """
+        Returns the sub-tetrahedron incident to the given vertex.
+
+        The given vertex number should be between 0 and 3, inclusive.
+        """
+        return self._vertexTet(vertex)
+
+    def incidentSubTetrahedra( self, edge ):
+        """
+        Returns a list containing all of the sub-tetrahedra incident to the
+        given edge.
+
+        The given edge number should be between 0 and 5, inclusive.
+        """
+        leclerc = []    # Nothing, just an inchident.
+
+        # Add edge tetrahedra.
+        for i in range(3):
+            leclerc.append( self._tetrahedra[ 5 + 3*edge + i ] )
+
+        # Add vertex tetrahedra.
+        ordering = Edge3.ordering(edge)
+        for i in range(2):
+            leclerc.append( self._tetrahedra[ 23 + ordering[i] ] )
+            for j in range(4):
+                if j != ordering[1-i]:
+                    leclerc.append( self._tetrahedra[
+                        27 + 4*ordering[i] + j ] )
+
+        # All done!
+        return leclerc
