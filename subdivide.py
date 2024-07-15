@@ -68,3 +68,49 @@ class DrillableTetrahedron:
 
         # All done!
         return
+
+    def triangulation(self):
+        """
+        Returns the triangulation to which this drillable tetrahedron
+        belongs.
+        """
+        return self._tetrahedra[0].triangulation()
+
+    def join( self, myFace, other, gluing ):
+        """
+        Joins the given face of this drillable tetrahedron to some face of
+        another drillable tetrahedron.
+
+        The usage of this routine is essentially identical to the usage of
+        Regina's Tetrahedron3.join() routine.
+
+        The other drillable tetrahedron will be updated automatically (i.e.,
+        you only need to call join() from one side of the gluing).
+
+        You may join some face of this drillable tetrahedron to some
+        different face of the same drillable tetrahedron (i.e., you may pass
+        other == self), though you cannot join a face to itself.
+
+        Pre-condition:
+        --> This drillable tetrahedron and the other drillable tetrahedron
+            both belong to the same triangulation.
+        --> The given face of this drillable tetrahedron is not currently
+            glued to anything.
+        --> The corresponding face of the other drillable tetrahedron (i.e.,
+            face number gluing[myFace] of other) is likewise not currently
+            glued to anything.
+        --> We are not attempting to glue a face to itself (i.e., we do not
+            have both other == self and gluing[myFace] == myFace).
+
+        Parameters:
+        --> myFace  The face of this drillable tetrahedron that will be glued
+                    to the other drillable tetrahedron. This face number must
+                    be between 0 and 3, inclusive.
+        --> other   The other drillable tetrahedron that will be glued to the
+                    given face of this drillable tetrahedron.
+        --> gluing  A permutation that describes how the vertices of this
+                    drillable tetrahedron will map to the vertices of the
+                    other drillable tetrahedron across the new gluing.
+        """
+        #TODO
+        raise NotImplementedError()
