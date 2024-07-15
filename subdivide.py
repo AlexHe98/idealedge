@@ -5,6 +5,22 @@ loops without forgetting the meridian curve.
 from regina import *
 
 
+def subdivide(tri):
+    subTri = Triangulation3()
+    subTet = []
+    for tet in tri.tetrahedra():
+        subTet.append( DrillableTetrahedron(subTri) )
+        for face in range(4):
+            adj = tet.adjacentTetrahedron(face)
+            if ( adj is None or adj.index() > tet.index() or
+                    ( adj.index() == tet.index() and
+                        tet.adjacentTriangle(face) > face ) ):
+                continue
+            subTet[ tet.index() ].join(
+                    face, subTet[ adj.index() ], tet.adjacentGluing(face) )
+    return subTri
+
+
 class DrillableTetrahedron:
     """
     A 43-tetrahedron subdivision of a tetrahedron that allows a neighbourhood
@@ -76,6 +92,15 @@ class DrillableTetrahedron:
         """
         return self._tetrahedra[0].triangulation()
 
+    def _vertexTet( self, v ):
+        return self._tetrahedra[ 27 + 5*v ]
+
+    def _edgeTet( self, e ):
+        return self._tetrahedra[ 5 + 3*e ]
+
+    def _faceTet( self, face, vertex ):
+        return self._tetrahedra[ 27 + 4*vertex + face ]
+
     def join( self, myFace, other, gluing ):
         """
         Joins the given face of this drillable tetrahedron to some face of
@@ -112,5 +137,29 @@ class DrillableTetrahedron:
                     drillable tetrahedron will map to the vertices of the
                     other drillable tetrahedron across the new gluing.
         """
-        #TODO
-        raise NotImplementedError()
+        for v in range(4):
+            if v == myFace:
+                continue
+
+            # Join vertex tetrahedra.
+            mySubTet = self._vertexTet(v)
+            yourSubTet = other._vertexTet( gluing[v] )
+            mySubTet.join( myFace, yourSubTet, gluing )
+
+            # Join face tetrahedra.
+            mySubTet = self._faceTet( myFace, v )
+            yourSubTet = other._faceTet( gluing[myFace], gluing[v] )
+            mySubTet.join( v, yourSubTet, gluing )
+
+        # Join edge tetrahedra.
+        for e in range(6):
+            ordering = Edge3.ordering(e)
+            if ordering[0] == myFace or ordering[1] == myFace:
+                continue
+            mySubTet = self._edgeTet(e)
+            yourSubTet = other._edgeTet( Edge3.faceNumber(
+                gluing * ordering ) )
+            mySubTet.join( myFace, yourSubTet, gluing )
+
+        # All done!
+        return
