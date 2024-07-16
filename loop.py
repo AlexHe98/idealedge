@@ -1,5 +1,7 @@
 """
-Ideal loops for representing torus boundary components of a 3-manifold.
+Embedded loops in a 3-manifold triangulation, which play two main roles:
+--> Ideal loops for representing torus boundary components of a 3-manifold.
+--> Boundary loops on triangulation with real boundary.
 """
 from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
@@ -55,14 +57,14 @@ def snapEdge(edge):
     return True
 
 
-class IdealLoopException(Exception):
+class EmbeddedLoopException(Exception):
     pass
 
 
-class NotLoop(IdealLoopException):
+class NotLoop(EmbeddedLoopException):
     """
-    Raised when attempting to build an ideal loop from a list of edges that
-    does not described an embedded closed loop.
+    Raised when attempting to build an embedded loop from a list of edges
+    that does not describe a closed loop.
     """
     def __init__( self, edges ):
         indices = [ e.index() for e in edges ]
@@ -72,33 +74,32 @@ class NotLoop(IdealLoopException):
         return
 
 
-class BoundsDisc(IdealLoopException):
+class BoundsDisc(EmbeddedLoopException):
     """
-    Raised when an ideal loop detects that it bounds an embedded disc.
+    Raised when an embedded loop detects that it bounds an embedded disc.
     """
     def __init__(self):
-        super().__init__( "Ideal loop bounds an embedded disc." )
+        super().__init__( "Embedded loop bounds an embedded disc." )
         return
 
 
-class IdealLoop:
+class EmbeddedLoop:
     """
-    A sequence of edges representing an embedded ideal loop in a 3-manifold
+    A sequence of edges representing an embedded loop in a 3-manifold
     triangulation.
 
-    This class is mostly designed to work with ideal loops that are
-    *nontrivial* in the sense that they do not bound an embedded disc in the
-    ambient triangulation. Although this condition is never checked directly,
-    some of the routines provided by this class might nevertheless detect
-    that the loop bounds a disc and hence raise BoundsDisc.
+    Some of the routines provided by this class might fail if the embedded
+    loop bounds an embedded disc in the ambient triangulation (though these
+    routines might nevertheless succeed in spite of the existence of such a
+    disc). This class raises BoundsDisc whenever such a failure occurs.
     """
     def __init__( self, edges=None ):
         """
-        Creates an ideal loop from the given list of edges.
+        Creates an embedded loop from the given list of edges.
 
-        If no edges are supplied, then creates an empty ideal loop with no
-        data. In this case, one of the "set from" routines must be called on
-        the ideal loop before performing any computations.
+        If no edges are supplied, then creates an empty object with no data.
+        In this case, one of the "set from" routines must be called on the
+        embedded loop before performing any computations.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -289,6 +290,61 @@ class IdealLoop:
                     isom.facetPerm(oldIndex) * emb.vertices() )
             newEdgeLocations.append( ( newIndex, edgeNumber ) )
         return ( sig, newEdgeLocations )
+
+    def isBoundary(self):
+        """
+        Does this embedded loop lie entirely in the boundary of the ambient
+        triangulation?
+        """
+        #TODO
+        raise NotImplementedError()
+
+    def isInternal(self):
+        """
+        Does this embedded loop lie entirely in the interior of the ambient
+        triangulation?
+        """
+        #TODO
+        raise NotImplementedError()
+
+
+class IdealLoop(EmbeddedLoop):
+    """
+    A sequence of edges representing an embedded ideal loop in the interior
+    of a 3-manifold triangulation.
+
+    Some of the routines provided by this class might fail if the ideal loop
+    bounds an embedded disc in the ambient triangulation (though these
+    routines might nevertheless succeed in spite of the existence of such a
+    disc). This class raises BoundsDisc whenever such a failure occurs.
+    """
+    def __init__( self, edges=None ):
+        """
+        Creates an ideal loop from the given list of edges.
+
+        If no edges are supplied, then creates an empty object with no data.
+        In this case, one of the "set from" routines must be called on the
+        ideal loop before performing any computations.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        The given edges must all lie entirely in the interior of the ambient
+        triangulation; in other words, after constructing the ideal loop L,
+        calling L.isInternal() must return True. This condition is not
+        checked, but some of the routines provided by this class might have
+        undefined behaviour if this condition is not satisfied.
+
+        Pre-condition:
+        --> If supplied, the given list of edges must be nonempty, must
+            consist of edges that all belong to the same 3-manifold
+            triangulation T, and moreover all of these edges must lie
+            entirely in the interior of T.
+        """
+        super().__init__(edges)
+        return
+    #TODO
 
     def drill(self):
         """
@@ -783,3 +839,46 @@ class IdealLoop:
         # take us somewhere new.
         self.simplify()     # Might raise BoundsDisc.
         return
+
+
+class BoundaryLoop(EmbeddedLoop):
+    """
+    A sequence of edges representing an embedded loop on the boundary of a
+    3-manifold triangulation.
+
+    Some of the routines provided by this class might fail if the boundary
+    loop bounds an embedded disc in the ambient triangulation (though these
+    routines might nevertheless succeed in spite of the existence of such a
+    disc). This class raises BoundsDisc whenever such a failure occurs.
+    """
+    def __init__( self, edges=None ):
+        """
+        Creates a boundary loop from the given list of edges.
+
+        If no edges are supplied, then creates an empty object with no data.
+        In this case, one of the "set from" routines must be called on the
+        boundary loop before performing any computations.
+
+        If no edges are supplied, then creates an empty ideal loop with no
+        data. In this case, one of the "set from" routines must be called on
+        the ideal loop before performing any computations.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        The given edges must all lie entirely on the boundary of the ambient
+        triangulation; in other words, after constructing the boundary loop
+        L, calling L.isBoundary() must return True. This condition is not
+        checked, but some of the routines provided by this class might have
+        undefined behaviour if this condition is not satisfied.
+
+        Pre-condition:
+        --> If supplied, the given list of edges must be nonempty, must
+            consist of edges that all belong to the same 3-manifold
+            triangulation T, and moreover all of these edges must lie
+            entirely on the boundary of T.
+        """
+        super().__init__(edges)
+        return
+    #TODO
