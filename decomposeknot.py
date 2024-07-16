@@ -105,7 +105,7 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
         oldLoop = toProcess.pop()
-        tracker.newTri( oldLoop.triangulation().size() )
+        tracker.newLoop(oldLoop)
         if knownHyperbolic(oldLoop):
             # Hyperbolic knots are nontrivial and prime.
             primes.append(oldLoop)
@@ -725,10 +725,10 @@ class DecompositionTracker:
             return self._newEvent()
         return None
 
-    def newTri( self, size, extend=True ):
+    def newLoop( self, loop, extend=True ):
         """
         Informs this tracker that the tracked computation has started
-        processing a new triangulation of the given size.
+        processing the given new ideal loop.
 
         If this tracker is verbose, then this routine will automatically
         print a progress report.
@@ -738,16 +738,32 @@ class DecompositionTracker:
 
         If extend is True (the default) and the timeout feature is switched
         on, then this routine extends the allotted time by a number of
-        seconds equal to the given size.
+        seconds equal to the size of the triangulation containing the given
+        ideal loop.
 
         This routine must never be called before start() has been called.
         """
         self._numTri += 1
-        beforeReport = "Edge-ideal: "
+        size = loop.triangulation().size()
+        sig, edgeLocations = loop.lightweightDescription()
+        beforeReport = "Edge-ideal: {} ".format(sig)
         if size == 1:
-            beforeReport += "1 tetrahedron."
+            beforeReport += "(1 tetrahedron). "
         else:
-            beforeReport += "{} tetrahedra.".format(size)
+            beforeReport += "({} tetrahedra). ".format(size)
+
+        # Work out edge indices after reconstructing from iso sig.
+        temp = Triangulation3.fromIsoSig(sig)
+        edgeIndices = []
+        for tetIndex, edgeNum in edgeLocations:
+            edgeIndices.append( str(
+                    temp.tetrahedron(tetIndex).edge(edgeNum).index() ) )
+        if len(loop) == 1:
+            beforeReport += "Edge {}.".format( edgeIndices[0] )
+        else:
+            beforeReport += "Edges {}.".format( ", ".join(edgeIndices) )
+
+        # This counts as a new event.
         self._newEvent(beforeReport)
         if extend:
             self.extendTimeout(size)
