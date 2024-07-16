@@ -257,6 +257,9 @@ class IdealLoop:
     def __iter__(self):
         return iter( self._edgeIndices )
 
+    def __getitem__( self, index ):
+        return self._edgeIndices[index]
+
     def triangulation(self):
         """
         Returns the triangulation that contains this ideal loop.

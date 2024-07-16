@@ -3,6 +3,7 @@ Tetrahedron subdivision, customised for the purpose of drilling out ideal
 loops without forgetting the meridian curve.
 """
 from regina import *
+from loop import IdealLoop
 
 
 def drill(loop):
@@ -36,11 +37,22 @@ def drill(loop):
                     doomedIndices.add(
                             drillTet[vti].vertexSubTetrahedron(v).index() )
 
+    # Find meridian loop.
+    meridianLocations = []
+    for emb in loop.triangulation().edge( loop[0] ).embeddings():
+        tetIndex = emb.tetrahedron().index()
+        edgeNum = emb.edge()
+        meridianLocations.append(
+                drillTet[tetIndex].linkingEdgeLocation(edgeNum) )
+
     # Drill.
     for i in reversed( sorted(doomedIndices) ):
         drillTri.removeTetrahedronAt(i)
-    drillTri.intelligentSimplify()
-    return drillTri
+    meridianEdges = [ tet.edge(edgeNum)
+            for tet, edgeNum in meridianLocations ]
+    #TODO Implement BoundaryLoop.
+    meridian = IdealLoop(meridianEdges)
+    return meridian
 
 
 class DrillableTetrahedron:
@@ -218,3 +230,12 @@ class DrillableTetrahedron:
 
         # All done!
         return leclerc
+
+    def linkingEdgeLocation( self, edge ):
+        """
+        Returns a sub-tetrahedron and edge number corresponding to the link
+        of the given edge in this drillable tetrahedron.
+        """
+        edgeNum = Edge3.faceNumber(
+                Perm4(2,3) * Edge3.ordering(edge) * Perm4(2,3,0,1) )
+        return ( self._tetrahedra[0], edgeNum )
