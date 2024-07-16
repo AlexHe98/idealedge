@@ -115,7 +115,7 @@ class EmbeddedLoop:
 
     def setFromEdges( self, edges ):
         """
-        Sets this ideal loop using the given list of edges.
+        Sets this embedded loop using the given list of edges.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -185,12 +185,12 @@ class EmbeddedLoop:
 
     def setFromLoop( self, loop, copyTri=True ):
         """
-        Sets this ideal loop to be a clone of the given loop.
+        Sets this embedded loop to be a clone of the given loop.
 
-        If copyTri is True (the default), then this ideal loop will be
+        If copyTri is True (the default), then this embedded loop will be
         embedded in a copy of the triangulation containing the given loop.
-        Otherwise, if copyTri is False, then this ideal loop will be embedded
-        in the same triangulation as the given loop.
+        Otherwise, if copyTri is False, then this embedded loop will be
+        embedded in the same triangulation as the given loop.
         """
         if copyTri:
             tri = Triangulation3( loop.triangulation() )
@@ -204,7 +204,7 @@ class EmbeddedLoop:
 
     def setFromEdgeLocations( self, edgeLocations ):
         """
-        Sets this ideal loop using the given list of edge locations.
+        Sets this embedded loop using the given list of edge locations.
 
         In detail, each edge location must be a pair (t, e), where t is a
         tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
@@ -227,8 +227,8 @@ class EmbeddedLoop:
 
     def setFromLightweight( self, sig, edgeLocations ):
         """
-        Sets this ideal loop using a lightweight description, as constructed
-        by IdealLoop.lightweightDescription().
+        Sets this embedded loop using a lightweight description, as
+        constructed by EmbeddedLoop.lightweightDescription().
         """
         tri = Triangulation3.fromIsoSig(sig)
         edges = []
@@ -239,7 +239,7 @@ class EmbeddedLoop:
 
     def _setFromRenum( self, renum ):
         """
-        Sets this ideal loop using the given edge renumbering map.
+        Sets this embedded loop using the given edge renumbering map.
 
         This routine is for internal use only.
         """
@@ -261,23 +261,56 @@ class EmbeddedLoop:
     def __getitem__( self, index ):
         return self._edgeIndices[index]
 
+    def clone(self):
+        """
+        Returns a clone of this embedded loop.
+
+        The cloned loop will always be embedded in a copy of the
+        triangulation containing this loop.
+        """
+        return EmbeddedLoop( self._cloneImpl() )
+
+    def _cloneImpl(self):
+        newTri = Triangulation3( self._tri )
+        return [ newTri.edge(ei) for ei in self._edgeIndices ]
+
     def triangulation(self):
         """
-        Returns the triangulation that contains this ideal loop.
+        Returns the triangulation that contains this embedded loop.
         """
         return self._tri
 
+    def isBoundary(self):
+        """
+        Does this embedded loop lie entirely in the boundary of the ambient
+        triangulation?
+        """
+        for ei in self._edgeIndices:
+            if not self._tri.edge(ei).isBoundary():
+                return False
+        return True
+
+    def isInternal(self):
+        """
+        Does this embedded loop lie entirely in the interior of the ambient
+        triangulation?
+        """
+        for vi in self._vertIndices:
+            if self._tri.vertex(vi).isBoundary():
+                return False
+        return True
+
     def lightweightDescription(self):
         """
-        Returns a lightweight description of this ideal loop.
+        Returns a lightweight description of this embedded loop.
 
         In detail, this routine returns a pair (S,L), where:
         --> S is the isomorphism signature for self.triangulation(); and
         --> L is the list of edge locations in Triangulation3.fromIsoSig(S)
-            corresponding to this ideal loop, with each edge location being
-            given by a pair consisting of a tetrahedron index and an edge
-            number.
-        Thus, the returned description can be used to build an ideal loop
+            corresponding to this embedded loop, with each edge location
+            being given by a pair consisting of a tetrahedron index and an
+            edge number.
+        Thus, the returned description can be used to build an embedded loop
         that is, up to combinatorial isomorphism, the same as this one.
         """
         sig, isom = self._tri.isoSigDetail()
@@ -291,93 +324,10 @@ class EmbeddedLoop:
             newEdgeLocations.append( ( newIndex, edgeNumber ) )
         return ( sig, newEdgeLocations )
 
-    def isBoundary(self):
-        """
-        Does this embedded loop lie entirely in the boundary of the ambient
-        triangulation?
-        """
-        #TODO
-        raise NotImplementedError()
-
-    def isInternal(self):
-        """
-        Does this embedded loop lie entirely in the interior of the ambient
-        triangulation?
-        """
-        #TODO
-        raise NotImplementedError()
-
-
-class IdealLoop(EmbeddedLoop):
-    """
-    A sequence of edges representing an embedded ideal loop in the interior
-    of a 3-manifold triangulation.
-
-    Some of the routines provided by this class might fail if the ideal loop
-    bounds an embedded disc in the ambient triangulation (though these
-    routines might nevertheless succeed in spite of the existence of such a
-    disc). This class raises BoundsDisc whenever such a failure occurs.
-    """
-    def __init__( self, edges=None ):
-        """
-        Creates an ideal loop from the given list of edges.
-
-        If no edges are supplied, then creates an empty object with no data.
-        In this case, one of the "set from" routines must be called on the
-        ideal loop before performing any computations.
-
-        Raises NotLoop if the given list of edges does not form an embedded
-        closed loop, or if the order of the edges in the given list does not
-        match the order in which the edges appear in the loop.
-
-        The given edges must all lie entirely in the interior of the ambient
-        triangulation; in other words, after constructing the ideal loop L,
-        calling L.isInternal() must return True. This condition is not
-        checked, but some of the routines provided by this class might have
-        undefined behaviour if this condition is not satisfied.
-
-        Pre-condition:
-        --> If supplied, the given list of edges must be nonempty, must
-            consist of edges that all belong to the same 3-manifold
-            triangulation T, and moreover all of these edges must lie
-            entirely in the interior of T.
-        """
-        super().__init__(edges)
-        return
-    #TODO
-
-    def drill(self):
-        """
-        Returns an ideal triangulation of the 3-manifold given by drilling
-        out this loop.
-        """
-        drilled = Triangulation3( self._tri )
-        drillLocations = []
-        for ei in self._edgeIndices:
-            emb = drilled.edge(ei).embedding(0)
-            drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-        for tet, edgeNum in drillLocations:
-            drilled.pinchEdge( tet.edge(edgeNum) )
-        drilled.intelligentSimplify()
-        drilled.minimiseVertices()
-        drilled.intelligentSimplify()
-        return drilled
-
-    def clone(self):
-        """
-        Returns a clone of this ideal loop.
-
-        The cloned ideal loop will always be embedded in a copy of the
-        triangulation containing this ideal loop.
-        """
-        newTri = Triangulation3( self._tri )
-        newEdges = [ newTri.edge(ei) for ei in self._edgeIndices ]
-        return IdealLoop(newEdges)
-
     def intersects( self, surf ):
         """
-        Returns True if and only if this ideal loop has nonempty intersection
-        with the given normal surface surf.
+        Returns True if and only if this embedded loop has nonempty
+        intersection with the given normal surface surf.
 
         Pre-condition:
         --> The given normal surface is embedded in self.triangulation().
@@ -389,7 +339,7 @@ class IdealLoop(EmbeddedLoop):
 
     def weight( self, surf ):
         """
-        Returns the number of times this ideal loop intersects the given
+        Returns the number of times this embedded loop intersects the given
         normal surface surf.
 
         Pre-condition:
@@ -403,12 +353,12 @@ class IdealLoop(EmbeddedLoop):
     def components( self, surf ):
         """
         Returns a list describing the components into which the given normal
-        surface surf splits this ideal loop.
+        surface surf splits this embedded loop.
 
         In detail, each item of the returned list is a list of edge segments,
         where:
         --> Each list of edge segments is ordered according to the order in
-            which the segments appear as we traverse this ideal loop.
+            which the segments appear as we traverse this embedded loop.
         --> Each edge segment is encoded as a pair (ei, n) such that:
             --- ei is the index of the edge containing the segment in
                 question; and
@@ -447,8 +397,8 @@ class IdealLoop(EmbeddedLoop):
             # segments of this component.
             return [lastComponent]
 
-        # The given surf splits this ideal loop into multiple components, so
-        # we need to do a bit more work.
+        # The given surf splits this embedded loop into multiple components,
+        # so we need to do a bit more work.
         components = []
         while splitIndex is not None:
             for seg in range( 1, wt ):
@@ -489,24 +439,25 @@ class IdealLoop(EmbeddedLoop):
 
     def shorten(self):
         """
-        Shortens this ideal loop.
+        Shortens this embedded loop.
 
-        In detail, if this ideal loop meets any triangle F in exactly two
+        In detail, if this embedded loop meets any triangle F in exactly two
         distinct edges, then it can be shortened by replacing these two edges
         with the third edge of F. This routine performs such shortenings
         until no further shortening is possible.
 
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful minimiseVertices()
-        and simplify() routines.
-
-        If this ideal loop has length greater than one, then this routine
+        If this embedded loop has length greater than one, then this routine
         might raise BoundsDisc.
 
         Returns:
-            True if and only if this ideal loop was successfully shortened.
-            Otherwise, this ideal loop will not be modified at all.
+            True if and only if this embedded loop was successfully
+            shortened. Otherwise, this embedded loop will not be modified at
+            all.
         """
+        # Try to shorten across all triangles, not just boundary triangles.
+        return self._shortenImpl(False)
+
+    def _shortenImpl( self, boundaryOnly ):
         if len(self) < 2:
             return False
         changed = False
@@ -516,6 +467,12 @@ class IdealLoop(EmbeddedLoop):
 
             # Search for a triangle along which we can redirect.
             for face in self._tri.triangles():
+                # If boundaryOnly is True, then we only want to consider
+                # boundary triangles.
+                if boundaryOnly and not face.isBoundary():
+                    continue
+
+                # How does the current face interact with this loop?
                 incidentLocations = set()
                 nonIncidentEdgeIndices = set()
                 for e in range(3):
@@ -523,14 +480,14 @@ class IdealLoop(EmbeddedLoop):
                     try:
                         location = self._edgeIndices.index(edgeIndex)
                     except ValueError:
-                        # Edge is not incident to the ideal loop.
+                        # Edge is not incident to this loop.
                         nonIncidentEdgeIndices.add(edgeIndex)
                     else:
-                        # Edge is incident to the ideal loop.
+                        # Edge is incident to this loop.
                         incidentLocations.add(location)
 
-                # Does the current face form an embedded disc bounded by the
-                # ideal loop?
+                # Does the current face form an embedded disc bounded by this
+                # loop?
                 if len(incidentLocations) == 3:
                     raise BoundsDisc()
 
@@ -553,6 +510,71 @@ class IdealLoop(EmbeddedLoop):
 
         # No further shortening is possible.
         return changed
+
+
+class IdealLoop(EmbeddedLoop):
+    """
+    A sequence of edges representing an embedded ideal loop in the interior
+    of a 3-manifold triangulation.
+
+    Some of the routines provided by this class might fail if the ideal loop
+    bounds an embedded disc in the ambient triangulation (though these
+    routines might nevertheless succeed in spite of the existence of such a
+    disc). This class raises BoundsDisc whenever such a failure occurs.
+    """
+    def __init__( self, edges=None ):
+        """
+        Creates an ideal loop from the given list of edges.
+
+        If no edges are supplied, then creates an empty object with no data.
+        In this case, one of the "set from" routines must be called on the
+        ideal loop before performing any computations.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        The given edges must all lie entirely in the interior of the ambient
+        triangulation; in other words, after constructing the ideal loop L,
+        calling L.isInternal() must return True. This condition is not
+        checked, but some of the routines provided by this class might have
+        undefined behaviour if this condition is not satisfied.
+
+        Pre-condition:
+        --> If supplied, the given list of edges must be nonempty, must
+            consist of edges that all belong to the same 3-manifold
+            triangulation T, and moreover all of these edges must lie
+            entirely in the interior of T.
+        """
+        super().__init__(edges)
+        return
+
+    def clone(self):
+        """
+        Returns a clone of this ideal loop.
+
+        The cloned ideal loop will always be embedded in a copy of the
+        triangulation containing this ideal loop.
+        """
+        return IdealLoop( self._cloneImpl() )
+
+    def drill(self):
+        """
+        Returns an ideal triangulation of the 3-manifold given by drilling
+        out this loop.
+        """
+        drilled = Triangulation3( self._tri )
+        drillLocations = []
+        for ei in self._edgeIndices:
+            emb = drilled.edge(ei).embedding(0)
+            drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+        for tet, edgeNum in drillLocations:
+            drilled.pinchEdge( tet.edge(edgeNum) )
+        drilled.intelligentSimplify()
+        drilled.minimiseVertices()
+        drilled.intelligentSimplify()
+        return drilled
+    #TODO
 
     def minimiseVertices(self):
         """
@@ -859,10 +881,6 @@ class BoundaryLoop(EmbeddedLoop):
         In this case, one of the "set from" routines must be called on the
         boundary loop before performing any computations.
 
-        If no edges are supplied, then creates an empty ideal loop with no
-        data. In this case, one of the "set from" routines must be called on
-        the ideal loop before performing any computations.
-
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
@@ -881,4 +899,33 @@ class BoundaryLoop(EmbeddedLoop):
         """
         super().__init__(edges)
         return
+
+    def clone(self):
+        """
+        Returns a clone of this boundary loop.
+
+        The cloned boundary loop will always be embedded in a copy of the
+        triangulation containing this boundary loop.
+        """
+        return BoundaryLoop( self._cloneImpl() )
+
+    def shorten(self):
+        """
+        Shortens this boundary loop.
+
+        In detail, if this boundary loop meets any *boundary* triangle F in
+        exactly two distinct edges, then it can be shortened by replacing
+        these two edges with the third edge of F. This routine performs such
+        shortenings until no further shortening is possible.
+
+        If this boundary loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        Returns:
+            True if and only if this boundary loop was successfully
+            shortened. Otherwise, this boundary loop will not be modified at
+            all.
+        """
+        # Only try to shorten across boundary triangles.
+        return self._shortenImpl(True)
     #TODO
