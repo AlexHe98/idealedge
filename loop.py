@@ -454,10 +454,12 @@ class EmbeddedLoop:
             shortened. Otherwise, this embedded loop will not be modified at
             all.
         """
-        # Try to shorten across all triangles, not just boundary triangles.
-        return self._shortenImpl(False)
+        # Keep the implementation completely independent of the method
+        # specification. This means we can freely override one without
+        # necessarily having to touch the other.
+        return self._shortenImpl()
 
-    def _shortenImpl( self, boundaryOnly ):
+    def _shortenImpl(self):
         if len(self) < 2:
             return False
         changed = False
@@ -466,50 +468,59 @@ class EmbeddedLoop:
             redirected = False
 
             # Search for a triangle along which we can redirect.
-            for face in self._tri.triangles():
-                # If boundaryOnly is True, then we only want to consider
-                # boundary triangles.
-                if boundaryOnly and not face.isBoundary():
-                    continue
+            for face in self._redirectCandidates():
+                if self._attemptRedirect(face):     # Might raise BoundsDisc.
+                    changed = True
+                    redirected = True
 
-                # How does the current face interact with this loop?
-                incidentLocations = set()
-                nonIncidentEdgeIndices = set()
-                for e in range(3):
-                    edgeIndex = face.edge(e).index()
-                    try:
-                        location = self._edgeIndices.index(edgeIndex)
-                    except ValueError:
-                        # Edge is not incident to this loop.
-                        nonIncidentEdgeIndices.add(edgeIndex)
-                    else:
-                        # Edge is incident to this loop.
-                        incidentLocations.add(location)
-
-                # Does the current face form an embedded disc bounded by this
-                # loop?
-                if len(incidentLocations) == 3:
-                    raise BoundsDisc()
-
-                # Redirect if possible.
-                if len(incidentLocations) != 2:
-                    continue
-                first, second = incidentLocations
-                self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
-                self._edgeIndices.pop(second)
-
-                # Updating just the edge indices is not actually enough. Make
-                # sure to update all the data stored by this class.
-                newEdges = [ self._tri.edge(i) for i in self._edgeIndices ]
-                self.setFromEdges(newEdges)
-
-                # Back to the top.
-                changed = True
-                redirected = True
-                break
+                    # Back to the top.
+                    break
 
         # No further shortening is possible.
         return changed
+
+    def _redirectCandidates(self):
+        # Yield candidate faces across which we might be able to redirect
+        # this loop.
+        for ei in self._edgeIndices:
+            edge = self._tri.edge(ei)
+
+            # Yield all triangles incident to current edge.
+            for emb in edge.embeddings():
+                yield emb.tetrahedron().triangle( emb.vertices()[3] )
+            if edge.isBoundary():
+                yield emb.tetrahedron().triangle( emb.vertices()[2] )
+        return
+
+    def _attemptRedirect( self, face ):
+        # If the given face intersects this loop in exactly two edges, then
+        # we can redirect this loop along the third edge of the given face.
+        incidentLocations = set()
+        nonIncidentEdgeIndices = set()
+        for e in range(3):
+            edgeIndex = face.edge(e).index()
+            try:
+                location = self._edgeIndices.index(edgeIndex)
+            except ValueError:
+                # Edge is not incident to this loop.
+                nonIncidentEdgeIndices.add(edgeIndex)
+            else:
+                # Edge is incident to this loop.
+                incidentLocations.add(location)
+
+        # Does the given face form an embedded disc bounded by this loop?
+        if len(incidentLocations) == 3:
+            raise BoundsDisc()
+
+        # Perform redirect if possible.
+        if len(incidentLocations) != 2:
+            return False
+        first, second = incidentLocations
+        self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
+        self._edgeIndices.pop(second)
+        newEdges = [ self._tri.edge(i) for i in self._edgeIndices ]
+        self.setFromEdges(newEdges)
+        return True
 
 
 class IdealLoop(EmbeddedLoop):
@@ -926,6 +937,23 @@ class BoundaryLoop(EmbeddedLoop):
             shortened. Otherwise, this boundary loop will not be modified at
             all.
         """
-        # Only try to shorten across boundary triangles.
-        return self._shortenImpl(True)
+        # The only change we need to make to the implementation is to
+        # restrict the redirect candidate triangles to *boundary* triangles.
+        # That is, we really only need to override _redirectCandidates().
+        return self._shortenImpl()
+
+    def _redirectCandidates(self):
+        # Yield candidate faces across which we might be able to redirect
+        # this loop.
+        for ei in self._edgeIndices:
+            edge = self._tri.edge(ei)
+
+            # Yield only boundary triangles incident to current edge.
+            # (Note that as a precondition, the current edge is assumed to be
+            # a boundary edge.)
+            front = edge.front()
+            yield front.tetrahedron().triangle( front.vertices()[3] )
+            back = edge.back()
+            yield back.tetrahedron().triangle( back.vertices()[2] )
+        return
     #TODO
