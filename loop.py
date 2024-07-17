@@ -92,6 +92,16 @@ class EmbeddedLoop:
     IdealLoop and BoundaryLoop classes. Although this base class can be
     instantiated, the functionality it offers is much less complete than its
     aforementioned subclasses.
+
+    A core feature of this class is that it effectively stores a list of edge
+    *indices* corresponding to the edges of the embedded loop. Thus, for any
+    instance loop of this class, the following functionality is available:
+    --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
+        edge in the loop
+    --> len(loop) is the number of edges in the loop
+    --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
+        index of the ith edge in the loop
+    --> iterating through the loop yields all the edge indices in order
     """
     def __init__( self, edges=None ):
         """
@@ -528,28 +538,23 @@ class EmbeddedLoop:
         In the latter case, _findBoundaryMove() must behave as follows:
         --> If self.triangulation() already has minimal boundary, then
             returns None.
-        --> Otherwise, returns details of a move that can be performed to
-            reduce the number of boundary triangles by two. Specifically, the
-            return value should be a 4-tuple consisting of the following:
+        --> Otherwise, returns details of a move that preserves the topology
+            of this loop, but makes the following combinatorial changes:
+            --- reduces the number of boundary triangles by two; and
+            --- either leaves this loop untouched, or reduces the length of
+                this loop by making some edges of this loop internal.
+            In detail, the return value should be a tuple consisting of the
+            following items:
             (0) A boundary edge e on which to perform a move.
             (1) A boolean indicating whether we need to layer across e. If
                 this is True, then the move we perform will be to first layer
                 across e, and then perform a close book move on the newly
                 layered edge. Otherwise, the move will simply be a close book
                 move on e.
-            (2) A (possibly empty) list indicating how this loop is affected
-                by the move. In detail, for each i in this list, self[i] is
-                the index of an edge that is incident to a boundary triangle
-                that is involved in the move.
-            (3) A (possibly empty) list indicating how to adjust this loop
-                after performing the move. In detail, each item in this list
-                should be a pair (t,n), where t is a tetrahedron and n is an
-                edge number (between 0 and 5, inclusive) indicating the
-                location of an edge that will become part of this loop after
-                the move. If the list contains more than one item, then the
-                order of these items will correspond to the order in which
-                the corresponding edges will appear as we traverse the
-                adjusted loop.
+            (2) A (possibly empty) list consisting of edge indices in this
+                loop that will become internal after performing the move.
+                In effect, this loop will be modified by simply deleting
+                these edge indices from self._edgeIndices.
 
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
@@ -592,11 +597,51 @@ class EmbeddedLoop:
 
             # Perform the move.
             #TODO
+            #NOTE Always need to recompute this loop from edge locations.
             pass
         return
 
     def _findBoundaryMove(self):
         raise NotImplementedError()
+
+    def _findBoundaryMoveImpl(self):
+        # This default implementation should only be used if it is known that
+        # none of the boundary simplification moves will alter the length of
+        # this loop (for example, this loop is internal, or this loop has
+        # already been reduced to length one).
+        #
+        # Precondition:
+        #   --> This loop cannot be shortened.
+
+        # Find a boundary component that is not yet minimal.
+        for bc in self._tri.boundaryComponents():
+            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+                # Current boundary component is already minimal.
+                continue
+
+            # First try to find a close book move, which does not increase
+            # the number of tetrahedra.
+            for e in bc.edges():
+                #TODO
+                pass
+
+            # We could not find a close book move.
+            # In this case, because bc is non-minimal, there must be a
+            # boundary edge e that joins two distinct vertices, and we can
+            # simplify bc by layering across e and then performing a close
+            # book move on the newly layered edge. (This is equivalent to
+            # attaching a snapped ball along e.)
+            for e in bc.edges():
+                #TODO
+                pass
+
+            # We should never reach this point.
+            raise RuntimeError(
+                    "_findBoundaryMoveImpl() failed unexpectedly." )
+
+        # If we fell out of the boundary component loop, then all boundary
+        # components are minimal.
+        return None
 
 
 class IdealLoop(EmbeddedLoop):
@@ -608,6 +653,16 @@ class IdealLoop(EmbeddedLoop):
     bounds an embedded disc in the ambient triangulation (though these
     routines might nevertheless succeed in spite of the existence of such a
     disc). This class raises BoundsDisc whenever such a failure occurs.
+
+    A core feature of this class is that it effectively stores a list of edge
+    *indices* corresponding to the edges of the ideal loop. Thus, for any
+    instance loop of this class, the following functionality is available:
+    --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
+        edge in the loop
+    --> len(loop) is the number of edges in the loop
+    --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
+        index of the ith edge in the loop
+    --> iterating through the loop yields all the edge indices in order
     """
     def __init__( self, edges=None ):
         """
@@ -738,47 +793,9 @@ class IdealLoop(EmbeddedLoop):
         return self._minimiseBoundaryImpl()
 
     def _findBoundaryMove(self):
-        # Precondition:
-        #   --> This loop cannot be shortened
-
-        # Find a boundary component that is not yet minimal.
-        for bc in self._tri.boundaryComponents():
-            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
-                # Current boundary component is already minimal.
-                continue
-
-            # First try to find a close book move, which does not increase
-            # the number of tetrahedra.
-            for e in bc.edges():
-                #TODO
-                pass
-
-            # We could not find a close book move.
-            # In this case, because bc is non-minimal, there must be a
-            # boundary edge e that joins two distinct vertices, and we can
-            # simplify bc by layering across e and then performing a close
-            # book move on the newly layered edge. (This is equivalent to
-            # attaching a snapped ball along e.)
-            for e in bc.edges():
-                #TODO
-                pass
-
-        # If we fell out of the boundary component loop, then all boundary
-        # components are minimal.
-        return None
-
-        # First try to find a close book move, which does not increase the
-        # number of tetrahedra.
-        #TODO
-
-        # We could not find a close book move.
-        # In this case, because bc is supposed to be non-minimal, there must
-        # be a boundary edge e that joins two distinct vertices, and we can
-        # simplify bc by layering across e and then performing a close book
-        # move on the newly layered edge. (This is equivalent to attaching a
-        # snapped ball along e.)
-        #TODO
-        raise NotImplementedError()
+        # Since this loop is supposed to be internal, we can just use the
+        # default implementation here.
+        return self._findBoundaryMoveImpl()
 
     def minimiseVertices(self):
         """
@@ -1076,6 +1093,16 @@ class BoundaryLoop(EmbeddedLoop):
     loop bounds an embedded disc in the ambient triangulation (though these
     routines might nevertheless succeed in spite of the existence of such a
     disc). This class raises BoundsDisc whenever such a failure occurs.
+
+    A core feature of this class is that it effectively stores a list of edge
+    *indices* corresponding to the edges of the boundary loop. Thus, for any
+    instance loop of this class, the following functionality is available:
+    --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
+        edge in the loop
+    --> len(loop) is the number of edges in the loop
+    --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
+        index of the ith edge in the loop
+    --> iterating through the loop yields all the edge indices in order
     """
     def __init__( self, edges=None ):
         """
@@ -1113,6 +1140,12 @@ class BoundaryLoop(EmbeddedLoop):
         """
         return BoundaryLoop( self._cloneImpl() )
 
+    def boundaryComponent(self):
+        """
+        Returns the boundary component containing this boundary loop.
+        """
+        return self._tri.edge( self[0] ).boundaryComponent()
+
     def shorten(self):
         """
         Shortens this boundary loop.
@@ -1137,10 +1170,6 @@ class BoundaryLoop(EmbeddedLoop):
     def _redirectCandidates(self):
         # For boundary loops, we only want to redirect along *boundary*
         # triangles (to ensure that the loop stays in the boundary).
-        return self._incidentBoundaryFaces()
-
-    def _incidentBoundaryFaces(self):
-        # Yield all boundary faces incident to this boundary loop.
         for ei in self._edgeIndices:
             edge = self._tri.edge(ei)
 
@@ -1191,12 +1220,48 @@ class BoundaryLoop(EmbeddedLoop):
 
     def _findBoundaryMove(self):
         # Precondition:
-        #   --> This loop cannot be shortened
+        #   --> This loop cannot be shortened.
 
-        # Prioritise reducing the length of this loop, and try to do so
-        # without adding too many tetrahedra.
-        for face in self._incidentBoundaryFaces():
-            #TODO
-            pass
-        #TODO
-        raise NotImplementedError()
+        # Prioritise moves that reduce the length of this ideal loop. If
+        # possible, use close book moves so that we do not introduce too many
+        # new tetrahedra.
+        if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
+            # Try to find a close book move.
+            if len(self) > 2:
+                for e in bc.edges():
+                    # Check eligibility of close book move, but do *not*
+                    # perform yet.
+                    if not self._tri.closeBook( e, True, False ):
+                        continue
+
+                    # Does this close book move reduce the length?
+                    ftet = e.front().tetrahedron()
+                    fver = e.front().vertices()
+                    btet = e.back().tetrahedron()
+                    bver = e.back().vertices()
+                    for v in range(2):
+                        fei = ftet.edge( fver[v], fver[2] ).index()
+                        bei = btet.edge( bver[v], bver[3] ).index()
+                        if ( fei in self ) and ( bei in self ):
+                            # Since this loop cannot be shortened, the
+                            # indices fei and bei correspond to the *only*
+                            # edges of this loop that are incident to the
+                            # triangles involved in the close book move.
+                            # These two edges become internal after
+                            # performing the move.
+                            return ( e,
+                                    False,  # Close book without layering.
+                                    [ self._edgeIndices.index(fei),
+                                        self._edgeIndices.index(bei) ] )
+
+            # Resort to layering a new tetrahedron to facilitate a close book
+            # move that makes one of the edges of this loop internal. This
+            # operation is guaranteed to be legal for any edge belonging to
+            # this loop.
+            return ( self._tri.edge( self[0] ),
+                    True,   # Layer before performing close book.
+                    [ self[0] ] )
+
+        # At this point, nothing further can be done to reduce the length of
+        # this loop, so we can fall back on the default implementation.
+        return self._findBoundaryMoveImpl()
