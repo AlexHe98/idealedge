@@ -438,8 +438,28 @@ class EmbeddedLoop:
         return components
 
     def _shortenImpl(self):
-        # Shorten this loop by looking for triangles that intersect this loop
-        # in two edges, and redirecting this loop to use the third edge.
+        """
+        Shortens this embedded loop by looking for triangles that intersect
+        this loop in two edges, and redirecting this loop to use the third
+        edge.
+
+        The default implementation of this routine requires the helper
+        routine _redirectCandidates(), which is *not* implemented by default.
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> supply an implementation for _redirectCandidates().
+        In the latter case, _redirectCandidates() must yield candidate faces
+        of self.triangulation() across which this routine should attempt to
+        redirect this embedded loop.
+
+        If this embedded loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        Returns:
+            True if and only if this embedded loop was successfully
+            shortened. In the case where no shortening occurred, this
+            embedded loop will remain entirely untouched.
+        """
         if len(self) < 2:
             return False
         changed = False
@@ -495,10 +515,87 @@ class EmbeddedLoop:
         return True
 
     def _minimiseBoundaryImpl(self):
-        #TODO
-        raise NotImplementedError()
+        """
+        Ensures that the triangulation containing this embedded loop has the
+        smallest possible number of boundary triangles, potentially adding
+        tetrahedra to do this.
 
-    def _findBoundaryMove( self, bc ):
+        The default implementation of this routine requires the helper
+        routine _findBoundaryMove(), which is *not* implemented by default.
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> supply an implementation for _findBoundaryMove().
+        In the latter case, _findBoundaryMove() must behave as follows:
+        --> If self.triangulation() already has minimal boundary, then
+            returns None.
+        --> Otherwise, returns details of a move that can be performed to
+            reduce the number of boundary triangles by two. Specifically, the
+            return value should be a 4-tuple consisting of the following:
+            (0) A boundary edge e on which to perform a move.
+            (1) A boolean indicating whether we need to layer across e. If
+                this is True, then the move we perform will be to first layer
+                across e, and then perform a close book move on the newly
+                layered edge. Otherwise, the move will simply be a close book
+                move on e.
+            (2) A (possibly empty) list indicating how this loop is affected
+                by the move. In detail, for each i in this list, self[i] is
+                the index of an edge that is incident to a boundary triangle
+                that is involved in the move.
+            (3) A (possibly empty) list indicating how to adjust this loop
+                after performing the move. In detail, each item in this list
+                should be a pair (t,n), where t is a tetrahedron and n is an
+                edge number (between 0 and 5, inclusive) indicating the
+                location of an edge that will become part of this loop after
+                the move. If the list contains more than one item, then the
+                order of these items will correspond to the order in which
+                the corresponding edges will appear as we traverse the
+                adjusted loop.
+
+        A side-effect of calling this routine is that it will shorten this
+        embedded loop if possible.
+
+        If this embedded loop has length greater than one, then this routine
+        might raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> Every 2-sphere boundary component will have exactly two triangles
+            and three vertices.
+        --> Every projective plane boundary component will have exactly two
+            triangles and two vertices.
+        --> Every other boundary component will have exactly one vertex.
+
+        Adapted from Regina's Triangulation3.minimiseBoundary().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if the ambient triangulation was changed, or False if every
+            boundary component of the ambient triangulation was already
+            minimal to begin with.
+        """
+        # Simplify the boundary of self._tri to use as few triangles as
+        # possible.
+        changed = False
+        while True:
+            # Shorten this loop to minimise the number of special cases.
+            if self._shortenImpl():
+                changed = True
+
+            # Is there a move we can perform to reduce the number of boundary
+            # triangles?
+            moveDetails = self._findBoundaryMove()
+            if moveDetails is None:
+                # At this point, all boundary components must be minimal.
+                return changed
+            changed = True
+
+            # Perform the move.
+            #TODO
+            pass
+        return
+
+    def _findBoundaryMove(self):
         raise NotImplementedError()
 
 
@@ -579,9 +676,12 @@ class IdealLoop(EmbeddedLoop):
 
         Returns:
             True if and only if this ideal loop was successfully shortened.
+            In the case where no shortening occurred, this ideal loop will
+            remain entirely untouched.
+            True if and only if this ideal loop was successfully shortened.
             Otherwise, this ideal loop will not be modified at all.
         """
-        # Can use the base class implementation provided we supply an
+        # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
         return self._shortenImpl()  # Might raise BoundsDisc.
 
@@ -633,14 +733,39 @@ class IdealLoop(EmbeddedLoop):
             boundary component of the ambient triangulation was already
             minimal to begin with.
         """
-        # Can use the base class implementation provided we supply an
+        # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
-    def _findBoundaryMove( self, bc ):
+    def _findBoundaryMove(self):
         # Precondition:
         #   --> This loop cannot be shortened
-        #   --> bc is a boundary component of self._tri, and is not minimal
+
+        # Find a boundary component that is not yet minimal.
+        for bc in self._tri.boundaryComponents():
+            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+                # Current boundary component is already minimal.
+                continue
+
+            # First try to find a close book move, which does not increase
+            # the number of tetrahedra.
+            for e in bc.edges():
+                #TODO
+                pass
+
+            # We could not find a close book move.
+            # In this case, because bc is non-minimal, there must be a
+            # boundary edge e that joins two distinct vertices, and we can
+            # simplify bc by layering across e and then performing a close
+            # book move on the newly layered edge. (This is equivalent to
+            # attaching a snapped ball along e.)
+            for e in bc.edges():
+                #TODO
+                pass
+
+        # If we fell out of the boundary component loop, then all boundary
+        # components are minimal.
+        return None
 
         # First try to find a close book move, which does not increase the
         # number of tetrahedra.
@@ -1002,22 +1127,26 @@ class BoundaryLoop(EmbeddedLoop):
 
         Returns:
             True if and only if this boundary loop was successfully
-            shortened. Otherwise, this boundary loop will not be modified at
-            all.
+            shortened. In the case where no shortening occurred, this
+            boundary loop will remain entirely untouched.
         """
-        # Can use the base class implementation provided we supply an
+        # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
         return self._shortenImpl()  # Might raise BoundsDisc.
 
     def _redirectCandidates(self):
         # For boundary loops, we only want to redirect along *boundary*
         # triangles (to ensure that the loop stays in the boundary).
+        return self._incidentBoundaryFaces()
+
+    def _incidentBoundaryFaces(self):
+        # Yield all boundary faces incident to this boundary loop.
         for ei in self._edgeIndices:
             edge = self._tri.edge(ei)
 
-            # Yield only *boundary* triangles incident to current edge.
-            # (Note that as a precondition, the current edge is assumed to be
-            # a boundary edge.)
+            # Note that as a precondition, the current edge is assumed to be
+            # a boundary edge. Thus, the incident boundary faces are at the
+            # front and back of the current edge.
             front = edge.front()
             yield front.tetrahedron().triangle( front.vertices()[3] )
             back = edge.back()
@@ -1056,16 +1185,18 @@ class BoundaryLoop(EmbeddedLoop):
             boundary component of the ambient triangulation was already
             minimal to begin with.
         """
-        # Can use the base class implementation provided we supply an
+        # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
-    def _findBoundaryMove( self, bc ):
+    def _findBoundaryMove(self):
         # Precondition:
         #   --> This loop cannot be shortened
-        #   --> bc is a boundary component of self._tri, and is not minimal
 
         # Prioritise reducing the length of this loop, and try to do so
         # without adding too many tetrahedra.
+        for face in self._incidentBoundaryFaces():
+            #TODO
+            pass
         #TODO
         raise NotImplementedError()
