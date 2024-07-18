@@ -583,7 +583,7 @@ class EmbeddedLoop:
         changed = False
         while True:
             # Shorten this loop to minimise the number of special cases.
-            if self._shortenImpl():
+            if self._shortenImpl():     # Might raise BoundsDisc
                 changed = True
 
             # Is there a move we can perform to reduce the number of boundary
@@ -613,45 +613,6 @@ class EmbeddedLoop:
 
     def _findBoundaryMove(self):
         raise NotImplementedError()
-
-    def _findBoundaryMoveImpl(self):
-        #TODO Do we really need this default implementation?
-        # This default implementation should only be used if it is known that
-        # none of the boundary simplification moves will alter the length of
-        # this loop (for example, this loop is internal).
-        #
-        # Precondition:
-        #   --> This loop cannot be shortened.
-
-        # Find a boundary component that is not yet minimal.
-        for bc in self._tri.boundaryComponents():
-            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
-                # Current boundary component is already minimal.
-                continue
-
-            # First try to find a close book move, which does not increase
-            # the number of tetrahedra.
-            for e in bc.edges():
-                #TODO
-                pass
-
-            # We could not find a close book move.
-            # In this case, because bc is non-minimal, there must be a
-            # boundary edge e that joins two distinct vertices, and we can
-            # simplify bc by layering across e and then performing a close
-            # book move on the newly layered edge. (This is equivalent to
-            # attaching a snapped ball along e.)
-            for e in bc.edges():
-                #TODO
-                pass
-
-            # We should never reach this point.
-            raise RuntimeError(
-                    "_findBoundaryMoveImpl() failed unexpectedly." )
-
-        # If we fell out of the boundary component loop, then all boundary
-        # components are minimal.
-        return None
 
 
 class IdealLoop(EmbeddedLoop):
@@ -762,7 +723,6 @@ class IdealLoop(EmbeddedLoop):
             if edge.isBoundary():
                 yield emb.tetrahedron().triangle( emb.vertices()[2] )
         return
-    #TODO
 
     def minimiseBoundary(self):
         """
@@ -803,9 +763,51 @@ class IdealLoop(EmbeddedLoop):
         return self._minimiseBoundaryImpl()
 
     def _findBoundaryMove(self):
-        # Since this loop is supposed to be internal, we can just use the
-        # default implementation here.
-        return self._findBoundaryMoveImpl()
+        # Precondition:
+        #   --> This loop cannot be shortened.
+
+        # Find a boundary component that is not yet minimal.
+        for bc in self._tri.boundaryComponents():
+            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+                # Current boundary component is already minimal.
+                continue
+
+            # First try to find a close book move, which does not increase
+            # the number of tetrahedra.
+            for e in bc.edges():
+                if self._tri.closeBook( edge, True, False ):
+                    return ( edge,
+                            False,  # Close book without layering.
+                            self._edgeIndices )
+
+            # We could not find a close book move.
+            # In this case, because bc is non-minimal, there must be a
+            # boundary edge e that joins two distinct vertices, and we can
+            # simplify bc by layering across e and then performing a close
+            # book move on the newly layered edge.
+            for e in bc.edges():
+                if edge.vertex(0) == edge.vertex(1):
+                    continue
+
+                # The layering is illegal if this edge is incident to the
+                # same boundary triangle F on both sides (rather than two
+                # distinct triangles). But in that scenario, F forms a disc,
+                # and there must be a close book move available on the edge b
+                # that forms the boundary of this disc. Thus, when we reach
+                # this point in the code, we can guarantee that the layering
+                # is legal.
+                return ( edge,
+                        True,   # Layer before performing close book.
+                        self._edgeIndices )
+
+            # We should never reach this point.
+            raise RuntimeError(
+                    "_findBoundaryMove() failed unexpectedly." )
+
+        # If we fell out of the boundary component loop, then all boundary
+        # components are minimal.
+        return None
+    #TODO
 
     def minimiseVertices(self):
         """
@@ -1191,7 +1193,6 @@ class BoundaryLoop(EmbeddedLoop):
             back = edge.back()
             yield back.tetrahedron().triangle( back.vertices()[2] )
         return
-    #TODO
 
     def minimiseBoundary(self):
         """
@@ -1199,8 +1200,7 @@ class BoundaryLoop(EmbeddedLoop):
         smallest possible number of boundary triangles, potentially adding
         tetrahedra to do this.
 
-        If this boundary loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> Every 2-sphere boundary component will have exactly two triangles
@@ -1229,6 +1229,9 @@ class BoundaryLoop(EmbeddedLoop):
         return self._minimiseBoundaryImpl()
 
     def _findBoundaryMove(self):
+        # Exceptions:
+        #   --> Might raise BoundsDisc (even if len(self) == 1).
+        #
         # Precondition:
         #   --> This loop cannot be shortened.
 
@@ -1238,7 +1241,7 @@ class BoundaryLoop(EmbeddedLoop):
         if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
             # Try to find a close book move.
             if len(self) > 2:
-                for edge in bc.edges():
+                for edge in self.boundaryComponent().edges():
                     # Check eligibility of close book move, but do *not*
                     # perform yet.
                     if not self._tri.closeBook( edge, True, False ):
@@ -1325,3 +1328,4 @@ class BoundaryLoop(EmbeddedLoop):
         # If we fell out of the boundary component loop, then all boundary
         # components are minimal.
         return None
+    #TODO

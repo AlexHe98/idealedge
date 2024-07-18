@@ -3,7 +3,7 @@ Tetrahedron subdivision, customised for the purpose of drilling out ideal
 loops without forgetting the meridian curve.
 """
 from regina import *
-from loop import IdealLoop
+from loop import BoundaryLoop
 
 
 def drill(loop):
@@ -50,8 +50,8 @@ def drill(loop):
         drillTri.removeTetrahedronAt(i)
     meridianEdges = [ tet.edge(edgeNum)
             for tet, edgeNum in meridianLocations ]
-    #TODO Implement BoundaryLoop.
-    meridian = IdealLoop(meridianEdges)
+    meridian = BoundaryLoop(meridianEdges)
+    meridian.minimiseBoundary()
     return meridian
 
 
