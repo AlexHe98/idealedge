@@ -254,7 +254,7 @@ class EmbeddedLoop:
         This routine is for internal use only.
         """
         edges = []
-        for ei in self._edgeIndices:
+        for ei in self:
             edges.append( self._tri.edge( renum[ei] ) )
         self.setFromEdges(edges)
         return
@@ -282,7 +282,7 @@ class EmbeddedLoop:
 
     def _cloneImpl(self):
         newTri = Triangulation3( self._tri )
-        return [ newTri.edge(ei) for ei in self._edgeIndices ]
+        return [ newTri.edge(ei) for ei in self ]
 
     def triangulation(self):
         """
@@ -295,7 +295,7 @@ class EmbeddedLoop:
         Does this embedded loop lie entirely in the boundary of the ambient
         triangulation?
         """
-        for ei in self._edgeIndices:
+        for ei in self:
             if not self._tri.edge(ei).isBoundary():
                 return False
         return True
@@ -325,7 +325,7 @@ class EmbeddedLoop:
         """
         sig, isom = self._tri.isoSigDetail()
         newEdgeLocations = []
-        for ei in self._edgeIndices:
+        for ei in self:
             emb = self._tri.edge(ei).embedding(0)
             oldIndex = emb.tetrahedron().index()
             newIndex = isom.simpImage(oldIndex)
@@ -342,7 +342,7 @@ class EmbeddedLoop:
         Pre-condition:
         --> The given normal surface is embedded in self.triangulation().
         """
-        for i in self._edgeIndices:
+        for i in self:
             if surf.edgeWeight(i).safeLongValue() > 0:
                 return True
         return False
@@ -356,7 +356,7 @@ class EmbeddedLoop:
         --> The given normal surface is embedded in self.triangulation().
         """
         wt = 0
-        for i in self._edgeIndices:
+        for i in self:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
 
@@ -520,7 +520,7 @@ class EmbeddedLoop:
         first, second = incidentLocations
         self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
         self._edgeIndices.pop(second)
-        newEdges = [ self._tri.edge(i) for i in self._edgeIndices ]
+        newEdges = [ self._tri.edge(i) for i in self ]
         self.setFromEdges(newEdges)
         return True
 
@@ -551,7 +551,7 @@ class EmbeddedLoop:
                 across e, and then perform a close book move on the newly
                 layered edge. Otherwise, the move will simply be a close book
                 move on e.
-            (2) A (possibly empty) list consisting of edge indices in this
+            (2) A (possibly empty) set consisting of edge indices in this
                 loop that will become internal after performing the move.
                 In effect, this loop will be modified by simply deleting
                 these edge indices from self._edgeIndices.
@@ -594,11 +594,24 @@ class EmbeddedLoop:
                 # At this point, all boundary components must be minimal.
                 return changed
             changed = True
+            edge, doLayer, remove = moveDetails
 
-            # Perform the move.
-            #TODO
-            #NOTE Always need to recompute this loop from edge locations.
-            pass
+            # Before performing the move, we need to remember the locations
+            # of all the edges in this loop.
+            edgeLocations = []
+            for ei in self:
+                if ei in remove:
+                    continue
+                emb = self._tri.edge(ei).embedding(0)
+                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+
+            # Perform the move, and then update this loop. We can safely
+            # assume that the close book move is legal, so no need to check
+            # before performing.
+            if doLayer:
+                edge = self._tri.layerOn(edge).edge(5)
+            self._tri.closeBook( edge, False, True )
+            self.setFromEdgeLocations(edgeLocations)
         return
 
     def _findBoundaryMove(self):
@@ -707,7 +720,7 @@ class IdealLoop(EmbeddedLoop):
         """
         drilled = Triangulation3( self._tri )
         drillLocations = []
-        for ei in self._edgeIndices:
+        for ei in self:
             emb = drilled.edge(ei).embedding(0)
             drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
         for tet, edgeNum in drillLocations:
@@ -743,7 +756,7 @@ class IdealLoop(EmbeddedLoop):
     def _redirectCandidates(self):
         # Any triangle that is incident to this ideal loop is a candidate to
         # use for redirecting.
-        for ei in self._edgeIndices:
+        for ei in self:
             edge = self._tri.edge(ei)
 
             # Yield *all* triangles incident to current edge.
@@ -824,7 +837,7 @@ class IdealLoop(EmbeddedLoop):
             # Make sure we'll be able to find the new ideal loop after
             # snapping the endpoints of this edge together.
             edgeLocations = []
-            for ei in self._edgeIndices:
+            for ei in self:
                 if ei == edge.index():
                     continue
                 emb = self._tri.edge(ei).embedding(0)
@@ -892,7 +905,7 @@ class IdealLoop(EmbeddedLoop):
             changedNow = False
             for edge in self._tri.edges():
                 # Make sure to leave the ideal loop untouched.
-                if edge.index() in self._edgeIndices:
+                if edge.index() in self:
                     continue
 
                 # If requested, try a 3-2 move.
@@ -1170,7 +1183,7 @@ class BoundaryLoop(EmbeddedLoop):
     def _redirectCandidates(self):
         # For boundary loops, we only want to redirect along *boundary*
         # triangles (to ensure that the loop stays in the boundary).
-        for ei in self._edgeIndices:
+        for ei in self:
             edge = self._tri.edge(ei)
 
             # Note that as a precondition, the current edge is assumed to be
@@ -1251,8 +1264,7 @@ class BoundaryLoop(EmbeddedLoop):
                             # performing the move.
                             return ( e,
                                     False,  # Close book without layering.
-                                    [ self._edgeIndices.index(fei),
-                                        self._edgeIndices.index(bei) ] )
+                                    { fei, bei } )
 
             # Resort to layering a new tetrahedron to facilitate a close book
             # move that makes one of the edges of this loop internal. This
@@ -1260,7 +1272,7 @@ class BoundaryLoop(EmbeddedLoop):
             # this loop.
             return ( self._tri.edge( self[0] ),
                     True,   # Layer before performing close book.
-                    [ self[0] ] )
+                    { self[0] } )
 
         # At this point, nothing further can be done to reduce the length of
         # this loop, so we can fall back on the default implementation.
