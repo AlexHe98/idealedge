@@ -551,10 +551,9 @@ class EmbeddedLoop:
                 across e, and then perform a close book move on the newly
                 layered edge. Otherwise, the move will simply be a close book
                 move on e.
-            (2) A (possibly empty) set consisting of edge indices in this
-                loop that will become internal after performing the move.
-                In effect, this loop will be modified by simply deleting
-                these edge indices from self._edgeIndices.
+            (2) A list of edge indices describing a sequence of edges that
+                can be used to form a topologically equivalent loop after
+                performing the move.
 
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
@@ -594,14 +593,12 @@ class EmbeddedLoop:
                 # At this point, all boundary components must be minimal.
                 return changed
             changed = True
-            edge, doLayer, remove = moveDetails
+            edge, doLayer, newEdgeIndices = moveDetails
 
-            # Before performing the move, we need to remember the locations
-            # of all the edges in this loop.
+            # Make sure we will be able to find the edges that form the loop
+            # after performing the move.
             edgeLocations = []
-            for ei in self:
-                if ei in remove:
-                    continue
+            for ei in newEdgeIndices:
                 emb = self._tri.edge(ei).embedding(0)
                 edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
 
@@ -618,10 +615,10 @@ class EmbeddedLoop:
         raise NotImplementedError()
 
     def _findBoundaryMoveImpl(self):
+        #TODO Do we really need this default implementation?
         # This default implementation should only be used if it is known that
         # none of the boundary simplification moves will alter the length of
-        # this loop (for example, this loop is internal, or this loop has
-        # already been reduced to length one).
+        # this loop (for example, this loop is internal).
         #
         # Precondition:
         #   --> This loop cannot be shortened.
@@ -1241,17 +1238,17 @@ class BoundaryLoop(EmbeddedLoop):
         if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
             # Try to find a close book move.
             if len(self) > 2:
-                for e in bc.edges():
+                for edge in bc.edges():
                     # Check eligibility of close book move, but do *not*
                     # perform yet.
-                    if not self._tri.closeBook( e, True, False ):
+                    if not self._tri.closeBook( edge, True, False ):
                         continue
 
                     # Does this close book move reduce the length?
-                    ftet = e.front().tetrahedron()
-                    fver = e.front().vertices()
-                    btet = e.back().tetrahedron()
-                    bver = e.back().vertices()
+                    ftet = edge.front().tetrahedron()
+                    fver = edge.front().vertices()
+                    btet = edge.back().tetrahedron()
+                    bver = edge.back().vertices()
                     for v in range(2):
                         fei = ftet.edge( fver[v], fver[2] ).index()
                         bei = btet.edge( bver[v], bver[3] ).index()
@@ -1260,20 +1257,71 @@ class BoundaryLoop(EmbeddedLoop):
                             # indices fei and bei correspond to the *only*
                             # edges of this loop that are incident to the
                             # triangles involved in the close book move.
-                            # These two edges become internal after
-                            # performing the move.
-                            return ( e,
+                            # After performing the move, we can remove these
+                            # two edges from the loop.
+                            newEdgeIndices = [ ei for ei in self
+                                    if ei not in { fei, bei } ]
+                            return ( edge,
                                     False,  # Close book without layering.
-                                    { fei, bei } )
+                                    newEdgeIndices )
 
             # Resort to layering a new tetrahedron to facilitate a close book
-            # move that makes one of the edges of this loop internal. This
-            # operation is guaranteed to be legal for any edge belonging to
-            # this loop.
-            return ( self._tri.edge( self[0] ),
+            # move that effectively removes one of the edges from this loop.
+            # This operation is guaranteed to be legal for any edge belonging
+            # to this loop; here we choose to perform it on the last edge.
+            lastEdgeIndex = self._edgeIndices.pop()
+            return ( self._tri.edge(lastEdgeIndex),
                     True,   # Layer before performing close book.
-                    { self[0] } )
+                    self._edgeIndices )
 
-        # At this point, nothing further can be done to reduce the length of
-        # this loop, so we can fall back on the default implementation.
-        return self._findBoundaryMoveImpl()
+        # At this point, if the boundary component containing the loop is not
+        # yet minimal, then we at least know that the loop consists only of a
+        # single edge e. Our goal now is to minimise boundary components
+        # without touching e. 
+        for bc in self._tri.boundaryComponents():
+            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+                continue
+
+            # First try to find a close book move.
+            for edge in bc.edges():
+                if edge.index() == self[0]:
+                    # Leave the loop untouched.
+                    continue
+                if self._tri.closeBook( edge, True, False ):
+                    return ( edge,
+                            False,  # Close book without layering.
+                            self._edgeIndices )
+
+            # We could not find a suitable close book move, so our plan now
+            # is to find a boundary edge e that joins two distinct vertices.
+            # We can layer over such an edge e, and then simplify the
+            # boundary using a close book move on the newly layered edge.
+            for edge in bc.edges():
+                if edge.vertex(0) == edge.vertex(1):
+                    continue
+
+                # The layering is illegal if this edge is incident to the
+                # same boundary triangle F on both sides (rather than two
+                # distinct triangles). But in that scenario, F forms a disc,
+                # and there must be a close book move available on the edge b
+                # that forms the boundary of this disc. The only possible
+                # close book that we haven't already ruled out is the one we
+                # were trying to avoid; in other words, b must coincide with
+                # the loop that we are trying to preserve.
+                front = edge.front()
+                back = edge.back()
+                if ( front.tetrahedron().triangle( front.vertices()[3] ) ==
+                        back.tetrahedron().triangle( back.vertices()[2] ) ):
+                    raise BoundsDisc()
+                else:
+                    return ( edge,
+                            True,   # Layer before performing close book.
+                            self._edgeIndices )
+
+            # We should never reach this point.
+            raise RuntimeError(
+                    "_findBoundaryMove() failed unexpectedly." )
+
+        # If we fell out of the boundary component loop, then all boundary
+        # components are minimal.
+        return None
