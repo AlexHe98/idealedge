@@ -462,8 +462,7 @@ class EmbeddedLoop:
         of self.triangulation() across which this routine should attempt to
         redirect this embedded loop.
 
-        If this embedded loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Returns:
             True if and only if this embedded loop was successfully
@@ -558,8 +557,7 @@ class EmbeddedLoop:
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
 
-        If this embedded loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> Every 2-sphere boundary component will have exactly two triangles
@@ -574,9 +572,11 @@ class EmbeddedLoop:
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if the ambient triangulation was changed, or False if every
-            boundary component of the ambient triangulation was already
-            minimal to begin with.
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) every boundary component of the ambient triangulation was
+                already minimal to begin with.
         """
         # Simplify the boundary of self._tri to use as few triangles as
         # possible.
@@ -612,6 +612,93 @@ class EmbeddedLoop:
         return
 
     def _findBoundaryMove(self):
+        raise NotImplementedError()
+
+    def _minimiseVerticesImpl(self):
+        """
+        Ensures that the triangulation containing this embedded loop has the
+        smallest possible number of vertices for the 3-manifold that it
+        represents, potentially adding tetrahedra to do this.
+
+        The default implementation of this routine requires the following two
+        helper routines, both of which are *not* implemented by default:
+        --> _findBoundaryMove()
+        --> _findSnapEdge()
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> supply implementations for _findBoundaryMove() and
+            _findSnapEdge().
+        In the latter case:
+        --> _findBoundaryMove() must satisfy the requirements described in
+            the documentation for _minimiseBoundaryImpl().
+        --> _findSnapEdge() must behave as follows:
+            --- If the number of vertices in self.triangulation() is already
+                minimal, then returns None.
+            --- Otherwise, returns details of a snap edge move that preserves
+                the topology of this loop. In detail, the return value should
+                be a tuple consisting of the following items:
+                (0) The edge on which the snap edge move is to be performed.
+                (1) A list of edge indices describing a sequence of edges
+                    that can be used to form a topologically equivalent loop
+                    after performing the move.
+
+        This routine might raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> If the ambient triangulation is closed, then it will have
+            precisely one vertex.
+        --> If the ambient triangulation has real boundary, then:
+            --- there will be no internal vertices;
+            --- every 2-sphere boundary component will have exactly two
+                triangles and three vertices;
+            --- every projective plane boundary component will have exactly
+                two triangles and two vertices;
+            --- every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only close book moves, layerings and/or snap edge moves. In
+        particular, this routine never creates new vertices.
+
+        Adapted from Regina's Triangulation3.minimiseVertices().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) the number of vertices in the ambient triangulation was
+                already minimal to begin with.
+        """
+        # Start by minimising the boundary.
+        changed = self._minimiseBoundaryImpl()
+
+        # All that remains now is to remove internal vertices.
+        # We do not currently have an implementation of collapseEdge() that
+        # keeps track of how edges get relabelled after the move, so we rely
+        # entirely on the snapEdge() routine.
+        while True:
+            moveDetails = self._findSnapEdge()
+            if moveDetails is None:
+                # At this point, there are no more unnecessary internal
+                # vertices.
+                return changed
+            changed = True
+            edge, newEdgeIndices = moveDetails
+
+            # Make sure we will be able to find the edges that form the loop
+            # after performing the move.
+            edgeLocations = []
+            for ei in newEdgeIndices:
+                emb = self._tri.edge(ei).embedding(0)
+                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+
+            # Perform the snap, and then update this ideal loop.
+            snapEdge(edge)
+        return
+
+    def _findSnapEdge(self):
         raise NotImplementedError()
 
 
@@ -697,8 +784,7 @@ class IdealLoop(EmbeddedLoop):
         with the third edge of F. This routine performs such shortenings
         until no further shortening is possible.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Returns:
             True if and only if this ideal loop was successfully shortened.
@@ -733,8 +819,7 @@ class IdealLoop(EmbeddedLoop):
         A side-effect of calling this routine is that it will shorten this
         ideal loop if possible.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> Every 2-sphere boundary component will have exactly two triangles
@@ -754,9 +839,11 @@ class IdealLoop(EmbeddedLoop):
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if the ambient triangulation was changed, or False if every
-            boundary component of the ambient triangulation was already
-            minimal to begin with.
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) every boundary component of the ambient triangulation was
+                already minimal to begin with.
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
@@ -817,9 +904,9 @@ class IdealLoop(EmbeddedLoop):
         routine increases the number of tetrahedra to achieve its goal.
         Otherwise, this routine leaves everything entirely untouched.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
         """
+        #TODO Update implementation to allow self._tri to have real boundary.
         while self._tri.countVertices() > 1:
             # Might raise BoundsDisc.
             self.shorten()
@@ -850,6 +937,10 @@ class IdealLoop(EmbeddedLoop):
             self.setFromEdgeLocations(edgeLocations)
         return
 
+    def _findSnapEdge(self):
+        #TODO
+        raise NotImplementedError()
+
     def simplifyBasic(self):
         """
         Uses 2-0 and 2-1 edge moves to reduce the number of tetrahedra in the
@@ -859,8 +950,7 @@ class IdealLoop(EmbeddedLoop):
         the functionality is subsumed by the more powerful simplify(),
         simplifyWithFourFour() and simplifyMonotonic() routines.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Adapted from SnapPea's check_for_cancellation().
 
@@ -883,8 +973,7 @@ class IdealLoop(EmbeddedLoop):
         the functionality is subsumed by the more powerful simplify() and
         simplifyWithFourFour() routines.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
 
@@ -967,8 +1056,7 @@ class IdealLoop(EmbeddedLoop):
         Unlike the simplify() routine, this routine never changes the number
         of vertices.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -1042,8 +1130,7 @@ class IdealLoop(EmbeddedLoop):
         then this routine attempts to minimise the number of tetrahedra
         without altering the number of vertices.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -1069,8 +1156,7 @@ class IdealLoop(EmbeddedLoop):
         """
         Attempts to randomly retriangulate this ideal loop.
 
-        If this ideal loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Adapted from SnapPea's randomize_triangulation().
         """
@@ -1167,8 +1253,7 @@ class BoundaryLoop(EmbeddedLoop):
         these two edges with the third edge of F. This routine performs such
         shortenings until no further shortening is possible.
 
-        If this boundary loop has length greater than one, then this routine
-        might raise BoundsDisc.
+        This routine might raise BoundsDisc.
 
         Returns:
             True if and only if this boundary loop was successfully
@@ -1220,9 +1305,11 @@ class BoundaryLoop(EmbeddedLoop):
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if the ambient triangulation was changed, or False if every
-            boundary component of the ambient triangulation was already
-            minimal to begin with.
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) every boundary component of the ambient triangulation was
+                already minimal to begin with.
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
@@ -1329,3 +1416,11 @@ class BoundaryLoop(EmbeddedLoop):
         # components are minimal.
         return None
     #TODO
+
+    def minimiseVertices(self):
+        #TODO
+        raise NotImplementedError()
+
+    def _findSnapEdge(self):
+        #TODO
+        raise NotImplementedError()
