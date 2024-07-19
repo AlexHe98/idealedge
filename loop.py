@@ -458,9 +458,8 @@ class EmbeddedLoop:
         Thus, subclasses that require this routine must either:
         --> override this routine; or
         --> supply an implementation for _redirectCandidates().
-        In the latter case, _redirectCandidates() must yield candidate faces
-        of self.triangulation() across which this routine should attempt to
-        redirect this embedded loop.
+        In the latter case, see the documentation for _redirectCandidates()
+        for details on the behaviour that must be implemented.
 
         This routine might raise BoundsDisc.
 
@@ -491,6 +490,13 @@ class EmbeddedLoop:
         return changed
 
     def _redirectCandidates(self):
+        """
+        Yields candidate triangles of self.triangulation() across which the
+        _shortenImpl() routine should attempt to redirect this loop.
+
+        The EmbeddedLoop base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
     def _attemptRedirect( self, face ):
@@ -529,30 +535,15 @@ class EmbeddedLoop:
         smallest possible number of boundary triangles, potentially adding
         tetrahedra to do this.
 
-        The default implementation of this routine requires the helper
-        routine _findBoundaryMove(), which is *not* implemented by default.
+        The default implementation of this routine requires the following
+        helper routines, which are *not* implemented by default:
+        --> _redirectCandidates()
+        --> _findBoundaryMove()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply an implementation for _findBoundaryMove().
-        In the latter case, _findBoundaryMove() must behave as follows:
-        --> If self.triangulation() already has minimal boundary, then
-            returns None.
-        --> Otherwise, returns details of a move that preserves the topology
-            of this loop, but makes the following combinatorial changes:
-            --- reduces the number of boundary triangles by two; and
-            --- either leaves this loop untouched, or reduces the length of
-                this loop by making some edges of this loop internal.
-            In detail, the return value should be a tuple consisting of the
-            following items:
-            (0) A boundary edge e on which to perform a move.
-            (1) A boolean indicating whether we need to layer across e. If
-                this is True, then the move we perform will be to first layer
-                across e, and then perform a close book move on the newly
-                layered edge. Otherwise, the move will simply be a close book
-                move on e.
-            (2) A list of edge indices describing a sequence of edges that
-                can be used to form a topologically equivalent loop after
-                performing the move.
+        --> supply implementations for the aforementioned helper routines.
+        In the latter case, see the documentation for each respective helper
+        routine for details on the behaviour that must be implemented.
 
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
@@ -565,6 +556,14 @@ class EmbeddedLoop:
         --> Every projective plane boundary component will have exactly two
             triangles and two vertices.
         --> Every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves and/or layerings on self.triangulation().
+        In particular, this routine never creates new vertices, and it never
+        creates a non-vertex-linking normal disc or 2-sphere if there was not
+        one before.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -612,6 +611,28 @@ class EmbeddedLoop:
         return
 
     def _findBoundaryMove(self):
+        """
+        Returns details of a boundary move that simplifies the boundary of
+        self.triangulation(), or None if the boundary is already minimal.
+
+        In detail, in the case where the boundary is not yet minimal, this
+        routine guarantees to find a move that reduces the number of boundary
+        triangles by two (without changing the topology of this loop). The
+        return value will be a tuple that describes this move using the
+        following data:
+        (0) A boundary edge e on which to perform the move.
+        (1) A boolean indicating whether we need to layer across e. If this
+            is True, then the move we perform will be to first layer across
+            e, and then perform a close book move on the newly layered edge.
+            Otherwise, the move will simply be a close book move on e.
+        (2) A list of edge indices describing a sequence of edges (in the
+            current triangulation) such that, after performing the move, this
+            edge sequence becomes a loop that is topologically equivalent to
+            this loop.
+
+        The EmbeddedLoop base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
     def _minimiseVerticesImpl(self):
@@ -620,27 +641,19 @@ class EmbeddedLoop:
         smallest possible number of vertices for the 3-manifold that it
         represents, potentially adding tetrahedra to do this.
 
-        The default implementation of this routine requires the following two
-        helper routines, both of which are *not* implemented by default:
+        The default implementation of this routine requires the following
+        helper routines, which are *not* implemented by default:
+        --> _redirectCandidates()
         --> _findBoundaryMove()
         --> _findSnapEdge()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply implementations for _findBoundaryMove() and
-            _findSnapEdge().
-        In the latter case:
-        --> _findBoundaryMove() must satisfy the requirements described in
-            the documentation for _minimiseBoundaryImpl().
-        --> _findSnapEdge() must behave as follows:
-            --- If the number of vertices in self.triangulation() is already
-                minimal, then returns None.
-            --- Otherwise, returns details of a snap edge move that preserves
-                the topology of this loop. In detail, the return value should
-                be a tuple consisting of the following items:
-                (0) The edge on which the snap edge move is to be performed.
-                (1) A list of edge indices describing a sequence of edges
-                    that can be used to form a topologically equivalent loop
-                    after performing the move.
+        --> supply implementations for the aforementioned helper routines.
+        In the latter case, see the documentation for each respective helper
+        routine for details on the behaviour that must be implemented.
+
+        A side-effect of calling this routine is that it will shorten this
+        embedded loop if possible.
 
         This routine might raise BoundsDisc.
 
@@ -656,8 +669,11 @@ class EmbeddedLoop:
             --- every other boundary component will have exactly one vertex.
 
         The changes that this routine performs can always be expressed using
-        only close book moves, layerings and/or snap edge moves. In
-        particular, this routine never creates new vertices.
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves, layerings and/or snap edge moves on
+            self.triangulation().
+        In particular, this routine never creates new vertices.
 
         Adapted from Regina's Triangulation3.minimiseVertices().
 
@@ -679,6 +695,7 @@ class EmbeddedLoop:
         # keeps track of how edges get relabelled after the move, so we rely
         # entirely on the snapEdge() routine.
         while True:
+            #TODO Shorten.
             moveDetails = self._findSnapEdge()
             if moveDetails is None:
                 # At this point, there are no more unnecessary internal
@@ -699,6 +716,22 @@ class EmbeddedLoop:
         return
 
     def _findSnapEdge(self):
+        """
+        Returns details of a snap edge move that can be used to reduce the
+        number of vertices() in self.triangulation(), or None if the number
+        of vertices is already minimal.
+
+        In detail, in the case where the number of vertices is not yet
+        minimal, this routine returns a tuple consisting of the following:
+        (0) An edge on which a snap edge move can be performed.
+        (1) A list of edge indices describing a sequence of edges (in the
+            current triangulation) such that, after performing the move, this
+            edge sequence becomes a loop that is topologically equivalent to
+            this loop.
+
+        The EmbeddedLoop base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
 
@@ -829,9 +862,12 @@ class IdealLoop(EmbeddedLoop):
         --> Every other boundary component will have exactly one vertex.
 
         The changes that this routine performs can always be expressed using
-        only close book moves and/or layerings. In particular, this routine
-        never creates new vertices, and it never creates a non-vertex-linking
-        normal disc or 2-sphere if there was not one before.
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves and/or layerings on self.triangulation().
+        In particular, this routine never creates new vertices, and it never
+        creates a non-vertex-linking normal disc or 2-sphere if there was not
+        one before.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -898,13 +934,44 @@ class IdealLoop(EmbeddedLoop):
 
     def minimiseVertices(self):
         """
-        Reduces the number of vertices in the ambient triangulation to one.
+        Ensures that the triangulation containing this ideal loop has the
+        smallest possible number of vertices for the 3-manifold that it
+        represents, potentially adding tetrahedra to do this.
 
-        If the number of vertices is not already equal to one, then this
-        routine increases the number of tetrahedra to achieve its goal.
-        Otherwise, this routine leaves everything entirely untouched.
+        A side-effect of calling this routine is that it will shorten this
+        ideal loop if possible.
 
         This routine might raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> If the ambient triangulation is closed, then it will have
+            precisely one vertex.
+        --> If the ambient triangulation has real boundary, then:
+            --- there will be no internal vertices;
+            --- every 2-sphere boundary component will have exactly two
+                triangles and three vertices;
+            --- every projective plane boundary component will have exactly
+                two triangles and two vertices;
+            --- every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves, layerings and/or snap edge moves on
+            self.triangulation().
+        In particular, this routine never creates new vertices.
+
+        Adapted from Regina's Triangulation3.minimiseVertices().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) the number of vertices in the ambient triangulation was
+                already minimal to begin with.
         """
         #TODO Update implementation to allow self._tri to have real boundary.
         while self._tri.countVertices() > 1:
@@ -1285,6 +1352,9 @@ class BoundaryLoop(EmbeddedLoop):
         smallest possible number of boundary triangles, potentially adding
         tetrahedra to do this.
 
+        A side-effect of calling this routine is that it will shorten this
+        boundary loop if possible.
+
         This routine might raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
@@ -1295,9 +1365,12 @@ class BoundaryLoop(EmbeddedLoop):
         --> Every other boundary component will have exactly one vertex.
 
         The changes that this routine performs can always be expressed using
-        only close book moves and/or layerings. In particular, this routine
-        never creates new vertices, and it never creates a non-vertex-linking
-        normal disc or 2-sphere if there was not one before.
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves and/or layerings on self.triangulation().
+        In particular, this routine never creates new vertices, and it never
+        creates a non-vertex-linking normal disc or 2-sphere if there was not
+        one before.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -1418,6 +1491,46 @@ class BoundaryLoop(EmbeddedLoop):
     #TODO
 
     def minimiseVertices(self):
+        """
+        Ensures that the triangulation containing this boundary loop has the
+        smallest possible number of vertices for the 3-manifold that it
+        represents, potentially adding tetrahedra to do this.
+
+        A side-effect of calling this routine is that it will shorten this
+        boundary loop if possible.
+
+        This routine might raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> If the ambient triangulation is closed, then it will have
+            precisely one vertex.
+        --> If the ambient triangulation has real boundary, then:
+            --- there will be no internal vertices;
+            --- every 2-sphere boundary component will have exactly two
+                triangles and three vertices;
+            --- every projective plane boundary component will have exactly
+                two triangles and two vertices;
+            --- every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening this loop by redirecting it across triangular faces.
+        --> Close book moves, layerings and/or snap edge moves on
+            self.triangulation().
+        In particular, this routine never creates new vertices.
+
+        Adapted from Regina's Triangulation3.minimiseVertices().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this loop or its ambient triangulation were
+            changed. In other words, a return value of False indicates that:
+            (1) this loop could not be shortened; and
+            (2) the number of vertices in the ambient triangulation was
+                already minimal to begin with.
+        """
         #TODO
         raise NotImplementedError()
 
