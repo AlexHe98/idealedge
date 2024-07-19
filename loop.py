@@ -1508,7 +1508,6 @@ class BoundaryLoop(EmbeddedLoop):
         # If we fell out of the boundary component loop, then all boundary
         # components are minimal.
         return None
-    #TODO
 
     def minimiseVertices(self):
         """
@@ -1551,9 +1550,20 @@ class BoundaryLoop(EmbeddedLoop):
             (2) the number of vertices in the ambient triangulation was
                 already minimal to begin with.
         """
-        #TODO
-        raise NotImplementedError()
+        # Can use the default implementation provided we supply an
+        # implementation for _findSnapEdge().
+        return self._minimiseVerticesImpl()
 
     def _findSnapEdge(self):
-        #TODO
-        raise NotImplementedError()
+        # Precondition:
+        #   --> This loop cannot be shortened.
+
+        # Find a suitable edge on which to perform a snap edge move (just
+        # check whether the move is legal, do not perform yet).
+        for edge in self._tri.edges():
+            if snapEdge( edge, True, False ):
+                # This loop should lie entirely in the boundary, so the snap
+                # edge move should not change the loop.
+                return ( edge, self._edgeIndices )
+        return
+    #TODO
