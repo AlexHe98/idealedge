@@ -7,33 +7,45 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 
 
-def snapEdge(edge):
+def snapEdge( edge, check=True, perform=True ):
     """
-    If the endpoints of the given edge are distinct, then uses a snapped ball
-    to pinch these two endpoints together.
+    If the endpoints of the given edge are distinct and not both boundary,
+    then uses a snapped ball to pinch these two endpoints together.
 
     This operation is equivalent to performing the following two operations:
     (1) Pinching the edge, which introduces a two-tetrahedron gadget with a
         single degree-one edge e at its heart.
     (2) Performing a 2-1 edge move on e.
 
+    If check is True (the default), then this routine will check whether
+    snapping the given edge is legal; otherwise, this routine will proceed
+    under the assumption that the move is already known to be legal. If
+    perform is True (the default), then this routine will actually perform
+    the snap edge move if it has determined or assumed that the move is
+    legal; otherwise, the triangulation containing the given edge will be
+    left unchanged.
+
     If the triangulation containing the given edge is currently oriented,
     then this operation will preserve the orientation.
-
-    Pre-conditions:
-    --> The given edge belongs to a triangulation with no boundary faces.
-
-    TODO:
-    --> The stated pre-conditions are stronger than necessary.
 
     Parameters:
     --> edge    The edge whose endpoints should be snapped together.
 
     Returns:
-        True if and only if snapping the given edge is possible.
+        True if and only if snapping the given edge is legal.
     """
-    if edge.vertex(0) == edge.vertex(1):
-        return False
+    if check:
+        # Endpoints need to be distinct and not both boundary.
+        u = edge.vertex(0)
+        v = edge.vertex(1)
+        if u == v:
+            return False
+        if u.isBoundary() and v.isBoundary():
+            return False
+    if not perform:
+        return True
+
+    # Start by pinching the given edge.
     tri = edge.triangulation()
     tri.pinchEdge(edge)
 
@@ -115,7 +127,7 @@ class EmbeddedLoop:
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
 
-        Pre-condition:
+        Precondition:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
@@ -131,7 +143,7 @@ class EmbeddedLoop:
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
 
-        Pre-condition:
+        Precondition:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
@@ -224,7 +236,7 @@ class EmbeddedLoop:
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
 
-        Pre-condition:
+        Precondition:
         --> The given list of edge locations is nonempty.
         --> The tetrahedra given by the first entries of each edge location
             must all belong to the same 3-manifold triangulation.
@@ -339,7 +351,7 @@ class EmbeddedLoop:
         Returns True if and only if this embedded loop has nonempty
         intersection with the given normal surface surf.
 
-        Pre-condition:
+        Precondition:
         --> The given normal surface is embedded in self.triangulation().
         """
         for i in self:
@@ -352,7 +364,7 @@ class EmbeddedLoop:
         Returns the number of times this embedded loop intersects the given
         normal surface surf.
 
-        Pre-condition:
+        Precondition:
         --> The given normal surface is embedded in self.triangulation().
         """
         wt = 0
@@ -536,8 +548,8 @@ class EmbeddedLoop:
         tetrahedra to do this.
 
         The default implementation of this routine requires the following
-        helper routines, which are *not* implemented by default:
-        --> _redirectCandidates()
+        helper routines, which are *not* fully implemented by default:
+        --> _shortenImpl()
         --> _findBoundaryMove()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
@@ -582,7 +594,7 @@ class EmbeddedLoop:
         changed = False
         while True:
             # Shorten this loop to minimise the number of special cases.
-            if self._shortenImpl():     # Might raise BoundsDisc
+            if self._shortenImpl():     # Might raise BoundsDisc.
                 changed = True
 
             # Is there a move we can perform to reduce the number of boundary
@@ -642,9 +654,9 @@ class EmbeddedLoop:
         represents, potentially adding tetrahedra to do this.
 
         The default implementation of this routine requires the following
-        helper routines, which are *not* implemented by default:
-        --> _redirectCandidates()
-        --> _findBoundaryMove()
+        helper routines, which are *not* fully implemented by default:
+        --> _shortenImpl()
+        --> _minimiseBoundaryImpl()
         --> _findSnapEdge()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
@@ -688,14 +700,19 @@ class EmbeddedLoop:
                 already minimal to begin with.
         """
         # Start by minimising the boundary.
-        changed = self._minimiseBoundaryImpl()
+        changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
 
         # All that remains now is to remove internal vertices.
         # We do not currently have an implementation of collapseEdge() that
         # keeps track of how edges get relabelled after the move, so we rely
         # entirely on the snapEdge() routine.
         while True:
-            #TODO Shorten.
+            # Shorten this loop to minimise the number of special cases.
+            if self._shortenImpl():     # Might raise BoundsDisc.
+                changed = True
+
+            # Is there a snap edge move we can perform to reduce the number
+            # of vertices?
             moveDetails = self._findSnapEdge()
             if moveDetails is None:
                 # At this point, there are no more unnecessary internal
@@ -711,8 +728,10 @@ class EmbeddedLoop:
                 emb = self._tri.edge(ei).embedding(0)
                 edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
 
-            # Perform the snap, and then update this ideal loop.
-            snapEdge(edge)
+            # Perform the snap, and then update this ideal loop. We can
+            # assume that the snap is legal, so can perform without checking.
+            snapEdge( edge, False, True )
+            self.setFromEdgeLocations(edgeLocations)
         return
 
     def _findSnapEdge(self):
@@ -773,7 +792,7 @@ class IdealLoop(EmbeddedLoop):
         checked, but some of the routines provided by this class might have
         undefined behaviour if this condition is not satisfied.
 
-        Pre-condition:
+        Precondition:
         --> If supplied, the given list of edges must be nonempty, must
             consist of edges that all belong to the same 3-manifold
             triangulation T, and moreover all of these edges must lie
@@ -930,7 +949,6 @@ class IdealLoop(EmbeddedLoop):
         # If we fell out of the boundary component loop, then all boundary
         # components are minimal.
         return None
-    #TODO
 
     def minimiseVertices(self):
         """
@@ -973,40 +991,39 @@ class IdealLoop(EmbeddedLoop):
             (2) the number of vertices in the ambient triangulation was
                 already minimal to begin with.
         """
-        #TODO Update implementation to allow self._tri to have real boundary.
-        while self._tri.countVertices() > 1:
-            # Might raise BoundsDisc.
-            self.shorten()
-
-            # Find a suitable edge to collapse. Start with edges belonging to
-            # the ideal loop.
-            if len(self) > 1:
-                edge = self._tri.edge( self._edgeIndices[0] )
-            else:
-                for edge in self._tri.edges():
-                    if edge.vertex(0) != edge.vertex(1):
-                        break
-
-            # Make sure we'll be able to find the new ideal loop after
-            # snapping the endpoints of this edge together.
-            edgeLocations = []
-            for ei in self:
-                if ei == edge.index():
-                    continue
-                emb = self._tri.edge(ei).embedding(0)
-                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-
-            # Perform the snap, and then update this ideal loop. Note that
-            # this will not have any unintended side-effects on the ideal
-            # loop, both because we ran shorten() and because we chose to
-            # prioritise collapsing edges belonging to the ideal loop.
-            snapEdge(edge)
-            self.setFromEdgeLocations(edgeLocations)
-        return
+        # Can use the default implementation provided we supply an
+        # implementation for _findSnapEdge().
+        return self._minimiseVerticesImpl()
 
     def _findSnapEdge(self):
-        #TODO
-        raise NotImplementedError()
+        # Precondition:
+        #   --> This loop cannot be shortened.
+
+        # Find a suitable edge on which to perform a snap edge move. We
+        # minimise the number of special cases by prioritising edges
+        # belonging to the ideal loop.
+        if len(self) > 1:
+            # This loop is supposed to lie entirely in the interior of the
+            # ambient triangulation, so it should be legal to snap any edge
+            # of this loop; here, we choose the last edge in the loop.
+            #
+            # It is safe to directly modify self._edgeIndices since this will
+            # need to be updated anyway.
+            lastEdgeIndex = self._edgeIndices.pop()
+            return ( self._tri.edge(lastEdgeIndex), self._edgeIndices )
+        else:
+            for edge in self._tri.edges():
+                # Since this loop is internal, snap edge is legal if and only
+                # if the endpoints of the edge are distinct.
+                #
+                # Also, because this loop should have length one at this
+                # point, we cannot unintentionally change this loop (if this
+                # loop had more than one vertex, then it would be possible to
+                # merge two of its vertices).
+                if edge.vertex(0) != edge.vertex(1):
+                    return ( edge, self._edgeIndices )
+        return
+    #TODO
 
     def simplifyBasic(self):
         """
@@ -1287,7 +1304,7 @@ class BoundaryLoop(EmbeddedLoop):
         checked, but some of the routines provided by this class might have
         undefined behaviour if this condition is not satisfied.
 
-        Pre-condition:
+        Precondition:
         --> If supplied, the given list of edges must be nonempty, must
             consist of edges that all belong to the same 3-manifold
             triangulation T, and moreover all of these edges must lie
@@ -1390,7 +1407,7 @@ class BoundaryLoop(EmbeddedLoop):
 
     def _findBoundaryMove(self):
         # Exceptions:
-        #   --> Might raise BoundsDisc (even if len(self) == 1).
+        #   --> Might raise BoundsDisc.
         #
         # Precondition:
         #   --> This loop cannot be shortened.
@@ -1432,6 +1449,9 @@ class BoundaryLoop(EmbeddedLoop):
             # move that effectively removes one of the edges from this loop.
             # This operation is guaranteed to be legal for any edge belonging
             # to this loop; here we choose to perform it on the last edge.
+            #
+            # It is safe to directly modify self._edgeIndices since this will
+            # need to be updated anyway.
             lastEdgeIndex = self._edgeIndices.pop()
             return ( self._tri.edge(lastEdgeIndex),
                     True,   # Layer before performing close book.
