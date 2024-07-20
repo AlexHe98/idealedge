@@ -51,7 +51,7 @@ def drill(loop):
     meridianEdges = [ tet.edge(edgeNum)
             for tet, edgeNum in meridianLocations ]
     meridian = BoundaryLoop(meridianEdges)
-    meridian.minimiseVertices()
+    meridian.simplify()
     return meridian
 
 

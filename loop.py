@@ -1582,4 +1582,35 @@ class BoundaryLoop(EmbeddedLoop):
                 # edge move should not change the loop.
                 return ( edge, self._edgeIndices )
         return
+
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        number of tetrahedra in the ambient triangulation, while leaving this
+        boundary loop untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify()
+        routine.
+
+        This routine might raise BoundsDisc.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyMonotonicImpl(True)
+
+    def simplify(self):
+        """
+        """
+        #TODO Replace this with a proper implementation.
+        self.minimiseVertices()
+        self.simplifyMonotonic()
+        return
     #TODO
