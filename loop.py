@@ -1247,6 +1247,11 @@ class IdealLoop(EmbeddedLoop):
 
         This routine uses minimiseVertices() and simplifyMonotonic(), in
         combination with random 4-4 moves that leave this loop untouched.
+        
+        Although this routine works very well most of the time, it can
+        occasionally get stuck in a "well" that can only be escaped by
+        increasing the number of tetrahedra. In such cases, it might be
+        useful to try to escape using the randomise() routine.
 
         This routine might raise BoundsDisc.
 
@@ -1266,6 +1271,11 @@ class IdealLoop(EmbeddedLoop):
     def randomise(self):
         """
         Attempts to randomly retriangulate this ideal loop.
+
+        This routine works by performing lots of random 2-3 moves, before
+        attempting to simplify the ambient triangulation again. As such, it
+        is often useful for escaping "wells" when the simplify() routine gets
+        stuck.
 
         This routine might raise BoundsDisc.
 
@@ -1619,9 +1629,22 @@ class BoundaryLoop(EmbeddedLoop):
 
     def simplify(self):
         """
+        Attempts to simplify this boundary loop.
+
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves (which leave this loop untouched).
+
+        This routine might raise BoundsDisc.
+
+        Adapted from Regina's Triangulation3.intelligentSimplify().
+
+        Warning:
+            --> Running this routine multiple times on the same loop may
+                return different results, since the implementation makes
+                random decisions.
+
+        Returns:
+            True if and only if this loop was successfully simplified.
+            Otherwise, this loop will not be modified at all.
         """
-        #TODO Replace this with a proper implementation.
-        self.minimiseVertices()
-        self.simplifyMonotonic()
-        return
-    #TODO
+        return self._simplifyImpl()
