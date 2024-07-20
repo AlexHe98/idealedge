@@ -823,7 +823,106 @@ class EmbeddedLoop:
 
         # Nothing further we can do.
         return changed
-    #TODO
+
+    def _simplifyImpl(self):
+        """
+        Attempts to simplify this embedded loop.
+
+        This routine uses _minimiseVerticesImpl() and
+        _simplifyMonotonicImpl(), in combination with random 4-4 moves that
+        leave this loop untouched.
+
+        Note that the helper routine _minimiseVerticesImpl() is *not* fully
+        implemented by default. Thus, subclasses that require this
+        _simplifyImpl() routine must either:
+        --> override this routine; or
+        --> supply an implementation for _minimiseVerticesImpl().
+        In the latter case, see the documentation for _minimiseVerticesImpl()
+        for details on the behaviour that must be implemented.
+
+        This routine might raise BoundsDisc.
+
+        Adapted from Regina's Triangulation3.intelligentSimplify().
+
+        Warning:
+            --> Running this routine multiple times on the same loop may
+                return different results, since the implementation makes
+                random decisions.
+
+        Returns:
+            True if and only if this loop was successfully simplified.
+            Otherwise, this loop will not be modified at all.
+        """
+        RandomEngine.reseedWithHardware()
+
+        # Work with a clone so that we can roll back changes if we are not
+        # able to reduce the number of tetrahedra.
+        tempLoop = self.clone()
+        tempTri = tempLoop.triangulation()
+
+        # Start by minimising vertices. This will probably increase the
+        # number of tetrahedra if the number of vertices is not already
+        # minimal, but hopefully the monotonic simplification saves us.
+        #
+        # Might raise BoundsDisc.
+        tempLoop._minimiseVerticesImpl()
+        tempLoop._simplifyMonotonicImpl(True)   # Include 3-2 moves.
+
+        # Use random 4-4 moves until it feels like even this is not helping
+        # us make any further progress.
+        #
+        # In detail, we keep track of a cap on the number of consecutive 4-4
+        # moves that we are allowed to perform without successfully
+        # simplifying the triangulation. We give up whenever we reach or
+        # exceed this cap. The cap is scaled up based on our "perseverance".
+        fourFourAttempts = 0
+        fourFourCap = 0
+        perseverance = 5        # Hard-coded value copied from Regina.
+        while True:
+            # Find all available 4-4 moves.
+            fourFourAvailable = []
+            for edge in tempTri.edges():
+                if edge.index() in tempLoop:
+                    # We do not want to touch the embedded loop.
+                    continue
+                for axis in range(2):
+                    if tempTri.fourFourMove( edge, axis, True, False ):
+                        fourFourAvailable.append( ( edge, axis ) )
+
+            # Is it worthwhile to continue attempting 4-4 moves?
+            availableCount = len(fourFourAvailable)
+            if fourFourCap < perseverance * availableCount:
+                fourFourCap = perseverance * availableCount
+            if fourFourAttempts >= fourFourCap:
+                break
+
+            # Perform a random 4-4 move, and see if this is enough to help us
+            # simplify the triangulation.
+            #
+            # _simplifyMonotonicImpl() might raise BoundsDisc.
+            fourFourChoice = fourFourAvailable[
+                    RandomEngine.rand(availableCount) ]
+            renum = fourFour( *fourFourChoice )
+            tempLoop._setFromRenum(renum)
+            if tempLoop._simplifyMonotonicImpl(True):   # Include 3-2 moves.
+                # We successfully simplified!
+                # Start all over again.
+                fourFourAttempts = 0
+                fourFourCap = 0
+            else:
+                fourFourAttempts += 1
+
+        # If simplification was successful (either by reducing the number of
+        # tetrahedra, or failing that by reducing the number of vertices
+        # without increasing the number of tetrahedra), then sync this
+        # embedded loop with the now-simpler tempLoop.
+        tri = self.triangulation()
+        simplified = ( tempTri.size() < tri.size() or
+                ( tempTri.size() == tri.size() and
+                    tempTri.countVertices() < tri.countVertices() ) )
+        if simplified:
+            self.setFromLoop(tempLoop)
+        return simplified
 
 
 class IdealLoop(EmbeddedLoop):
@@ -1141,116 +1240,28 @@ class IdealLoop(EmbeddedLoop):
         # Include 3-2 moves.
         # Might raise BoundsDisc.
         return self._simplifyMonotonicImpl(True)
-    #TODO
-
-    def simplifyWithFourFour(self):
-        """
-        With the assistance of random 4-4 moves, attempts to reduce the
-        number of tetrahedra in the ambient triangulation, while leaving this
-        ideal loop untouched.
-
-        In more detail, this routine uses simplifyMonotonic() until it
-        reaches a local minimum, and then uses random 4-4 moves to attempt to
-        escape this local minimum.
-
-        Unlike the simplify() routine, this routine never changes the number
-        of vertices.
-
-        This routine might raise BoundsDisc.
-
-        Adapted from Regina's Triangulation3.intelligentSimplify().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        changed = self.simplifyMonotonic()  # Might raise BoundsDisc.
-        tempLoop = self.clone()
-        tempTri = tempLoop.triangulation()
-
-        # Use random 4-4 moves until it feels like even this is not helping
-        # us make any further progress.
-        #
-        # In detail, we keep track of a cap on the number of consecutive 4-4
-        # moves that we are allowed to perform without successfully
-        # simplifying the triangulation. We give up whenever we reach or
-        # exceed this cap. The cap is scaled up based on our "perseverance".
-        fourFourAttempts = 0
-        fourFourCap = 0
-        perseverance = 5        # Hard-coded value copied from Regina.
-        while True:
-            # Find all available 4-4 moves.
-            fourFourAvailable = []
-            for edge in tempTri.edges():
-                if edge.index() in tempLoop:
-                    # We do not want to touch the ideal loop.
-                    continue
-                for axis in range(2):
-                    if tempTri.fourFourMove( edge, axis, True, False ):
-                        fourFourAvailable.append( ( edge, axis ) )
-
-            # Is it worthwhile to continue attempting 4-4 moves?
-            availableCount = len(fourFourAvailable)
-            if fourFourCap < perseverance * availableCount:
-                fourFourCap = perseverance * availableCount
-            if fourFourAttempts >= fourFourCap:
-                break
-
-            # Perform a random 4-4 move, and see if this is enough to help us
-            # simplify the triangulation.
-            fourFourChoice = fourFourAvailable[
-                    RandomEngine.rand(availableCount) ]
-            renum = fourFour( *fourFourChoice )
-            tempLoop._setFromRenum(renum)
-            if tempLoop.simplifyMonotonic():    # Might raise BoundsDisc.
-                # We successfully simplified!
-                # Start all over again.
-                fourFourAttempts = 0
-                fourFourCap = 0
-            else:
-                fourFourAttempts += 1
-
-        # If the 4-4 moves were successful, then sync this ideal loop with
-        # the now-simplified tempLoop.
-        if tempTri.size() < self.triangulation().size():
-            self.setFromLoop(tempLoop)
-            changed = True
-        return changed
 
     def simplify(self):
         """
         Attempts to simplify this ideal loop.
 
-        The rationale of this routine is to combine the functionality of the
-        minimiseVertices() and simplifyWithFourFour() routines. In detail,
-        this routine attempts to reduce the number of vertices in the ambient
-        triangulation to one without increasing the number of tetrahedra. If
-        this fails, or if the number of vertices is already equal to one,
-        then this routine attempts to minimise the number of tetrahedra
-        without altering the number of vertices.
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves that leave this loop untouched.
 
         This routine might raise BoundsDisc.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
+        Warning:
+            --> Running this routine multiple times on the same loop may
+                return different results, since the implementation makes
+                random decisions.
+
         Returns:
-            True if and only if this ideal loop was successfully simplified.
-            Otherwise, this ideal loop will not be modified at all.
+            True if and only if this loop was successfully simplified.
+            Otherwise, this loop will not be modified at all.
         """
-        RandomEngine.reseedWithHardware()
-
-        # Try minimising the number of vertices.
-        if self._tri.countVertices() > 1:
-            minVer = self.clone()
-            minVer.minimiseVertices()       # Might raise BoundsDisc.
-            minVer.simplifyWithFourFour()   # Might raise BoundsDisc.
-            if minVer.triangulation().size() <= self._tri.size():
-                self.setFromLoop( minVer, False )
-                return True
-
-        # Try minimising the number of tetrahedra.
-        return self.simplifyWithFourFour()  # Might raise BoundsDisc.
+        return self._simplifyImpl()
 
     def randomise(self):
         """
