@@ -27,6 +27,10 @@ def embedByFilling( knot, insertAsChild=False ):
     ideal loop, and then insert the resulting packet as a child of the given
     knot packet. This feature is switched off by default.
 
+    This routine is mainly designed to work with *nontrivial* knots, although
+    it does not check nontriviality directly. If this routine does happen to
+    detect that the given knot is trivial, then it will raise BoundsDisc.
+
     Warning:
     --> This routine uses fast heuristics to attempt to construct the desired
         triangulation, and is not guaranteed to terminate. Use the
@@ -54,6 +58,10 @@ def reversePinch( knotComplement, packet=None ):
     If the optional packet is supplied, then this routine will run
     loopPacket() on the constructed ideal loop, and then insert the resulting
     packet as a child of the given packet.
+
+    This routine is mainly designed to work with *nontrivial* knots, although
+    it does not check nontriviality directly. If this routine does happen to
+    detect that the given knot is trivial, then it will raise BoundsDisc.
 
     Warning:
     --> This routine modifies the given knotComplement triangulation.
@@ -89,8 +97,7 @@ def reversePinch( knotComplement, packet=None ):
     loop = IdealLoop( [idealEdge] )
     noSimplification = 0
     while noSimplification < 2:
-        # Ideal loop has length one, so no risk of raising BoundsDisc.
-        if not loop.simplify():
+        if not loop.simplify():     # Might raise BoundsDisc.
             noSimplification += 1
     if packet is not None:
         child = loopPacket(loop)

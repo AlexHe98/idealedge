@@ -223,6 +223,8 @@ def surgery0(oldLoop):
     only if there is an embedded 2-sphere intersecting the new ideal loop in
     exactly one point.
 
+    This routine might raise BoundsDisc.
+
     Warning:
     --> This routine currently uses fast heuristics to attempt to construct
         the desired triangulation, and is not guaranteed to terminate.
@@ -246,6 +248,8 @@ def surgery0(oldLoop):
     edgeNum = emb.face()
 
     # Close up the boundary and build the new IdealLoop.
+    #
+    # newLoop.simplify() might raise BoundsDisc.
     layer = tri.layerOn(lon)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)

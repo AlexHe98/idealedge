@@ -6,7 +6,14 @@ from regina import *
 from loop import BoundaryLoop
 
 
-def drill(loop):
+def drillMeridian(loop):
+    """
+    Builds a BoundaryLoop representing the meridian curve obtained by
+    drilling out the given IdealLoop.
+
+    This routine might raise BoundsDisc if the meridian curve bounds a disc
+    in the complement of the given loop.
+    """
     # Build subdivided triangulation.
     drillTri = Triangulation3()
     drillTet = []
@@ -51,7 +58,7 @@ def drill(loop):
     meridianEdges = [ tet.edge(edgeNum)
             for tet, edgeNum in meridianLocations ]
     meridian = BoundaryLoop(meridianEdges)
-    meridian.simplify()
+    meridian.simplify()     # Might raise BoundsDisc.
     return meridian
 
 

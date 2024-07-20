@@ -226,8 +226,13 @@ def _embedParallel( knot, tracker ):
             diagramProcess.terminate()
             fillingProcess.join()
             diagramProcess.join()
-            loop = IdealLoop()
-            loop.setFromLightweight( *fillingReceiver.recv() )
+            if fillingReceiver.poll():
+                loop = IdealLoop()
+                loop.setFromLightweight( *fillingReceiver.recv() )
+            else:
+                # If fillingProcess terminated without sending information,
+                # then the given knot must be unknotted.
+                raise BoundsDisc()
             if tracker is not None:
                 afterReport = "Built triangulation using 1/0 Dehn surgery."
                 tracker.report( None, afterReport )
@@ -252,7 +257,11 @@ def _embedParallel( knot, tracker ):
 
 def _runFilling( knotSig, sender ):
     RandomEngine.reseedWithHardware()
-    loop = embedByFilling( Link.fromKnotSig(knotSig) )
+    try:
+        loop = embedByFilling( Link.fromKnotSig(knotSig) )
+    except BoundsDisc:
+        # Send nothing if the given knot is unknotted.
+        return
     sender.send( loop.lightweightDescription() )
     return
 
