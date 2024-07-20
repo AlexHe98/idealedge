@@ -753,6 +753,78 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
+    def _simplifyMonotonicImpl( self, include32 ):
+        """
+        Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
+        reduce the number of tetrahedra in the ambient triangulation, while
+        leaving this embedded loop untouched.
+
+        This routine might raise BoundsDisc.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
+        SnapPea's check_for_cancellation().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        changed = False     # Has anything changed ever?    (Return value.)
+        changedNow = True   # Did we just change something? (Loop control.)
+        while True:
+            changedNow = False
+            for edge in self._tri.edges():
+                # Make sure to leave the embedded loop untouched.
+                if edge.index() in self:
+                    continue
+
+                # If requested, try a 3-2 move.
+                if include32:
+                    renum = threeTwo(edge)
+                    if renum is not None:
+                        changedNow = True
+                        changed = True
+                        break
+
+                # Try a 2-0 edge move.
+                # This move can destroy the loop if it bounds a disc.
+                renum = twoZero(edge)
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+                # Try a 2-1 edge move.
+                # This move can destroy the loop if it bounds a disc.
+                renum = twoOne( edge, 0 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+                renum = twoOne( edge, 1 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+            # Did we improve the triangulation? If so, then we need to update
+            # the details of the loop, and then check whether we can make
+            # further improvements.
+            if changedNow:
+                try:
+                    # If we destroyed the loop, then this will raise NotLoop.
+                    self._setFromRenum(renum)
+                except NotLoop:
+                    # As noted above, the loop can only get destroyed if it
+                    # bounds a disc.
+                    raise BoundsDisc()
+            else:
+                break
+
+        # Nothing further we can do.
+        return changed
+    #TODO
+
 
 class IdealLoop(EmbeddedLoop):
     """
@@ -1023,16 +1095,16 @@ class IdealLoop(EmbeddedLoop):
                 if edge.vertex(0) != edge.vertex(1):
                     return ( edge, self._edgeIndices )
         return
-    #TODO
 
     def simplifyBasic(self):
         """
-        Uses 2-0 and 2-1 edge moves to reduce the number of tetrahedra in the
-        ambient triangulation, while leaving this ideal loop untouched.
+        Uses 2-0 edge and 2-1 edge moves to monotonically reduce the number
+        of tetrahedra in the ambient triangulation, while leaving this ideal
+        loop untouched.
 
         There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify(),
-        simplifyWithFourFour() and simplifyMonotonic() routines.
+        the functionality is subsumed by the more powerful simplify() and
+        simplifyMonotonic() routines.
 
         This routine might raise BoundsDisc.
 
@@ -1045,17 +1117,17 @@ class IdealLoop(EmbeddedLoop):
         """
         # Do not include 3-2 moves.
         # Might raise BoundsDisc.
-        return self._simplifyImpl(False)
+        return self._simplifyMonotonicImpl(False)
 
     def simplifyMonotonic(self):
         """
-        Monotonically reduces the number of tetrahedra in the ambient
-        triangulation to a local minimum, while leaving this ideal loop
-        untouched.
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        number of tetrahedra in the ambient triangulation, while leaving this
+        ideal loop untouched.
 
         There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify() and
-        simplifyWithFourFour() routines.
+        the functionality is subsumed by the more powerful simplify()
+        routine.
 
         This routine might raise BoundsDisc.
 
@@ -1068,64 +1140,8 @@ class IdealLoop(EmbeddedLoop):
         """
         # Include 3-2 moves.
         # Might raise BoundsDisc.
-        return self._simplifyImpl(True)
-
-    def _simplifyImpl( self, include32 ):
-        changed = False     # Has anything changed ever?    (Return value.)
-        changedNow = True   # Did we just change something? (Loop control.)
-        while True:
-            changedNow = False
-            for edge in self._tri.edges():
-                # Make sure to leave the ideal loop untouched.
-                if edge.index() in self:
-                    continue
-
-                # If requested, try a 3-2 move.
-                if include32:
-                    renum = threeTwo(edge)
-                    if renum is not None:
-                        changedNow = True
-                        changed = True
-                        break
-
-                # Try a 2-0 edge move.
-                # This move can destroy the ideal loop if it bounds a disc.
-                renum = twoZero(edge)
-                if renum is not None:
-                    changedNow = True
-                    changed = True
-                    break
-
-                # Try a 2-1 edge move.
-                # This move can destroy the ideal loop if it bounds a disc.
-                renum = twoOne( edge, 0 )
-                if renum is not None:
-                    changedNow = True
-                    changed = True
-                    break
-                renum = twoOne( edge, 1 )
-                if renum is not None:
-                    changedNow = True
-                    changed = True
-                    break
-
-            # Did we improve the triangulation? If so, then we need to update
-            # the details of the ideal loop, and then check whether we can
-            # improve further.
-            if changedNow:
-                try:
-                    # If we destroyed the ideal loop, then this will raise
-                    # NotLoop.
-                    self._setFromRenum(renum)
-                except NotLoop:
-                    # As noted above, the ideal loop can only get destroyed
-                    # if it bounds a disc.
-                    raise BoundsDisc()
-            else:
-                break
-
-        # Nothing further we can do.
-        return changed
+        return self._simplifyMonotonicImpl(True)
+    #TODO
 
     def simplifyWithFourFour(self):
         """
