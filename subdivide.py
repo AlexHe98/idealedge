@@ -64,14 +64,53 @@ def drillMeridian(loop):
 
 class DrillableTetrahedron:
     """
-    A 43-tetrahedron subdivision of a tetrahedron that allows a neighbourhood
-    of any edge or any pair of opposite edges to be drilled out.
+    A 104-tetrahedron subdivision of a tetrahedron that allows a
+    neighbourhood of any subset of its 1-skeleton to be drilled out.
     """
     def __init__( self, tri ):
         """
         Creates a new drillable tetrahedron and inserts it into the given
-        triangulation.
+        triangulation tri.
         """
+        # Tetrahedra 0 to 19:       Inner tetrahedra
+        #   --> 4 groups numbered from 0 to 3
+        #   --> each group consists of 1 central tetrahedron, 1 apex
+        #       tetrahedron, and 3 base tetrahedra
+        #   --> self._tetrahedra[ 5*g ] gives the central tetrahedron in
+        #       group g
+        #   --> self._tetrahedra[ 1 + 6*g ] gives the apex tetrahedron in
+        #       group g
+        #   --> self._tetrahedra[ 1 + 5*g + v ], for v != g, gives the base
+        #       tetrahedron in group g that is closest to vertex v
+        # Tetrahedra 20 to 35:      Face tetrahedra
+        #   --> 4 groups numbered from 0 to 3, group g incident to face g
+        #   --> each group consists of 1 outer tetrahedron and 3 inner
+        #       tetrahedra
+        #   --> self._tetrahedra[ 20 + 5*g ] gives the outer tetrahedron in
+        #       group g
+        #   --> self._tetrahedra[ 20 + 4*g + v ], for v != g, gives the inner
+        #       tetrahedron in group g that is opposite vertex v
+        # Tetrahedra 36 to 83:      Edge tetrahedra
+        #   --> 6 groups numbered from 0 to 5, group g incident to edge g
+        #   --> each group consists of 4 outer tetrahedra and 4 inner
+        #       tetrahedra
+        #   --> self._tetrahedra[ 36 + 8*g + v ] gives the outer tetrahedron
+        #       closest to vertex v
+        #   --> for i,j in {0,1}, self._tetrahedra[ 40 + 8*g + 2*i + j ]
+        #       gives one of the two inner tetrahedra that are closer to
+        #       ord[i] than ord[1-i], where ord = Edge3.ordering(g)
+        # Tetrahedra 84 to 103:     Vertex tetrahedra
+        #   --> 4 groups numbered from 0 to 3, group g incident to vertex g
+        #   --> each group consists of 1 central tetrahedron, 1 apex
+        #       tetrahedron, and 3 base tetrahedra
+        #   --> self._tetrahedra[ 84 + 5*g ] gives the central tetrahedron
+        #       in group g
+        #   --> self._tetrahedra[ 85 + 6*g ] gives the apex tetrahedron in
+        #       group g
+        #   --> self._tetrahedra[ 85 + 5*g + v ], for v != g, gives the base
+        #       tetrahedron in group g that is opposite vertex v
+        self._tetrahedra = tri.newTetrahedra(104)
+        #TODO Reimplement.
         # Tetrahedra 0 to 4:    Central tetrahedra
         # Tetrahedra 5 to 22:   Edge tetrahedra
         # Tetrahedra 23 to 42:  Vertex tetrahedra
@@ -133,14 +172,14 @@ class DrillableTetrahedron:
         """
         return self._tetrahedra[0].triangulation()
 
-    def _vertexTet( self, v ):
-        return self._tetrahedra[ 27 + 5*v ]
-
-    def _edgeTet( self, e ):
-        return self._tetrahedra[ 5 + 3*e ]
-
-    def _faceTet( self, face, vertex ):
-        return self._tetrahedra[ 27 + 4*vertex + face ]
+#    def _vertexTet( self, v ):
+#        return self._tetrahedra[ 27 + 5*v ]
+#
+#    def _edgeTet( self, e ):
+#        return self._tetrahedra[ 5 + 3*e ]
+#
+#    def _faceTet( self, face, vertex ):
+#        return self._tetrahedra[ 27 + 4*vertex + face ]
 
     def join( self, myFace, other, gluing ):
         """
@@ -178,6 +217,7 @@ class DrillableTetrahedron:
                     drillable tetrahedron will map to the vertices of the
                     other drillable tetrahedron across the new gluing.
         """
+        #TODO Reimplement.
         for v in range(4):
             if v == myFace:
                 continue
@@ -205,44 +245,47 @@ class DrillableTetrahedron:
         # All done!
         return
 
-    def vertexSubTetrahedron( self, vertex ):
-        """
-        Returns the sub-tetrahedron incident to the given vertex.
-
-        The given vertex number should be between 0 and 3, inclusive.
-        """
-        return self._vertexTet(vertex)
-
-    def incidentSubTetrahedra( self, edge ):
-        """
-        Returns a list containing all of the sub-tetrahedra incident to the
-        given edge.
-
-        The given edge number should be between 0 and 5, inclusive.
-        """
-        leclerc = []    # Nothing, just an inchident.
-
-        # Add edge tetrahedra.
-        for i in range(3):
-            leclerc.append( self._tetrahedra[ 5 + 3*edge + i ] )
-
-        # Add vertex tetrahedra.
-        ordering = Edge3.ordering(edge)
-        for i in range(2):
-            leclerc.append( self._tetrahedra[ 23 + ordering[i] ] )
-            for j in range(4):
-                if j != ordering[1-i]:
-                    leclerc.append( self._tetrahedra[
-                        27 + 4*ordering[i] + j ] )
-
-        # All done!
-        return leclerc
-
-    def linkingEdgeLocation( self, edge ):
-        """
-        Returns a sub-tetrahedron and edge number corresponding to the link
-        of the given edge in this drillable tetrahedron.
-        """
-        edgeNum = Edge3.faceNumber(
-                Perm4(2,3) * Edge3.ordering(edge) * Perm4(2,3,0,1) )
-        return ( self._tetrahedra[0], edgeNum )
+#    def vertexSubTetrahedron( self, vertex ):
+#        """
+#        Returns the sub-tetrahedron incident to the given vertex.
+#
+#        The given vertex number should be between 0 and 3, inclusive.
+#        """
+#        #TODO Reimplement.
+#        return self._vertexTet(vertex)
+#
+#    def incidentSubTetrahedra( self, edge ):
+#        """
+#        Returns a list containing all of the sub-tetrahedra incident to the
+#        given edge.
+#
+#        The given edge number should be between 0 and 5, inclusive.
+#        """
+#        #TODO Reimplement.
+#        leclerc = []    # Nothing, just an inchident.
+#
+#        # Add edge tetrahedra.
+#        for i in range(3):
+#            leclerc.append( self._tetrahedra[ 5 + 3*edge + i ] )
+#
+#        # Add vertex tetrahedra.
+#        ordering = Edge3.ordering(edge)
+#        for i in range(2):
+#            leclerc.append( self._tetrahedra[ 23 + ordering[i] ] )
+#            for j in range(4):
+#                if j != ordering[1-i]:
+#                    leclerc.append( self._tetrahedra[
+#                        27 + 4*ordering[i] + j ] )
+#
+#        # All done!
+#        return leclerc
+#
+#    def linkingEdgeLocation( self, edge ):
+#        """
+#        Returns a sub-tetrahedron and edge number corresponding to the link
+#        of the given edge in this drillable tetrahedron.
+#        """
+#        #TODO Reimplement.
+#        edgeNum = Edge3.faceNumber(
+#                Perm4(2,3) * Edge3.ordering(edge) * Perm4(2,3,0,1) )
+#        return ( self._tetrahedra[0], edgeNum )
