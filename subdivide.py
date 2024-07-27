@@ -79,7 +79,7 @@ class DrillableTetrahedron:
         #   --> self._tetrahedra[ 5*g ] gives the central tetrahedron in
         #       group g
         #   --> self._tetrahedra[ 1 + 6*g ] gives the apex tetrahedron in
-        #       group g
+        #       group g, which is the closest tetrahedron to vertex g
         #   --> self._tetrahedra[ 1 + 5*g + v ], for v != g, gives the base
         #       tetrahedron in group g that is closest to vertex v
         # Tetrahedra 20 to 35:      Face tetrahedra
@@ -110,6 +110,56 @@ class DrillableTetrahedron:
         #   --> self._tetrahedra[ 85 + 5*g + v ], for v != g, gives the base
         #       tetrahedron in group g that is opposite vertex v
         self._tetrahedra = tri.newTetrahedra(104)
+        flip = Perm4(2,3)
+
+        # Join inner tetrahedra to each other.
+        for g in range(4):
+            centralTet = self._tetrahedra[ 5*g ]
+            for v in range(4):
+                otherTet = self._tetrahedra[ 1 + 5*g + v ]
+                centralFace = flip[v]
+                centralTet.join( centralFace, otherTet, flip )
+
+        # Join face tetrahedra to each other.
+         for g in range(4):
+             outerTet = self._tetrahedra[ 20 + 5*g ]
+             for v in range(4):
+                 if v == g:
+                     continue
+                 innerTet = self._tetrahedra[ 20 + 4*g + v ]
+                 gluing = Perm4(g,v)
+                 outerTet.join( v, innerTet, gluing )
+
+        # Join inner tetrahedra to face tetrahedra.
+        for edgeNum in range(6):
+            ordering = Edge3.ordering(edgeNum)
+            for apex in range(2):
+                g = ordering[apex]
+                v = ordering[1-apex}
+                innerTet = self._tetrahedra[ 1 + 5*g + v ]
+                for base in range(2,4):
+                    innerFace = ordering[base]
+                    g = ordering[5-base]
+                    v = ordering[base]
+                    faceTet = self._tetrahedra[ 20 + 4*g + v ]
+                    gluing =
+                    innerTet.join( innerFace, faceTet, gluing )
+        #TODO
+
+        # Join edge tetrahedra to each other.
+        #TODO
+
+        # Join inner tetrahedra to edge tetrahedra.
+        #TODO
+
+        # Join face tetrahedra to edge tetrahedra.
+        #TODO
+
+        # Join vertex tetrahedra to each other.
+        #TODO
+
+        # Join edge tetrahedra to vertex tetrahedra.
+        #TODO
         #TODO Reimplement.
         # Tetrahedra 0 to 4:    Central tetrahedra
         # Tetrahedra 5 to 22:   Edge tetrahedra
