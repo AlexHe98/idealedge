@@ -73,7 +73,12 @@ class DrillableTetrahedron:
         triangulation tri.
         """
         # Sub-tetrahedra 0 to 35:       Inner sub-tetrahedra
-        # -----------------------       --------------------
+        # Sub-tetrahedra 36 to 51:      Face sub-tetrahedra
+        # Sub-tetrahedra 52 to 93:      Edge sub-tetrahedra
+        # Sub-tetrahedra 94 to 113:     Vertex sub-tetrahedra
+        self._tet = tri.newTetrahedra(114)
+
+        # Build groups of inner sub-tetrahedra.
         #   --> 6 groups numbered from 0 to 5, group g closest to edge g of
         #       the main tetrahedron
         #   --> each group consists of 2 central sub-tetrahedra and 4
@@ -85,8 +90,23 @@ class DrillableTetrahedron:
         #       gives the peripheral sub-tetrahedron that is both closest to
         #       the triangle numbered Edge3.ordering(g)[f] and also closest
         #       to vertex v of edge g of the main tetrahedron
-        # Sub-tetrahedra 36 to 51:      Face sub-tetrahedra
-        # ------------------------      -------------------
+        for g in range(6):
+            ordering = Edge3.ordering(g)
+
+            # Join the two central sub-tetrahedra in group g.
+            self._tet[ 6*g ].join( ordering[1], self._tet[ 6*g + 1 ],
+                    Perm4( ordering[0], ordering[1] ) )
+
+            # Join central sub-tetrahedra to peripheral sub-tetrahedra.
+            for v in range(2):
+                for f in range(2,4):
+                    centralTet = self._tet[ 6*g + v ]
+                    centralFace = ordering[f]
+                    peripheralTet = self._tet[ 6*g + 2*v + f ]
+                    gluing = Perm4( ordering[v], ordering[f] )
+                    centralTet.join( centralFace, peripheralTet, gluing )
+
+        # Build groups of face sub-tetrahedra.
         #   --> 4 groups numbered from 0 to 3, group g incident to triangle g
         #       of the main tetrahedron
         #   --> each group consists of 1 central sub-tetrahedron and 3
@@ -96,8 +116,17 @@ class DrillableTetrahedron:
         #   --> self._tet[ 36 + 4*g + v ], for v != g, gives the peripheral
         #       sub-tetrahedron in group g that is closest to vertex v of the
         #       main tetrahedron
-        # Sub-tetrahedra 52 to 93:      Edge sub-tetrahedra
-        # ------------------------      -------------------
+        for g in range(4):
+            centralTet = self._tet[ 36 + 5*g ]
+            for v in range(4):
+                if v == g:
+                    continue
+                centralFace = v
+                peripheralTet = self._tet[ 36 + 4*g + v ]
+                gluing = Perm4( *( {0,1,2,3} - {v,g} ) )
+                centralTet.join( centralFace, peripheralTet, gluing )
+
+        # Build groups of edge sub-tetrahedra.
         #   --> 6 groups numbered from 0 to 5, group g incident to edge g of
         #       the main tetrahedron
         #   --> each group consists of 1 central sub-tetrahedron, 2 binding
@@ -111,33 +140,43 @@ class DrillableTetrahedron:
         #       {2,3}, gives the peripheral sub-tetrahedron that is both
         #       incident to the triangle numbered Edge3.ordering(g)[f] and
         #       also closest to vertex v of edge g of the main tetrahedron
-        # Sub-tetrahedra 94 to 113:     Vertex sub-tetrahedra
-        # -------------------------     ---------------------
+        for g in range(6):
+            ordering = Edge3.ordering(g)
+            centralTet = self._tet[ 52 + 7*g ]
+            for v in range(2):
+                bindingTet = self._tet[ 53 + 7*g + v ]
+
+                # Join central sub-tetrahedron to binding sub-tetrahedron.
+                centralFace = ordering[1-v]
+                gluing = Perm4( ordering[0], ordering[1] )
+                centralTet.join( centralFace, bindingTet, gluing )
+
+                # Join binding sub-tetrahedron to peripheral sub-tetrahedra.
+                for f in range(2,4):
+                    bindingFace = ordering[f]
+                    peripheralTet = self._tet[ 53 + 7*g + 2*v + f ]
+                    gluing = Perm4( ordering[v], ordering[f] )
+                    bindingTet.join( bindingFace, peripheralTet, gluing )
+
+        # Build groups of vertex sub-tetrahedra.
         #   --> 4 groups numbered from 0 to 3, group g incident to vertex g
         #       of the main tetrahedron
         #   --> each group consists of 1 central sub-tetrahedron, 1 apex
         #       sub-tetrahedron, and 3 base sub-tetrahedra
         #   --> self._tet[ 94 + 5*g ] gives the central sub-tetrahedron in
         #       group g
-        #   --> self._tet[ 94 + 6*g ] gives the apex sub-tetrahedron in group
+        #   --> self._tet[ 95 + 6*g ] gives the apex sub-tetrahedron in group
         #       g
-        #   --> self._tet[ 94 + 5*g + v ], for v != g, gives the base
+        #   --> self._tet[ 95 + 5*g + v ], for v != g, gives the base
         #       sub-tetrahedron in group g that is opposite vertex v of the
         #       main tetrahedron
-        self._tetrahedra = tri.newTetrahedra(114)
-        flip = Perm4(2,3)
-
-        # Build groups of inner sub-tetrahedra
-        #TODO
-
-        # Build groups of face sub-tetrahedra.
-        #TODO
-
-        # Build groups of edge sub-tetrahedra.
-        #TODO
-
-        # Build groups of vertex sub-tetrahedra.
-        #TODO
+        gluing = Perm4(2,3)
+        for g in range(4):
+            centralTet = self._tet[ 94 + 5*g ]
+            for v in range(4):
+                centralFace = v
+                otherTet = self._tet[ 95 + 5*g + v ]
+                centralTet.join( centralFace, otherTet, gluing )
 
         # Join inner groups to each other.
         #TODO
@@ -152,145 +191,145 @@ class DrillableTetrahedron:
         #TODO
 
         #TODO Reimplement.
-        # Tetrahedra 0 to 19:       Inner tetrahedra
-        #   --> 4 groups numbered from 0 to 3
-        #   --> each group consists of 1 central tetrahedron, 1 apex
-        #       tetrahedron, and 3 base tetrahedra
-        #   --> self._tetrahedra[ 5*g ] gives the central tetrahedron in
-        #       group g
-        #   --> self._tetrahedra[ 1 + 6*g ] gives the apex tetrahedron in
-        #       group g, which is the closest tetrahedron to vertex g
-        #   --> self._tetrahedra[ 1 + 5*g + v ], for v != g, gives the base
-        #       tetrahedron in group g that is closest to vertex v
-        # Tetrahedra 20 to 35:      Face tetrahedra
-        #   --> 4 groups numbered from 0 to 3, group g incident to face g
-        #   --> each group consists of 1 outer tetrahedron and 3 inner
-        #       tetrahedra
-        #   --> self._tetrahedra[ 20 + 5*g ] gives the outer tetrahedron in
-        #       group g
-        #   --> self._tetrahedra[ 20 + 4*g + v ], for v != g, gives the inner
-        #       tetrahedron in group g that is opposite vertex v
-        # Tetrahedra 36 to 83:      Edge tetrahedra
-        #   --> 6 groups numbered from 0 to 5, group g incident to edge g
-        #   --> each group consists of 4 outer tetrahedra and 4 inner
-        #       tetrahedra
-        #   --> self._tetrahedra[ 36 + 8*g + v ] gives the outer tetrahedron
-        #       closest to vertex v
-        #   --> for i,j in {0,1}, self._tetrahedra[ 40 + 8*g + 2*i + j ]
-        #       gives one of the two inner tetrahedra that are closer to
-        #       ord[i] than ord[1-i], where ord = Edge3.ordering(g)
-        # Tetrahedra 84 to 103:     Vertex tetrahedra
-        #   --> 4 groups numbered from 0 to 3, group g incident to vertex g
-        #   --> each group consists of 1 central tetrahedron, 1 apex
-        #       tetrahedron, and 3 base tetrahedra
-        #   --> self._tetrahedra[ 84 + 5*g ] gives the central tetrahedron
-        #       in group g
-        #   --> self._tetrahedra[ 85 + 6*g ] gives the apex tetrahedron in
-        #       group g
-        #   --> self._tetrahedra[ 85 + 5*g + v ], for v != g, gives the base
-        #       tetrahedron in group g that is opposite vertex v
-        self._tetrahedra = tri.newTetrahedra(104)
-        flip = Perm4(2,3)
-
-        # Join inner tetrahedra to each other.
-        for g in range(4):
-            centralTet = self._tetrahedra[ 5*g ]
-            for v in range(4):
-                otherTet = self._tetrahedra[ 1 + 5*g + v ]
-                centralFace = flip[v]
-                centralTet.join( centralFace, otherTet, flip )
-
-        # Join face tetrahedra to each other.
-         for g in range(4):
-             outerTet = self._tetrahedra[ 20 + 5*g ]
-             for v in range(4):
-                 if v == g:
-                     continue
-                 innerTet = self._tetrahedra[ 20 + 4*g + v ]
-                 gluing = Perm4(g,v)
-                 outerTet.join( v, innerTet, gluing )
-
-        # Join inner tetrahedra to face tetrahedra.
-        for edgeNum in range(6):
-            ordering = Edge3.ordering(edgeNum)
-            for apex in range(2):
-                g = ordering[apex]
-                v = ordering[1-apex}
-                innerTet = self._tetrahedra[ 1 + 5*g + v ]
-                for base in range(2,4):
-                    innerFace = ordering[base]
-                    g = ordering[5-base]
-                    v = ordering[base]
-                    faceTet = self._tetrahedra[ 20 + 4*g + v ]
-                    gluing =
-                    innerTet.join( innerFace, faceTet, gluing )
-        #TODO
-
-        # Join edge tetrahedra to each other.
-        #TODO
-
-        # Join inner tetrahedra to edge tetrahedra.
-        #TODO
-
-        # Join face tetrahedra to edge tetrahedra.
-        #TODO
-
-        # Join vertex tetrahedra to each other.
-        #TODO
-
-        # Join edge tetrahedra to vertex tetrahedra.
-        #TODO
-        #TODO Reimplement.
-        # Tetrahedra 0 to 4:    Central tetrahedra
-        # Tetrahedra 5 to 22:   Edge tetrahedra
-        # Tetrahedra 23 to 42:  Vertex tetrahedra
-        self._tetrahedra = tri.newTetrahedra(43)
-        flip = Perm4(2,3)
-
-        # Join central tetrahedra to each other.
-        for i in range(4):
-            self._tetrahedra[0].join(
-                    flip[i], self._tetrahedra[1+i], flip )
-
-        # Join edge tetrahedra to each other.
-        for i in range(6):
-            ordering = Edge3.ordering(i)
-            middleTet = self._tetrahedra[ 5 + 3*i ]
-            gluing = Perm4( ordering[0], ordering[1] )
-            for j in range(2):
-                middleFace = ordering[j]
-                endTet = self._tetrahedra[ 7 + 3*i - j ]
-                middleTet.join( middleFace, endTet, gluing )
-
-        # Join central tetrahedra to edge tetrahedra.
-        for i in range(6):
-            ordering = Edge3.ordering(i)
-            gluing = Perm4( ordering[2], ordering[3] )
-            for j in range(2):
-                centralTet = self._tetrahedra[ 1 + ordering[j] ]
-                centralFace = ordering[1-j]
-                edgeTet = self._tetrahedra[ 6 + 3*i + j ]
-                centralTet.join( centralFace, edgeTet, gluing )
-
-        # Join vertex tetrahedra to each other.
-        for i in range(4):
-            innerTet = self._tetrahedra[23+i]
-            for j in range(4):
-                outerTet = self._tetrahedra[ 27 + 4*i + j ]
-                innerTet.join(
-                        flip[j], outerTet, flip )
-
-        # Join edge tetrahedra to vertex tetrahedra.
-        for i in range(6):
-            ordering = Edge3.ordering(i)
-            for j in range(2):
-                edgeTet = self._tetrahedra[ 6 + 3*i + j ]
-                for jj in range(2,4):
-                    edgeFace = ordering[jj]
-                    vertexTet = self._tetrahedra[
-                            27 + 4*ordering[j] + ordering[jj] ]
-                    gluing = Perm4( ordering[jj], ordering[5-jj] )
-                    edgeTet.join( edgeFace, vertexTet, gluing )
+#        # Tetrahedra 0 to 19:       Inner tetrahedra
+#        #   --> 4 groups numbered from 0 to 3
+#        #   --> each group consists of 1 central tetrahedron, 1 apex
+#        #       tetrahedron, and 3 base tetrahedra
+#        #   --> self._tetrahedra[ 5*g ] gives the central tetrahedron in
+#        #       group g
+#        #   --> self._tetrahedra[ 1 + 6*g ] gives the apex tetrahedron in
+#        #       group g, which is the closest tetrahedron to vertex g
+#        #   --> self._tetrahedra[ 1 + 5*g + v ], for v != g, gives the base
+#        #       tetrahedron in group g that is closest to vertex v
+#        # Tetrahedra 20 to 35:      Face tetrahedra
+#        #   --> 4 groups numbered from 0 to 3, group g incident to face g
+#        #   --> each group consists of 1 outer tetrahedron and 3 inner
+#        #       tetrahedra
+#        #   --> self._tetrahedra[ 20 + 5*g ] gives the outer tetrahedron in
+#        #       group g
+#        #   --> self._tetrahedra[ 20 + 4*g + v ], for v != g, gives the inner
+#        #       tetrahedron in group g that is opposite vertex v
+#        # Tetrahedra 36 to 83:      Edge tetrahedra
+#        #   --> 6 groups numbered from 0 to 5, group g incident to edge g
+#        #   --> each group consists of 4 outer tetrahedra and 4 inner
+#        #       tetrahedra
+#        #   --> self._tetrahedra[ 36 + 8*g + v ] gives the outer tetrahedron
+#        #       closest to vertex v
+#        #   --> for i,j in {0,1}, self._tetrahedra[ 40 + 8*g + 2*i + j ]
+#        #       gives one of the two inner tetrahedra that are closer to
+#        #       ord[i] than ord[1-i], where ord = Edge3.ordering(g)
+#        # Tetrahedra 84 to 103:     Vertex tetrahedra
+#        #   --> 4 groups numbered from 0 to 3, group g incident to vertex g
+#        #   --> each group consists of 1 central tetrahedron, 1 apex
+#        #       tetrahedron, and 3 base tetrahedra
+#        #   --> self._tetrahedra[ 84 + 5*g ] gives the central tetrahedron
+#        #       in group g
+#        #   --> self._tetrahedra[ 85 + 6*g ] gives the apex tetrahedron in
+#        #       group g
+#        #   --> self._tetrahedra[ 85 + 5*g + v ], for v != g, gives the base
+#        #       tetrahedron in group g that is opposite vertex v
+#        self._tetrahedra = tri.newTetrahedra(104)
+#        flip = Perm4(2,3)
+#
+#        # Join inner tetrahedra to each other.
+#        for g in range(4):
+#            centralTet = self._tetrahedra[ 5*g ]
+#            for v in range(4):
+#                otherTet = self._tetrahedra[ 1 + 5*g + v ]
+#                centralFace = flip[v]
+#                centralTet.join( centralFace, otherTet, flip )
+#
+#        # Join face tetrahedra to each other.
+#         for g in range(4):
+#             outerTet = self._tetrahedra[ 20 + 5*g ]
+#             for v in range(4):
+#                 if v == g:
+#                     continue
+#                 innerTet = self._tetrahedra[ 20 + 4*g + v ]
+#                 gluing = Perm4(g,v)
+#                 outerTet.join( v, innerTet, gluing )
+#
+#        # Join inner tetrahedra to face tetrahedra.
+#        for edgeNum in range(6):
+#            ordering = Edge3.ordering(edgeNum)
+#            for apex in range(2):
+#                g = ordering[apex]
+#                v = ordering[1-apex}
+#                innerTet = self._tetrahedra[ 1 + 5*g + v ]
+#                for base in range(2,4):
+#                    innerFace = ordering[base]
+#                    g = ordering[5-base]
+#                    v = ordering[base]
+#                    faceTet = self._tetrahedra[ 20 + 4*g + v ]
+#                    gluing =
+#                    innerTet.join( innerFace, faceTet, gluing )
+#        #TODO
+#
+#        # Join edge tetrahedra to each other.
+#        #TODO
+#
+#        # Join inner tetrahedra to edge tetrahedra.
+#        #TODO
+#
+#        # Join face tetrahedra to edge tetrahedra.
+#        #TODO
+#
+#        # Join vertex tetrahedra to each other.
+#        #TODO
+#
+#        # Join edge tetrahedra to vertex tetrahedra.
+#        #TODO
+#        #TODO Reimplement.
+#        # Tetrahedra 0 to 4:    Central tetrahedra
+#        # Tetrahedra 5 to 22:   Edge tetrahedra
+#        # Tetrahedra 23 to 42:  Vertex tetrahedra
+#        self._tetrahedra = tri.newTetrahedra(43)
+#        flip = Perm4(2,3)
+#
+#        # Join central tetrahedra to each other.
+#        for i in range(4):
+#            self._tetrahedra[0].join(
+#                    flip[i], self._tetrahedra[1+i], flip )
+#
+#        # Join edge tetrahedra to each other.
+#        for i in range(6):
+#            ordering = Edge3.ordering(i)
+#            middleTet = self._tetrahedra[ 5 + 3*i ]
+#            gluing = Perm4( ordering[0], ordering[1] )
+#            for j in range(2):
+#                middleFace = ordering[j]
+#                endTet = self._tetrahedra[ 7 + 3*i - j ]
+#                middleTet.join( middleFace, endTet, gluing )
+#
+#        # Join central tetrahedra to edge tetrahedra.
+#        for i in range(6):
+#            ordering = Edge3.ordering(i)
+#            gluing = Perm4( ordering[2], ordering[3] )
+#            for j in range(2):
+#                centralTet = self._tetrahedra[ 1 + ordering[j] ]
+#                centralFace = ordering[1-j]
+#                edgeTet = self._tetrahedra[ 6 + 3*i + j ]
+#                centralTet.join( centralFace, edgeTet, gluing )
+#
+#        # Join vertex tetrahedra to each other.
+#        for i in range(4):
+#            innerTet = self._tetrahedra[23+i]
+#            for j in range(4):
+#                outerTet = self._tetrahedra[ 27 + 4*i + j ]
+#                innerTet.join(
+#                        flip[j], outerTet, flip )
+#
+#        # Join edge tetrahedra to vertex tetrahedra.
+#        for i in range(6):
+#            ordering = Edge3.ordering(i)
+#            for j in range(2):
+#                edgeTet = self._tetrahedra[ 6 + 3*i + j ]
+#                for jj in range(2,4):
+#                    edgeFace = ordering[jj]
+#                    vertexTet = self._tetrahedra[
+#                            27 + 4*ordering[j] + ordering[jj] ]
+#                    gluing = Perm4( ordering[jj], ordering[5-jj] )
+#                    edgeTet.join( edgeFace, vertexTet, gluing )
 
         # All done!
         return
