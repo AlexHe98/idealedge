@@ -64,7 +64,7 @@ def drillMeridian(loop):
 
 class DrillableTetrahedron:
     """
-    A 104-tetrahedron subdivision of a tetrahedron that allows a
+    A 114-tetrahedron subdivision of a tetrahedron that allows a
     neighbourhood of any subset of its 1-skeleton to be drilled out.
     """
     def __init__( self, tri ):
@@ -72,6 +72,86 @@ class DrillableTetrahedron:
         Creates a new drillable tetrahedron and inserts it into the given
         triangulation tri.
         """
+        # Sub-tetrahedra 0 to 35:       Inner sub-tetrahedra
+        # -----------------------       --------------------
+        #   --> 6 groups numbered from 0 to 5, group g closest to edge g of
+        #       the main tetrahedron
+        #   --> each group consists of 2 central sub-tetrahedra and 4
+        #       peripheral sub-tetrahedra
+        #   --> self._tet[ 6*g + v ], for v in {0,1}, gives the central
+        #       sub-tetrahedron closest to vertex v of edge g of the main
+        #       tetrahedron
+        #   --> self._tet[ 6*g + 2*v + f ], for v in {0,1} and f in {2,3},
+        #       gives the peripheral sub-tetrahedron that is both closest to
+        #       the triangle numbered Edge3.ordering(g)[f] and also closest
+        #       to vertex v of edge g of the main tetrahedron
+        # Sub-tetrahedra 36 to 51:      Face sub-tetrahedra
+        # ------------------------      -------------------
+        #   --> 4 groups numbered from 0 to 3, group g incident to triangle g
+        #       of the main tetrahedron
+        #   --> each group consists of 1 central sub-tetrahedron and 3
+        #       peripheral sub-tetrahedra
+        #   --> self._tet[ 36 + 5*g ] gives the central sub-tetrahedron in
+        #       group g
+        #   --> self._tet[ 36 + 4*g + v ], for v != g, gives the peripheral
+        #       sub-tetrahedron in group g that is closest to vertex v of the
+        #       main tetrahedron
+        # Sub-tetrahedra 52 to 93:      Edge sub-tetrahedra
+        # ------------------------      -------------------
+        #   --> 6 groups numbered from 0 to 5, group g incident to edge g of
+        #       the main tetrahedron
+        #   --> each group consists of 1 central sub-tetrahedron, 2 binding
+        #       sub-tetrahedra, and 4 peripheral sub-tetrahedra
+        #   --> self._tet[ 52 + 7*g ] gives the central sub-tetrahedron in
+        #       group g
+        #   --> self._tet[ 53 + 7*g + v ], for v in {0,1}, gives the binding
+        #       sub-tetrahedron that is closest to vertex v of edge g of the
+        #       main tetrahedron
+        #   --> self._tet[ 53 + 7*g + 2*v + f ], for v in {0,1} and f in
+        #       {2,3}, gives the peripheral sub-tetrahedron that is both
+        #       incident to the triangle numbered Edge3.ordering(g)[f] and
+        #       also closest to vertex v of edge g of the main tetrahedron
+        # Sub-tetrahedra 94 to 113:     Vertex sub-tetrahedra
+        # -------------------------     ---------------------
+        #   --> 4 groups numbered from 0 to 3, group g incident to vertex g
+        #       of the main tetrahedron
+        #   --> each group consists of 1 central sub-tetrahedron, 1 apex
+        #       sub-tetrahedron, and 3 base sub-tetrahedra
+        #   --> self._tet[ 94 + 5*g ] gives the central sub-tetrahedron in
+        #       group g
+        #   --> self._tet[ 94 + 6*g ] gives the apex sub-tetrahedron in group
+        #       g
+        #   --> self._tet[ 94 + 5*g + v ], for v != g, gives the base
+        #       sub-tetrahedron in group g that is opposite vertex v of the
+        #       main tetrahedron
+        self._tetrahedra = tri.newTetrahedra(114)
+        flip = Perm4(2,3)
+
+        # Build groups of inner sub-tetrahedra
+        #TODO
+
+        # Build groups of face sub-tetrahedra.
+        #TODO
+
+        # Build groups of edge sub-tetrahedra.
+        #TODO
+
+        # Build groups of vertex sub-tetrahedra.
+        #TODO
+
+        # Join inner groups to each other.
+        #TODO
+
+        # Join inner groups to face groups.
+        #TODO
+
+        # Join inner groups to edge groups.
+        #TODO
+
+        # Join edge groups to vertex groups.
+        #TODO
+
+        #TODO Reimplement.
         # Tetrahedra 0 to 19:       Inner tetrahedra
         #   --> 4 groups numbered from 0 to 3
         #   --> each group consists of 1 central tetrahedron, 1 apex
