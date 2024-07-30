@@ -5,6 +5,21 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, idealLoops
 from idealedge import isAnnulus, isSphere, fillIdealEdge
+from loop import IdealLoop
+from subdivide import drillMeridian
+
+
+def meridian( tri, edgeIndex ):
+    """
+    Drills out an edge loop e (corresponding to the given triangulation and
+    edge index), and returns the resulting meridian curve.
+
+    Pre-condition:
+    --> The edge given by tri.edge(edgeIndex) must lie entirely in the
+        interior of tri, and the two endpoints of this edge must be
+        identified.
+    """
+    return drillMeridian( IdealLoop( [ tri.edge(edgeIndex) ] ) )
 
 
 def crushAnnuli( surfaces, threshold=30 ):
