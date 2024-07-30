@@ -283,6 +283,13 @@ class EmbeddedLoop:
     def __getitem__( self, index ):
         return self._edgeIndices[index]
 
+    def vertexIndices(self):
+        """
+        Yields all indices of vertices incident to this embedded loop (in no
+        particular order).
+        """
+        return iter( self._vertIndices )
+
     def clone(self):
         """
         Returns a clone of this embedded loop.

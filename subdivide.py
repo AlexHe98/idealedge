@@ -34,15 +34,14 @@ def drillMeridian(loop):
         for emb in loop.triangulation().edge(edgeIndex).embeddings():
             t = emb.tetrahedron()
             e = emb.edge()
-            for doomedTet in drillTet[ t.index() ].incidentSubTetrahedra(e):
+            for doomedTet in drillTet[ t.index() ].edgeSubTetrahedra(e):
                 doomedIndices.add( doomedTet.index() )
-            for i in range(2):
-                vertex = t.vertex( emb.vertices()[i] )
-                for vemb in vertex.embeddings():
-                    vti = vemb.tetrahedron().index()
-                    v = vemb.vertex()
-                    doomedIndices.add(
-                            drillTet[vti].vertexSubTetrahedron(v).index() )
+    for vertexIndex in loop.vertexIndices():
+        for emb in loop.triangulation().vertex(vertexIndex).embeddings():
+            t = emb.tetrahedron()
+            v = emb.vertex()
+            for doomedTet in drillTet[ t.index() ].vertexSubTetrahedra(v):
+                doomedIndices.add( doomedTet.index() )
 
     # Find meridian loop.
     meridianLocations = []
@@ -64,8 +63,9 @@ def drillMeridian(loop):
 
 class DrillableTetrahedron:
     """
-    A 114-tetrahedron subdivision of a tetrahedron that allows a
-    neighbourhood of any subset of its 1-skeleton to be drilled out.
+    A 114-tetrahedron subdivision of a "main tetrahedron" that allows a
+    neighbourhood of any subset of the main tetrahedron's 1-skeleton to be
+    drilled out.
     """
     def __init__( self, tri ):
         """
@@ -253,14 +253,31 @@ class DrillableTetrahedron:
         """
         return self._tetrahedra[0].triangulation()
 
-#    def _vertexTet( self, v ):
-#        return self._tetrahedra[ 27 + 5*v ]
-#
-#    def _edgeTet( self, e ):
-#        return self._tetrahedra[ 5 + 3*e ]
-#
-#    def _faceTet( self, face, vertex ):
-#        return self._tetrahedra[ 27 + 4*vertex + face ]
+    def vertexSubTetrahedra( self, v ):
+        """
+        Returns a list consisting of the sub-tetrahedra that form a regular
+        neighbourhood of vertex v of the main tetrahedron.
+
+        The vertex number v should be an integer between 0 and 3, inclusive.
+        """
+        start = 94 + 5*v
+        return self._tet[start:start+5]
+
+    def edgeSubTetrahedra( self, e ):
+        """
+        Returns a list consisting of the sub-tetrahedra that form a regular
+        neighbourhood of the *midpoint* of edge e of the main tetrahedron.
+
+        The edge number e should be an integer between 0 and 5, inclusive.
+
+        To obtain a regular neighbourhood of the entire edge, it suffices to
+        take the union of:
+        --> the list returned by this routine; and
+        --> the lists given by calling the vertexSubTetrahedra() routine on
+            each of the endpoints of the edge.
+        """
+        start = 52 + 7*e
+        return self._tet[start:start+7]
 
     def join( self, myFace, other, gluing ):
         """
@@ -298,75 +315,59 @@ class DrillableTetrahedron:
                     drillable tetrahedron will map to the vertices of the
                     other drillable tetrahedron across the new gluing.
         """
-        #TODO Reimplement.
+        # Join face sub-tetrahedra.
+        for v in range(4):
+            mySubTet = self._tet[ 36 + 4*myFace + v ]
+            yourSubTet = other._tet[ 36 + 4*gluing[myFace] + gluing[v] ]
+            mySubTet.join( myFace, yourSubTet, gluing )
+
+        # Join edge sub-tetrahedra.
+        for e in range(6):
+            myOrdering = Edge3.ordering(e)
+            if myFace in { myOrdering[0], myOrdering[1] }:
+                continue
+            f = myOrdering.inverse()[myFace]  # f in {2,3}.
+            ee = Edge3.faceNumber( gluing * myOrdering )
+
+            # Join edge central sub-tetrahedra.
+            mySubTet = self._tet[ 52 + 7*e ]
+            yourSubTet = other._tet[ 52 + 7*ee ]
+            mySubTet.join( myFace, yourSubTet, gluing )
+
+            # Join edge peripheral sub-tetrahedra.
+            yourOrdering = Edge3.ordering(ee)
+            mapping = yourOrdering.inverse() * gluing * myOrdering
+            for v in range(2):
+                mySubTet = self._tet[ 53 + 7*e + 2*v + f ]
+                yourSubTet = other._tet[
+                        53 + 7*ee + 2*mapping[v] + mapping[f] ]
+                mySubTet.join( myFace, yourSubTet, gluing )
+
+        # Join vertex sub-tetrahedra.
         for v in range(4):
             if v == myFace:
                 continue
 
-            # Join vertex tetrahedra.
-            mySubTet = self._vertexTet(v)
-            yourSubTet = other._vertexTet( gluing[v] )
+            # Join vertex apex sub-tetrahedra.
+            mySubTet = self._tet[ 95 + 6*v ]
+            yourSubTet = other._tet[ 95 + 6*gluing[v] ]
             mySubTet.join( myFace, yourSubTet, gluing )
 
-            # Join face tetrahedra.
-            mySubTet = self._faceTet( myFace, v )
-            yourSubTet = other._faceTet( gluing[myFace], gluing[v] )
+            # Join vertex base sub-tetrahedra.
+            mySubTet = self._tet[ 95 + 5*v + myFace ]
+            yourSubTet = other._tet[ 95 + 5*gluing[v] + gluing[myFace] ]
             mySubTet.join( v, yourSubTet, gluing )
-
-        # Join edge tetrahedra.
-        for e in range(6):
-            ordering = Edge3.ordering(e)
-            if ordering[0] == myFace or ordering[1] == myFace:
-                continue
-            mySubTet = self._edgeTet(e)
-            yourSubTet = other._edgeTet( Edge3.faceNumber(
-                gluing * ordering ) )
-            mySubTet.join( myFace, yourSubTet, gluing )
 
         # All done!
         return
 
-#    def vertexSubTetrahedron( self, vertex ):
-#        """
-#        Returns the sub-tetrahedron incident to the given vertex.
-#
-#        The given vertex number should be between 0 and 3, inclusive.
-#        """
-#        #TODO Reimplement.
-#        return self._vertexTet(vertex)
-#
-#    def incidentSubTetrahedra( self, edge ):
-#        """
-#        Returns a list containing all of the sub-tetrahedra incident to the
-#        given edge.
-#
-#        The given edge number should be between 0 and 5, inclusive.
-#        """
-#        #TODO Reimplement.
-#        leclerc = []    # Nothing, just an inchident.
-#
-#        # Add edge tetrahedra.
-#        for i in range(3):
-#            leclerc.append( self._tetrahedra[ 5 + 3*edge + i ] )
-#
-#        # Add vertex tetrahedra.
-#        ordering = Edge3.ordering(edge)
-#        for i in range(2):
-#            leclerc.append( self._tetrahedra[ 23 + ordering[i] ] )
-#            for j in range(4):
-#                if j != ordering[1-i]:
-#                    leclerc.append( self._tetrahedra[
-#                        27 + 4*ordering[i] + j ] )
-#
-#        # All done!
-#        return leclerc
-#
-#    def linkingEdgeLocation( self, edge ):
-#        """
-#        Returns a sub-tetrahedron and edge number corresponding to the link
-#        of the given edge in this drillable tetrahedron.
-#        """
-#        #TODO Reimplement.
-#        edgeNum = Edge3.faceNumber(
-#                Perm4(2,3) * Edge3.ordering(edge) * Perm4(2,3,0,1) )
-#        return ( self._tetrahedra[0], edgeNum )
+    def linkingEdgeLocation( self, e ):
+        """
+        Returns a sub-tetrahedron and edge number corresponding to the link
+        of edge e of the main tetrahedron.
+
+        The edge number e should be an integer between 0 and 5, inclusive.
+        """
+        # The linking edge is given by edge (5-e) of an inner central
+        # sub-tetrahedron.
+        return ( self._tet[ 6*e ], 5-e )
