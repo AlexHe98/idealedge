@@ -680,7 +680,9 @@ class EmbeddedLoop:
         --> If the ambient triangulation is closed, then it will have
             precisely one vertex.
         --> If the ambient triangulation has real boundary, then:
-            --- there will be no internal vertices;
+            --- either there will be no internal vertices, or there will be
+                exactly one internal vertex if this embedded loop is required
+                to remain entirely in the interior of the triangulation;
             --- every 2-sphere boundary component will have exactly two
                 triangles and three vertices;
             --- every projective plane boundary component will have exactly
@@ -757,6 +759,11 @@ class EmbeddedLoop:
 
         The EmbeddedLoop base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
+
+        Pre-condition:
+        --> This loop cannot be shortened.
+        --> If the ambient triangulation has real boundary, then this
+            boundary has already been minimised.
         """
         raise NotImplementedError()
 
@@ -1143,7 +1150,7 @@ class IdealLoop(EmbeddedLoop):
         --> If the ambient triangulation is closed, then it will have
             precisely one vertex.
         --> If the ambient triangulation has real boundary, then:
-            --- there will be no internal vertices;
+            --- there will be exactly one internal vertex;
             --- every 2-sphere boundary component will have exactly two
                 triangles and three vertices;
             --- every projective plane boundary component will have exactly
@@ -1176,6 +1183,7 @@ class IdealLoop(EmbeddedLoop):
     def _findSnapEdge(self):
         # Precondition:
         #   --> This loop cannot be shortened.
+        #   --> The boundary of self._tri has been minimised.
 
         # Find a suitable edge on which to perform a snap edge move. We
         # minimise the number of special cases by prioritising edges
@@ -1190,15 +1198,23 @@ class IdealLoop(EmbeddedLoop):
             lastEdgeIndex = self._edgeIndices.pop()
             return ( self._tri.edge(lastEdgeIndex), self._edgeIndices )
         else:
+            # At this point, this loop is one-vertex and the boundary has
+            # been minimised, but there might still be some other internal
+            # vertices that we can remove.
             for edge in self._tri.edges():
-                # Since this loop is internal, snap edge is legal if and only
-                # if the endpoints of the edge are distinct.
-                #
-                # Also, because this loop should have length one at this
-                # point, we cannot unintentionally change this loop (if this
-                # loop had more than one vertex, then it would be possible to
-                # merge two of its vertices).
-                if edge.vertex(0) != edge.vertex(1):
+                if not snapEdge( edge, True, False ):
+                    # Snap edge is not legal.
+                    continue
+
+                # The snap edge move is legal, but we only want to perform
+                # this move if it will remove an internal vertex that is not
+                # incident to this ideal loop.
+                for i in range(2):
+                    v = edge.vertex(i)
+                    if v.isBoundary() or v.index() in self._vertIndices:
+                        continue
+
+                    # We can use this snap edge move to remove v!
                     return ( edge, self._edgeIndices )
         return
 
@@ -1601,6 +1617,7 @@ class BoundaryLoop(EmbeddedLoop):
     def _findSnapEdge(self):
         # Precondition:
         #   --> This loop cannot be shortened.
+        #   --> The boundary of self._tri has been minimised.
 
         # Find a suitable edge on which to perform a snap edge move (just
         # check whether the move is legal, do not perform yet).
