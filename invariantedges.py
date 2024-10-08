@@ -134,19 +134,72 @@ class InvariantEdges:
         return wt
 
     def _shortenImpl(self):
-        #TODO
         """
         Shortens this collection of invariant edges by replacing it with a
         smaller collection of edges that is topologically equivalent to the
         current collection.
 
-        Topological equivalence depends on context, so this routine is not
-        implemented by default. Thus, subclasses that require this routine
-        must supply their own implementations.
+        The default implementation of this routine repeatedly searches for a
+        triangle F that intersects exactly two of the edges in this
+        collection, and redirects these two edges along the third edge of F.
+        Only the logic of the search-and-redirect loop is explicitly
+        implemented, and the rest is deferred to the following helper
+        routines, which are *not* implemented by default:
+        --> _findRedirect(), which finds an available redirect operation (if
+            any); and
+        --> _performRedirect(), which performs a redirect operation.
 
-        Implementations must return True if shortening was successful, and
-        False otherwise. Moreover, in the False case, the collection of
-        invariant edges must be left entirely untouched.
+        Subclasses that require this routine must therefore either:
+        --> override this routine; or
+        --> supply implementatiions for the helper routines listed above.
+        In the latter case, see the documentation for these helper routines
+        for details on the behaviour that must be implemented.
+
+        Any implementation of this routine must return True if shortening was
+        successful, and False otherwise. Moreover, in the False case, the
+        collection of invariant edges must be left entirely untouched.
+        """
+        changed = False     # Eventual return value.
+
+        # Continue attempting to redirect until no further such operations
+        # are possible.
+        while True:
+            redirect = self._findRedirect()
+            if redirect is None:
+                break
+            self._performRedirect(*redirect)
+            changed = True
+        return changed
+
+    def _findRedirect(self):
+        """
+        Finds an edge of a triangle that can be used as the target of a
+        redirect operation, or returns None if no such redirect operations
+        can be performed.
+
+        In detail, consider an edge e of a triangle F. If the other two edges
+        of F are distinct and are both part of this collection of invariant
+        edges, but e is not part of this collection, then the redirect
+        operation consists of removing the other two edges from this
+        collection and replacing them with e. This operation can be legally
+        performed if the new collection of invariant edges is topologically
+        equivalent to the current collection. In the case where this
+        operation is indeed legal, this routine returns the pair (F, n),
+        where n is the edge number of F corresponding to the edge e.
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
+        raise NotImplementedError()
+
+    def _performRedirect( self, triangle, edgeNum ):
+        """
+        Performs a redirect across the given triangle that targets the edge
+        triangle.edge(edgeNum).
+
+        Pre-condition:
+        --> The requested redirect operation must be legal, as described in
+            the documentation for the _findRedirect() routine.
         """
         raise NotImplementedError()
 
