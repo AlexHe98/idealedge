@@ -92,6 +92,22 @@ class InvariantEdges:
         self._edgeIndices = edgeIndices
         return
 
+    def _setFromEdgeLocationsImpl( self, edgeLocations ):
+        """
+        Sets this embedded loop using the given collection of edge locations.
+
+        In detail, each edge location must be a pair (t, e), where t is a
+        tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
+        tetrahedron must belong to the same triangulation.
+
+        This routine is *not* implemented by default, so subclasses that
+        require this routine must provide an implementation. Subclasses are
+        free to specify the data structure for the collection of edge
+        locations, as long as each edge location is represented as a pair of
+        the form described above.
+        """
+        raise NotImplementedError()
+
     def triangulation(self):
         """
         Returns the ambient triangulation.
@@ -204,81 +220,67 @@ class InvariantEdges:
         raise NotImplementedError()
 
     def _minimiseBoundaryImpl(self):
-        #TODO
         """
-        Ensures that the triangulation containing this collection of
-        invariant edges has the smallest possible number of boundary
-        triangles, potentially adding tetrahedra to do this.
+        Attempts to minimise the number of boundary triangles in the ambient
+        triangulation without topologically altering this collection of
+        invariant edges.
 
-        The default implementation of this routine requires the following
-        helper routines, which are *not* implemented by default:
+        The default implementation of this routine attempts to reduce the
+        number of boundary triangles by performing the following operations
+        until no further such operations are possible:
+        --> Shortening this collection of invariant edges using the
+            _shortenImpl() routine.
+        --> Close book moves on the ambient triangulation.
+        --> Layering across a boundary edge of the ambient triangulation, and
+            then immediately performing a close book move across the new
+            boundary edge obtained after layering.
+        Much of this implementation is deferred to the following helper
+        routines, which are *not* fully implemented by default:
         --> _shortenImpl()
         --> _findBoundaryMove()
-        Thus, subclasses that require this routine must either:
+        --> _setFromEdgeLocationsImpl()
+
+        Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementations for the aforementioned helper routines.
-        In the latter case, see the documentation for each respective helper
-        routine for details on the behaviour that must be implemented.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening by running the _shortenImpl() routine.
-        --> Close book moves and/or layerings on self.triangulation().
-        In particular, this routine never creates new vertices, and it never
-        creates a non-vertex-linking normal disc or 2-sphere if there was not
-        one before.
-
-        After this routine is finished, it is guaranteed that, subject to the
-        constraint that this collection of invariant edges must be preserved,
-        it will be impossible to simplify the boundary of self.triangulation()
-        any further using the operations listed above.
+        --> supply implementatiions for the helper routines listed above.
+        In the latter case, see the documentation for these helper routines
+        for details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+        --> The ambient triangulation is valid.
 
         Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this collection of invariant edges could not be shortened;
-                and
-            (2) every boundary component of the ambient triangulation was
-                already minimal to begin with.
+            True if and only if a change was made to either this collection
+            of invariant edges or its ambient triangulation (or both).
         """
-        #TODO
-        # Simplify the boundary of self._tri to use as few triangles as
-        # possible.
-        changed = False
+        changed = False     # Eventual return value.
         while True:
-            # Shorten to minimise the number of special cases.
             if self._shortenImpl():
                 changed = True
 
             # Is there a move we can perform to reduce the number of boundary
             # triangles?
-            moveDetails = self._findBoundaryMove()
-            if moveDetails is None:
-                # At this point, all boundary components must be minimal.
+            boundaryMove = self._findBoundaryMove()
+            if boundaryMove is None:
+                # At this point, there is nothing "easy" we can do to further
+                # reduce the number of boundary triangles.
                 return changed
+
+            # Perform the move, and then update this collection of invariant
+            # edges. The _findBoundaryMove() routine should have already
+            # checked that the close book move is legal.
             changed = True
-            edge, doLayer, newEdgeIndices = moveDetails
-
-            # Make sure we will be able to find the edges that form the loop
-            # after performing the move.
-            edgeLocations = []
-            for ei in newEdgeIndices:
-                emb = self._tri.edge(ei).embedding(0)
-                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-
-            # Perform the move, and then update this loop. We can safely
-            # assume that the close book move is legal, so no need to check
-            # before performing.
+            edge, doLayer, newEdgeLocations = boundaryMove
             if doLayer:
                 edge = self._tri.layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self.setFromEdgeLocations(edgeLocations)
-        return
+            self._setFromEdgeLocationsImpl(edgeLocations)
+
+        # Should never reach this point.
+        raise RuntimeError(
+                "Unexpectedly broke out of boundary move loop." )
 
     #TODO
 
@@ -286,6 +288,13 @@ class InvariantEdges:
         """
         Returns details of a boundary move that simplifies the boundary of
         self.triangulation(), or None if the boundary is already minimal.
+
+        In detail, this routine checks whether (at least) one of the
+        following operations is possible:
+        -->
+        ...
+
+        ...
 
         In detail, in the case where the boundary is not yet minimal, this
         routine guarantees to find a move that reduces the number of boundary
@@ -393,7 +402,7 @@ class InvariantEdges:
             # Perform the snap, and then update this ideal loop. We can
             # assume that the snap is legal, so can perform without checking.
             snapEdge( edge, False, True )
-            self.setFromEdgeLocations(edgeLocations)
+            self._setFromEdgeLocationsImpl(edgeLocations)
         return
 
     def _findSnapEdge(self):
