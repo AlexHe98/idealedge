@@ -230,7 +230,7 @@ class InvariantEdges:
         until no further such operations are possible:
         --> Shortening this collection of invariant edges using the
             _shortenImpl() routine.
-        --> Close book moves on the ambient triangulation.
+        --> Performing close book moves on the ambient triangulation.
         --> Layering across a boundary edge of the ambient triangulation, and
             then immediately performing a close book move across the new
             boundary edge obtained after layering.
@@ -286,15 +286,32 @@ class InvariantEdges:
 
     def _findBoundaryMove(self):
         """
-        Returns details of a boundary move that simplifies the boundary of
-        self.triangulation(), or None if the boundary is already minimal.
+        Returns details of a boundary move that reduces the number of
+        boundary triangles in the ambient triangulation, or None if no such
+        moves are available.
 
         In detail, this routine checks whether (at least) one of the
-        following operations is possible:
-        -->
+        following operations is possible, subject to the constraint that this
+        collection of invariant edges is not topologically altered:
+        --> Performing close book moves on the ambient triangulation.
+        --> Layering across a boundary edge of the ambient triangulation, and
+            then immediately performing a close book move across the new
+            boundary edge obtained after layering.
+
+        When such a boundary move *does* exist, the return value will be a
+        tuple that describes the move using the following data:
+        (0) A boundary edge e on which to perform the move.
+        (1) A boolean indicating whether we need to layer across e before
+            performing the close book move.
+        (2) A collection of edge locations such that, after performing the
+            move, these edge locations can
+            the _setFromEdgeLocationsImpl() routine can
         ...
 
         ...
+
+        Returns details of a boundary move that simplifies the boundary of
+        self.triangulation(), or None if the boundary is already minimal.
 
         In detail, in the case where the boundary is not yet minimal, this
         routine guarantees to find a move that reduces the number of boundary
