@@ -4,6 +4,7 @@ Perform knot decomposition experiments in bulk.
 from sys import argv, stdout
 from regina import *
 from decomposeknot import decompose, DecompositionTracker
+from loop import IdealLoop
 
 
 def extractFilenames(nameFile):
@@ -73,7 +74,8 @@ def runDecompositionExperiment(knotIterator):
     
     The given iterator should supply pairs of the form (S, K), where:
     --> S is a string giving a knot name; and
-    --> K is a corresponding Regina Link object.
+    --> K is a knot, represented as a Regina Link object, a Regina Edge3
+        object, or an ideal loop.
     """
     # Only want to keep the slow cases.
     slowCoefficient = 2
@@ -141,8 +143,14 @@ def _experimentImpl( knotIterator, slowCoefficient ):
         print(name)
         print( "-"*len(name) )
 
-        # Scale timeout time with the number of crossings.
-        tracker = DecompositionTracker( True, knot.size() )
+        # Scale timeout time with the size of the knot representation.
+        if isinstance( knot, IdealLoop ) or isinstance( knot, Edge3 ):
+            # Take size = number of tetrahedra in the ambient triangulation.
+            timeoutParam = knot.triangulation().size()
+        else:
+            # Take size = number of crossings in the diagram.
+            timeoutParam = knot.size()
+        tracker = DecompositionTracker( True, timeoutParam )
         try:
             primes = decompose( knot, tracker )
         except TimeoutError as timeout:
