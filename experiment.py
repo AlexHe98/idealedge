@@ -65,7 +65,7 @@ def readKnots(*datasets):
     return
 
 
-def runDecompositionExperiment(knotIterator):
+def runDecompositionExperiment( knotIterator, slowCoefficient=2 ):
     """
     Decomposes all knots described by the given iterator, and prints the
     results to standard output.
@@ -78,7 +78,6 @@ def runDecompositionExperiment(knotIterator):
         object, or an ideal loop.
     """
     # Only want to keep the slow cases.
-    slowCoefficient = 2
     slowKnots, slowTimes, timedOut, knotCount, totalTime = _experimentImpl(
             knotIterator, slowCoefficient )
 

@@ -16,7 +16,9 @@ def decomposeS3Edges(dataset):
     print( "+-------------------------------+" )
     print()
     stdout.flush()
-    runDecompositionExperiment( readS3Edges(dataset) )
+    slowCoefficient = 4
+    runDecompositionExperiment(
+            readS3Edges(dataset), slowCoefficient )
     return
 
 
