@@ -1,0 +1,884 @@
+
++-------------------------------------+
+| Knots given by composing 6 summands |
++-------------------------------------+
+
+Sampling summands from the following data sets:
+===============================================
+hyp-15-16
+    15a-hyp
+    15n-hyp
+    16a-hyp
+    16n-hyp
+satellite-15-19
+    15n-satellite
+    16n-satellite
+    17n-satellite
+    18n-satellite
+    19n-satellite
+
+Sampled 34 knots from set of 1641979. Time: 10.020598.
+======================================================
+
+Sampled 26 knots from set of 376. Time: 0.033810.
+=================================================
+
+16nh_0596489 # 16nh_0884623 # 18ns_83 # 15nh_056176 # 15nh_075013 # 19ns_176
+----------------------------------------------------------------------------
+Knot sig: -cJbaabacadaeafabagahaiadajakacagalamahaianaoaaalamanaeapaqarakajasaqapasarafaoatauavawauaxayavawazaAataBaCaDaEaFaBaCaDaxayaGaHaIaAazaGaHaIaEaFaJaKaLaMaNaOaKaPaQaRaSaTaMaLaUaVaPaJaWaQaRaXaTaYaVaUaYaSaXaNaOaWaZa0a1a2a3a4a5a1a2a6a4a7a8a9a+a-a0aab7a+abbcb-a3a6a5aabdbebbbcbZadb8a9aebfbgbhbibjbkbgblbmbnbobmbpbqbrbjbkbrbsbpbtbfblbhbibobnbsbqbtbubvbwbxbvbybzbwbxbAbBbubCbDbybzbEbFbAbBbGbHbIbCbDbEbFbGbHbIbNAXulRSQuLQ2QQYQkxvMzXmBwwMmRsQ1s-F+-pm-5dayqd8ymJZW--8-pLcT5F+ZJh.
+Embedding knot as an ideal loop.
+    Time: 0.000052. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.013470. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.020523. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.028461. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.036597. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.039833. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.044029. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 34.813513. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -c1cLLvLvvPMvPAPPLPQQQwAwvwLvLvvwwLvzPLQzMMvvLMwPvQQAvQwQQLMLzMPLMLwPMMMAAvLPQPLwvPzMvwLzwAQPwvLvvPQQQPzMPwPQwvwPQQQLQLMQzMQkcaeahahapanamavaoasanaravasauazaxayawayaBauaAawayazaBaBaDaDaEaHaJaLaWaQaRaTaUaVa9a-aZaabbb+a0a+a+a8a7ambkblbhbtbpbabebebfbfbhbdbwbfbrbjbybzblbrbobAbnbBbpbFbrbCbHbFbJbxbxbLbGbBbDbCbQbIbKbSbPbTbTbRbUbNbNb1bPbUbQbRb2b2b2b9b3b8b3bbcdc-bac6bmc9bjc+bac-bicncucBcicocjcococlclcncmcncDcsctcwcDcxcvcHcGcJcGcEcIczcMcQcMcPcEcJcJcHcKcIcKcKcScPcUcTcScQcScWcTcXcVcWcZc0c0cZc0cZciiisqtaingfjhcoiqxhxpvmnovssbbaabbubbgbbhakopjbrcbbaaaeaaoahhhwoasbjaabobagivabeaauooaccvbpvatiaaqaooavcbshixdohsmphfwifcobbbxapoqbamofjnbivkgtfjaxpmlpopetqgffkcgjcnviagbkmhigvuuhocv (181 tetrahedra). Edge 88.
+    Time: 34.865020. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 38.003046. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: -cvcLLvvPQAvvLMQMQQzLAzvvPMAvvvPvvQMzzzvLAMQMvzvvvvwzPMwwwQMPMPwvLLMAPMvzLPQQQPPLzAwwvAQALQPQQQQzwQLQQQccaeakagahaiaiajakanapaoavatauaqawatauavatauawaxazazaAaBaFaFaKaLaJaIaRaPaXaRa1aWaYa4a6a8aZa2a2adb1adbebbbebcbibfbxbdbebBbBbybCbnbobFbHbIbpbpbKbnbJbFbKbMbObVbzbTbPbxbXbYbAbAb2b0b7b5b4bIbLbIbMbJbLbKbMbObWbUbSbRbUb-bVbbcdchc2b3b2bjc4bkcmc7blckc9bccecccdcacac-bbcbcecechciclcicrcmcocucoctcqcrcqcsctcucuctciirfvvfgscggaqtcuorkovfeggagggaiaccrljqatilmkooaceeqeaiamwwoojafflaabstohtdadpfqxgaaocxjaaawnffgbbogccbsjlglilocoahiagrbgsckfgbnorrsgcoblhmaoosgfccppb (149 tetrahedra). Edge 30.
+    Time: 38.041600. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 40.062835. Searches: 5. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Edge-ideal: yLLLvvLPzPwQLQPQQaegnmloqkprrtvwssuxtvwxwxbpdagcoanwxiiedpxnwckgvgw (24 tetrahedra). Edge 0.
+    Time: 40.064158. Searches: 5. Primes: 0. #Tri: 3.
+    Time: 40.078080. Searches: 5. Primes: 1. #Tri: 3.
+Found a hyperbolic knot!
+Edge-ideal: -c6bLLvvPQAvvLMQMQQzLAvzwvzwLwPMwQzLQMLvPLwzvvzMvzPAvvwAQLAzAMMwPPLzAwwvQMMQPQQQQPLQQccaeakagahaiaiajakanapaoavatauaqawatauavatauawaxazazaAaCaEaGaNaMaKaOaMaUaRaPaQaTaTaYaUaZaYaZa0a1a4a0a0a9a6a+a-ajb9albpbrbnbobtbAbkbybubjbCbDblbmbFbEbFbHbGbrbJbtbBbzbxbwbzbPbAbRbTbXbZbJbKbZb0bLbLbWb1bNbSbUbSbTbQbQbPbRbRbUbUbXbYb2bYb4b5b4b5b2b3b4b5biirfvvfgscggaqtcuorkovfeggagfbifwikxamjvvafdddxamwwabammuoaaaadpfqxgaaomgggaogmgccbsjlglilaaqgavbfdgsckfgbnorrsgclblvvvwggc (122 tetrahedra). Edge 33.
+    Time: 40.101641. Searches: 5. Primes: 1. #Tri: 4.
+    Time: 41.269910. Searches: 7. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: yLLvvLAMzAMAPMwQQaejkihjjnmqnprsusvtuvwxxxbphihbtbcfekgqtetpncxigvr (24 tetrahedra). Edge 0.
+    Time: 41.271248. Searches: 7. Primes: 1. #Tri: 5.
+    Time: 41.277826. Searches: 7. Primes: 2. #Tri: 5.
+Found a hyperbolic knot!
+Edge-ideal: -cEbLLvvvvwvwzvLAvAvzwzLLMMMvALPALMzQzAPAPQQQAwLzLQQLwPwPMMwAQPQQQkaaeahavawaxaAauaGaHataMaNawaDazaEaVaCaEaCaYa1aIaJaRa4aKa8a9aSaNaQaPa+abbcbRaab4aUa6aZaXaXa3aZa3a1a2a3a2a1a2adb7aibjbabebcbbbebpbpbpbqbjbkbrbvbobtbvbnbnbobybrbsbCbwbubAbCbwbxbDbBbBbAbDbBbAbDbbpbdhlxaehjmeogfvxfskhmcfkmbaarrncexafmobbrvvfkvkosowfscdlkrnkvephgcbsdgamboctflgbbwgcvmnfrpcot (94 tetrahedra). Edge 0.
+    Time: 41.292381. Searches: 7. Primes: 2. #Tri: 6.
+    Time: 42.230134. Searches: 29. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: xLLzMwAMzvQLzLQQccdfgfhjhiklnoqprutvuvwwwhsdenrmggfqcpxgoigsskosw (23 tetrahedra). Edge 12.
+    Time: 42.231837. Searches: 29. Primes: 2. #Tri: 7.
+    Time: 43.370991. Searches: 78. Primes: 2. #Tri: 7.
+Alternate enumeration succeeded on 21-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 95.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 43.372366. Searches: 78. Primes: 2. #Tri: 7.
+    Time: 43.373880. Searches: 78. Primes: 2. #Tri: 7.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 43.373922. Searches: 78. Primes: 3. #Tri: 7.
+Edge-ideal: -cdbLvvwwvLvLzvPvMPMvvQzPzMAMAMzMzMzMzPQQMPMQMQQkaagafaiaqawaoaAaBaravasaxawaJaKayaFaQaRaGaBaEaDaSaVaWaFaIaUaPaLaQaNa0a3a0aOa3aZa1aUaWaXaVaXa+a+a+a0a4a-a2a8a6a5aab-aab8acb-a9acb9abbbbcbbgbbshniuoiblieabsaawwjouqavbiibubpapbanbsjwsfudhobdcpgfudixdcbjcnsn (67 tetrahedra). Edge 0.
+    Time: 43.381812. Searches: 78. Primes: 3. #Tri: 8.
+    Time: 46.228246. Searches: 151. Primes: 3. #Tri: 8.
+Alternate enumeration succeeded on 50-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 2.)
+Edge-ideal: qLLzMwzALAQkcdfgfhhljlnonpnpphsdenrgkfnmqnogrr (16 tetrahedra). Edge 16.
+    Time: 46.228946. Searches: 151. Primes: 3. #Tri: 9.
+    Time: 46.343607. Searches: 214. Primes: 3. #Tri: 9.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 46.343939. Searches: 214. Primes: 3. #Tri: 9.
+    Time: 46.344831. Searches: 214. Primes: 3. #Tri: 9.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 46.344878. Searches: 214. Primes: 4. #Tri: 9.
+Edge-ideal: ELLLLzzLMzAAwvPAPPQAQceffilonmlqnpqruutvzxyxCAACBDCDiieugipagodgsaenwcoaduhkobgcljo (30 tetrahedra). Edge 30.
+    Time: 46.346616. Searches: 214. Primes: 4. #Tri: 10.
+    Time: 46.361537. Searches: 214. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: CLLvLvvPMvPAPPLPQQQkcehhpnmvosnrvsuzxywyBuAwyzBBAiiisqtaingfjhcoiqxhxpvmnovssb (28 tetrahedra). Edge 28.
+    Time: 46.363180. Searches: 214. Primes: 5. #Tri: 11.
+    Time: 46.379711. Searches: 214. Primes: 6. #Tri: 11.
+Found a hyperbolic knot!
+    Time: 46.379817. Searches: 214. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: xLLvLvzvQQMvQMQQccehlppnmoqrsvtrsuwutvuwwiiiihhiaheaiaigaeieeafnn
+    Drilled iso sig for prime #1: xLLvvPQAvvPMPQMQccejgihikjnsqpqvrusswuwvwiivjvwscfglcoctpadgavecl
+    Drilled iso sig for prime #2: sLLLQLvwzAPQQbdefefhjlmlporrqpqrhruupglvtoguveuqpgg
+    Drilled iso sig for prime #3: oLLLMzwMPQccdeggihkjlmlnnndcutcmbafjlkqck
+    Drilled iso sig for prime #4: DLLLLLvvPAQzvAMPPQAQccefehknnlpomrsvyswvAAxBzxyBCCCiitdvtoggvwgfuadtwfdtbenfbtesv
+    Drilled iso sig for prime #5: BLLvAvzPMvvLPQMAQQQcdfhijojnwytyqtsrwvxuxyzxAAApvauaipbculalvfbosfswcotbhvr
+
+16nh_0335269 # 19ns_123 # 16ah_215400 # 16ah_075222 # 15ah_42040 # 16ns_02
+--------------------------------------------------------------------------
+Knot sig: -cIbaabacadaeafadagahaeafaiajakalamaianaoapanajakaqaralamahagasapaoaqarasatauavatawaxayazaAaBaCaDauavaEaFaGaEaBaHazaAaHaCaDawaxayaIaGaFaIaJaKaLaMaNaOaPaQaRaSaKaTaUaVaWaPaQaJaSaXaOaNaMaUaVaWaTaLaXaRaYaZa0a1a2a3a4a5a6a7a3aYa8a4a7a9a+a0a1a2aZa-aab6a5abb-a+a9aabbb8acbdbebfbgbhbdbibjbebfbkblbmbkbnbobcbpbqbibjbmblbqbpbnbrbhbgbrbobsbtbubvbwbbaxbybtbwbzbAbBbCbDbxbEbsbcaEbybFbCbGbaaDbFbubvbBbHbzbAbHbGbxvvvvvvvvvvvvvvvPMzQzgBvvvAmRwzMc-FGK58-8ZWp-NW5q+mZpZC4K-55-F3+Vp.
+Embedding knot as an ideal loop.
+    Time: 0.000061. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.013625. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.032019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.038108. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.043346. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.046601. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 29.734948. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -c5cLLLLLzvzvwAwvLLQLvvvPMQPQMPLwzMzvvPQQLPMPzMLvLwzzPwLAQzPvwvMwzPAMvwvMMMzMMMQPAMMAvzAwPAQQQwMAzLLvvQQzwLvzwwMQvvwzQQQQQAQQQQccaeafaeahalakaoawawapatasaEaEataFaRaRaGaDaFaGaJaIaTaRaDaJaTaTaVaWaUaLaNaNa0aPa-aVaYaXaYaXaYa2acbbb2adbdbfb6a6a7agb+anbabqbebtbubvbjbjbkbkbAbBbmbCbobGbKbEbNbPbwbSbRbSbRbUbXbDb3b2bGbKb5b5b6b3b6b7bMb4bNb5b+b4b9b2bTbacSbTbWbVbWbhcZbicjcmc8b8b-b-b+b9bncncncbcccccccgcfcocqcpcvclcscrcrcqcscscEcvcCcAcMcJcCcPcJcRcScHc0cWcZcRcQcNcNcUcTcRcScPcTcPcQcQcUcUc4c3c4c3c0c1cZc1c0c2c2c2c4ciitdvitvaigdgwwvjtuefoepuxifxxbbtbobflgtouuoocvaivqeegggmgaftgttaggggamgacuilmabdexxidbpaovmehuuaotbpplxlvafvgbvigmidfowvbcqpufbrswntatmvvvsbwkmvcvamwaimmwaaiowsbokgvrrrcrwwigugrkwrkorou (185 tetrahedra). Edge 136.
+    Time: 29.789345. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 33.044694. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: qLLLALvAwQQkaegfggimklpnoopopbpdgbwfuclhbbcsnw (16 tetrahedra). Edge 0.
+    Time: 33.045393. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 33.111415. Searches: 60. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 33.113415. Searches: 60. Primes: 0. #Tri: 2.
+    Time: 33.114287. Searches: 60. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 33.114326. Searches: 60. Primes: 1. #Tri: 2.
+Edge-ideal: -cKcLLLLLzvzvwAwvLLQLvvvPMQPQMPLwzMPwvQQAzQzwPwvPLLAzzLvLvwwzPAwLvzPAwwzAzMzAMwLwPAvPzwAQMPPAQQQQQQQQMLLwzLwPPQQQccaeafaeahalakaoawawapatasaEaEataFaRaRaGaDaFaGaJaIaTaRaDaJaTaTaVaWaUaLaNaNa0aPaPa4a8aVaYaXaYaXaYa2a-a+a2aababcb6a6afbibjbbbmbnbobrbtbibzbCbFbIbpbLbKbLbKbubvbWbVbybGbXbBb0bZbEbFb4b5b5b8bMb+bLbMbPbRbccUbdcececgckcnc8bYbqc0b6b6bqcrc9brc6btctc7buctcscucsc-bacacacccicfckcicecjcicmckclcjcjcmcmcpcwcscucAcBczcHcCcIcEcJcDcJcJcHcGcGcIcHcIciitdvitvaigdgwwvjtuefoepuxifxxbbtbobflggatouuoocvaivqeeggadtgttailgaimabdexxbgllgsafupobpttavafvvrubuiuallsbuovrptwhwaakppplpfbrsonvfnfbnsbrcrgsktvktlravkkafhdwjwvjv (164 tetrahedra). Edge 114.
+    Time: 33.160871. Searches: 60. Primes: 1. #Tri: 3.
+    Time: 36.199410. Searches: 63. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: wLLMMvvMLAwLAQQkbcdfeglkpmopsquruvrvtvumkfapildmoodaaegrbgnkno (22 tetrahedra). Edge 22.
+    Time: 36.200590. Searches: 63. Primes: 1. #Tri: 4.
+    Time: 36.631476. Searches: 230. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 36.634598. Searches: 230. Primes: 1. #Tri: 4.
+    Time: 36.636455. Searches: 230. Primes: 1. #Tri: 4.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 36.636496. Searches: 230. Primes: 2. #Tri: 4.
+Edge-ideal: -ckcLLLLLzvzvwAwvLLQLvvwPMQPQMPLwzMLwLQQLPMzvMvMvwMvLvLAvvzLAzPMAPzPzAAMLLMAAzzQPPAQQQAzwQAQPQQQcaeafaeahalakaoawawapatasaEaEataFaOaQaQaGaDaFaGaJaIaSaQaDaJaSaSaUaVaTaLaNaNaZa4a4aUaXaWaXaWaXa1a+a9a1a-a-abb5a8agbibabmbobsbAbybjbBbFbKbqbqbpbPbObPbQbQbvbwbxbRbRbTbUbWbXbXbRbJbIbFbGb3b2bLb2bIb8b9b6b-bNbPbacbcQbWbYb0bZb0bYbZbccZbccYbcc9b4b8becgcfcgchc8bic-b-bhcbcbcjcfcicjchcicjciitdvitvaigdgwwvjituefoepuxifxxbbtbobflaiouuoocvaivqeegvdagtammasdlavgbdexadonvmquuquihboffaagavataavflugwgsvcgghvlghogopmattcegcucrgsgovco (138 tetrahedra). Edge 73.
+    Time: 36.668653. Searches: 230. Primes: 2. #Tri: 5.
+    Time: 37.939255. Searches: 233. Primes: 2. #Tri: 5.
+Main enumeration succeeded.
+Edge-ideal: ALLvLvLPvvQQAMPQQPcceglpjqvnspvotpsvuryyxwwzzziidltfjrbcvncvvofgbdepealxm (26 tetrahedra). Edge 23.
+    Time: 37.940763. Searches: 233. Primes: 2. #Tri: 6.
+    Time: 37.952358. Searches: 233. Primes: 3. #Tri: 6.
+Found a hyperbolic knot!
+Edge-ideal: -cTbLLLLLzvzvwAwvLLQLvLvQPAQQzAPvMzvMQQLPMPvLwwzzwwALLvLAzPMAMMzMPzQQPAAQAQQkcaeafaeahalakaoawawapatasaEaEataFaxaPaPaGaDaFaGaJaIaRaPaDaJaRaRaTaUaSaLaNaNaYa4aTaWaVaWaVaWa0a8a7a0a9a9a-a4acb6agb+aibkbbbobdbsbqbybrbmbmblbEbDbEbFbFbpbHbGbsbJbJbKbHbKbLbybzbNbGbIbAbIbPbJbCbEbQbRbFbMbMbObObPbNbSbSbSbRbRbiitdvitvaigdgwwvjgtuefoepuxifxxbbtbobfldouuoocvaivqeegavagtagacuxldvgbdexadbpaomehuuaffpxxgxadvflugfowvfcquqcr (109 tetrahedra). Edge 41.
+    Time: 37.971525. Searches: 233. Primes: 3. #Tri: 7.
+    Time: 38.821511. Searches: 235. Primes: 3. #Tri: 7.
+Main enumeration succeeded.
+Edge-ideal: DLLLvvLQMwQzLPQwzMQMccddjhnlookpomrvuvtwtuxyAzBBACCpvrmfpagkfqfoaefqvtocwgtgpxltg (29 tetrahedra). Edge 29.
+    Time: 38.823291. Searches: 235. Primes: 3. #Tri: 8.
+    Time: 38.836064. Searches: 235. Primes: 4. #Tri: 8.
+Found a hyperbolic knot!
+Edge-ideal: -cnbLLLLLwvwLvwvLLQLzvzPAQMQAMwMLwzvQQzAzzMPzQMMzLzQQQQccaeafaeahagakanaoasaraDaDasaEawaLaOaPaPaFaCaEaFaIaHaQaPaCaIaQaQaSaTaRaKaWaMa0aSaVaUaVaUaVaXa7a6a0a-a-aab7aabbb5a9aeb+acbcbfbfbjbhbdbfblbkbgbibmblbibkbkbmbmbiitdvgtvgdgwwvjgadtuefoepuxifxxbbtbgacuouuoocbpaomehuuagtaafoaaaecdqitojnbfcbo (77 tetrahedra). Edge 12.
+    Time: 38.847531. Searches: 235. Primes: 4. #Tri: 9.
+    Time: 39.704353. Searches: 254. Primes: 4. #Tri: 9.
+Main enumeration succeeded.
+Edge-ideal: HLLLvMQzvwzvwMMAvQPQAQQbcgjghkiilspvzvtywvzAAzECECDGEDGFGmouiovujcoivtaqceeorffvbjbjcinfhcw (33 tetrahedra). Edge 33.
+    Time: 39.706789. Searches: 254. Primes: 4. #Tri: 10.
+    Time: 39.721873. Searches: 254. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: FLLLAvvvvPMvQwPAMQQMQkaeefgponuprvuytssywxzBxDDDAEBCEEbpdgcxtliedvjjjogjogtxcuaabacctd (31 tetrahedra). Edge 0.
+    Time: 39.723758. Searches: 254. Primes: 5. #Tri: 11.
+    Time: 39.735529. Searches: 254. Primes: 6. #Tri: 11.
+Found a hyperbolic knot!
+    Time: 39.735584. Searches: 254. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: mLLAMLPLQcddeeghjiklllirjhuerekrrnk
+    Drilled iso sig for prime #1: vLLLAzwLLLPzQQQcdefeijlpnmqtprpursutuioaaipixiasjmfkktsxcof
+    Drilled iso sig for prime #2: zLvvLAvLQLAvMPQQQkcifiqkmmorqtrrwxuvuxtuyyyxiicvdfxxaapxvbmqaedxdgvjcf
+    Drilled iso sig for prime #3: BLLLvzzwQLMLMPQwLQQcddhihnknporoovuvtwtuxyyAzAApvrvafffgqvavfefqvtocjgomgad
+    Drilled iso sig for prime #4: FLLLLvvPLLLQLAMzMQQLQkcefelkkroonvuxuxyytCzvwxyADCEEDEiitdpatfjvgmxmemthghwocvjoubkgro
+    Drilled iso sig for prime #5: CLLLvwzAAvLvQQAQPMPkbcgjklnionvpvqtrrsyxvwzxyBABBmouiumucawacmxiocvdcccugimrlx
+
+16ah_011713 # 16ah_088686 # 19ns_193 # 18ns_04 # 16nh_0964072 # 19ns_098
+------------------------------------------------------------------------
+Knot sig: -cObaabacadaeafagaaahaeaiajakalamaianaoafahapacaqanaoarabapadamalakajaqaragasatauavawaxayasazaAaBayaxaCaDaEaFauavaGaCaHaAaBaHaDaGawataFaEazaIaJaKaLaMaNaJaOaPaKaNaMaLaQaRaSaTaUaQaIaVaRaUaWaXaPaOaYaZaTaSa0aYaXaWaZa0aVa1a2a3a4a5a6a7a8a9a+a-aab4a3abbcbdbeb2a5a6a7a8a1acbdbebbbab-a+a9afbgbhbfbibjbkblbmbnbobpbjbqbrbsbtbubqbmblbkbpbibgbhbubrbsbtbnbobvbwbxbybzbAbwbxbybBbCbzbAbDbEbFbGbHbIbJbFbKbLbGbJbCbBbIbHbMbNbEbDbvbMbLbKbNbNPAgZkRSQQQSYkZ0mtvvvvvvvvvvTPmZSmd7V33----H5z+NNzgM5-WWpaVN9E-88HzEMj.
+Embedding knot as an ideal loop.
+    Time: 0.000061. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.004599. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.009819. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.015795. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.029811. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.037176. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.044230. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 35.051672. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 35.661464. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: -cgdLLAAvMvvzMLQwzwAAAQAzzvLvzPAvvvvLvLvMAPvzwwzvQvAQPQMwzvvPQMMAvLQwMLQMALwLQzQQzQAQPLwMzPwQAvvLPAQLAzvvPMAAQQQvLwwwzAMzwMLzPQPAPQwQMQQbaeaeadafaeahaiaoaoaoararavauauasawavavaBaBazazaAaBaEaEaEaFaIaHaMaTaRaNaNaUa+a8a8adbgbib0a2a3apbpbubvbbbababxbebAbAbbbAbybBbfbCbfbCbmbMbmbLbMbNbwbobwbsbPbVbUbTbvbRbQbFbzbEbDbFbZbFbZbEbKbJb7b2b3b3b9b+b+bOb+bQbVbSbTbacXbYbYbYbXbbc0b0bec5b6b7b8bicgckcccbcacccccvcjctcsckcwcvcmcyczcqcqcJcucxcKcxcKcxcKcMcMcMcFcCcBcDcFcIcIcHcPcTcYcWcOc0cVcUcTcWcYc8c7c-c4c4c4c6c2c5c3c3cbd8ccd-c-c9cadcdadbdadcdfdfdededfdxxuwamnxxcvroqqttnsbmanrialvbpdbwuarjcxmhtapbcbddadvjkdjmtwmaugevtjebhqxvcrraiiavppsbcgnublngcuxxixhlcikbbvarokgvhjwdwvoblqekvofktohuntqrxagwekshspoiqitocscfvwgatlrfxjgjwgtehadimpsosafqbgkfabhrqsofks (198 tetrahedra). Edge 127.
+    Time: 35.726379. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 40.827772. Searches: 8. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: oLLLQLLAwQcbdeegggikjlnmmnxnidpvjjmqpsoow (14 tetrahedra). Edge 14.
+    Time: 40.828366. Searches: 8. Primes: 0. #Tri: 2.
+    Time: 40.861850. Searches: 35. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 40.863598. Searches: 35. Primes: 0. #Tri: 2.
+    Time: 40.864857. Searches: 35. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 40.864927. Searches: 35. Primes: 1. #Tri: 2.
+Edge-ideal: -cRcLLAAvMvvzMLQwzwAAAQAzzvLvzPAvzvvLvLvMAzzwwzvQvAQPQMwzvvvQPwvPQLzPQPwvLALMzvMMPQPMwwLLPMQAvLAPPQQQLLvMzQPQAPQPPQQQQbaeaeadafaeahaiaoaoaoararavauauasawavavaBaBazazaAaBaEaEaEaFaIaHaMaTaRaNaNaZaUa9a7a7acbfbhb1a2ambmbrbsbab-a-aubdbxbxbabxbvbybebzbebzbLbtblbtbpbNbTbSbRbsbPbObCbwbBbAbCbXbCbXbBbGb5b4b8bJbLbMb+bObTbQbRbgcVbWbWbWbVbhcYbYbkc7b5bqcoclcocncscqcscmcacdceccczcecBczcBcdcAcichcgcicictcrcHcJcDcscGcLcycwcwcxcFcxcFcHcIcAcBcEcKcEcJcIcHcNcQcMcPcMcNcOcPcOcQcQcxxuwamnxxcvroqqttnsbmanrialvbpdbwuarjpcxmhtapcbddadvjkdjmtwmaugevtpvcrraiiavppsbcgnublnnaaponvekbbvarokgvhjwdwnxaqqudeilvnwkushupvakvofkschdewhafgbwhrmuuwkgfwnnnrhwhswbhoac (171 tetrahedra). Edge 158.
+    Time: 40.913838. Searches: 35. Primes: 1. #Tri: 3.
+    Time: 44.670857. Searches: 37. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: rLLLLwzAzAQQcaedghijiklnqonqppqbpaouigvrwaaqarvcg (17 tetrahedra). Edge 0.
+    Time: 44.671716. Searches: 37. Primes: 1. #Tri: 4.
+    Time: 44.805152. Searches: 120. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.806553. Searches: 120. Primes: 1. #Tri: 4.
+    Time: 44.807835. Searches: 120. Primes: 1. #Tri: 4.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 44.807879. Searches: 120. Primes: 2. #Tri: 4.
+Edge-ideal: -cgcLLLLLvQwzLvQPzAzAMvwvAvALvMvvzPAvQPLQvwvLzvvLMLAQQPQPQQwvPzLvzvvALMLAMMPPPQAQMQPQAMQPMMAQcbadafahahamanajajaoasaqavavaxauauayawatazayazayaGaLaFaPaOaSaKaWa4a6aRaRa6a7a6aUaZaZaVaYa-a0acbabmbrb+awbrbrbxbfbabgbeblbebkbkbAbjbibhbAbBbBbAbkblblbBbqbpbHbvbNbVbSbRbMb0b1bJbGb2bIbKbKbKb6b3b3b8bPb8bXbPbYbVb9bXbTbQbTbWbVb8b+b-b+bZbYbZb-b2bbcbcbc5bac7bccccdc+b-bacecfcfcfcdwurrupltcpiexljfqgoqheftmqtgavamqiqtdkfnbggavadisolsvugbnnnbfwavgwiapagcgucgakalwbgmxjgajrbnaaipvptfeieenkkiiprtwbbsinxhqgmjmxavmgcieu (134 tetrahedra). Edge 133.
+    Time: 44.835617. Searches: 120. Primes: 2. #Tri: 5.
+    Time: 47.626204. Searches: 123. Primes: 2. #Tri: 5.
+Main enumeration succeeded.
+Edge-ideal: ELLLLzPLvAPMLwPwvQQQQcddghihkqpmqstupsxxBDzyzDyCBBCDpvrgvafvqavluitvouaetdrhxokvcnn (30 tetrahedra). Edge 30.
+    Time: 47.628336. Searches: 123. Primes: 2. #Tri: 6.
+    Time: 47.639060. Searches: 123. Primes: 3. #Tri: 6.
+Found a hyperbolic knot!
+Edge-ideal: -cAbLLLLLvQwzLvQPzAzAQvwMwwvwzLMAwLAMPLLvLPAzQPAvPMQQwwMLAMMMAQQbadafahahamanajajaoasaqavavaxauauayawatazayazaCayaFaHaJaEaLaNaQaLaMaXaXaXaQaYaYa1a0aUaZa2aZa9a0a8a3a3a6a5a7adbcbfbhbdbcbbbababmbmbhbgbfbhbgbgblbrbnbrbobnbvbvbwbxbtbubybubybzbxbxbzbzbdwurrupltcpiexljfqgoqhebftumqgdartlosoadulfeeiiggwjcffhiaaipnkgtaonvvoskirmqvdmhivghcidvrjc (90 tetrahedra). Edge 85.
+    Time: 47.650799. Searches: 123. Primes: 3. #Tri: 7.
+    Time: 49.210963. Searches: 130. Primes: 3. #Tri: 7.
+Main enumeration succeeded.
+Edge-ideal: zLLMLvPzvPvQPzQAQkbdcehjljrputsvrpxrtxxvywyymjoqihucepmvbpofdbwhtnokjo (25 tetrahedra). Edge 6.
+    Time: 49.212437. Searches: 130. Primes: 3. #Tri: 8.
+    Time: 49.221575. Searches: 130. Primes: 4. #Tri: 8.
+Found a hyperbolic knot!
+Edge-ideal: 2LLLQvwPwQwwPwAQvwwvvMzzPvzQQvAwQQQMQbdefefhmkmoolnqtststvvwzBJKFMLMKTLSSRUUXRTYZRZX0WY011Z1hruupgtdaavwgsteaitvggailalratqkueuiewkankqqvamhgorqmfm (54 tetrahedra). Edge 17.
+    Time: 49.226109. Searches: 130. Primes: 4. #Tri: 9.
+    Time: 49.913987. Searches: 136. Primes: 4. #Tri: 9.
+Main enumeration succeeded.
+Edge-ideal: GLLLLwvzzLAAvQAAPMPMPQcaeghikqqsropwwrvxtuyzBzACACFDDEFFbpduaguemhwqxxtfsobsehppxpbigcrhq (32 tetrahedra). Edge 0.
+    Time: 49.916055. Searches: 136. Primes: 4. #Tri: 10.
+    Time: 49.941392. Searches: 136. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: tLLLQvwPwQwMPkbdefefhmkmoolnqrsrsshruupgtdaavwgstjejie (19 tetrahedra). Edge 17.
+    Time: 49.942252. Searches: 136. Primes: 5. #Tri: 11.
+    Time: 49.999646. Searches: 184. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 50.001904. Searches: 184. Primes: 5. #Tri: 11.
+    Time: 50.003827. Searches: 184. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 50.003875. Searches: 184. Primes: 6. #Tri: 11.
+    Time: 50.003894. Searches: 184. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: nLLLAALAPkbdeffggikjllmmxniqxvjsexxtkj
+    Drilled iso sig for prime #1: qLLLLwvAMQQkbdefiikkolnnppopohrugwreecoovalkas
+    Drilled iso sig for prime #2: DLLLLzPLvAPMLwQwvQQQccddghihkqpmqstupwsxxACyyCBAABCpvrgvafvqavluitvuouaetdhxkvcnn
+    Drilled iso sig for prime #3: yLLMvLPzLvLAMQMQQceddiilmktqqusurrswvwwxxxiisvdqtigbrrsbsgjjmqqiqjv
+    Drilled iso sig for prime #4: FLLvAzvvPvzMPzAAPQPQQkceffholpmorptruywzvDAzxEBEDBBCEDiiaiwiswgkfbdgisbwolfogaglirghnf
+    Drilled iso sig for prime #5: sLLLQvwPLPAPQbdeeggjllkpmoopqrrrxnidpvetaepbfwetvjg
+
+16nh_0186249 # 16nh_0172262 # 19ns_157 # 19ns_073 # 16ah_267421 # 17ns_22
+-------------------------------------------------------------------------
+Knot sig: -cNbaabacadaeacafagadaeahaiajakalamanaoakapaqalaoahabafaganamarasajaiaaaraqapasatauavawaxayauazaAaBaCaDazataEaAaDaFaGavaHaIawaxaIaHayaJaKaCaBaLaJaGaFaKaLaEaMaNaOaPaQaRaSaTaUaSaVaWaXaQaNaMaYaUaTaZa0aYaRaVa1aOaPaXaWa1aZa0a2a3a4a5a6a4a7a8a9a+a-aabbbcb+adbeb-acb7a3a6a5abbabfbgb9a8a2afbebdbgbhbibjbkbiblbmbnbobhblbpbqbrbsbtbubqbvbwbrbsbnbmbwbvbpbjbkbubtbobxbybzbAbybBbCbDbBbxbEbFbGbHbIbCbDbJbKbGbHbKbLbMbAbzbMbLbJbIbFbEbxLmZmZSkZSQmtvvvvvRYmRmZQjRPkRsQQQb-CM5HzgGzgaM5VLB8jNzMhM53Jhp+n4aadd.
+Embedding knot as an ideal loop.
+    Time: 0.000056. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.019959. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.027741. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.035308. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.047428. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.053745. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.060282. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 34.289973. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -cUcLLLLwvvzLLvAzvzvzvLvzMLQwwAQMQQzvQMMwwvvMQQQMQQvLzvLzMvvwLzLAAMLwvPPPMAPwLMMAwLAMPAQzPQQMQQMQQwvLwvvPLzwALMPMQAALQQQbadaeafagarakasazapaqaCawaKaVaWaWaDaZaHaGaCaFa1a1aIa0aIa2aLaSaQaNaPaQaVaOa8a7aRa9a8a-a7aVacb0a1a5a4alblb4a5albbb+abbabmb-amb-ambbbkbjbwbybkbsbqbrbJbwbubybxbLbRbzbTbRbZbDbYbObFbMb2bIb2bIbNbKbKb3b3b4bVbXb1bZbacUbacccdcZbYb0b-bhcichc-b3b+blckc+b7bkckclc9b9bmclcgcbcccccecncfcncncicjcjcjcucrczcBcxcycDcFcCcGcHcCcLcGcOcPcIcJcNcKcLcOcQcMcTcScOcRcRcQcRcTcTcafagcegadfoeotidantocobedrevqgcgvjcsfaiwpaiufikfnjltcctkjnbiwxjqwokmdomfgagoboaicaaaflmgoakqbsjomatcjkjmrxaasrceaaepogtlvcdidccaxngcowuoitvjrbdcaeccjejaajameecccvjgacaagahhvgb (174 tetrahedra). Edge 22.
+    Time: 34.336771. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 38.151136. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: yLLvPLwvLwPPMMQQQachgkgkqrmqorppsuuxwwvwxxbvtbpbjapbqojokjjouhlbqda (24 tetrahedra). Edge 0.
+    Time: 38.152421. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 38.160652. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: -cccLLAAvLAwPQwwwwvvAzLwLvvvQvQzzvMzLvPMQAPQQPMwvwLvMAzLPPPQMQAwPzvMQAQAwvLLwMMLMvPQzQQAPQkbaeaeadafaeakaialamapanaoaoapaoaqatavaDaDaFaAaAaJaLaIaIaKaMaMaYa1aRaQaRa8aab-acb5aWaWa1a1a0afbebfb2a0aebebfb4a4agbhb7aibnbtbcbdbtbsbsbrbobpbmbAbmbrbobqbpbDbCbDbAbBbvbEbzbzbHbMbIbBbCbDbGbFbObObObIbIbKbTbVbRbYbSb1bXbYb2b3b8b2b6b9b1b9b1b+b4b6b7b9b-b6bacbc-b+b-bbcbcxxuwamhxcqiaprfggiiaimncacnfvkohiffneiaubsbcnguppgbuauggaioaiaofilabvvgmvsovfaaiuegmgsqlxjvfjfhptfogaagsgtssaatiaafcfagsbcagaaxxbcv (130 tetrahedra). Edge 18.
+    Time: 38.187346. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 40.725872. Searches: 4. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: HLLvvLMPwzwLQMMMMzLQAMQceikhjiomltvqruwxxsyyzBAADAEDDFGGGiivrgggaigiiggiuaacdrgaxxtucfniiof (33 tetrahedra). Edge 20.
+    Time: 40.728046. Searches: 4. Primes: 1. #Tri: 4.
+    Time: 40.745534. Searches: 4. Primes: 2. #Tri: 4.
+Found a hyperbolic knot!
+Edge-ideal: -cDbLLAAvMLLzAAzLQPvLvzzPvMvMzwwvAwwMQPPvzzALPQAPQPwLPLMzMzAPPQQPQbaeaeadafaeahaiakalaoapaoaqaqarasawawauauawaCaAaEaJaJaNaFaIaPaTaRaKa1aPaUa3a6a4aUa7a4a5a7aZaXa9aZa+aab8aib4a7aib8a8aibabgbabfbhbebkblbebgbhbnbobtbqbpbqbqbpbxbsbAbybubwbvbwbybxbybAbBbCbCbCbxxuwamnxoencbuaebuanoaecaeadfbqdifdsghehomeddsvacffjdsghboefakuqotacjffnlonnnndrhnfvgjjskwkdei (93 tetrahedra). Edge 49.
+    Time: 40.759493. Searches: 4. Primes: 2. #Tri: 5.
+    Time: 41.742666. Searches: 6. Primes: 2. #Tri: 5.
+Main enumeration succeeded.
+Edge-ideal: zLvAwzvPvMMwwPQQQkaefegjokmprqosxuwstuvyywxybaugvftbvlaxgstbtbcrahwcgw (25 tetrahedra). Edge 0.
+    Time: 41.744052. Searches: 6. Primes: 2. #Tri: 6.
+    Time: 41.756499. Searches: 6. Primes: 3. #Tri: 6.
+Found a hyperbolic knot!
+Edge-ideal: -cbbLLAAvMLLzAAzLQPvzvwwvMvMzAzPPzzzQMQPMPQAPLQcbaeaeadafaeahaiakalaoapaoaqaqarasawawauauawaxaAaDaMaEaHaOaSaQaKaKaVaVaYaOaTa0a3a1aTa4a1a2a4aYaWaWaXaYa5a8a1a4a8a5a5a8a7a+a+a-aabababxxuwamnxoencbuaebuanoafcadfbqdifkafdsghehomeddacnvqjdsghboebxwvdie (65 tetrahedra). Edge 27.
+    Time: 41.764008. Searches: 6. Primes: 3. #Tri: 7.
+    Time: 43.112169. Searches: 64. Primes: 3. #Tri: 7.
+Main enumeration succeeded.
+Edge-ideal: wLLLAzAMvzAzLQQkceffehjikknoopusvvstuuviiellviplbkskxijmpfkdql (22 tetrahedra). Edge 17.
+    Time: 43.113309. Searches: 64. Primes: 3. #Tri: 8.
+    Time: 44.190846. Searches: 170. Primes: 3. #Tri: 8.
+Alternate enumeration succeeded on 19-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 39.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.196157. Searches: 170. Primes: 3. #Tri: 8.
+    Time: 44.197522. Searches: 170. Primes: 3. #Tri: 8.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 44.197571. Searches: 170. Primes: 4. #Tri: 8.
+Edge-ideal: NLLAAvMLLzAAzLQPLzvzQQMvAMQbeedfehiklopoqqrswwuuwzxBCCEGGEFGIJKMLMMxxuwamnxoencbuaebuanoapfllvvjjnvwwhwusep (39 tetrahedra). Edge 27.
+    Time: 44.200254. Searches: 170. Primes: 4. #Tri: 9.
+    Time: 44.552782. Searches: 183. Primes: 4. #Tri: 9.
+Main enumeration succeeded.
+Edge-ideal: rLLAAvMMzwQPcbeedfehikklnpoopqqxxuwamnxcodcmderwv (17 tetrahedra). Edge 17.
+    Time: 44.553534. Searches: 183. Primes: 4. #Tri: 10.
+    Time: 44.587822. Searches: 216. Primes: 4. #Tri: 10.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.590698. Searches: 216. Primes: 4. #Tri: 10.
+    Time: 44.592774. Searches: 216. Primes: 4. #Tri: 10.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 44.592960. Searches: 216. Primes: 5. #Tri: 10.
+Edge-ideal: rLLLQvLALPAQcbdefefkjkompnnppqqhruupgjsvtosbkvfhg (17 tetrahedra). Edge 17.
+    Time: 44.594333. Searches: 216. Primes: 5. #Tri: 11.
+    Time: 44.685746. Searches: 255. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.686560. Searches: 255. Primes: 5. #Tri: 11.
+    Time: 44.687761. Searches: 255. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 44.687815. Searches: 255. Primes: 6. #Tri: 11.
+    Time: 44.687839. Searches: 255. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: xLLLvAvwPLAMQzQQccdeihljlsqrntpqtvvsvuwwwivlgvxxkpgegacgpmigvkwwn
+    Drilled iso sig for prime #1: GLLvLwMLzQvLQwPQMwPPLQccdifhmjlnlposuqrwytyvwxzCABCDEFFFicgccicaegokmaoicivdfcwascfbpwwgb
+    Drilled iso sig for prime #2: xLLvLvwPvPPMQAQQccegkmjnornrstusvtqvruwwwiiiamfeagsgkvictrbxwphbv
+    Drilled iso sig for prime #3: sLLLvLwwPAQQQcefilljpoqrnmrnrqpqiidsidsedxigblglkrw
+    Drilled iso sig for prime #4: pLLAwAPLLAQbeedfghiikmmnoooddafafqrnljnxdkn
+    Drilled iso sig for prime #5: qLLLQvLwLQQkbdefefkjplnmonopphruupgjsuuqcobbbk
+
+15ah_24760 # 16ah_110330 # 18ns_03 # 16nh_0334764 # 18ns_39 # 19ns_203
+----------------------------------------------------------------------
+Knot sig: -cMbaabacadaeaaafagahacabafaiaeadajakalamanaoapajakapahagaoanamalaiaqarasatauasavawaxayazaAawaqaBaxaAaCaDaEarauatavaEaFaGazayaHaFaDaCaGaHaBaIaJaKaLaMaKaJaNaOaMaLaPaQaRaSaTaUaIaVaSaWaXaTaVaNaOaPaYaZaWaXa0aYaQaRaZa0aUa1a2a3a1a4a5a6a4a7a8a9a+a-aab5a6aabbbcb-a2a3a+adbbbcbdb9a8a7aebfbgbhbibjbkblbmbnbfbebnbobpbqbobrbsbtbjbgbqbpbhbibtbsbrbmblbkbubvbwbxbybwbzbAbBbCbxbybDbEbFbubGbHbIbJbKbLbAbzbvbFbJbKbEbDbCbBbLbIbHbGbllRQQSkZSkZSQMzQmtvvvvvvvvvvxAsLMw--hagMHzMHzEg8-J-------pmd-a9W4pm8.
+Embedding knot as an ideal loop.
+    Time: 0.000050. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.017659. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.032006. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.047448. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.058658. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.070260. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.080330. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 34.127123. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: -cPcLLAwMwMwMwzQvwzLvLvvLAvwMwQPLLMvLvvQLAMvwPwAzLwwvzLvzQQQAPwzQPzvMzwAvLQMvLvMLAAMMMQQQLMAwLQQQzLMQwQPAMQzQMvvQQLQkbaeadaeaeagaiahajalalalananaparasasatayaAaFaJaIaEaSaSaGaUaIaKaMaWaLaOa1a2aXa7a7acbcbdbZaXaZafbjb3afbkbnb6aqbtbbb-aBbtbCblbibmbiblbJbjblbmbJbJbwbKbKbDbMbMbEbQbNbzbybWbVbXbTbVbRbRbNbPbHbIbacdcPbQbgcgcfcUb0bicjckcXb1b2blc1blc2blcicjc2bmc5b6bncbcac+btc+brc-bqcqcocbcscucwcxchchchckckcpczcqcBcsctcBcAcxcycxcycDcCcAcCcCcGcJcKcJcIcLcMcNcLcOcOcNcOchhntefxeacgogggigglmpuppvlioiskfxbguuimaalprgoddoxilfamvbldigbjooxrojdaoalvqpniefbeaquthdaugwplwommaovlddgootkmktqabtosasrvlfavuipoqlplogonogtjxnopewjobenvbjtwvnnfbpramln (169 tetrahedra). Edge 49.
+    Time: 34.171342. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 37.218147. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: -czcLLLvLLLvQAwvzLLvLwwPzvvwMvvwwwwPAAwzvMMzAPPQMvLwPzPMMQvwMvMPLQLQwAzMzQvQMMAPQQQQLLzAwzLQPQQQQMvwvPPMQQaadagajamapasapanalalatazaCaBaxaxazazaKaKaFaFaXa4a7a9a8acbabOa+a+a8aebSaVaYaVaXambpbYa1aobqbrbsb2arb3atbybubdbeb-aEbEbgbFbFbEbCbDbkbJbHblbKbKbMbnbqbrbTbSbTbtbUbwbvbxbWbAbAbXb2b3bDbDb6bJbObPb7b7bObPb7b9b+bRbPbRb8b+b9bUbVbVbVbZbXbac0b-b3b-becicjckc9b+bbcfcccdcfcmcgcfcmcgcmcjclclcjcncqcrcvcscuctcwcvcxcycycxcycbedpadduwffaddacjkkdagwdlepldhbaateggfwcaefcqtqagmfldisngdemdadmpglqfeaiccwqdebtckcukrtedwcdcfnihnoamicgotqlbfobjgifxfuxdamkrkcfccujrmnlwsvwaewbnkkbnpamln (153 tetrahedra). Edge 0.
+    Time: 37.254906. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 43.700792. Searches: 79. Primes: 0. #Tri: 2.
+    Time: 50.666702. Searches: 114. Primes: 0. #Tri: 2.
+Alternate enumeration succeeded on 149-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 3.)
+Edge-ideal: -cUbLLLvPwLLLwLvvvLwPLQAzvzwvvzAAQQzQPLLMvLPQPQQzAMAPAQQQwwwwvALwvAzzzPPQMQQQcbadaeajagakanaqasamarasaHavaKaJaIaHaMaBaAaOaOaPaVa4a4a5aMaLaLaKa6a6a6aPa8a8aSa7a0aTaUa7a5ahb3a0afb3a3afbdb2a4ahbdbeb8aab-a-ambkbcbnbobhbibibqbjbqbqbjbpbobpbobnbpbtbwbBbxbAbybIbFbDbKbObGbRbIbJbKbSbKbNbMbRbPbTbObSbQbRbQbTbTbafaabaleacdfakupadinclhhamidvnosdaxbuagefggaoiffufrqagrlhavfffaifihvswqoddonrwvcbledickaurdxgagsfmvobugdvtvdvdj (110 tetrahedra). Edge 82.
+    Time: 50.685694. Searches: 114. Primes: 0. #Tri: 3.
+    Time: 51.625939. Searches: 116. Primes: 0. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: -cwbLLLvwvAQwvAwLvAQzMALMQALvvLLvzPzzQQvvzQALQQLAvzLAPwQMQQQQcaaeagaialalaialakamaoaoatazasaBaCaCaBavaFaxaxaGaFaEaKaJaCaEaEaFaIaVaXaQaRa1a3aUa1aUa6a7a6a0a-a9a0a7a6a7a5agbfbebfb5agb9a+aibjblbobdbfbgbibtbmbubtbrbmbnbnbsbqbsbrbqbtbvbvbubvbbpdaiggogbjraloqedxbiggabnlhfbfgoilgotuotjeemmtuobkkvupqibhnveatxswnoaopefgcrbvvoctttmw (86 tetrahedra). Edge 0.
+    Time: 51.637646. Searches: 116. Primes: 0. #Tri: 4.
+    Time: 52.146344. Searches: 119. Primes: 0. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: ELLLvLwvPvAwwPPQLQQQQaegkjpklsntyqrttwvxCCByBzDACADDbpdmeacnljexowbvgwfalmvtoevhvev (30 tetrahedra). Edge 0.
+    Time: 52.148247. Searches: 119. Primes: 0. #Tri: 5.
+    Time: 52.159188. Searches: 119. Primes: 1. #Tri: 5.
+Found a hyperbolic knot!
+Edge-ideal: 1LLLvwvAQwvAwLvAQzwwLAQALLPvPPAAMQQQcaegillilkmootzsBCCBvFxAFEMCEEFIRKOVOVPUWVWS0Z0TYZXXXZ0bpdaiggogbjraloqedxbivgbnlfbfggpvmhmuvjbgjopuhbxlcjcrs (53 tetrahedra). Edge 0.
+    Time: 52.164489. Searches: 119. Primes: 1. #Tri: 6.
+    Time: 57.892184. Searches: 250. Primes: 1. #Tri: 6.
+Alternate enumeration succeeded on 49-tetrahedron triangulation.
+(Randomisation attempts: 2. Searches: 10.)
+Edge-ideal: BLvLvAMMvLLAwQMPMQQafhghikjnntuqvvwxwyztuAzxzAAbtccjatcrjmabwneelparoaafrnb (27 tetrahedra). Edge 0.
+    Time: 57.893733. Searches: 250. Primes: 1. #Tri: 7.
+    Time: 57.908044. Searches: 250. Primes: 2. #Tri: 7.
+Found a hyperbolic knot!
+Edge-ideal: tLLLQLLzzzQAPkbdeegggijlonpqqossrsxnidpvjjqcabjbobixcw (19 tetrahedra). Edge 19.
+    Time: 57.908815. Searches: 250. Primes: 2. #Tri: 8.
+    Time: 57.978355. Searches: 296. Primes: 2. #Tri: 8.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 57.980652. Searches: 296. Primes: 2. #Tri: 8.
+    Time: 57.982308. Searches: 296. Primes: 2. #Tri: 8.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 57.982356. Searches: 296. Primes: 3. #Tri: 8.
+Edge-ideal: uLLLLLPQvLLPQQcaeffhhljljqnsstqtsrrtbpuoaxuvgcmodxuwpiuxr (20 tetrahedra). Edge 0.
+    Time: 57.983227. Searches: 296. Primes: 3. #Tri: 9.
+    Time: 58.281031. Searches: 383. Primes: 3. #Tri: 9.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 58.281258. Searches: 383. Primes: 3. #Tri: 9.
+    Time: 58.282919. Searches: 383. Primes: 3. #Tri: 9.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 58.282962. Searches: 383. Primes: 4. #Tri: 9.
+Edge-ideal: CLLLLPvLwLLAzQMLQQMkcefeiholluonvqxrstuxAAyyzAzBBiitdvvadgtcfaglfcggxmhmmiisxg (28 tetrahedra). Edge 28.
+    Time: 58.284530. Searches: 383. Primes: 4. #Tri: 10.
+    Time: 58.298808. Searches: 383. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: mLLAPwLAQbdecfggijklllefdbrfkwxhxud (12 tetrahedra). Edge 5.
+    Time: 58.299282. Searches: 383. Primes: 5. #Tri: 11.
+    Time: 58.318181. Searches: 401. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 58.319275. Searches: 401. Primes: 5. #Tri: 11.
+    Time: 58.320091. Searches: 401. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 58.320132. Searches: 401. Primes: 6. #Tri: 11.
+    Time: 58.320150. Searches: 401. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: DLLvAvvzvPwPPQQQzLQQccefhmulmvtosuyqxsvsyxwAzBBACCCiieadissawgvlhgegegletrgtlgmxs
+    Drilled iso sig for prime #1: ALvLLvMLvwMMPQAQMQcbfgjhnslmnurpqqursyxwvxzxzzmtpvotagoomkokbaffauacjavda
+    Drilled iso sig for prime #2: sLvLLQMMMvwQQcehfjhgijkkmoprqrqrieiccffrcallbexussn
+    Drilled iso sig for prime #3: tLLLPLzAzLLQQkcefhggjklkmsqorpsrrsiilldvlucsumobtcdeiq
+    Drilled iso sig for prime #4: BLLvAvMzzAvMQPvMQQQcdhekmjllnoqpvtvrxuwyzwAyAzAioaipianfsvliannnaktieijbvbv
+    Drilled iso sig for prime #5: lLLAwMwQcbedeegihjkkkhhntefxeausk
+
+19ns_233 # 16ah_188261 # 16nh_0919487 # 16nh_0738152 # 19ns_217 # 19ns_144
+--------------------------------------------------------------------------
+Knot sig: -cPbaabacadaeafadagahaiagajakalamanabaoajamapaqanahaiacafaeaoarasapaqaaarakalasatauavawaxayazavauazaAaxaBaCaDaEaFaBaGaHaCaFaIaJawaAayaGaHaKaLaIaJataKaDaEaLaMaNaOaPaQaRaSaTaUaMaVaWaPaQaXaSaYaUaZa0a1aVaNaOaWaXaRaYaTa1a0aZa2a3a4a5a6a2a7a8a9a+a-aabbb9a8a6a5abbabcbdbeb+a-acb4a3afbebdbfb7agbhbibjbhbkblbmbnbobpbgbqblbkbqbobrbsbtbmbnbrbubvbsbtbibjbvbubpbwbxbybzbAbwbBbCbDbEbFbGbCbHbIbDbGbJbKbybxbBbLbAbzbMbNbFbEbObMbKbJbNbObIbHbLbxvMzfZSQMzQmtvvvvvlRQQQSkPPT0YmZSmtpH-FY--z+-N--pZmmd-FEYp--B945-zM-zM.
+Embedding knot as an ideal loop.
+    Time: 0.000060. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.012392. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.019442. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.026901. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.031396. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.033180. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.035293. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 35.035854. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 40.040062. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 45.040279. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 45.068549. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -cWcLLAAvvzAwvwPQPQQwzvvwLPzvLMzLLvLMQMMzzwwPPLPwzvvvLvvQQvwvzMLMwLvPMQwQzLAMvPzQAwvvMLMQAMwAMAQQQAPzwLPQQAAQAQvQPMQAMvAQcbaeaeadafaeanajalamauapaxatavararayawatauavawaxaxaBaHaFaFaNaOaTaSaLaLaZaVa2aVa6a5a6aTaVa6a2aXa9aababdbgb7a4a7ajbkb8abb-aybibkbibjbkbpbHbqbGbObSbtbtbTbwb1bAbAb1bCbDbEbEbEb3b4b3bJbKbIbMbMbac9bbc8bQbQbdcQbVbicZblcgcrcncZb0bpcnc4btc5b6b7bwcdcec+bacecacccycdcycecychchclcAcBcCczcBcpcpczcHcqcHcBcAcAcIctcIcxcvcJcwcJcKcHcNcFcFcNcGcMcKcKcPcPcOcOcPcRcScUcVcUcVcVcxxuwamrconuctobccarcgvrxxiaccaiaiccdsqsiaanflxcmdaidfnftmcvcdgwbjcractaeccafifsqovwgwxalcfcvvexaicgtsotvaeatfcttfdrjfaorovbbcefpgdgnbddiehboqpbuidemvxwrusianiocacagofwwkfohomgut (176 tetrahedra). Edge 79.
+    Time: 45.122914. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 50.065743. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: -cxcLLLLvLvLvLzvMwAPLzAQvzAPvzvvQMQQQwwwLLzAwvwvzvvzLzzPPwwvPQPAMQAwQwAwQPPPvwPPQQAMwLAPPwPPAwQQPQMQPzMPkbadaeafajasataxauaqaqapaEaGaGayaDaAaxayaAaBaLaPaOaNaKaWaKaKaTaMaSaPaTaSa5aTaRaSaRa5a5a6a9a+adbab1a1agb4aobzbBbCbjbzbxbxbybCbkbHblbnbLbObNbEbRbObrbTbrbsbtbTbvbvbvbUbWbUbDbIbDbZbDbCbNbGbGb2b4b1b6bObPbQb4b3b-b4b3b-b2b2bWbacVbYbYbec5b1bgc-bicgc+blclc+bjc+bbcpcdcocecpcfcocqchcicicmcncncmcncqcqcsctcvcvcwcwcwcafagaeuaafffaeanfoffobqdatalgnngcwgkibfvfdeleldaffacilatvpdehugqbciiaeaiclngoeggrqaiccsabsfwkaemlvffpetqxldenpcocasnmjuagtaflfctnujmgqargbrjnjbfcvdvfldq (151 tetrahedra). Edge 35.
+    Time: 50.106931. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 53.821795. Searches: 5. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Edge-ideal: GLLLvvLzLQAwAQMLzPwMQQcaegommkrksnsopvvtswuzCzyADFEECDFFbpdmgccanhcigjutgoboapwsceadqndjc (32 tetrahedra). Edge 0.
+    Time: 53.823913. Searches: 5. Primes: 0. #Tri: 3.
+    Time: 53.847668. Searches: 5. Primes: 1. #Tri: 3.
+Found a hyperbolic knot!
+Edge-ideal: -c0bLLLLvLwzvLMzLLwvMMAAALvvvLPPAQLvAzzPzvzPQQMPAPLLvLLzQQwQzMPzzLMQQQQALQPzQMvAQcbadaeafajahaqamavawasaBaCaCazawaGaGavaHayayazaLaNaKaZaYaMaKa2aZaMa2aYaSa6a7a+aabUaUadbXa3a1a2a1a3a3a8abbcbbb7abb8a+albcbgbmbjbsbvbqbBbwbjbkbybwbCbobobDbrbrbvbHbIbJbGbybIbybObIbAbGbObHbHbFbDbEbFbFbObRbMbMbRbNbPbSbTbTbSbTbVbWbYbZbYbZbZbafagafekapaeeafviivhgnftardakgmqkutoeaddffaccfvfjkwgskjggvabvlomadamcfmmdgsmgsbeeldvhbplbxuednrncvslvfafajcrrcvhvtgpm (116 tetrahedra). Edge 16.
+    Time: 53.869323. Searches: 5. Primes: 1. #Tri: 4.
+    Time: 55.592717. Searches: 8. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: FLLvPvwMwwQzvzLQQwMQQkcdfgjilnkopnsvtusBzxAyyECDDCBEEDdcagaretfcvoxcjgfmivtrsxtdvfforv (31 tetrahedra). Edge 29.
+    Time: 55.594690. Searches: 8. Primes: 1. #Tri: 5.
+    Time: 55.611069. Searches: 8. Primes: 2. #Tri: 5.
+Found a hyperbolic knot!
+Edge-ideal: -crbLLLLwLvvLvAvwAwwwvQQwwQvvwMQLzQLAwvPwMQQPQQQLwQMAMMLPQaaeagaiaiamaoavawaBaqaqaEaFauaxawaDaBayaCaDaDaOaCaPaLaXaZaNaYa0aNaVa2a0aNa6aRaRa5abbWaWadbcbYaebcbcb2adb2adbfb4afbeb6a7a8a8a8a-a-aabgbgbibfbjbibkbkbkbmbnbobqbpbqbqbbpdpaeaaedbbapovrtwkqtuelkfpaoamciiavdjshdgnupbpauwhbtdbeqnrrcvbbcaeekvwrjrcqkifmd (81 tetrahedra). Edge 0.
+    Time: 55.621370. Searches: 8. Primes: 2. #Tri: 6.
+    Time: 56.489494. Searches: 11. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: DLLLvPLLwPLzPzMwQPQQccefihmjlnnssqtrrzxuAyxBzACzCBCiiegvibtgcepctcbagoxnntctqcqfb (29 tetrahedra). Edge 28.
+    Time: 56.491430. Searches: 11. Primes: 2. #Tri: 7.
+    Time: 56.498837. Searches: 11. Primes: 3. #Tri: 7.
+Found a hyperbolic knot!
+Edge-ideal: WLLLQvwvPPAMQwAwvzvLMzzAQMzQzzQMQbdefefhlpnmoonqrsrruuvxGECJKEKMNMLILLNMRSQURTVUVVhruupgtluooogbqapobbbabetapawpqeaxndumfaxbqlwxkmu (48 tetrahedra). Edge 27.
+    Time: 56.502562. Searches: 11. Primes: 3. #Tri: 8.
+    Time: 56.924240. Searches: 14. Primes: 3. #Tri: 8.
+Main enumeration succeeded.
+Edge-ideal: tLLLQvwvPPAMQkbdefefhlpnmoonqrsrrshruupgtluooogbqapobb (19 tetrahedra). Edge 19.
+    Time: 56.925146. Searches: 14. Primes: 3. #Tri: 9.
+    Time: 57.255703. Searches: 65. Primes: 3. #Tri: 9.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 57.256560. Searches: 65. Primes: 3. #Tri: 9.
+    Time: 57.258783. Searches: 65. Primes: 3. #Tri: 9.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 57.258828. Searches: 65. Primes: 4. #Tri: 9.
+Edge-ideal: zLLvvLvwvAMAQPQQQkaeihkntnpspruqpysxyxuwvwwybpabkfdffwosubbpbhahswwgbs (25 tetrahedra). Edge 0.
+    Time: 57.260105. Searches: 65. Primes: 4. #Tri: 10.
+    Time: 61.390321. Searches: 176. Primes: 4. #Tri: 10.
+Alternate enumeration succeeded on 23-tetrahedron triangulation.
+(Randomisation attempts: 8. Searches: 76.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 61.394912. Searches: 176. Primes: 4. #Tri: 10.
+    Time: 61.397512. Searches: 176. Primes: 4. #Tri: 10.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 61.397557. Searches: 176. Primes: 5. #Tri: 10.
+Edge-ideal: wLLAAvvPAwvPAQQkbedeefnilkmuqspvsrtuvvuhhntearbobniocblgbnvhhk (22 tetrahedra). Edge 13.
+    Time: 61.398538. Searches: 176. Primes: 5. #Tri: 11.
+    Time: 61.828984. Searches: 246. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 61.831504. Searches: 246. Primes: 5. #Tri: 11.
+    Time: 61.833628. Searches: 246. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 61.833674. Searches: 246. Primes: 6. #Tri: 11.
+    Time: 61.833693. Searches: 246. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: FLLvALzzAzAzLwzMPPMQQkcehfhlknoonmrqustzzwwxDCDBACBEEEiidxjquhufvrxgjfrixapggvfbvcruat
+    Drilled iso sig for prime #1: ELLvPvwMwMQvvwPQAzQQQcdfgjilnkmopnustAywzxxDBCCBADDCdcagaretfjcvocjgmivtrsxtdvfforv
+    Drilled iso sig for prime #2: CLLLvPLLwPLzPzMAQPQkcefihmjlnnssqtrrzxuAwyxAzBzBBiiegvibtgcepctcbagjhbnntcqcqb
+    Drilled iso sig for prime #3: sLLAAvwMvPAQQbedeefhlmnoppnorqrrhhnteanrpaaaiwvafap
+    Drilled iso sig for prime #4: yLLvLLLLMQAvQwMQQcefhnknpnoppoqsqtsuwwxxxwiixfiillluacssabisrlthgbn
+    Drilled iso sig for prime #5: vLLLQvvQLvLAQQQbdefefjkloqoprsutsutsuhruupgsvatjsvaqlhaxgbo
+
+18ns_77 # 16nh_0919276 # 16nh_0136027 # 15ah_41526 # 18ns_81 # 19ns_173
+-----------------------------------------------------------------------
+Knot sig: -cMbaabacadaeafabagahaiajakadacagalamahaianaoaaalamanapaqarakajapaqaraeafaoasatauavawaxayauazaAavayaBaCaDaEaFazaAaGaHaBataFaGawaxaHaIaJaCasaEaKaJaIaKaDaLaMaNaOaMaPaQaNaOaRaSaTaUaVaWaLaXaUaYaZaVaXaPaQaRa0a1aYaZa2a0aSaTa1a2aWa3a4a5a6a7a8a9a+a6a-aabbbcb9a+adbeb3abbfb8a7a-a5agbebdbgb4aabfbcbhbibjbkbiblbmbnbobpbqbrbsbjbkbtbubvbwbhblbsbtbubvbwbrbmbpbobnbqbxbybzbAbBbCbDbEbFbGbybxbEbHbIbJbCbBbKbLbAbzbGbFbHbIbLbKbJbDbNQXuRkNz2mJSSmzMnZSM1KQ0sLkRvvvvvv-p--p---X-pk9------WggN5-VHb--8W8a.
+Embedding knot as an ideal loop.
+    Time: 0.000047. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.015085. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.021173. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.029369. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.042841. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.052504. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.062542. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 33.649083. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -czcLLAvLLzAMvwMMMPQvMAvzMAvzwzvvzvvwvLvMzQvvAzzzzzzzLzzvLPQQMvAQQMQPQwQzAzMQLQzAPAMAPPQAQQMQALvMMLAzAAzPQbaeadaeahakajaoanalaparavavauauatatayaxayazaxaBaDaDaDaHaHaFaFaKaPaJaMa1a0aXaZagbYaebZagbnb7aqb6avbsbmbzb-aDbdbcbPbPbkbibkbQbjbkbObQbmbUbsbxbVbvbVbtbVbwbubvbybWbWbXbybybUbSbBbSbYbRbTbFb3bIbIbNb4b5bKbMb5bLb2b4b6b7bQbPbTbYbXbXb1b0bdcccec4b+b9b+b+b7bfc9b-b9bfcfcbcbcgcdcececjclcmclcncococpcscscrcscucwcycxcxcycyctlftbadlvfaalfbbboaaeaateqdatggalvflfgfuwegaibtsdhblgtbgmugjfxowaugtvsibljmobobaaaooifvgisoglnnchlgohgxhhdnngpcosvlqabjkvrvaowwhiggifnnmpkgxarwueuoarqtatc (153 tetrahedra). Edge 46.
+    Time: 33.684759. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 35.936331. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: CLLLvLvwzzwPzQQAMQQkaeghnrkpwryztpyrutvxzxBwAyABBbpdaulnhplliueeoccgggcagajamc (28 tetrahedra). Edge 0.
+    Time: 35.937961. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 35.948323. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: -c6bLLAvLLzAMvwMMMPQzPwvLAvvAwzvvLPMzwvzLzMAQvMPzLzzvLPQQAQQLzQwQMPLAPQPQAzPLAPvQzPLQcbaeadaeahakajaoanalaparavavauauatatayaxayazaxawaCaCaCaEaEaJaMaOaNaLaQaRa1a1a2a5a3aYa0aebZacb0aeb2a7a5a6albkbnb9aobbbabAbAbibgbibBbhbibzbBbmbmblbnbnbCbqbEbtbtbybFbGbvbxbGbwbDbFbHbIbBbAbFbLbKbLbLbIbPbKbMbKbPbPbQbTbSbUbTbVbVbXbYb0b0b0b1b3b4b5b5b4b5btlftbadlvfaalfbbboaaeaaveqdggafdlfsvtaihugfuweganssvlqagtbgmugjfxowaussfnnxglnnchlgohgxhhdnnbjkvrvaowwhilecurajkeihkanuqlaw (122 tetrahedra). Edge 29.
+    Time: 35.970758. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 37.376815. Searches: 9. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: -cGbLLLLvzLLzvvQzLMQLAAAvAAAQwzLLvMPAPPPMAMPzLAQvvMvPLvPPvQLPPMMQMQQbadaeafajaoaranatavataqaraCaEazayavayazayaGaxaHaIaMaEaEaNaMaFaIaHaIaPaLaNaWaUaRaTaVaUaTa4a3aXa5a5a6a6a0a0a7a2a9a+a4a6acb-acb-adbdbdbfbmbjbibmbrbtbrbybwbvbrbxbwbsbvbubAbzbEbxbEbCbEbAbFbDbCbCbFbFbafagalebmqxcrahgcjoobagtllcvtegrogxbgavvwbvfaakamieggabllwjqnmfamrglbggjojlhtgqaghcphwgnrgfarcrhm (96 tetrahedra). Edge 41.
+    Time: 37.390895. Searches: 9. Primes: 1. #Tri: 4.
+    Time: 38.272977. Searches: 12. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: FLLLwvzLAwvvLQPwQQAQQkcdfemkopkvxzyvwswzDABCyzBDEEABCEiceaiuocveeqhccbfrerrtnnbdiancbs (31 tetrahedra). Edge 31.
+    Time: 38.274924. Searches: 12. Primes: 1. #Tri: 5.
+    Time: 38.291304. Searches: 12. Primes: 2. #Tri: 5.
+Found a hyperbolic knot!
+Edge-ideal: +LLLLvzLLzvvQzLMQLAAAvAAQQvwzzMPAPPPMzAMAQcbdefjorntvtqrCEzyvyzyGxHIMEENMFJIHILNVTQSUTS10W2233Z56138787999afagalebmqxcrahgcjoobagtllcvtegwrogbgavvwbvfaakamiebllwjqnmfamr (62 tetrahedra). Edge 41.
+    Time: 38.298348. Searches: 12. Primes: 2. #Tri: 6.
+    Time: 38.963960. Searches: 14. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: tLLLLMzAPAzPPkaeggfhkklnknnoprrsssbpdjcaqvueclkanaidmr (19 tetrahedra). Edge 0.
+    Time: 38.964866. Searches: 14. Primes: 2. #Tri: 7.
+    Time: 39.028780. Searches: 65. Primes: 2. #Tri: 7.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 39.031117. Searches: 65. Primes: 2. #Tri: 7.
+    Time: 39.033390. Searches: 65. Primes: 2. #Tri: 7.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 39.033491. Searches: 65. Primes: 3. #Tri: 7.
+Edge-ideal: LLLLzzMzwAAPAzvwMwPQzPwPQkcddggilmmkpoqnqpqsuwzyAAEDACFGEIKJIJKKhswgrddlwfelqbjvfqgobfgoaavbmewnmejphw (37 tetrahedra). Edge 17.
+    Time: 39.037143. Searches: 65. Primes: 3. #Tri: 8.
+    Time: 39.381473. Searches: 67. Primes: 3. #Tri: 8.
+Main enumeration succeeded.
+Edge-ideal: oLLLQLMvAQccdffgghhjllmnnnaoemagmqibkuusf (14 tetrahedra). Edge 2.
+    Time: 39.382085. Searches: 67. Primes: 3. #Tri: 9.
+    Time: 39.424021. Searches: 105. Primes: 3. #Tri: 9.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 39.425149. Searches: 105. Primes: 3. #Tri: 9.
+    Time: 39.426210. Searches: 105. Primes: 3. #Tri: 9.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 39.426249. Searches: 105. Primes: 4. #Tri: 9.
+Edge-ideal: oLLAwvPLQQcbedeeijmnmkkmnnhhnteabaehwbuhu (14 tetrahedra). Edge 14.
+    Time: 39.426768. Searches: 105. Primes: 4. #Tri: 10.
+    Time: 39.464069. Searches: 132. Primes: 4. #Tri: 10.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 39.466626. Searches: 132. Primes: 4. #Tri: 10.
+    Time: 39.467839. Searches: 132. Primes: 4. #Tri: 10.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 39.467914. Searches: 132. Primes: 5. #Tri: 10.
+Edge-ideal: xLLAvLLQzwzMMPQPcbedehkijilnpssrrutuvtwwwtlftbapdgfaabbboaaeaaeqd (23 tetrahedra). Edge 14.
+    Time: 39.469148. Searches: 132. Primes: 5. #Tri: 11.
+    Time: 39.474197. Searches: 132. Primes: 6. #Tri: 11.
+Found a hyperbolic knot!
+    Time: 39.474260. Searches: 132. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: BLLLvvLLPMwPQMvMQQQcefonqolsmvprrpvstuxAyzzAyzAiieiqahlluhswvfhoqgbmscgeoou
+    Drilled iso sig for prime #1: DLLLwvzLzwvwPQQQLQMQccdfemkpksywuqtywxzwsBAvyzCCABCiceaiucvaieqaphakfccaagwniaqcv
+    Drilled iso sig for prime #2: sLLLLPPPMLLPQcefehjkjjlklnoprqrriitdvqiiemdgajstegb
+    Drilled iso sig for prime #3: mLLAAvAAQbedeefhjkjlllhhnteanarbuai
+    Drilled iso sig for prime #4: nLLAwLPwQkbedeejikimllmmhhntexaggxxhhb
+    Drilled iso sig for prime #5: wLLAPLvAzvPAMQPkbcdegfhljkorospqttsvuvvtsfxjjaafadaaebffcoaeob
+
+17ns_02 # 16nh_0436685 # 16ah_079246 # 16nh_0183936 # 16ah_008397 # 19ns_101
+----------------------------------------------------------------------------
+Knot sig: -cKbaabacadabaeafagahaiajaaakalagamanaoaiahamapaeakalafapanaoacadajaqarasatauavawaxayazaAaBaCaDarauatasaEaFazaqaDaEavayaxawaFaAaBaCaGaHaIaJaKaGaLaMaNaOaPaIaHaQaRaSaTaUaQaPaOaVaSaTaMaKaJaNaVaRaUaLaWaXaYaWaZa0a1a2a3a4a5a6a7a8aXaYa0a9a+a-a9a1a4a3a2a5a6a7a8a+a-aZaabbbcbdbebcbfbgbhbibjbabgbkblbmbnbfbbbobpbqbkbnbrbsbdbebsbrbobjbibpbmblbqbhbtbubvbwbxbybzbAbBbCbDbzbEbFbAbDbGbHbybxbwbvbubEbFbIbJbGbHbtbIbBbCbJblzLwTuvvvv1YmvLwvvvvvDXSZunYAMPkZaF+pNH--WZ8W--5X7--F4F2Bgz+N4-----d.
+Embedding knot as an ideal loop.
+    Time: 0.000045. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.001918. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.013862. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.017626. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.033576. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.037431. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.041468. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 34.914183. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -cFcLLAvMLzvMAAvvAPQPQQLMvvMvvvvLMzPMwzLzQALzMPMzAPvvwLLPAAwvMvMvvwwPQzwPPwvAAAPvQQAQPzPwMvPPPQQAAMAQLAwLMQQPQbacadaeaiahahakaoarapamanasasavayaAaxawavawaCayazazaBaCaCaEaEaFaJaKaSaRaRaUaUaZa1aZa2a4a-aYaYabbab5a5a6a4a+acb+agb9ahbkbjbkbnbnbsblblbAbibzbAbybBbCbHbIbJbMbPbwbAbzbzbBbBbEbEbIbGbIbHbLb5b6bRbQbTbTb-b+bXbVbbcbcXbWbccdcec-becfcZb1b1bic3bkc8bncpc9bpcmcqcqcbcacccdcecdcichcscscsclckcvcvcvcocxcrcqcucBczcxczcyczcAcAcDcDcEcEcEctsfxextjiaatbuxinjkgcvqvfjiquvvaavvvvcstltapiccajvvcvolfefdidiailccpcqihhiqdqeafknrokvbffrjfamncbjtdssttsfqetpdmnvbdctfttnaautckgnngjghlhgwtqxfaovolnwbfsfkovpet (159 tetrahedra). Edge 94.
+    Time: 34.955335. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 38.697470. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: -c+bLLLAzPPvwPQLvvAvzzzPzzMzAAvLvPLQvQzAPvwQLAMvPAPQPQvvwwzPvzvQQvLvzzQMzPQQQMzPPzPQQQAQaadaeafagagaiaialakanaoaraoararasaxaxazaCaIaGaDaEaEaKaMaOaOaKaIaJaNaZaRa0a1a3a1aXaXaVaWaVa9a8a7a0acbeb4agbbbdbhb6a9amb-ambmbdbgbdbebpbpbfbpbgbvbxbzbobBbGbFbubvbwbJbHbPbRbCbWbDbWbWbFbLbMbYbMbXb0bKbYbNbLbMb0bZb1bVbSbUbSbTb6b8b2bZbYb0b2b3b3b8b8b5b7b6b7b9b9bnexgvcffaoebhopqlalealcgcfdeaadobceoetauddobstdrwmaweipmoomgdanngjmavpwmmpviiiggfamaurpsaxgnjmrhaoekfvddignfnruaujjovnboggfocuw (126 tetrahedra). Edge 77.
+    Time: 38.722196. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 41.061610. Searches: 5. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Edge-ideal: yLLLvvMvQzAwMQQPQaegjnnpmkmltqwvuvwtuutxwxbpduefagngwpxdbfbwrgrbask (24 tetrahedra). Edge 0.
+    Time: 41.063154. Searches: 5. Primes: 0. #Tri: 3.
+    Time: 41.069791. Searches: 5. Primes: 1. #Tri: 3.
+Found a hyperbolic knot!
+Edge-ideal: -cFbLLAAvMvLQQvAQvQvwvPLAvwwvMLvLzLzLzMzwvzLwMwQMPMAzAAQQAQQPwQQwQPcbaeadaeaeafahaiamanapamaoaoanaqarasasatavavawazaFaFaCaCaHaLaKaJaSaOaNaTaUa5a6a4aUa3a3aYagbjbeblb4aab8a7a6a8aqbrbnbnbobpbnbubgbkbdbfbxbhbkbhbvblbmbxbybmbybvbybwbzbtbsbubsbzbzbubwbxbBbDbCbEbEbEbhhnteanxuaubcrrpkgnpggaiaiggamfgalofsixpgthratmpfsgkncliqtpplujwrbiffwhssplflidadbjfnxqsjfjahxte (95 tetrahedra). Edge 55.
+    Time: 41.083422. Searches: 5. Primes: 1. #Tri: 4.
+    Time: 42.732606. Searches: 7. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: nLLAAvQzPkbedeefhjikmllmhhnteanixdkccr (13 tetrahedra). Edge 13.
+    Time: 42.733188. Searches: 7. Primes: 1. #Tri: 5.
+    Time: 42.757699. Searches: 27. Primes: 1. #Tri: 5.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 42.758351. Searches: 27. Primes: 1. #Tri: 5.
+    Time: 42.759366. Searches: 27. Primes: 1. #Tri: 5.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 42.759405. Searches: 27. Primes: 2. #Tri: 5.
+Edge-ideal: -cpbLLAAvMvLQQvAQvQvwvPvAwzzLzMvvzAMzzAQzvLvAPQPAAAQQAQQkbaeadaeaeafahaiamanapamaoaoanaqarasasatavavawazaFaFaCaHaGaMaLaLaJaPaUaOaUaQaWa4a5a3a5a6aWa9a5aZadbgbbbib8a7a9a7akbkbkb9adbhbabcbnbebhbeblbibjbnbobjboblbobmbmbnbhhnteanxuaubcrrpkgnpggaiaigaemnogipojovllapxfppratmporcsttenjwrbiffwhssplflidajf (79 tetrahedra). Edge 55.
+    Time: 42.768944. Searches: 27. Primes: 2. #Tri: 6.
+    Time: 44.031933. Searches: 32. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: uLLAAvMvLQQvAQcbedeefhimnpmoonqrsstthhnteanxuaubcrrpkgnpg (20 tetrahedra). Edge 20.
+    Time: 44.032863. Searches: 32. Primes: 2. #Tri: 7.
+    Time: 44.096455. Searches: 77. Primes: 2. #Tri: 7.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.097368. Searches: 77. Primes: 2. #Tri: 7.
+    Time: 44.101786. Searches: 77. Primes: 2. #Tri: 7.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 44.101838. Searches: 77. Primes: 3. #Tri: 7.
+Edge-ideal: 4LLvLvvvMLPAQzMQQAAPwAzzvvvLAwLPQAPQQQccehqnprrvotqvptqswwvyxzyzzCBDEEHJPVUTTSUTXW101VY3Z0222303iiipadogssvnjjwgwrfgatamfgtvvatllktiiqearnocrcrvukgaalifq (56 tetrahedra). Edge 31.
+    Time: 44.107609. Searches: 77. Primes: 3. #Tri: 8.
+    Time: 44.820168. Searches: 80. Primes: 3. #Tri: 8.
+Main enumeration succeeded.
+Edge-ideal: ALLLvvvPMvPLQzQQQQcaegmolnmnxxqrrsvwytvywzzxzybpdgcwrrrptkmqpaarobkwgnbnk (26 tetrahedra). Edge 0.
+    Time: 44.821623. Searches: 80. Primes: 3. #Tri: 9.
+    Time: 44.835442. Searches: 80. Primes: 4. #Tri: 9.
+Found a hyperbolic knot!
+Edge-ideal: BLLvLvvvMLPAQzMQQQQcehqnprrvotqvptqswwvyxzyAzzAiiipadogssvnjjwgwrfgatamvfgv (27 tetrahedra). Edge 27.
+    Time: 44.836941. Searches: 80. Primes: 4. #Tri: 10.
+    Time: 44.857330. Searches: 80. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: DLLAvMLzvMAAvvAPQPQQcbcdeihhkorpmnssvyAxwvwCyzzBCCBtsfxextjiaatbuxinjkgcvqvfjiquv (29 tetrahedra). Edge 29.
+    Time: 44.859249. Searches: 80. Primes: 5. #Tri: 11.
+    Time: 44.872529. Searches: 80. Primes: 6. #Tri: 11.
+Found a hyperbolic knot!
+    Time: 44.872595. Searches: 80. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: xLLLLLMPwwMLAMAQcacfghiljllnnrpqrusttvwwwnkgjhhmcrflcpfblafvrcphm
+    Drilled iso sig for prime #1: mLLAAvQPPbedeefhjikkllhhnteanixdxkr
+    Drilled iso sig for prime #2: tLLLQvAvLQALQkbdeeggjjlnnpmpqprsssxnidpvenbcrfrkpfkvgn
+    Drilled iso sig for prime #3: zLLLvvLwPAQMMPzMQkcefolkkmqnspstrquvtuxxyyyxiihiplqhuekrkenniaeesbthts
+    Drilled iso sig for prime #4: ALLvLLwLPQwLQwzMQQcceighlpmmlqqtsrtputyyxwxzzziimwwpmehpcoqpptksgpptkxhfw
+    Drilled iso sig for prime #5: CLLAvwLMLzLAwLPAQPQkbcdeihklmotnrpuvztxxzvAABABzBtsfxetjjceatjfueagihcbjwawirl
+
+16nh_0600957 # 15nh_071749 # 17ns_25 # 16nh_0987240 # 19ns_032 # 19ns_131
+-------------------------------------------------------------------------
+Knot sig: -cMbaabacadabaeafagahaiajaaagakalamanafaeaoapaqakanaoacadajaiapamalaqaharasatauavawaxayazaAaBavaCaDasazaEaxaFarayaEaAatauaBawaGaDaCaGaFaHaIaJaKaLaMaNaOaPaQaRaHaSaPaTaUaQaSaVaWaOaNaKaXaYaLaMaYaXaTaUaZaIaVaWaJaZaRa0a1a2a3a4a2a5a6a7a8a9a0a6a+a-a7aabbbcbdb8aebfb5a1agbeb-a+afb3a4agb9adbcbbbabhbibjbkbiblbmbjbkbnbobpbqbrbsbtbubvblbmbrbqbnbhbtbubvbsbwbobpbwbxbybzbAbBbCbDbEbFbBbGbxbEbFbHbIbJbKbybLbAbJbIbHbKbzbLbGbCbDbRm7mlYQQAQkRAMPkZCXmfZ01YuvvvBvPQsFMrMN43i9BYh8-dG-3BMVzE---Wp8nW88l.
+Embedding knot as an ideal loop.
+    Time: 0.000061. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.010507. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.020111. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.027949. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.032049. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.039043. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.046254. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 35.050506. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 36.988893. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: -cYcLLAAvLzLMMQAzwwMvLzwzzvwLzzzALQwLvvvPvLvvQPQvwAQMAvvvQALzMLwwMQPQAwzPzvLLPzvLAQwQvQvwwvvLwAQPwMzMAQAMPQzQQQQLMQQQQPPMQkbaeadaeaeafakamanakapapaqaqaoaoaparatatavaxayaDaDaEaJaLaMaOaOaWaVaZaZaSaRaXaUa1a2aebebgb4a6aobob5aqbpbqb-aab9a-ahbvbbbubjbjbHbxbvbibiblbLbLbnbqbrbQbTbwbUbJbwbJbUbJbVbIbVbAbCbEbZbZbEb4bIbOb-bObgcecfcSbSbTbhcVbYbXblc0bkckc3bzc9b9bvc+bAcBcfcdcccGcFcJcHcLcKcFcicMcjcMcMcocOcucqcNctcrcqcNcrctcQcPcucQcNcwcEcxcCcScDcUcUcTcBcDcEcScTcTcLcIcJcJcVcVcWcWcPcXcRcXcXcUcWchhnteahrafeaxpbfccccceccccddcccdadamiearcdahidckvqvdvfjvoxblowdehvjfeecutgecewjktraoucssalcabblomaeiwoggccabilcdnwdnppfnfeetilmdiovkgbavniowvevcexcpxssjsewiaxgwvihqbrfnaiitfawxdso (178 tetrahedra). Edge 127.
+    Time: 37.054397. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 41.887908. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: -cAcLLLLvMvMLzvPvQPQPPPQMAzMvwvAvvvLwLLAQLMPwLLAAMQAzzzAQMwzMvvwMMLQLAvvALPvAvzQwwAwvPAPPMQMQAAMvPMQAzPMQQkcaeafahaiamakaqalanaxataAazarauazaCataBaBaCaDaxaFazaEaDaFaDaEaEaGaIaIaKaMaPaOaZaZa6a7aWa6a+a5a0a+abbcb1a3a3ahbabib9a-akb-alblbkbcbibjbobfbnbtbtblbmbmbmbvbvbrbsbzbFbHbzbDbBbKbCbCbKbKbNbNbQbJbJbNbObOb0b4b5bUbVbTb7b9bXbbcecgc1b2bicjc+b4b9blckcac7b-bkclc+b-bacmcgchcncfcqcscrcjcjcmcmcqcscrcwcuctcxcwczczcycyczcxcyciixpjiabfrmuuphfoabjgxdvigutmqescooouimuawkbnprbahlbbbppdpoebdplofgpbapammegpabkdpdggbdwbuqmeakobcbeapgcwutvdauffaakckdarwrppvofdvgdcxxaofjfvvgxngiadqroggw (154 tetrahedra). Edge 67.
+    Time: 41.924918. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 44.407109. Searches: 4. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Edge-ideal: vLLAAvAMvwMMMPQbedeefhjklnmprprsuttuuhhnteanirdicqxeprdidhg (21 tetrahedra). Edge 18.
+    Time: 44.408416. Searches: 4. Primes: 0. #Tri: 3.
+    Time: 44.482758. Searches: 51. Primes: 0. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 44.483717. Searches: 51. Primes: 0. #Tri: 3.
+    Time: 44.485358. Searches: 51. Primes: 0. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 44.485411. Searches: 51. Primes: 1. #Tri: 3.
+Edge-ideal: -cacLLLLvMvMLzvPvQPQPPPQMAzMvwvAvvLPvzPMAPzzzPMMPQAAPPAwvMLvvLMvvAvzQwwMMwzPLAQAQQAzPQPQQccaeafahaiamakaqalanaxataAazarauazaCataBaBaCaDaxaFazaEaDaFaDaEaEaGaIaIaKaMaPaOaRaZaZa4a5aWa4a8a3a0a8a-aabcbeb+afb7a9ahb9aibibhbabfbgbdbkbkbmbmbibjbjbjbobsbqbqbzbvbFbJbKbNbObDbEbCbQbSbKbLbWbIbZb2b1bTbNbSb5b4bVbQbUb4b5bTbUbVb6bZb2b1b7b3b1b9b7b-b-b6b6b9b+b+b-b+biixpjiabfrmuuphfoabjgxdvigutmqescooouimbuawkbnprbahldppdpoebdplofggdapammegppscafpaeapgcwutfgpoqqakckdarwrppvofdffgqjgmapxjfgwcgr (128 tetrahedra). Edge 52.
+    Time: 44.510829. Searches: 51. Primes: 1. #Tri: 4.
+    Time: 47.166251. Searches: 53. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Edge-ideal: HLLLLvMvMLzvPvQPQPPPQMQcefhimkqlnxtAzruzCtBBCDxFzEDFDEEGGiixpjiabfrmuuphfoabjgxdvigutmqesco (33 tetrahedra). Edge 33.
+    Time: 47.168426. Searches: 53. Primes: 1. #Tri: 5.
+    Time: 47.189610. Searches: 53. Primes: 2. #Tri: 5.
+Found a hyperbolic knot!
+Edge-ideal: -czbLLvLvAzvPvvMMPPAwvLzQzQzLwLPwQAQLPPPwvAQPQMALvvvMQAvzQAwQQQccaeahalalaharapasaoapataraCataBaAaCavaLazaNaBaAaDaOaPaHaJaHaSaRaXaKaMa0a0aOaPaPaYaXaUa2aWaVa5a3aYa1a4a5a2aab7aab6abbbbbbab-a+acb-adbjbjbkbiblbobpbobtbnbubtbtbsbubwbxbsbvbvbxbybybybiiaaijmavgjospjiaxgicdvvnmmggghaigbaifojkojejglugdugoesacqlhtffaneacbvbfararaxebomacfwecjf (89 tetrahedra). Edge 53.
+    Time: 47.201849. Searches: 53. Primes: 2. #Tri: 6.
+    Time: 48.457032. Searches: 55. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: DLLvPLvLwMvAPPAwQAQQccdhgioopltqpuywxvsuxwzyCyBCABCpvugvpaofavohaipeobcwhjasgrogc (29 tetrahedra). Edge 29.
+    Time: 48.458771. Searches: 55. Primes: 2. #Tri: 7.
+    Time: 48.473932. Searches: 55. Primes: 3. #Tri: 7.
+Found a hyperbolic knot!
+Edge-ideal: 4LLLvvLzLMwzvAAvvMAMPMwMAAvMPPQzLQPQQQcbdekhslptovAzwIuyBxzBKKJLGPEQRIISOXMONOYTZU0WVW130YY12323afaafegbaopduhdbkgcvnlpeaoafllsrqjmrnbgtsqcxfncumhwknbjns (56 tetrahedra). Edge 17.
+    Time: 48.478806. Searches: 55. Primes: 3. #Tri: 8.
+    Time: 49.070479. Searches: 57. Primes: 3. #Tri: 8.
+Main enumeration succeeded.
+Edge-ideal: zLLvLMvQLvPQwMPMQkcdjifhnintrpqoqusvuwyxywxyiocookxfpmaktodmkjvrixaclw (25 tetrahedra). Edge 13.
+    Time: 49.071915. Searches: 57. Primes: 3. #Tri: 9.
+    Time: 49.083954. Searches: 57. Primes: 4. #Tri: 9.
+Found a hyperbolic knot!
+Edge-ideal: pLLLQvLwQPQbdefefkjkmmnnonohruupgjsfparobjf (15 tetrahedra). Edge 15.
+    Time: 49.084553. Searches: 57. Primes: 4. #Tri: 10.
+    Time: 49.130358. Searches: 97. Primes: 4. #Tri: 10.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 49.131640. Searches: 97. Primes: 4. #Tri: 10.
+    Time: 49.133838. Searches: 97. Primes: 4. #Tri: 10.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 49.133941. Searches: 97. Primes: 5. #Tri: 10.
+Edge-ideal: sLLAAvLzLMMQQbedeefkmnkppqqooprrhhnteahrafeaxpbfccc (18 tetrahedra). Edge 18.
+    Time: 49.135067. Searches: 97. Primes: 5. #Tri: 11.
+    Time: 49.223180. Searches: 133. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 49.225961. Searches: 133. Primes: 5. #Tri: 11.
+    Time: 49.228683. Searches: 133. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 49.228733. Searches: 133. Primes: 6. #Tri: 11.
+    Time: 49.228752. Searches: 133. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: uLLLQvAvAAPLMQcbdefefhiklomnppqrtstthruupgtvlalvvxnovtlrc
+    Drilled iso sig for prime #1: GLLLLvMvMLzvPvQPQPPPQQccefhimkqlnxtAzruzCtBBCDxFzEDFDFEEiixpjiabfrmuuphfoabjgxdvigutmqees
+    Drilled iso sig for prime #2: CvLAAvLzzvLQwLMPQQQkcdfegkmmotsqpwruBvBvBzxAyzyAAgnabelaefadicegjakhbmsfibgbah
+    Drilled iso sig for prime #3: yLLvvvvPLwPQQPQQQcehknrpvtuppsoquwrsvwuxxxiissalaaocfsgffvvgkofglmp
+    Drilled iso sig for prime #4: oLLLQvLAMQcbdefefkjkmnlmnnhruupgjsvdthoso
+    Drilled iso sig for prime #5: rLLAAvLzMLQQcbeedfekmjnpomnoqqqxxuwamhrcahafuvboc
+
+16nh_0717845 # 16nh_0909198 # 16ah_217581 # 18ns_51 # 16ah_007966 # 18ns_50
+---------------------------------------------------------------------------
+Knot sig: -cKbaabacadabaeafacadagahaiajakagaaalahakamanaoaeafaoapaqajaiarapanamaqaralasatauavawauaxayazaAaBaCaAaDaEasaFaGaDazayaEaGaHataxavawaCaBaHaFaIaJaKaLaMaNaOaPaJaQaRaKaPaOaSaTaLaRaQaUaVaIaWaVaNaXaTaSaXaMaUaWaYaZa0aYa1a2a3a4a5a6a7a8a9a3a4a5aZa0a6a+a8a-aabbb2a1abb9a+a7a-aabcbdbebfbdbgbhbibjbkbgbcblbhbkbmbnbobpbqbfbebobpbqbrbsbjbibtbrbnbmbsbtblbubvbwbxbybzbAbBbCbDbEbCbFbGbHbIbvbAbzbybxbwbJbEbDbJbBbubIbFbGbHbRkZSYmRQYQQSQQsPwvvvvvRmZQYmvvvvvbFMzgyM9Wya8+8-NX4pySXgnMzmyM-BWVna.
+Embedding knot as an ideal loop.
+    Time: 0.000045. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.011184. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 10.017000. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 15.020838. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 20.028900. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 25.036848. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 30.044183. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 34.093174. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: -c-cLLAAwLzvMvPLMAAQMwzzvvPwwvvzLLzzvzvPLQMLwvPzMvLMAMPQMAzwwLMMAAQLQQLQMQvLzLQALzvQvvzvzzzQwQwzLMPPLMwwwPQPQMwzwAPAvwAMQAQLAzAQQQQcbaeadaeaeafagaiajamaoarasavavauawawatataxaxaxayazazaCaEaFaKaJaPaYaZa2aPa5aXa9aWaXa6aabcb-a0ahb1apbob-a8asbgbsbabqbdbdbebgbqbBbzbybtbybkbkblbkbDbJbKbMbMbrbAbCbxbObvbxbBbzbAbQbBbCbRbQbTbHbSbGbGbUbSbTbJbWbYb3bPbPbRbRbTbXbZb0b-b+bgc5b9bocacqcocncncscrcrcvcwcxczczchcBcycyczcEclcGcGcKcqcpctcqcMcMcucucvcMcDcAcQcQcTcEcJcJcGcIcZcYcWcRcUc3c3cTcScRc3cUcVc4c6c5c8c8c8c7c7c+c2c1c2c2c5c6c6c9c+c+chhnteahjqtpodapepqmcjjknqmllfncliuewlbaffthaibqgedbbtvecafcbseddueuvrcwueaeaosvjaoooccuksahlbtvvadxctadokfnrcfotedvcaruuiduuhiaupdgdedeevqatwvjbmpgccecjtmdffvffapawcuhvwoagbihedahqupjkfvwvwjkf (191 tetrahedra). Edge 142.
+    Time: 34.147661. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 37.583425. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: yLLLPzPLvAvQQMwPQcdeehhkijoltpttsrrusvwxxxioaiofiqomghnuhtxlluqwsro (24 tetrahedra). Edge 17.
+    Time: 37.584721. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 37.592307. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: -cJcLLLLvzvAvPvvwwvLwvMzPzLzzAvvwvzLzvQvPQzQAPzwvvvwwLMwPPMLPAPALMALMMAvLQAvwAPQQAvwQvLQMQAPPAvQQQPQQLQAQQQwMQAQkaaeagaiamaqaqatauaBaCaKataMaOayazaRazaWaEaZaEaYa6acbNaPaQakbjbWanbVaUaUaWaXaobpb1a1a1a0atb5a9axbdbebabMbPbdbObKbKbibSblbUbSbRbRbWbVbVbZbob0bqbqbsb3bvbzbHb5bwb+bHb1b1bCb7bGbecJbbc9bGbdcJbhc-b5bhc+bjcjcmclcscUbTbXbUbtctcYbYbZbtc+b4b3bwcwcwcacdcccAczc-bfcbccczcycecgchcgcycrcpcocCcDcncpcqcEcqcpcrcEcDcCcEcvcFcBczcBcAcBcDcGcHcIcIcIcbdpdpdaeamddctafcenpwlouddcfotekuobfkktpbkjbpobasbcedwahicaruuiduuhirhkgjawjgpnhgscgtkdfaxjpnedxplddeldwvjbmpgccehbjdtigofqaggsftaorortgknaxrwgekjrilaxrabwocbnwcidu (163 tetrahedra). Edge 83.
+    Time: 37.632501. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 39.938176. Searches: 6. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Edge-ideal: qLLLQLvwMMQkbdeeggglnoolmppnpxnidpvjhwddvbuagj (16 tetrahedra). Edge 16.
+    Time: 39.938921. Searches: 6. Primes: 1. #Tri: 4.
+    Time: 39.979589. Searches: 47. Primes: 1. #Tri: 4.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 39.983494. Searches: 47. Primes: 1. #Tri: 4.
+    Time: 39.992367. Searches: 47. Primes: 1. #Tri: 4.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 39.992487. Searches: 47. Primes: 2. #Tri: 4.
+Edge-ideal: -ckcLLLLvzvAvPvvvzvLwvMvzzwwMAQAvQvLvMvPwwLPQzzMwAzwAALMAwMQLQvQzQPPMvzPLwLLAvPQPQQPMQPQQLQAQQQQaaeagaiamaqaqatauaEaLataNaPazazaGaZaFa1a3aFa4a2a3a2aZaWa7aUabbOaQaRajbibWa7a8aXaobnbYaqbtb5a1a3a6avbmbnbcbdb-aDbGbcbFbBbBbhbJbkbLbJbIbIbNbMbMbQbpbybsbSbRbsbAbzbAbTbTbUbxb0bYbRbSb5b5b8b7bccLbKbObLbdcdcPbPbQbdcYbWbXbecWbXb3b3b2bgc1bgc1bgc3bfcbc-b+bhcic9b-bacjcac-bbcjcichcjcfcfcicbdpdpdaeapdctacnipsmtsqedlbgdfdcfotecadbaxbaaxboonfbsbcedwahicaruuiduuhiclrddotttixinajowddeldwvjbmpgccenjbaccxuehoenlfwgknaxrwgekjrilaxgfn (138 tetrahedra). Edge 89.
+    Time: 40.025813. Searches: 47. Primes: 2. #Tri: 5.
+    Time: 41.948986. Searches: 60. Primes: 2. #Tri: 5.
+Main enumeration succeeded.
+Edge-ideal: -cKbLLLzMzvLvQzvALzQQQQMwvQwAvvLvMwvPwAvzQvwPPzwwLAvvzQQQPzwQwQwPQQQMQkbacagahaiagajamasarapapayauaraBaDaAaCavaAaDawazayaxayaDaAaCaEaGaIaJaJaLaKaTaWaXaSa0a2aZa6aWa8a-a1a1a6abbcbbbebib9a+aobpbabgbwbybvbsbhbubtbsbtbxbzbnbBbDbqbBbAbAbFbEbEbHbybubzbwbzbxbybDbCbGbDbJbJbIbIbJbIbmoudiouoiapemoouaxhompgmdgargnhvavvuauuavltdpolaowcllatpovutcfxeaxjlltttpoaewempxxhmobonscrrfnbidoguo (100 tetrahedra). Edge 30.
+    Time: 41.964106. Searches: 60. Primes: 2. #Tri: 6.
+    Time: 42.549976. Searches: 62. Primes: 2. #Tri: 6.
+Main enumeration succeeded.
+Edge-ideal: HLLvLLLMzLQvLPLvAPQMQQQaeiklhokrsmmuxuzvAByBDEFCCGFGEDDGFbpuelbesuajwdedpcedstxhaedenvjsgwr (33 tetrahedra). Edge 0.
+    Time: 42.552168. Searches: 62. Primes: 2. #Tri: 7.
+    Time: 42.580955. Searches: 62. Primes: 3. #Tri: 7.
+Found a hyperbolic knot!
+Edge-ideal: -b-LLLvLLzvQzvzPvwzMwMwQzPLzMzQMQwvMQPQALPAQQbdekmhlnmoxsqswxHwJLzHDCDPOFQIINVWXWMYWYY13ZT43U23XX589596++7+89afauxfgcvbanofvglfaafecogmpfljggutdlbpahlpldglafhernolmkpqaofofb (63 tetrahedra). Edge 16.
+    Time: 42.591300. Searches: 62. Primes: 3. #Tri: 8.
+    Time: 42.912112. Searches: 64. Primes: 3. #Tri: 8.
+Main enumeration succeeded.
+Edge-ideal: FLLvLwvwLPPPAzwQQzMQMkcegfolqpsnmvsuwttvAyAxyByCBDDDEEiidgtadagngaglibglhldvblfeettclg (31 tetrahedra). Edge 31.
+    Time: 42.914273. Searches: 64. Primes: 3. #Tri: 9.
+    Time: 42.928652. Searches: 64. Primes: 4. #Tri: 9.
+Found a hyperbolic knot!
+Edge-ideal: DLLLzMzvLvQzLALzQQQQcbcghigjmsrppxxurACzBvzCwyxCzBBmoudiouoiapebsoouaxhompgmfrgnn (29 tetrahedra). Edge 29.
+    Time: 42.931004. Searches: 64. Primes: 4. #Tri: 10.
+    Time: 42.939520. Searches: 64. Primes: 5. #Tri: 10.
+Found a hyperbolic knot!
+Edge-ideal: rLLLQMvLwPMQcbdefefghlmmppqoopqhruupgjxhablaiexwb (17 tetrahedra). Edge 17.
+    Time: 42.940224. Searches: 64. Primes: 5. #Tri: 11.
+    Time: 42.996000. Searches: 106. Primes: 5. #Tri: 11.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 42.999243. Searches: 106. Primes: 5. #Tri: 11.
+    Time: 43.000374. Searches: 106. Primes: 5. #Tri: 11.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 43.000441. Searches: 106. Primes: 6. #Tri: 11.
+    Time: 43.000462. Searches: 106. Primes: 6. #Tri: 11.
+Found 6 primes:
+    Drilled iso sig for prime #0: wLLALLMvzAvQPQMkbcdeghikmlprptstrqruvvvtsfxjxajamdpbealujrgtel
+    Drilled iso sig for prime #1: pLLvzLQAQLQcdghihihjkmlnooododgjnfwlwarwwwr
+    Drilled iso sig for prime #2: GLLvLLvMvzLMLwLQwQQQQQcceihoiqnmpuvzDDstEFvwFEFzEBAzBCCDiimriwasfrletxpcoikggkrrbrrbcvncr
+    Drilled iso sig for prime #3: ELLvLwwwPPzwMvQAzMQQQcegflnklpomsurwtzyvBAwBCADDzBCDiidgitmadanlibpaadvmlfheettbtsc
+    Drilled iso sig for prime #4: BLLLzMzvLvQzLAPMQQQbcghigjmsrppxxusrtAzvzAwyxAzmoudiouoiapebsooojaxompgmfrg
+    Drilled iso sig for prime #5: qLLAAwLLPwQkbedeefgimknlppoophhnteahjwvpjmacwj
+
+================================
+Total knots: 10.
+Total time: 477.537045.
+All cases computed without timing out.
+No cases slower than 2 times the average.
+

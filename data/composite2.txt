@@ -1,0 +1,3078 @@
+
++-------------------------------------+
+| Knots given by composing 2 summands |
++-------------------------------------+
+
+Sampling summands from the following data sets:
+===============================================
+hyp-15-16
+    15a-hyp
+    15n-hyp
+    16a-hyp
+    16n-hyp
+satellite-15-19
+    15n-satellite
+    16n-satellite
+    17n-satellite
+    18n-satellite
+    19n-satellite
+
+Sampled 111 knots from set of 1641979. Time: 10.114141.
+=======================================================
+
+Sampled 89 knots from set of 376. Time: 0.004200.
+=================================================
+
+19ns_238 # 16nh_0460216
+-----------------------
+Knot sig: JabcdefgchefijklmnokpqlogdhbnmrsjiarqpstuvwuxyzABCyDEFGwvBAHIzCxtGHIDEFRQmZkZSuvwvfhgMzMz2cadma.
+Embedding knot as an ideal loop.
+    Time: 0.000039. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.005319. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 53 tetrahedra.
+    Time: 3.005559. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.499589. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 27 tetrahedra.
+    Time: 3.499656. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.506287. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 23 tetrahedra.
+    Time: 3.506328. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.279924. Searches: 130. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.283161. Searches: 130. Primes: 1. #Tri: 3.
+    Time: 4.285867. Searches: 130. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.285925. Searches: 130. Primes: 2. #Tri: 3.
+    Time: 4.285943. Searches: 130. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALvAwLvLLQvQvPPQQQccfegkmknrlsupqtwyzwyxuvxzxzupuauapvrftmccdepafgcoocccs
+    Drilled iso sig for prime #1: wLLLQLvAPzvMzQQkbdeeggiljkmosttvturvuuvxnidpvddgdkeicjdcqcpqup
+
+19ns_041 # 16nh_0018173
+-----------------------
+Knot sig: JabcdbefghijkglmhknopqrsonjitufvwtmluwqxsrxpvyzABCDBAzyEcdFGHDCHIFaeEIGlZSQmZQuvtvf-zggMzMddpZd.
+Embedding knot as an ideal loop.
+    Time: 0.000021. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.761701. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 2.761927. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.232035. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 26 tetrahedra.
+    Time: 3.232102. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.252764. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 18 tetrahedra.
+    Time: 3.252833. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.319743. Searches: 39. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.324253. Searches: 39. Primes: 1. #Tri: 3.
+    Time: 3.325471. Searches: 39. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.325519. Searches: 39. Primes: 2. #Tri: 3.
+    Time: 3.325536. Searches: 39. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: zLLvvvLALPwQAQQPAkcelnknnllsportvqwstuvwwxyyiixxnualqisfkjkvxvnfoxipqw
+    Drilled iso sig for prime #1: rLLMLPMzzLMQccdcegighiklpooqpqqiccaoinafrhiqhuxcb
+
+16nh_0426904 # 18ns_43
+----------------------
+Knot sig: IabcdbefghijkglmhknopdcnopjiqrfeaqmlrstuvwxtyzABCxuvwCDEzAFGEHsDGFByHRmZQYmRQQQPanMzmyM9apyBc.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.215368. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 2.215598. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.668960. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 15 tetrahedra.
+    Time: 2.669027. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 2.713436. Searches: 35. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.714644. Searches: 35. Primes: 0. #Tri: 2.
+    Time: 2.715746. Searches: 35. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.715785. Searches: 35. Primes: 1. #Tri: 2.
+Edge-ideal: 27 tetrahedra.
+    Time: 2.715808. Searches: 35. Primes: 1. #Tri: 3.
+    Time: 2.724839. Searches: 35. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 2.724909. Searches: 35. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: oLLAwwPLAQcbedeegjkmjlnnmnhhnteffniwalofb
+    Drilled iso sig for prime #1: ALLLwPzvzzMAPQLPPQccedgggjkrmnostuvqusywywzzzyiinxcohsifmiwnaqbhfipwwdamr
+
+16ah_347296 # 19ns_161
+----------------------
+Knot sig: JabcdefghijkclmniopqkrnhopgmlfedqjrstuvbswxyzABCDzEFADwvatCBGHyxIGFEHIuRQQQQkzZm1md-ZWZZZTzgEMj.
+Embedding knot as an ideal loop.
+    Time: 0.000030. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.573280. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 55 tetrahedra.
+    Time: 4.573522. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.263634. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 35 tetrahedra.
+    Time: 5.263702. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 5.291464. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 17 tetrahedra.
+    Time: 5.291521. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 5.374231. Searches: 41. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.376805. Searches: 41. Primes: 1. #Tri: 3.
+    Time: 5.378108. Searches: 41. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.378155. Searches: 41. Primes: 2. #Tri: 3.
+    Time: 5.378173. Searches: 41. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ILLvLLPPvwwQwLzQMMwLQQPkceghljinlmqptqxsAuuxzyByEGBEGFDFHHHiiijicsatbgsugagabggtcaffagftcbfllg
+    Drilled iso sig for prime #1: qLLLQvLwLQQkbdefefljpopnonnophruupglsupupsokcg
+
+18ns_24 # 16nh_0660614
+----------------------
+Knot sig: IabcdefghbijklgfmnjoaicdnplhempkoqrstuvrwxyzAwqBxACDEvutsEFGzyHFDCGHBRQQPQSkZSkZaVLw7a3Jz2Jzc.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.721511. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 48 tetrahedra.
+    Time: 2.721739. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.183588. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 3.183653. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.202400. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 3.202452. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.240771. Searches: 28. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.242532. Searches: 28. Primes: 1. #Tri: 3.
+    Time: 3.243799. Searches: 28. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.243878. Searches: 28. Primes: 2. #Tri: 3.
+    Time: 3.243920. Searches: 28. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELLvLLLMvMzPvALwQQQQQceiijjmpsnvuptAxDzyuAxyDDACzBCCiimvogdaishagetdovogrnvsvokocsr
+    Drilled iso sig for prime #1: nLLLQLLAPkbdeegggikjmlmmxnidpvjjmqxtbf
+
+16nh_0841752 # 16nh_0049976
+---------------------------
+Knot sig: GabcdefgahcdijklebhimnoplfgkponmjqrstusvwxqyzABCDrxzCEFwvFABEtuDyRmlRQSkRQQcF+5F43JnW8l.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.006616. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.053113. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 56 tetrahedra.
+    Time: 5.053398. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.444761. Searches: 10. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 5.444828. Searches: 10. Primes: 0. #Tri: 2.
+    Time: 5.451283. Searches: 10. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 30 tetrahedra.
+    Time: 5.451344. Searches: 10. Primes: 1. #Tri: 3.
+    Time: 5.469001. Searches: 10. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.469045. Searches: 10. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLLvvMLPLPwPQQQceihnjkkprnososqtrtuuuiifjegsvhdsjajaoqgqejj
+    Drilled iso sig for prime #1: DLLLLLzAvMwALwPwPQQQccefehlmkqplptrtuytzwyyCCBAABBCiitdvidaivrsdddwqvmvmaeatexnrs
+
+18ns_38 # 19ns_011
+------------------
+Knot sig: LabcdefdghijklamjnokmphgefcqnorbpiqrlstuvwxyuzABCDEAsFBEGHyxwvztIJDCKIHGJKFxLzwXmRkZSkZa75-N9-hMzgMzc.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.149626. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 41 tetrahedra.
+    Time: 3.149851. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.641541. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 18 tetrahedra.
+    Time: 3.641605. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.687976. Searches: 43. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.692327. Searches: 43. Primes: 0. #Tri: 2.
+    Time: 3.694673. Searches: 43. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.694780. Searches: 43. Primes: 1. #Tri: 2.
+Edge-ideal: 18 tetrahedra.
+    Time: 3.694834. Searches: 43. Primes: 1. #Tri: 3.
+    Time: 3.754494. Searches: 82. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.756549. Searches: 82. Primes: 1. #Tri: 3.
+    Time: 3.759139. Searches: 82. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.759222. Searches: 82. Primes: 2. #Tri: 3.
+    Time: 3.759244. Searches: 82. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: rLLPPLwALzMQcacffeghijjlnnopqqqjkugcacwqemnwmnnrw
+    Drilled iso sig for prime #1: rLLLAvQQvMLQccegffkhkjjkmnoqpqqiiiedqkehkksqstwdl
+
+16nh_0398080 # 16nh_0688514
+---------------------------
+Knot sig: GabcdbefghiejghklmnoplajficdkpmnoqrstuvwxyuzArBxCDwEqBstyCDvFAzFERQwLsTQPMkf-zmSp8T3Vnl.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.000543. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.107520. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 59 tetrahedra.
+    Time: 5.107816. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 10.714405. Searches: 133. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 59-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 127.)
+Edge-ideal: 26 tetrahedra.
+    Time: 10.714468. Searches: 133. Primes: 0. #Tri: 2.
+    Time: 10.726326. Searches: 133. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 29 tetrahedra.
+    Time: 10.726384. Searches: 133. Primes: 1. #Tri: 3.
+    Time: 10.738860. Searches: 133. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 10.738900. Searches: 133. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: zLvLLMzvzvMQPMMQQkcgefkilsrrpsovtuvutywwyxxyitdcavufvvjvghnuhefaeefbfs
+    Drilled iso sig for prime #1: BLLMLwMLMwLQvwMzPQQceddfgikllmnqopqtwuuAzAxyzAziisvcneiepekedvwewkjpammckjj
+
+16ah_095372 # 16nh_0999557
+--------------------------
+Knot sig: GabcdefghijklmnfojkdanghplcbmpioeqrsqtursvwxyutzABxyBwvCDEFAzFCDEtvvvtvvvvvfpFYFM8p-pWa.
+Embedding knot as an ideal loop.
+    Time: 0.000030. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.011612. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.319874. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 68 tetrahedra.
+    Time: 5.320106. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 10.325579. Searches: 224. Primes: 0. #Tri: 1.
+    Time: 12.042073. Searches: 242. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 35 tetrahedra.
+    Time: 12.042142. Searches: 242. Primes: 0. #Tri: 2.
+    Time: 12.082687. Searches: 242. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 30 tetrahedra.
+    Time: 12.082827. Searches: 242. Primes: 1. #Tri: 3.
+    Time: 12.101870. Searches: 242. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 12.101932. Searches: 242. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ILvvLvvAzwPMMwAQLLQQMPQkbhlkjksuopovpyAtzuCDADyCAFzBFHGFGHHpdafrfqcccwfwxavebiquddxccwvfimoxqs
+    Drilled iso sig for prime #1: CLLAwvPzLwLvzQwQAQQkbeedfijmlnspqusyxyuuyxzzAABBBddafaafefagcgxopptlxaowvfwape
+
+16nh_0719544 # 19ns_245
+-----------------------
+Knot sig: JabcdefghijkglmnejioahkfpmcblpndoqrstruvwxyuqzABxwCADEstFGzHvyIDGFEIBCHRQPjZSYmZYmd3aptVgyMzyMj.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.293162. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 2.293396. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.996056. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 2.996123. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.014692. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 3.014757. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.064552. Searches: 27. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.066884. Searches: 27. Primes: 1. #Tri: 3.
+    Time: 3.067728. Searches: 27. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.067766. Searches: 27. Primes: 2. #Tri: 3.
+    Time: 3.067785. Searches: 27. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BvLLvvvLAwvPQQQAQQQdforkmywqzwxvztsyruvtxAAAzwycaaaffdpadxpxavcgfbjvjittbcv
+    Drilled iso sig for prime #1: nLALzLPPPkbccefjiiklmmlmmlbsqahdiohdvq
+
+19ns_204 # 19ns_014
+-------------------
+Knot sig: MabcdecfghfdeijklbmnilopqmhgnrpsaqrjkostuvwxyztAxBCyDEFGHIzJKwvLJCBKLuADGFEHIxvmRLzCMrLzAf-2-3--oR83m3p.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.716683. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 40 tetrahedra.
+    Time: 2.716943. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.032462. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 17 tetrahedra.
+    Time: 3.032528. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.070790. Searches: 43. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.072644. Searches: 43. Primes: 0. #Tri: 2.
+    Time: 3.073785. Searches: 43. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.073829. Searches: 43. Primes: 1. #Tri: 2.
+Edge-ideal: 20 tetrahedra.
+    Time: 3.073852. Searches: 43. Primes: 1. #Tri: 3.
+    Time: 3.268303. Searches: 82. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.269993. Searches: 82. Primes: 1. #Tri: 3.
+    Time: 3.272032. Searches: 82. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.272073. Searches: 82. Primes: 2. #Tri: 3.
+    Time: 3.272091. Searches: 82. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: qLLAwAPwwwQkbeedfghiijlnpooppeddfafuonswaxowmt
+    Drilled iso sig for prime #1: tLLAAwvAPvQzQkccdefegkjnlqnorrrssslnkxqnqqxlfaxepdxame
+
+18ns_19 # 19ns_098
+------------------
+Knot sig: LabcdbefghijkglmhknojipqfrspmlqstuvwonxvutwxryzABCDEaeyBFGHIJDCFKzAKGHcdIJElZmnZkRuwvwnb-zgMzE+N--h+d.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.153854. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 35 tetrahedra.
+    Time: 2.154087. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.459978. Searches: 5. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 19 tetrahedra.
+    Time: 2.460082. Searches: 5. Primes: 0. #Tri: 2.
+    Time: 2.514289. Searches: 53. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.516460. Searches: 53. Primes: 0. #Tri: 2.
+    Time: 2.518254. Searches: 53. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.518303. Searches: 53. Primes: 1. #Tri: 2.
+Edge-ideal: 13 tetrahedra.
+    Time: 2.518327. Searches: 53. Primes: 1. #Tri: 3.
+    Time: 2.552236. Searches: 70. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.553558. Searches: 70. Primes: 1. #Tri: 3.
+    Time: 2.554759. Searches: 70. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.554822. Searches: 70. Primes: 2. #Tri: 3.
+    Time: 2.554841. Searches: 70. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLAAvLzQPLMQbedeefkmjnknnqqprrrhhnteahrfdfadivvhlq
+    Drilled iso sig for prime #1: mLLALQLLQcddeghggjkklldcbafhjgwihrw
+
+18ns_46 # 19ns_012
+------------------
+Knot sig: LabcdecfghidejkblmnopghqrsalmnfiqrjkspotuvwxvuyzxwABCDEFGCHIDGzyFEJKBAtJIHKxCsv1mTQYmlZa------FEyMNzc.
+Embedding knot as an ideal loop.
+    Time: 0.000063. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.855801. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.856061. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.096973. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 10 tetrahedra.
+    Time: 2.097037. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 2.115994. Searches: 14. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.116935. Searches: 14. Primes: 0. #Tri: 2.
+    Time: 2.117513. Searches: 14. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.117549. Searches: 14. Primes: 1. #Tri: 2.
+Edge-ideal: 19 tetrahedra.
+    Time: 2.117571. Searches: 14. Primes: 1. #Tri: 3.
+    Time: 2.197428. Searches: 76. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.198368. Searches: 76. Primes: 1. #Tri: 3.
+    Time: 2.200047. Searches: 76. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.200091. Searches: 76. Primes: 2. #Tri: 3.
+    Time: 2.200109. Searches: 76. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: jLLAMPPcdeeeghhiiifepenumfn
+    Drilled iso sig for prime #1: sLLAALwwwLMQQbeedfeihkkqqrpoprqrxxuwamdnroetpmjhilk
+
+15ah_38190 # 16nh_0063653
+-------------------------
+Knot sig: FabcdefghijklmcdenojkpnfmqpoihglqrstuvwstwxbyzrxABvuCABCDEzyaDERQQQQs1mvvb9yV3g4FM--d.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.870550. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 53 tetrahedra.
+    Time: 4.870777. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.726162. Searches: 87. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 29 tetrahedra.
+    Time: 5.726229. Searches: 87. Primes: 0. #Tri: 2.
+    Time: 5.737424. Searches: 87. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 21 tetrahedra.
+    Time: 5.737470. Searches: 87. Primes: 1. #Tri: 3.
+    Time: 5.741226. Searches: 87. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.741276. Searches: 87. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLvLvvQvMzMQPzMAQQkcehnliqsuorsspqxryzyAzwByBABAiiiqqoiqisfgvrsajeihowgunuwtc
+    Drilled iso sig for prime #1: uLLMzzwALMvMQQccedegijlkmoporqsttrstiinmhixiglqnvpddescob
+
+15nh_116586 # 18ns_61
+---------------------
+Knot sig: HabcdefbghijklamjneflomgcdhinkopqrstusvwxyzABxrqyBCDEvwEtuFGAzpFDCGBQjTkRYmRYmpXpQrbyMbyM.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.219123. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 50 tetrahedra.
+    Time: 2.219352. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.444131. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 2.444195. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 2.466441. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 2.466515. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 2.791030. Searches: 64. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.791922. Searches: 64. Primes: 1. #Tri: 3.
+    Time: 2.793221. Searches: 64. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.793262. Searches: 64. Primes: 2. #Tri: 3.
+    Time: 2.793279. Searches: 64. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLvLvPPzzwzPAPMQQQcegimojlpsqxutwyxztvwyzzAAyAiidfptfhdiopahlumthsfksgvgow
+    Drilled iso sig for prime #1: sLLLLLPQMzzMQcefhhhlkjjllnoqrqrriidmvntdamdskxktwpl
+
+16ah_084966 # 19ns_072
+----------------------
+Knot sig: JabcdefgedhijklmankoplnqihgfcropsbqjrsmtuvwxyzABCwvutCzDEFGHBAIEFGxyDIHxvMzfZuvvvvfBM-FW--BpV9d.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.718937. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 54 tetrahedra.
+    Time: 4.719165. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.250185. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 5.250251. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.266239. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 20 tetrahedra.
+    Time: 5.266284. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.321993. Searches: 46. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.324220. Searches: 46. Primes: 1. #Tri: 3.
+    Time: 5.329913. Searches: 46. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.329967. Searches: 46. Primes: 2. #Tri: 3.
+    Time: 5.329984. Searches: 46. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: DLLMvvLPvPLPMLPQAAQPcbdefmjimrrpotwyvswvuuuAzAzBBCCefddldewduqoppdsfgjsvrpiusbris
+    Drilled iso sig for prime #1: tLLLQvALAPLMMkbdeeggjjljlnnoqqrsssxnidpvenafbahbgbhaon
+
+16nh_0504754 # 18ns_73
+----------------------
+Knot sig: IabcdeafghijklfimnopqklrsmntrghstuvqpwuvwojxyzABCDedEFDCBAGyxHFEcbHGzlZSAMPkvlvlb-------8-p-d.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.165670. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 58 tetrahedra.
+    Time: 4.165898. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.417943. Searches: 120. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 5.418008. Searches: 120. Primes: 0. #Tri: 2.
+    Time: 5.434579. Searches: 120. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 5.434640. Searches: 120. Primes: 1. #Tri: 3.
+    Time: 5.498081. Searches: 163. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.500289. Searches: 163. Primes: 1. #Tri: 3.
+    Time: 5.502298. Searches: 163. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.502363. Searches: 163. Primes: 2. #Tri: 3.
+    Time: 5.502385. Searches: 163. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLvLvzAMzMvPPwQPQQkcehjohmmpsrpuxrxszAvuBxAyyBBAiiakijdaaibkaecltokbrekfwsutf
+    Drilled iso sig for prime #1: sLLAAvLzPPAMQbeedfekmnooomnpqrrrxxuwamhriiaivipbihx
+
+19ns_120 # 15ah_67836
+---------------------
+Knot sig: IabcdecfghibjkfilmnopqhgrsalqrkdejsnopmtuvwxyzABCDEFzADGHwxCByvuFEtHGxmtXmDvvvvvb9M5BM3--58Na.
+Embedding knot as an ideal loop.
+    Time: 0.000030. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.472131. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 66 tetrahedra.
+    Time: 4.472361. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.508663. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 19 tetrahedra.
+    Time: 5.508730. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.617181. Searches: 63. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.621248. Searches: 63. Primes: 0. #Tri: 2.
+    Time: 5.623631. Searches: 63. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.623743. Searches: 63. Primes: 1. #Tri: 2.
+Edge-ideal: 33 tetrahedra.
+    Time: 5.623808. Searches: 63. Primes: 1. #Tri: 3.
+    Time: 5.636559. Searches: 63. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.636620. Searches: 63. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLLLwMPAPzPQcefhhijljllmoprqqrriixpfjaaapgfhgedeek
+    Drilled iso sig for prime #1: DLLvLLvzvAPzQLAMQQPQccegipqrvnmqvxptwtAvAxBAByyzCCCiidvtqdinffhigrlkqelxqadsncxid
+
+19ns_196 # 16nh_0592535
+-----------------------
+Knot sig: JabcdefghbeijdcklmnokhpqglojinmfrsqparstuvwxyuvwzAtBCDEFxyGHFIBGHEDCIzANPzwAuTjvvvfZmmBd-hJd-mm.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.418564. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 57 tetrahedra.
+    Time: 4.418798. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.246624. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 5.246688. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.253323. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 22 tetrahedra.
+    Time: 5.253409. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.456906. Searches: 71. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.461662. Searches: 71. Primes: 1. #Tri: 3.
+    Time: 5.463657. Searches: 71. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.463701. Searches: 71. Primes: 2. #Tri: 3.
+    Time: 5.463717. Searches: 71. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLLLzzQzAwwzwPMPQQbcefghkmlkmlpotsutywxwzAAyzAtstgvftmdgfvlttpdgrbgfpuqoxj
+    Drilled iso sig for prime #1: vLLLvzPAQAwPvQQcefjkijklklmnnprrstuuuiitcuwwpadtucfbmnbmmkn
+
+15nh_130378 # 18ns_76
+---------------------
+Knot sig: HabcdefbcdghijklminojmpqrstnousvhtuklrwxypqwxyvzAfeBzCDgBAEFaGCDGEFBYmRMzQsvvv---F--+F75-.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.989910. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 49 tetrahedra.
+    Time: 3.990128. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.439593. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 27 tetrahedra.
+    Time: 4.439658. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.449029. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 4.449077. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 4.566469. Searches: 51. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.570364. Searches: 51. Primes: 1. #Tri: 3.
+    Time: 4.572758. Searches: 51. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.572806. Searches: 51. Primes: 2. #Tri: 3.
+    Time: 4.572823. Searches: 51. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALLvALzzzvLAQQLAQQccefhkinmptpuopvsrywuxyzwxzziimaasadgasmbjdvgtjblxabefs
+    Drilled iso sig for prime #1: svLAAALAwMzPQedefgfhikjkmopqrrqrggghaagagbwsabpuiik
+
+19ns_071 # 19ns_199
+-------------------
+Knot sig: MabcdecfghfijklbmnijopqramsghsnopqkdelrtuvwxyuvwzAxyBCDEFGHDIJEHAzGFKLCBtKJILxQYulDSQkZSmd--------NzEMj.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.049512. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 2.049744. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.187603. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 13 tetrahedra.
+    Time: 2.187667. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 2.210614. Searches: 20. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.211736. Searches: 20. Primes: 0. #Tri: 2.
+    Time: 2.212388. Searches: 20. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.212426. Searches: 20. Primes: 1. #Tri: 2.
+Edge-ideal: 18 tetrahedra.
+    Time: 2.212447. Searches: 20. Primes: 1. #Tri: 3.
+    Time: 2.365288. Searches: 85. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.365506. Searches: 85. Primes: 1. #Tri: 3.
+    Time: 2.366932. Searches: 85. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.366971. Searches: 85. Primes: 2. #Tri: 3.
+    Time: 2.366988. Searches: 85. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: mLLALvPQQaceefljijkkllnkuxpeaumowwc
+    Drilled iso sig for prime #1: rLLAwwvPzQMQcbedeegnkollnpooqqqhhntefmrxlqhnbjixd
+
+19ns_232 # 19ns_192
+-------------------
+Knot sig: MabcdecfgdehijklminojmaplkqrhbsqonrgfsptuvwxyzABtCzDEACFGHvIJwHGxJIKDELuFyKLBxgZ0mJDzMvvmd-CM5zgo+-ba-p.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.915490. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 46 tetrahedra.
+    Time: 1.915760. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.430298. Searches: 32. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 24 tetrahedra.
+    Time: 2.430362. Searches: 32. Primes: 0. #Tri: 2.
+    Time: 2.864533. Searches: 146. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.869751. Searches: 146. Primes: 0. #Tri: 2.
+    Time: 2.872239. Searches: 146. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.872283. Searches: 146. Primes: 1. #Tri: 2.
+Edge-ideal: 14 tetrahedra.
+    Time: 2.872305. Searches: 146. Primes: 1. #Tri: 3.
+    Time: 2.911731. Searches: 174. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.911941. Searches: 174. Primes: 1. #Tri: 3.
+    Time: 2.912824. Searches: 174. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.912866. Searches: 174. Primes: 2. #Tri: 3.
+    Time: 2.912883. Searches: 174. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: wLLLAAzLwzAMLPQkbdeffggilkmqoprussvuuvvxniqxvjwvfcaiflppobnrjn
+    Drilled iso sig for prime #1: nLLALzwPQkaceefgjkljkmmmnkuxpwdnronosk
+
+16nh_0136925 # 15nh_036909
+--------------------------
+Knot sig: FabcdbefghijklmnfopqrmsthpqijrogtklsnuvwxyzAaewBCDuvBxcdyzAEDCElT2Akjvv1ub-NTRt98VXVb.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.949412. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.949640. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.630278. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 4.630386. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.642250. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 26 tetrahedra.
+    Time: 4.642375. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.663278. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.663362. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLvvLvQwAvMQQQQbijhkhmpqoruosqttrsusumavkkotaabkakkgkrfolwl
+    Drilled iso sig for prime #1: zLLvLLvQPLwALQMMQkcehjoinpjrmtstvvwwswyuxyxyiiisishlsicdqxxuuimshbkhkp
+
+18ns_01 # 16nh_0565432
+----------------------
+Knot sig: IabcdefghijklmcnilopmhgfednbqrkjaqporstuvwxyzAsBCDAxEFwtBGDHuvFEyzHCGxn1uXmRsRKQb7Nz+DM-FM35c.
+Embedding knot as an ideal loop.
+    Time: 0.000027. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.008918. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 6.060497. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 45 tetrahedra.
+    Time: 6.060731. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 6.653573. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 6.653639. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 6.664529. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 6.664596. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 6.689642. Searches: 24. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 6.691863. Searches: 24. Primes: 1. #Tri: 3.
+    Time: 6.693062. Searches: 24. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 6.693142. Searches: 24. Primes: 2. #Tri: 3.
+    Time: 6.693186. Searches: 24. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLvvvALAwLAwAAPMQQQchgjjknoltpvpuqwsyzAuAywxyzAdgcwvwelcuwmnsoifaaighocncbv
+    Drilled iso sig for prime #1: nLLLQLLAAkbdefefhjjkllmmhruupgljvmasuj
+
+16nh_0529689 # 19ns_223
+-----------------------
+Knot sig: JabcdefbcdghijaklimnopefjlhmpongkqrstuvrswxvyzABCDEAFGBEuxwtDCHIzyqHGFIRsvnvTQYmRmd-NF4b+pzMtMj.
+Embedding knot as an ideal loop.
+    Time: 0.000029. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.518792. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 52 tetrahedra.
+    Time: 4.519041. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.961166. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 4.961232. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.977667. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 21 tetrahedra.
+    Time: 4.977712. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 5.167898. Searches: 90. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.169894. Searches: 90. Primes: 1. #Tri: 3.
+    Time: 5.172511. Searches: 90. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.172554. Searches: 90. Primes: 2. #Tri: 3.
+    Time: 5.172570. Searches: 90. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLvPvvzwzQQMzAAQMQceghlqtnmuprqsupvxxywvzzAyAAiiqiuqisftbjjsugpdudnwgopjih
+    Drilled iso sig for prime #1: uLLLLLPvQzPPAQccdfhhkkjnopmqpoprtstticegvimaararpdvdjlodu
+
+18ns_71 # 16nh_0425002
+----------------------
+Knot sig: IabcdecfgdehijkblmhinoplfgmnqrapoqjkrstuvwuxyzABCDEyxEFCsGBFDtHAzvwHGxLYyvoxQQSAa-8-F+-dZmpdd.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.796367. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 4.796643. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.046000. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 16 tetrahedra.
+    Time: 5.046071. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.084326. Searches: 44. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.085215. Searches: 44. Primes: 0. #Tri: 2.
+    Time: 5.086710. Searches: 44. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.086795. Searches: 44. Primes: 1. #Tri: 2.
+Edge-ideal: 31 tetrahedra.
+    Time: 5.086885. Searches: 44. Primes: 1. #Tri: 3.
+    Time: 5.114693. Searches: 44. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.114763. Searches: 44. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: pLLLLAAwAPQcefehiihiklnnoooiitdsvojvnpnsdud
+    Drilled iso sig for prime #1: ELLvvLwzMvQLPAzQwAQQQcekhnmjospnwtpvuAytvAByDzyACCDDiiwspxoxmwstsgqfmuoiajcevcskfhd
+
+15nh_149543 # 19ns_203
+----------------------
+Knot sig: IabcdefghbcigjklmhidnkomanefjolpqrstrquvtswxyzABpCzDEACuvwFGDEHFxyGHBRQKwARQzMkZa-mhLUNb--4-d.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.122128. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 53 tetrahedra.
+    Time: 4.122353. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.517178. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 19 tetrahedra.
+    Time: 4.517243. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.588576. Searches: 50. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.590812. Searches: 50. Primes: 0. #Tri: 2.
+    Time: 4.594106. Searches: 50. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.594202. Searches: 50. Primes: 1. #Tri: 2.
+Edge-ideal: 29 tetrahedra.
+    Time: 4.594257. Searches: 50. Primes: 1. #Tri: 3.
+    Time: 4.611337. Searches: 50. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.611419. Searches: 50. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLAAwvAMLPPQbeedfegkjlmooporqrrxxuwamxqxvkqqvgljdq
+    Drilled iso sig for prime #1: CLvvvALAzPzLwAPQQAQkcfgjnklqlrwstxvxsyAwxzzzyBABBiccvanshcadffauhbleiaexpwbsrj
+
+16nh_0296043 # 16nh_0355822
+---------------------------
+Knot sig: GabcdefghbijklmicfnoampkedjplnghoqrstuvrwxyzqwstxyABCDEvuAFCDFBEzRAP1KSQPQQc-3yZJ-eBMeo.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.988598. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 55 tetrahedra.
+    Time: 3.988824. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.580185. Searches: 41. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 26 tetrahedra.
+    Time: 4.580270. Searches: 41. Primes: 0. #Tri: 2.
+    Time: 4.590559. Searches: 41. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 26 tetrahedra.
+    Time: 4.590604. Searches: 41. Primes: 1. #Tri: 3.
+    Time: 4.596858. Searches: 41. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.596904. Searches: 41. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: yLvLvLPvwzQwPQQQQbeihhomunqmpqvxswuxtutwxwmavboqalmvgroptrtoxncvagg
+    Drilled iso sig for prime #1: zLLPzAvzwvLMMAAQQkbcffghgmlqrpupvrxvttxwywyymomtdiridpdvhftudsfwhkdvts
+
+15ah_82859 # 15nh_020449
+------------------------
+Knot sig: EabcdefghdcbijehakgflmnojiolmnkpqrpstuvwxqryzxAvBCsDuByzwADtCRkZuvvvvvv-F+F+p5N8j.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.011645. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 7.393006. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 58 tetrahedra.
+    Time: 7.393245. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 8.642144. Searches: 107. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 8.642210. Searches: 107. Primes: 0. #Tri: 2.
+    Time: 8.656380. Searches: 107. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 21 tetrahedra.
+    Time: 8.656442. Searches: 107. Primes: 1. #Tri: 3.
+    Time: 8.660040. Searches: 107. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 8.660073. Searches: 107. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLvLPPvvQvMLMAzQPMzQQccefihllmnqoqvrtsxuyBBwAxAACFEEEFFiixsfeueagbfaglaibsmefqctlevgnbjk
+    Drilled iso sig for prime #1: uLLLPvLzvQzQQQccdeegkilopmntrqprststiruugqagxhgjxmgsnwwno
+
+16nh_0615806 # 17ns_27
+----------------------
+Knot sig: HabcdbefcdghijkgalhkmnfeopjiqonmpqlrstusvwxyzABCrvDEFGtuAzGFyBCxEDwRkZSmZskTQw-NzEM5-G5zK.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.295272. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 48 tetrahedra.
+    Time: 3.295506. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.758697. Searches: 33. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 29 tetrahedra.
+    Time: 3.758762. Searches: 33. Primes: 0. #Tri: 2.
+    Time: 3.773654. Searches: 33. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 16 tetrahedra.
+    Time: 3.773701. Searches: 33. Primes: 1. #Tri: 3.
+    Time: 3.817793. Searches: 66. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.820615. Searches: 66. Primes: 1. #Tri: 3.
+    Time: 3.822208. Searches: 66. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.822268. Searches: 66. Primes: 2. #Tri: 3.
+    Time: 3.822286. Searches: 66. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLvLvvvPAzLQAMQMQQkcehspmtunxprqryqxzwvzwBBwyAABiiiipaiwfaooccdgdaufaqiiqgsvv
+    Drilled iso sig for prime #1: pLLvzLQAwQQcdghihihjkomnnoododgjnfklwilmogk
+
+16nh_0773708 # 16ah_155053
+--------------------------
+Knot sig: GabcdeafghijedklcbfmnglkjopihnmpoqrsqtuvwxyztuABCDBAEFDCzyxrswFEvl1knvvvvvvf--5N88-NH-j.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.821727. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 65 tetrahedra.
+    Time: 4.821964. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 9.876553. Searches: 92. Primes: 0. #Tri: 1.
+    Time: 10.599915. Searches: 105. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 65-tetrahedron triangulation.
+(Randomisation attempts: 2. Searches: 2.)
+Edge-ideal: 29 tetrahedra.
+    Time: 10.600487. Searches: 105. Primes: 0. #Tri: 2.
+    Time: 10.617803. Searches: 105. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 31 tetrahedra.
+    Time: 10.617877. Searches: 105. Primes: 1. #Tri: 3.
+    Time: 10.632334. Searches: 105. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 10.632387. Searches: 105. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLvLLvMLvQQzLALwQQQkbfgjhoslqlnrsprvuyBzwAxBxAAzBmtpvoqahjgvjjovxtadrbtjdjiufu
+    Drilled iso sig for prime #1: ELLLLLzzzALPPMQPLwPPQcefehlkkpotnqqvqswsuwxyzzBCDCDDiitdviatssaflltdfjkgstexneglgem
+
+15ah_83763 # 15ns_2
+-------------------
+Knot sig: EabcdefghijbkfilmjedcknolmanghopqrstpuvwxsyztvABCxwDBqzyrCDAuxMzXmvvvvv------ZpWZ.
+Embedding knot as an ideal loop.
+    Time: 0.000029. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.093498. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 4.093746. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.724453. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 35 tetrahedra.
+    Time: 4.724520. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.739815. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 12 tetrahedra.
+    Time: 4.739865. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.763631. Searches: 21. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.765147. Searches: 21. Primes: 1. #Tri: 3.
+    Time: 4.765951. Searches: 21. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.765988. Searches: 21. Primes: 2. #Tri: 3.
+    Time: 4.766005. Searches: 21. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: HLLvLvvzwvvAQLMMQPQMQQQcehjqonzxtyzqwuswEuxFEDCyBCBDEFGGGiiibhsfmmfaagbngfufmauuagccnwsnvbs
+    Drilled iso sig for prime #1: lLLAALLQcbeedfeijikkkxxuwamdhxrkg
+
+19ns_220 # 16ah_266147
+----------------------
+Knot sig: JabcdeafghijklminojmcbfpedlkqrhgsqonrsptuvwxtyzABCDuxEFGHwvDAzyFGICBIHElZmZYmvvvvvf-Nz+Nz+Fo8tc.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.589337. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 62 tetrahedra.
+    Time: 3.589569. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.261803. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 4.261869. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 4.281257. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 4.281305. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 4.426414. Searches: 50. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.429020. Searches: 50. Primes: 1. #Tri: 3.
+    Time: 4.430498. Searches: 50. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.430552. Searches: 50. Primes: 2. #Tri: 3.
+    Time: 4.430569. Searches: 50. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLLvPvvALQvzvQAMQMAQQccefijjltqpovyrAsAyAxDDzECEFCDBCFFiiegvvtijffihsucadvgqerikadklowpv
+    Drilled iso sig for prime #1: sLLLQLvvQPPPQbdefefhomlnlqnrpqrrhruupglattogafapgok
+
+18ns_09 # 19ns_170
+------------------
+Knot sig: LabcdecfghidejklmnophijbqrpkaqfgrmnolstuvwxvuyzxwABCDtEFAGCHIEyzFJHKsIJBGDKxAul1uxzmNJza--d--dpp-7-Fd.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.794696. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.794960. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.121666. Searches: 20. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 15 tetrahedra.
+    Time: 2.121732. Searches: 20. Primes: 0. #Tri: 2.
+    Time: 2.170201. Searches: 50. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.172143. Searches: 50. Primes: 0. #Tri: 2.
+    Time: 2.173083. Searches: 50. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.173141. Searches: 50. Primes: 1. #Tri: 2.
+Edge-ideal: 15 tetrahedra.
+    Time: 2.173165. Searches: 50. Primes: 1. #Tri: 3.
+    Time: 2.199964. Searches: 70. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.202184. Searches: 70. Primes: 1. #Tri: 3.
+    Time: 2.204239. Searches: 70. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.204359. Searches: 70. Primes: 2. #Tri: 3.
+    Time: 2.204399. Searches: 70. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: oLLALzzwQQcaceefgkjkkmmnnnnkuxpwidvcaiiug
+    Drilled iso sig for prime #1: oLLAMLMwMPcbedefghiijlmmnntlftavpawhwihrw
+
+16nh_0330527 # 16nh_0148496
+---------------------------
+Knot sig: GabcdbefghijfghklmndcnolpeaompkijqrstruvwxvyzABCDuqzABEFCtsDxwFEylv1svTuvvzfT-tlp3AadSb.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.652873. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 54 tetrahedra.
+    Time: 2.653107. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.197846. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 26 tetrahedra.
+    Time: 3.197913. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.208676. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 25 tetrahedra.
+    Time: 3.208721. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.219236. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 3.219288. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: zLLvvLwzAzwQMQMAQkcejhjkpsqunqutspwstxxyxywyiivvsshaiisvmobgesohirjvfv
+    Drilled iso sig for prime #1: yLLvLLAwzMALQvQQQcehjhlmlqnnorusquxvvwwxxwiiivviixagcccmtgaavcbsfcr
+
+19ns_151 # 15nh_129732
+----------------------
+Knot sig: IabcdefghbeijfklakmnopnmgqrdcsqjirshpoltuvwxyuzABCxwDEABFGCHtzEFGDvyHNzuvMzTQQAQaZm-zZm+hE2+d.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.139063. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 56 tetrahedra.
+    Time: 3.139295. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.673587. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 24 tetrahedra.
+    Time: 3.673654. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.021170. Searches: 147. Primes: 0. #Tri: 2.
+Alternate enumeration succeeded on 23-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 95.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.021412. Searches: 147. Primes: 0. #Tri: 2.
+    Time: 5.024432. Searches: 147. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.024484. Searches: 147. Primes: 1. #Tri: 2.
+Edge-ideal: 27 tetrahedra.
+    Time: 5.024508. Searches: 147. Primes: 1. #Tri: 3.
+    Time: 5.040258. Searches: 147. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.040295. Searches: 147. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: xLLvAvzQAvPAMMPQccefgiinlmlnorotsurwvvuwwiipagsahpggaammbmstlgfcn
+    Drilled iso sig for prime #1: ALvvLMvPLzPPAAMAQQcbgkhjmkrunovpoqstuvtywzxzyzpmowgiflocvdcvccgndklfsogvn
+
+16nh_0387814 # 19ns_002
+-----------------------
+Knot sig: JabcdbefghcdijklfelkmnomjghiapnopqrstuvwxyzABCyDEzCFGxwvutsrDEHIFGqHABIRQQ0sTAMPQmd-zyE4------p.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.499785. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 44 tetrahedra.
+    Time: 3.500020. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.672794. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 14 tetrahedra.
+    Time: 3.672858. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.699504. Searches: 28. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.700218. Searches: 28. Primes: 0. #Tri: 2.
+    Time: 3.701973. Searches: 28. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.702077. Searches: 28. Primes: 1. #Tri: 2.
+Edge-ideal: 27 tetrahedra.
+    Time: 3.702126. Searches: 28. Primes: 1. #Tri: 3.
+    Time: 3.709625. Searches: 28. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 3.709707. Searches: 28. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: nLLAPzwzQkcdecfggijklmmmqsenwjbodrkmqa
+    Drilled iso sig for prime #1: ALLLLvMvwQLvQzQAQQccefhimjklrpsrwuwxtstvyzxyzziixpjitgfakxtqhqptfbvbqwkal
+
+16ah_078178 # 16nh_0543933
+--------------------------
+Knot sig: GabcdefgahifjklmndoihpcnmbpoejklgqrstuvwxyzABCDvutsDEBqryxwFAzFECBvjPwvvvvvfVtWif+FYZFc.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.232431. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 58 tetrahedra.
+    Time: 4.232695. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.769342. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 27 tetrahedra.
+    Time: 4.769410. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.784897. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 28 tetrahedra.
+    Time: 4.784942. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.796530. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.796572. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALvvLvvzzMQzPQQMQQcbijrkvopsmvrsqyxwxuzwzvuxyzmqrmfqatqgwvvbiammcqhdbbmgo
+    Drilled iso sig for prime #1: BLLLwPzPLvQvzAQAzQQcdfejgkjlkqnprwutuvuvyzzAzAAiceaariuoraaaommtpggkaiilufr
+
+19ns_243 # 16nh_0015751
+-----------------------
+Knot sig: JabcdefgahijkflmekjncopqmlrpobhsgrqdnistuvwuxyzABCDEyFtxEGHIAzGHIDvwCBFNPSjRzSmvP6ed6WmCb-h4DUj.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.840109. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 1.840386. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.225994. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 11 tetrahedra.
+    Time: 2.226059. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 2.258481. Searches: 19. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.260135. Searches: 19. Primes: 0. #Tri: 2.
+    Time: 2.260959. Searches: 19. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.261030. Searches: 19. Primes: 1. #Tri: 2.
+Edge-ideal: 20 tetrahedra.
+    Time: 2.261083. Searches: 19. Primes: 1. #Tri: 3.
+    Time: 2.268585. Searches: 19. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 2.268662. Searches: 19. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: nLALLLzMQkbcbefijkklmlmmtefsqtiqosbbbw
+    Drilled iso sig for prime #1: tLLLzLvMQLPPQkcdfejmklonprmpsqrqssigumhqavgvhugxhaajnn
+
+16nh_0483841 # 19ns_141
+-----------------------
+Knot sig: JabcdefbcdghijklmnhkopqrstuvjiwupovwnmxstxyzrqzylABCDgEFefGHaDCIFEABIGHRYmRmZQkvtvf-FMzMzaMt+Kp.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.170508. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 52 tetrahedra.
+    Time: 4.170737. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.666370. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 4.666437. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.680728. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 21 tetrahedra.
+    Time: 4.680797. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 4.795040. Searches: 68. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.798618. Searches: 68. Primes: 1. #Tri: 3.
+    Time: 4.800462. Searches: 68. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.800503. Searches: 68. Primes: 2. #Tri: 3.
+    Time: 4.800520. Searches: 68. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLLvAMvvMwLMPLQQQQceejhilrpmrwrqyzxAvzzyvAwxxAiimbvnilnkjqonhmvbkbsovvnwwv
+    Drilled iso sig for prime #1: uLLAALLzzMvAQQcbeedfeijlnlporsqtrtstxxuwamdhrdoubqpmifofo
+
+19ns_226 # 16nh_0694276
+-----------------------
+Knot sig: JabcdbefghijklfimnopqrsthgusnmtulkvwpoxvrqwxjyzABCAzDEFGCBHIGFcdEDaeIHylZSYmRQuT0kf-zMFM5-N5--p.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.604357. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 54 tetrahedra.
+    Time: 4.604591. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.378442. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 5.378514. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.826579. Searches: 93. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.830139. Searches: 93. Primes: 0. #Tri: 2.
+    Time: 5.832054. Searches: 93. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.832097. Searches: 93. Primes: 1. #Tri: 2.
+Edge-ideal: 29 tetrahedra.
+    Time: 5.832120. Searches: 93. Primes: 1. #Tri: 3.
+    Time: 5.850272. Searches: 93. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.850316. Searches: 93. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLLLQLzwwzLLQQQbdeeggijklnosqtuurtstuxnidpvdsdaodfsvvwvgcwo
+    Drilled iso sig for prime #1: BLLLLvvLLPMMPzMAQQQcefekktnpoqsustrzywzyvxzxAAAiitdatigfjvklslgeatrfvvrvjnn
+
+18ns_40 # 18ns_33
+-----------------
+Knot sig: KabcdecfghidejklmnhijbopnkaofgpqrmlrqstuvtwxyzABsCxDBEFGCwuvDyHIEFJHzAIJGxA0snvRyMlnt--Z--ZF9-6+F.
+Embedding knot as an ideal loop.
+    Time: 0.000033. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.473440. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 2.473667. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.918043. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 15 tetrahedra.
+    Time: 2.918117. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 2.956602. Searches: 35. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.958035. Searches: 35. Primes: 0. #Tri: 2.
+    Time: 2.960104. Searches: 35. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.960219. Searches: 35. Primes: 1. #Tri: 2.
+Edge-ideal: 16 tetrahedra.
+    Time: 2.960275. Searches: 35. Primes: 1. #Tri: 3.
+    Time: 3.001136. Searches: 62. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.004855. Searches: 62. Primes: 1. #Tri: 3.
+    Time: 3.006455. Searches: 62. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.006513. Searches: 62. Primes: 2. #Tri: 3.
+    Time: 3.006530. Searches: 62. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: oLLLQLwwMQcbdeeggihkkmmnnnxnidpvdddbaltxb
+    Drilled iso sig for prime #1: pLLPLQvwQLQccdefhghjkmlonoohggavmbuanaknnnk
+
+15nh_052676 # 15nh_102796
+-------------------------
+Knot sig: EabcdbefghijakhlmgfeknoilmcdjonpqrstuvwxyztqrsxwABCDpABCvyzuDlvz1sRQQMkF4n+-FGhmG.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.987256. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 52 tetrahedra.
+    Time: 3.987488. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 6.412117. Searches: 140. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 52-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 3.)
+Edge-ideal: 24 tetrahedra.
+    Time: 6.412177. Searches: 140. Primes: 0. #Tri: 2.
+    Time: 6.419302. Searches: 140. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 25 tetrahedra.
+    Time: 6.419352. Searches: 140. Primes: 1. #Tri: 3.
+    Time: 6.428135. Searches: 140. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 6.428179. Searches: 140. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: xLLvLLLzLPPMQMAQccefinollpqsmqrttqsuuvwwwiitvihutankfrnqqbbhtwjob
+    Drilled iso sig for prime #1: yLLvwMvLvLQPQPPQQcdefhjpurmvsstpwrtsvvxxwxicavcactbgaaaabdsaahhbrkr
+
+16nh_0755067 # 19ns_055
+-----------------------
+Knot sig: JabcdefgaheijfklmnophqcrijsbqdrsgklmpontuvwxvuyzABCDEwxCByFGzAHIDEtFGHINzuhZuTsLvvf7-b2-d8hWyMp.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.155323. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 46 tetrahedra.
+    Time: 3.155597. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.508747. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 29 tetrahedra.
+    Time: 3.508811. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 3.522461. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 3.522513. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 3.553143. Searches: 30. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.557947. Searches: 30. Primes: 1. #Tri: 3.
+    Time: 3.559502. Searches: 30. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.559606. Searches: 30. Primes: 2. #Tri: 3.
+    Time: 3.559647. Searches: 30. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLLLvLMzvzPPAQLMQQkcdfhnjljsqtuprxswvwzyAxxBzABBicegimaalramoiahquvusmnbaaaoo
+    Drilled iso sig for prime #1: nLLAPLvPQkbeedegijklmmlmpupwhnxnpxxkwk
+
+19ns_104 # 17ns_01
+------------------
+Knot sig: KabcdefgaheijfklmnhocpijqbodpqgklmnrstuvwxysvzAutBCDEFByGHIJrwDEzAFCxIHGJNz0Xm1zAMvSu7-H9-WupT+E+.
+Embedding knot as an ideal loop.
+    Time: 0.000029. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.403459. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.403688. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.584269. Searches: 4. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 9 tetrahedra.
+    Time: 1.584331. Searches: 4. Primes: 0. #Tri: 2.
+    Time: 1.602864. Searches: 18. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 1.603032. Searches: 18. Primes: 0. #Tri: 2.
+    Time: 1.603789. Searches: 18. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 1.603829. Searches: 18. Primes: 1. #Tri: 2.
+Edge-ideal: 21 tetrahedra.
+    Time: 1.603851. Searches: 18. Primes: 1. #Tri: 3.
+    Time: 2.115827. Searches: 158. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.117546. Searches: 158. Primes: 1. #Tri: 3.
+    Time: 2.120352. Searches: 158. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.120406. Searches: 158. Primes: 2. #Tri: 3.
+    Time: 2.120424. Searches: 158. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: lLALLLPQcbcbefijikjkktefsqxipqhof
+    Drilled iso sig for prime #1: uLLALAvzLMPLQQcbcdefghmkommrtsstqrsttsfxjoxmtsobdpupuxfjj
+
+19ns_237 # 19ns_215
+-------------------
+Knot sig: MabcdefghijkclgjmnkdopqoefpqlbrsiharnmstuvwxyuvzxABCDEFBtGCFHIAyzwJKEDLJIHKLGxtnvfZSQYmRmd7zMHXz+mzMtMj.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.607437. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 2.607697. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.874713. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 23 tetrahedra.
+    Time: 2.874776. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 3.266031. Searches: 120. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.267022. Searches: 120. Primes: 0. #Tri: 2.
+    Time: 3.269982. Searches: 120. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.270032. Searches: 120. Primes: 1. #Tri: 2.
+Edge-ideal: 21 tetrahedra.
+    Time: 3.270057. Searches: 120. Primes: 1. #Tri: 3.
+    Time: 3.667564. Searches: 172. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.670973. Searches: 172. Primes: 1. #Tri: 3.
+    Time: 3.674151. Searches: 172. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.674208. Searches: 172. Primes: 2. #Tri: 3.
+    Time: 3.674226. Searches: 172. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: wLLAAvwMvAAPvQQkbedeefhlmmoppoqsuvtvtuvhhnteanrpaaaiovuoffvvff
+    Drilled iso sig for prime #1: uLLLAwAMLQvwQPcbddgfhihjllnmnprsrtttpsbugpaubavpbpufekerg
+
+19ns_100 # 16nh_0805345
+-----------------------
+Knot sig: JabcdefgcbhijklmnoalkpifenodghpjmqrstusrvwutxyzABCDzEFADGvwGCBHIyxqHFEIBsvvzTQYmRmdpNNhSFgyMbMj.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.232954. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 56 tetrahedra.
+    Time: 2.233227. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.218403. Searches: 126. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 5.218470. Searches: 126. Primes: 0. #Tri: 2.
+    Time: 5.235961. Searches: 126. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 17 tetrahedra.
+    Time: 5.236007. Searches: 126. Primes: 1. #Tri: 3.
+    Time: 5.284734. Searches: 166. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.286284. Searches: 166. Primes: 1. #Tri: 3.
+    Time: 5.288321. Searches: 166. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.288402. Searches: 166. Primes: 2. #Tri: 3.
+    Time: 5.288445. Searches: 166. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELLvLvMPLvvLvMQQMQQQQceflnljmrwqtCxwAvxyyDBvCBACzDDBiiaaiafavdofaapuualqavgvkjfofnv
+    Drilled iso sig for prime #1: qLLAwwLMMAPkbedeegklmjlnnoppphhntefneiwlalxqsv
+
+16ah_289531 # 18ns_20
+---------------------
+Knot sig: IabcdefghijklminedopkjqocrmlrfghnqpstuvwxywzABCbsDBEFCDGHAyxzvEFatGHuRQQQQkvLzwZa-7922Zz8-B+d.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.259461. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 56 tetrahedra.
+    Time: 4.259694. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.067269. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 34 tetrahedra.
+    Time: 5.067339. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 5.092859. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 5.092955. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 5.177402. Searches: 46. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.179633. Searches: 46. Primes: 1. #Tri: 3.
+    Time: 5.180981. Searches: 46. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.181030. Searches: 46. Primes: 2. #Tri: 3.
+    Time: 5.181047. Searches: 46. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: HLLvAvMLvLvLQvPAQQQwPQQcefhhmlopqyowCsuvxDvzxwDABGCEFDFGGiieakiebgglbewgsfnlbbfsmjsifhaqsno
+    Drilled iso sig for prime #1: sLLLQvMMwAPLQbdefefhjkjlnmpoqrrrhruupgtsariaaaaaacv
+
+16nh_0607882 # 19ns_143
+-----------------------
+Knot sig: JabcdbefghijcdklmnaghonkpifejplmoqrstuvwsxytwzqABCDEFvuGHrzFGyxHCDEIABIRQu2kDMrLzwfFGHea2mlpZ8a.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.483468. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 54 tetrahedra.
+    Time: 2.483733. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.061137. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 3.061201. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.091689. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 20 tetrahedra.
+    Time: 3.091763. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.540088. Searches: 76. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.541159. Searches: 76. Primes: 1. #Tri: 3.
+    Time: 3.543214. Searches: 76. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.543272. Searches: 76. Primes: 2. #Tri: 3.
+    Time: 3.543290. Searches: 76. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELvLvLwzLPvvQQPAMQMQQcffgknlnzyuppwuwtyACuBzxDADCBDCtlffnaltetsjgacagpilrttlnvnwngv
+    Drilled iso sig for prime #1: tLLLQvLALLMQPkbdefefkjkompnqrpqssshruupgjsvtoovmafegcw
+
+16ah_069739 # 19ns_033
+----------------------
+Knot sig: JabcdecbfghijklhamilnopfedgpqrkjsqonrsmtuvtwxyzxwABzyuvCDEFGHIABEDCFIHGRkZSkZuvvvvfNHzgGz+ZWaaa.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.376296. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.376535. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.044414. Searches: 80. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 19 tetrahedra.
+    Time: 4.044478. Searches: 80. Primes: 0. #Tri: 2.
+    Time: 4.142718. Searches: 128. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.145772. Searches: 128. Primes: 0. #Tri: 2.
+    Time: 4.148793. Searches: 128. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.148850. Searches: 128. Primes: 1. #Tri: 2.
+Edge-ideal: 28 tetrahedra.
+    Time: 4.148872. Searches: 128. Primes: 1. #Tri: 3.
+    Time: 4.153704. Searches: 128. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.153738. Searches: 128. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLLPPLwLQvQQcdeehhiikllnnrpqrqrioaiofpqdapssumicwo
+    Drilled iso sig for prime #1: BLLLLPzAPvMMwvQzAQQcefeihhkknmqorpsxxuvvwzzAAzAiitdvvbhhifdhrvpdfbgwgxthgwk
+
+19ns_166 # 17ns_06
+------------------
+Knot sig: KabcdefgchidgjklamnolkonpqhirsjbqrefspmtuvwxyuzABCDztEADFGvyxwHICBJHGFIJENzYQZmSkZSYm--Fg--gGzgyM.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.978419. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 37 tetrahedra.
+    Time: 1.978655. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.333153. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 20 tetrahedra.
+    Time: 2.333218. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 2.816476. Searches: 101. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.816699. Searches: 101. Primes: 0. #Tri: 2.
+    Time: 2.819290. Searches: 101. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.819331. Searches: 101. Primes: 1. #Tri: 2.
+Edge-ideal: 14 tetrahedra.
+    Time: 2.819354. Searches: 101. Primes: 1. #Tri: 3.
+    Time: 2.849808. Searches: 128. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.852678. Searches: 128. Primes: 1. #Tri: 3.
+    Time: 2.853779. Searches: 128. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.853816. Searches: 128. Primes: 2. #Tri: 3.
+    Time: 2.853835. Searches: 128. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: tLLMLLPwvwQMQkbcdfhiikknmoqprsqrssmvfaitxufarrartthlkr
+    Drilled iso sig for prime #1: nLLPALLAPkccdfefhikjlmmmlngapgfifniikn
+
+16nh_0469169 # 19ns_212
+-----------------------
+Knot sig: JabcdefgahidjklbhmenopkjnfmiclpogqrstruvwuxyzABxqCyBDEFtswvFGHAzIGEDHICxvttLSQmZQmdlFoN03mMzpMj.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.178250. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.178484. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.937464. Searches: 34. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 27 tetrahedra.
+    Time: 3.937527. Searches: 34. Primes: 0. #Tri: 2.
+    Time: 3.957187. Searches: 34. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 21 tetrahedra.
+    Time: 3.957240. Searches: 34. Primes: 1. #Tri: 3.
+    Time: 4.467292. Searches: 124. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.471777. Searches: 124. Primes: 1. #Tri: 3.
+    Time: 4.473273. Searches: 124. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.473312. Searches: 124. Primes: 2. #Tri: 3.
+    Time: 4.473329. Searches: 124. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALvvvQvvvLQMQAQMQQcbgihmwnunmosvqruxuxyxwyvzzzpgfwiadaddvfssovkvsecvlvuuw
+    Drilled iso sig for prime #1: tLLLLLzAPQwMPkcefehkmkjlmlmoprssrsiitdvxdamsswvrarlmvp
+
+19ns_173 # 18ns_34
+------------------
+Knot sig: LabcdefgchidgjklmnhiopjbnoefpqrkamsrqsltuvwxvuyzABCDtEBFGCEyHwxHIJFGKIzAJKDNz2mJSSAMPkZa--X-pk93-V--d.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.664397. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 41 tetrahedra.
+    Time: 2.664647. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.032742. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 19 tetrahedra.
+    Time: 3.032806. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.134876. Searches: 49. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.137003. Searches: 49. Primes: 0. #Tri: 2.
+    Time: 3.138324. Searches: 49. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.138364. Searches: 49. Primes: 1. #Tri: 2.
+Edge-ideal: 19 tetrahedra.
+    Time: 3.138386. Searches: 49. Primes: 1. #Tri: 3.
+    Time: 3.280372. Searches: 93. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.284839. Searches: 93. Primes: 1. #Tri: 3.
+    Time: 3.286118. Searches: 93. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.286160. Searches: 93. Primes: 2. #Tri: 3.
+    Time: 3.286177. Searches: 93. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLLQvwwPLQMQbdefefhklopnpnqprrrhruupgtaltxgacxeefw
+    Drilled iso sig for prime #1: qLLAAwLLPzQkbedeefgkjnmonppophhnteahpqpciqairo
+
+17ns_29 # 19ns_157
+------------------
+Knot sig: KabcdecfgdehijklmnokpqlohbfgnmrsjiarqpstuvwxyzABtCzDEwvFBAGEHIDGFuJyIHxJCxLmZmZCwzmRm-CM5Hzo4bp8W.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.570935. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.571167. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.939084. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 11 tetrahedra.
+    Time: 1.939147. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 1.974026. Searches: 22. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 1.976476. Searches: 22. Primes: 0. #Tri: 2.
+    Time: 1.977905. Searches: 22. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 1.977984. Searches: 22. Primes: 1. #Tri: 2.
+Edge-ideal: 18 tetrahedra.
+    Time: 1.978011. Searches: 22. Primes: 1. #Tri: 3.
+    Time: 2.044210. Searches: 68. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.045029. Searches: 68. Primes: 1. #Tri: 3.
+    Time: 2.046396. Searches: 68. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.046441. Searches: 68. Primes: 2. #Tri: 3.
+    Time: 2.046458. Searches: 68. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: nLALLLMLQkbcbefijimkllmmlefsqxapcsngck
+    Drilled iso sig for prime #1: rLLLPPLMwPLQccefhehiijllnnppqqqiihiavdpleagkaidmr
+
+16ah_162812 # 16nh_0605691
+--------------------------
+Knot sig: GabcdbefghijklcdlmjinomkagpnoefphqrstuvwxyzABtwxsrqBCDEzyvuFDCFEAlvAtzvvvvvfFEVNn+-8BVb.
+Embedding knot as an ideal loop.
+    Time: 0.000049. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.557831. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 63 tetrahedra.
+    Time: 4.558099. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.073857. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 5.073923. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.083062. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 28 tetrahedra.
+    Time: 5.083113. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.092313. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.092351. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: DLLPwLLvPLwPAvPPQMMQcccdefiikmnqospuyuvuzwxxyABBCCChggaaovaabajagtabbgpvadufjkdxd
+    Drilled iso sig for prime #1: ALLLwvzPAAvPPzMQPQccdfemnkomklptqvrswyvyzxxzxziceaihuokvfaepbjgutvhmtufbn
+
+16ah_165692 # 15nh_061098
+-------------------------
+Knot sig: FabcdbefcdghijklfemkjnaonghilmopqrpstusvwxyzAButBACwDExCvDEqryzRQnvsvvvvvb--yyNVzyMXa.
+Embedding knot as an ideal loop.
+    Time: 0.000034. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.289486. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 59 tetrahedra.
+    Time: 4.289723. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.651561. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 24 tetrahedra.
+    Time: 4.651625. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.661092. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 32 tetrahedra.
+    Time: 4.661142. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.674667. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.674711. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: xLLvPvLLLPLQPQMQcceeinjklppoqssututvwvwvwiiimiiafrrgoidxixiliajbc
+    Drilled iso sig for prime #1: FLLvLLwvMAMMzvwMQAQPQkceiihlrmqsptpouBzABBAxDzyCCEDAEEiimvsxxiairuvgpikorwrgpvvtxldsjk
+
+16nh_0209208 # 16ah_287433
+--------------------------
+Knot sig: GabcdefbghcdijkfeljmaghnopmkliponqrstuvwxryzsvABCxwADEFCBDutzyqFEBkvzvvvvvvf-z-YT-Zpm8d.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.451256. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 78 tetrahedra.
+    Time: 3.451604. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 8.040141. Searches: 167. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 63-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 2.)
+Edge-ideal: 34 tetrahedra.
+    Time: 8.040212. Searches: 167. Primes: 0. #Tri: 2.
+    Time: 8.062348. Searches: 167. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 26 tetrahedra.
+    Time: 8.062414. Searches: 167. Primes: 1. #Tri: 3.
+    Time: 8.070718. Searches: 167. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 8.070792. Searches: 167. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: HLvLLAPzMwAvLvQQvQLMAQQcfghfjklkonpqwswtzyvxACzEFDCFDGEGGdexgbvaexaaiergkkeegutanuargmrtucw
+    Drilled iso sig for prime #1: yvLALLvLMMAPwLQQQdefhknmjqqopprtrsuvwxvwxxbbaabaighhuvovhghkvkjfbsw
+
+16nh_0649697 # 18ns_12
+----------------------
+Knot sig: IabcdecfghibjkfilmnjopedpokqmranqghlrstuvtwxyzABCwsDzAEFByGHDvuEFCxGHxmRvzglvvvwbB-3z+VTEBgda.
+Embedding knot as an ideal loop.
+    Time: 0.000064. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.236250. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 49 tetrahedra.
+    Time: 4.236481. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.896429. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 29 tetrahedra.
+    Time: 4.896494. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.913829. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 16 tetrahedra.
+    Time: 4.913886. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 4.949087. Searches: 41. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.951982. Searches: 41. Primes: 1. #Tri: 3.
+    Time: 4.954641. Searches: 41. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.954806. Searches: 41. Primes: 2. #Tri: 3.
+    Time: 4.954842. Searches: 41. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLvLLvzvLMwPAQAQQQkcehijuuvwwqzrpvyryvuxByABBAzAiiivbnfkhhnangvqjlbgmlxhhvsgr
+    Drilled iso sig for prime #1: pLLLQLwPLMQbdeegggilklmonooxnidpvjwlbjaobbk
+
+16ah_327581 # 16nh_0666527
+--------------------------
+Knot sig: GabcdecbfghijfklmnaolhipnmpdejgkoqrsqtuvwxyztAvBzrsCDEAuBwFDEFxyCRmnPAvvvvvf-LGr++dZB7b.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.746272. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 84 tetrahedra.
+    Time: 3.746509. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 8.720465. Searches: 144. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 70-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 1.)
+Edge-ideal: 28 tetrahedra.
+    Time: 8.720534. Searches: 144. Primes: 0. #Tri: 2.
+    Time: 8.733138. Searches: 144. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 35 tetrahedra.
+    Time: 8.733185. Searches: 144. Primes: 1. #Tri: 3.
+    Time: 8.762722. Searches: 144. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 8.762812. Searches: 144. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLvvPwLLPMzzPQAMQQcekjhkmspotpoxwyvsvtzvyzxAAAiirvvspaeeirgapdxgpdfcjsbxut
+    Drilled iso sig for prime #1: ILLvvLwLLQvzLvLzQQAQQQQkcehkjnjrmnpttxywFvECByDAGBHDGHEFHGFiifrfuvqisgkkumxwgkbbgwwjghfslvrusr
+
+16nh_0001674 # 15ah_21266
+-------------------------
+Knot sig: FabcdbefgehicdihjklmngfopjanopmlkqrsqtuvwxtyzABCyDABEuvwxrsECzDRQAPmvvvvvbF7h8A8-H5Fc.
+Embedding knot as an ideal loop.
+    Time: 0.000035. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.332176. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 49 tetrahedra.
+    Time: 3.332444. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.803399. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 18 tetrahedra.
+    Time: 3.803465. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.806570. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 27 tetrahedra.
+    Time: 3.806608. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.816629. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 3.816678. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: rLLLLzvPPQMQcacefjomlpmplmooqqqjkggtijcmslvcehalb
+    Drilled iso sig for prime #1: ALLLwMPvwAAPwzzPQQccddegihkmlmqqprsuvyyxzzwxyzpkrtvaagiauiafiarsaitaihcsr
+
+19ns_222 # 17ns_22
+------------------
+Knot sig: KabcdecfghijklminojmfbedlkpqhgaponqrstuvwstxyuzABCDEFBGHCFvyxwEDIJAzrIHGJRYmRmZQkZSYmNzMhMzaGzgyM.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.340480. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 41 tetrahedra.
+    Time: 2.340721. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.913301. Searches: 48. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 16 tetrahedra.
+    Time: 2.913365. Searches: 48. Primes: 0. #Tri: 2.
+    Time: 2.954018. Searches: 84. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.956292. Searches: 84. Primes: 0. #Tri: 2.
+    Time: 2.957788. Searches: 84. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.957876. Searches: 84. Primes: 1. #Tri: 2.
+Edge-ideal: 22 tetrahedra.
+    Time: 2.957932. Searches: 84. Primes: 1. #Tri: 3.
+    Time: 3.294009. Searches: 185. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.296375. Searches: 185. Primes: 1. #Tri: 3.
+    Time: 3.297977. Searches: 185. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.298019. Searches: 185. Primes: 2. #Tri: 3.
+    Time: 3.298035. Searches: 185. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: pLLLQLzAzPQbdeeggijkjmnnoooxnidpvdsdgwtxxpv
+    Drilled iso sig for prime #1: vLLLQLvwMvPMQAQbdeeggilmkosqttqrssuuuxnidpvddadopmdxdookedm
+
+19ns_005 # 18ns_42
+------------------
+Knot sig: LabcdefghijklmankoplnqefghidcropsbqjrsmtuvwxvyzuABCDEFGCHIDGywxzFEJKBAtJIHKxLzwfZSQmZkZad4-hW-3dMzJzc.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.114453. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 37 tetrahedra.
+    Time: 2.114694. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.425487. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 17 tetrahedra.
+    Time: 2.425551. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 2.454180. Searches: 32. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.456281. Searches: 32. Primes: 0. #Tri: 2.
+    Time: 2.459429. Searches: 32. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.459483. Searches: 32. Primes: 1. #Tri: 2.
+Edge-ideal: 16 tetrahedra.
+    Time: 2.459507. Searches: 32. Primes: 1. #Tri: 3.
+    Time: 2.497060. Searches: 61. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.498607. Searches: 61. Primes: 1. #Tri: 3.
+    Time: 2.500541. Searches: 61. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.500624. Searches: 61. Primes: 2. #Tri: 3.
+    Time: 2.500641. Searches: 61. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: qLLAAvMMwPMkbedeefhijlkmonopphhnteanxniociftcw
+    Drilled iso sig for prime #1: pLLLQLzAPLQbdefefhijkmlnooohruupglovmjjaaof
+
+18ns_75 # 16nh_0049488
+----------------------
+Knot sig: IabcdbefghiejkfilmnoajkpqlmrpghqrncdostuvwxtyzABCDsEFyuvBAzGHCwxDHGFElZSzMjRwLutbFaada4-9V--d.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.678324. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 37 tetrahedra.
+    Time: 1.678559. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.010764. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 2.010828. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 2.019612. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 11 tetrahedra.
+    Time: 2.019651. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 2.041762. Searches: 18. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.043167. Searches: 18. Primes: 1. #Tri: 3.
+    Time: 2.043708. Searches: 18. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.043745. Searches: 18. Primes: 2. #Tri: 3.
+    Time: 2.043761. Searches: 18. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLLLvPwwvQQMwQQcefghijoonqmprsqrututuiidcvbkvjobgobikclpjgo
+    Drilled iso sig for prime #1: kLLAvMQkaceeihjihijnkuxkracknk
+
+18ns_30 # 16nh_0924287
+----------------------
+Knot sig: IabcdefgaheijklminofhpcqnorbpdklmjqrgstuvwuxyzAysBCDEFDvwGBHFExtGCHAzNPAgZkRuQQQb7V33---ZMhEa.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.372538. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.372770. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.765126. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 32 tetrahedra.
+    Time: 3.765192. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.782745. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 16 tetrahedra.
+    Time: 3.782815. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.812425. Searches: 23. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.812685. Searches: 23. Primes: 1. #Tri: 3.
+    Time: 3.814434. Searches: 23. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.814547. Searches: 23. Primes: 2. #Tri: 3.
+    Time: 3.814586. Searches: 23. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: FLLvvLLLzPwQQvPMLQwQQkcehjkkptpvonqtpxwzAyvyzAzCEDECDEiigosgmlmlsfrknmiaiogkvrwrxipbhj
+    Drilled iso sig for prime #1: pLLAAwvQLPQbcedfegkjjnmonootsqsxsxqxpuxpgfb
+
+18ns_81 # 16ah_121150
+---------------------
+Knot sig: IabcdefbghijkdcglmhinoalmnpqrkjpqrefostusvwxytuzxwABvyzCDEFGHABFEDGHCNQXuRkvvvvvb-p--p-pmaaaa.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.078537. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 3.078767. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.583966. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 3.584052. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 3.595280. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 3.595336. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 3.625055. Searches: 30. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.626232. Searches: 30. Primes: 1. #Tri: 3.
+    Time: 3.627351. Searches: 30. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.627435. Searches: 30. Primes: 2. #Tri: 3.
+    Time: 3.627475. Searches: 30. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: DLLLLLzAPAPvLAAzLMQQccefehlmkkmlnqourrwwwAzyzyCABCCiitdvidatbkflcugoaieajvbrxmwrk
+    Drilled iso sig for prime #1: nLLAwvPAQkbedeeilijlkmmmhhnteanffjweah
+
+16nh_0108589 # 16nh_0936401
+---------------------------
+Knot sig: GabcdbefghcdhgijklmnokaefpjipolmnqrstuvwqxuyzABCDECzFrstxvEDyFABwRQuLvTvvLufF+jmj8EE2ho.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.271889. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 63 tetrahedra.
+    Time: 4.272153. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.234455. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 32 tetrahedra.
+    Time: 5.234522. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.260406. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 24 tetrahedra.
+    Time: 5.260474. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.270632. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.270670. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: FLLvLvwPvMQPzvQvPQQPQkcefhjklttqppqozsxDwBBwzyBECCDECEiiuwfpabkgvwgglbljwgncvgnannvlbl
+    Drilled iso sig for prime #1: xLLLLzLwLLPLQQQPccefehkiommnuqqrrvrtutwwwiitdvtfjggvaquhdesrvsapa
+
+15nh_079043 # 16nh_0487947
+--------------------------
+Knot sig: FabcdbefghaifjklmeigjnlopknmcdophqrstuvwxyzxABCtsrwDECqzyADvuEBlvvLTSTMusbFEMjz+W0Hdc.
+Embedding knot as an ideal loop.
+    Time: 0.000024. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.354658. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 57 tetrahedra.
+    Time: 3.354962. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.819517. Searches: 131. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 57-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 2.)
+Edge-ideal: 29 tetrahedra.
+    Time: 5.819587. Searches: 131. Primes: 0. #Tri: 2.
+    Time: 5.838859. Searches: 131. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 25 tetrahedra.
+    Time: 5.838914. Searches: 131. Primes: 1. #Tri: 3.
+    Time: 5.850838. Searches: 131. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.850935. Searches: 131. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLvvLwMwMLAPzQzAQQkcekhojmkqurnstqwxtxzyABzBzBAAiiwsifxwpioskvrpdodpwvioafmcw
+    Drilled iso sig for prime #1: yLLLvPwvvMQQLQPMQcefgijmtprmpnqrtsuuvwvxxxiihosfqikkgrrgnabiiaxbaxu
+
+16nh_0718532 # 18ns_83
+----------------------
+Knot sig: IabcdefgcdhfijklmbnilopmehgnqropaqjkrstuvwxyzABCDzsvCBEFGtuEFGADyHwxHxvMzXmtv1QubZW--8-pbM-ja.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.549609. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 52 tetrahedra.
+    Time: 4.549838. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.351934. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 5.351997. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.364500. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 20 tetrahedra.
+    Time: 5.364543. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.504313. Searches: 73. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.509060. Searches: 73. Primes: 1. #Tri: 3.
+    Time: 5.511870. Searches: 73. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.511984. Searches: 73. Primes: 2. #Tri: 3.
+    Time: 5.512013. Searches: 73. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLMvPLvPvLPAMAAPQQbceeghioknuoqussswtvAyxzAyzAhgatfbthflegfcnowlwcepvkofof
+    Drilled iso sig for prime #1: tLLAALLzzAvQQkbeedfeijknlnsrqpqsrsxxuwamdhrdbmddtbttff
+
+19ns_158 # 19ns_175
+-------------------
+Knot sig: MabcdecfgdehijklmianjmophgfbqrlksqporsntuvwxyzABtCzDEACFGyHIxwJKIHKJDELuFGvLBxMmZkZSAMPQmddtM5NzE8-By+p.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.010710. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 42 tetrahedra.
+    Time: 3.010943. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.634057. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 3.634119. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.731606. Searches: 55. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.735481. Searches: 55. Primes: 0. #Tri: 2.
+    Time: 3.744312. Searches: 55. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.744376. Searches: 55. Primes: 1. #Tri: 2.
+Edge-ideal: 15 tetrahedra.
+    Time: 3.744400. Searches: 55. Primes: 1. #Tri: 3.
+    Time: 3.781805. Searches: 90. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.784166. Searches: 90. Primes: 1. #Tri: 3.
+    Time: 3.786599. Searches: 90. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.786681. Searches: 90. Primes: 2. #Tri: 3.
+    Time: 3.786720. Searches: 90. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLLALvMAzPQLzMQcddehililkononnqrtutuudcbadppogfaarwndgdptiv
+    Drilled iso sig for prime #1: oLLAAvMLMQcbedeefhimlmnnmnhhnteanxmaumubj
+
+16nh_0660224 # 16nh_0439981
+---------------------------
+Knot sig: GabcdefbghijklmnhopmqirstuvtskjropwvuwlqnxyzABedCDEyagFCDFcfzABExRSMQQQsQ0Qg-pn+mjFFy4l.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.828094. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 60 tetrahedra.
+    Time: 4.828331. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 7.981537. Searches: 123. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 60-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 3.)
+Edge-ideal: 29 tetrahedra.
+    Time: 7.981598. Searches: 123. Primes: 0. #Tri: 2.
+    Time: 8.000013. Searches: 123. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 28 tetrahedra.
+    Time: 8.000073. Searches: 123. Primes: 1. #Tri: 3.
+    Time: 8.016890. Searches: 123. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 8.016970. Searches: 123. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLvvALQzvPvzAAPMAQQkcefkilhloqooprsstzwzywAByAyBBiamawanuiowjbfmmbjjjvnmuclflw
+    Drilled iso sig for prime #1: ALLMLLvvAwwwQAAAQQcbcdfhilkmotpwpquwuuyzxwyzyzmvfaitvgfqaouorrdvvaidokrrr
+
+18ns_72 # 19ns_060
+------------------
+Knot sig: LabcdefgaheijfklmnopgqrdcsqjirsbhknopmltuvwuxyvwzABCDzEFADGHIxyEFJHKtIJBCGKNzuzMwTSmRLzaZk-nZ9---3--c.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.140332. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 37 tetrahedra.
+    Time: 2.140588. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.728548. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 14 tetrahedra.
+    Time: 2.728612. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 2.830302. Searches: 58. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.831559. Searches: 58. Primes: 0. #Tri: 2.
+    Time: 2.832739. Searches: 58. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 2.832779. Searches: 58. Primes: 1. #Tri: 2.
+Edge-ideal: 19 tetrahedra.
+    Time: 2.832803. Searches: 58. Primes: 1. #Tri: 3.
+    Time: 2.908548. Searches: 114. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.912021. Searches: 114. Primes: 1. #Tri: 3.
+    Time: 2.914269. Searches: 114. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.914401. Searches: 114. Primes: 2. #Tri: 3.
+    Time: 2.914443. Searches: 114. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: nLLLLLAAQkbcfgijkiklmlmmmjhnvemkupggsr
+    Drilled iso sig for prime #1: rLLAwzMQLLLQcbeedfhijjjkmnopqqqeddfauiwsjfrawcidu
+
+16nh_0700028 # 16ah_236265
+--------------------------
+Knot sig: GabcdbefgdcehijkfglmnoalkhpnopijmqrsqtuvwxyzABvCxABwCDEyzrsFtEDuFRknvvvvvvvfnSN5H-yMhma.
+Embedding knot as an ideal loop.
+    Time: 0.000029. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.211818. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 66 tetrahedra.
+    Time: 4.212074. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.724885. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 4.724953. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.756101. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 32 tetrahedra.
+    Time: 4.756265. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.766254. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.766316. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELLLvvvLAMwQzMvQQAQMQcefmipkkmvvquxrwzwBzyByCzxADDCDiilagmhpjianidcaeuqqiquiwcfdapr
+    Drilled iso sig for prime #1: FLLLvzLvvAzPPQPPQwPAQkcefjnlmvrqpsxstztxzAuywyACADDEEEiitcituivbnnlfnpgldmceecbhcrktdt
+
+16ah_272374 # 19ns_194
+----------------------
+Knot sig: JabcdefbcdghefijklmnokpqlohgnmrsjiarqpstuvwxtyzABzyCDEFwvDGHCBAuxIHGEFIBsZmnZuvvvvfphyMHz+pdBSb.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.388536. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 56 tetrahedra.
+    Time: 3.388758. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 6.615673. Searches: 123. Primes: 0. #Tri: 1.
+Alternate enumeration succeeded on 56-tetrahedron triangulation.
+(Randomisation attempts: 2. Searches: 2.)
+Edge-ideal: 18 tetrahedra.
+    Time: 6.615736. Searches: 123. Primes: 0. #Tri: 2.
+    Time: 7.011736. Searches: 253. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 7.013064. Searches: 253. Primes: 0. #Tri: 2.
+    Time: 7.014445. Searches: 253. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 3.
+The prime knot is nontrivial!
+    Time: 7.014485. Searches: 253. Primes: 1. #Tri: 2.
+Edge-ideal: 34 tetrahedra.
+    Time: 7.014507. Searches: 253. Primes: 1. #Tri: 3.
+    Time: 7.034964. Searches: 253. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 7.035022. Searches: 253. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: qLLALwLzPMQkceddfgimnkoonpoppiifkfsgdtkawcvvwk
+    Drilled iso sig for prime #1: HLLAvLLzwvvLAMvPQAQQAQQcddekmilwropwDtyyzzBFExAxDDBBFGEGGdcbaepbfsofbwernfpmqdacqnpusgbqcqm
+
+16nh_0221958 # 19ns_129
+-----------------------
+Knot sig: JabcdecfghijagklmnopfbqrskpdeqjironmlshtuvwuxytzABCDEFBxyCDGHIzwvAFEIHGxmRZ0OSuvvzf9MbzEc2oydSb.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.369678. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.369935. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.494833. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 3.494895. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 3.509407. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 3.509464. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 3.614721. Searches: 84. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.617106. Searches: 84. Primes: 1. #Tri: 3.
+    Time: 3.618670. Searches: 84. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.618728. Searches: 84. Primes: 2. #Tri: 3.
+    Time: 3.618745. Searches: 84. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLLzvLwPPPzLPMPQPQcedellkoppmqntwvsywzyxywAAzAiintqhfksvnigiwcgdolqkdbqmqk
+    Drilled iso sig for prime #1: rLLLQvvALQAQcbdefefjkppmonnnqqqhruupgsguutcogfiqh
+
+15nh_086410 # 16nh_0045538
+--------------------------
+Knot sig: FabcdbefghijkglmhkfnopqrjistnopqusmlturvwxyzAwaeBCDECBzycdxAEDvlnt1sRKu1Ab-zM---355pc.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.938353. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 51 tetrahedra.
+    Time: 3.938589. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.224209. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 4.224274. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.231604. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 26 tetrahedra.
+    Time: 4.231713. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.241457. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.241503. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vvLLvLzMLzQQMQQeghlknpspmqorntuprtsuuftifrateuwhqiiqafvbgae
+    Drilled iso sig for prime #1: zLLLLPLvMLLAMAwQQkcefhghlkpltrqtqstryywwwxxyiidmcvidioithmumojmphdxuto
+
+19ns_050 # 15ah_40465
+---------------------
+Knot sig: IabcdefghdijefklmnjichgopknmlqopqrstuvwsxytwzABCDEAzvuFGrbHFyxGHaBCDERQQQQYmvnZub98-dpyM-Nz+d.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.122602. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 46 tetrahedra.
+    Time: 3.122840. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.804215. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 29 tetrahedra.
+    Time: 3.804279. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 3.818040. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 14 tetrahedra.
+    Time: 3.818105. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 3.851922. Searches: 35. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.854138. Searches: 35. Primes: 1. #Tri: 3.
+    Time: 3.855412. Searches: 35. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.855501. Searches: 35. Primes: 2. #Tri: 3.
+    Time: 3.855529. Searches: 35. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLLLvzLMLPvLQPwAMQQkcddhjhnpploqtrqtuyyzzAzxByBABpvrvmfgaufvttpnfvtaplitfadqxj
+    Drilled iso sig for prime #1: nLLAMLvPQkccedegijlkmlmmlnegdawalwwrrn
+
+19ns_003 # 16ah_200046
+----------------------
+Knot sig: JabcdecfghidejklmnopqgfbjrsqakrihslmnoptuvtwxyzABCDuvEFxGDCBEHIFAzyGwIHxAuPvwvvvvvfdp-9y7-dmdad.
+Embedding knot as an ideal loop.
+    Time: 0.000030. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.801550. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 49 tetrahedra.
+    Time: 3.801785. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.462151. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 4.462215. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.508957. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 13 tetrahedra.
+    Time: 4.509034. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 4.535715. Searches: 17. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.536010. Searches: 17. Primes: 1. #Tri: 3.
+    Time: 4.537986. Searches: 17. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.538107. Searches: 17. Primes: 2. #Tri: 3.
+    Time: 4.538150. Searches: 17. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLvAvLzLzQzzzwQPQzQQPccefhnmmstltqpyyAzyuvBwwBEzDEDCFFFiieaidqilftnjiiaaeornownijahulmta
+    Drilled iso sig for prime #1: mLLAALLMQbcedfehkjkklltsqsxskigbfuk
+
+16nh_0238815 # 19ns_182
+-----------------------
+Knot sig: JabcdecfghijklmnokpqloedhgfbnmrsjiarqpstuvwxyztAzBCDEuFGHyICDwGFvEBIxHAxkZ0kZSwSAQcBNz+Nz+yzc5m.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.529616. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 44 tetrahedra.
+    Time: 2.529850. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.865002. Searches: 16. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 25 tetrahedra.
+    Time: 2.865067. Searches: 16. Primes: 0. #Tri: 2.
+    Time: 2.873922. Searches: 16. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 16 tetrahedra.
+    Time: 2.873963. Searches: 16. Primes: 1. #Tri: 3.
+    Time: 2.953632. Searches: 55. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.954417. Searches: 55. Primes: 1. #Tri: 3.
+    Time: 2.955522. Searches: 55. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.955558. Searches: 55. Primes: 2. #Tri: 3.
+    Time: 2.955574. Searches: 55. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: yLLvLLLMvPQzwQAQQceiimlmsprrnmtqvusvtwxxwxiimvpxdmacoffibtpndqjsvcg
+    Drilled iso sig for prime #1: pLLLQvLLPQQbdefefkkomolnonnhruupgjcllemjjbk
+
+16nh_0531320 # 16ah_054193
+--------------------------
+Knot sig: GabcdefghijbeklmijnopdcnmhafkpolgqrsqtuvwxyzABvwCAzyDuErsEFDBCxFtlLvzvvvvvvf-988g+DyOxk.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.729349. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 59 tetrahedra.
+    Time: 4.729611. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.300907. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 5.300974. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.314244. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 28 tetrahedra.
+    Time: 5.314303. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.321322. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.321359. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALvLLLzLzzPMzPQPQQcbfejhikssmoprqtrxyuzvxwzyxzmpmkooaokbbogwugahvosobgffj
+    Drilled iso sig for prime #1: BLLvQwAPLzLLzLPwQQQcdeggfijljlmqprstxyzxywyAzAAdoldgrxhkofdudbcvutaajfvoooo
+
+16ah_345301 # 16ah_028140
+-------------------------
+Knot sig: GabcdefghijkilmnohlpkjpmgbcfedaonqrstuvrwxyzABCvDtEwqyFEsDuABCzFxvvvvvvvvvvf-BZ2-8mppZd.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.009506. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.337405. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 65 tetrahedra.
+    Time: 5.337690. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 8.947759. Searches: 83. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 35 tetrahedra.
+    Time: 8.947826. Searches: 83. Primes: 0. #Tri: 2.
+    Time: 8.971641. Searches: 83. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 27 tetrahedra.
+    Time: 8.971697. Searches: 83. Primes: 1. #Tri: 3.
+    Time: 8.982216. Searches: 83. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 8.982268. Searches: 83. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ILLvLLvQzvvAQvLPwQQAQMQkcehiohjowuwqxADBzyuFwECEyFADBGEHGHHiiavijfpimawaaamhngibagpsiwswtxpqbk
+    Drilled iso sig for prime #1: zLLAwLzwMQLzMzwPQkbedefhjlmknlooprtsvyxvyxxytlftapallctqbomglacaigivgj
+
+16nh_0898369 # 16nh_0812352
+---------------------------
+Knot sig: GabcdbefghijfkaelmhnjopingmpolcdkqrstuvrstwxyzABqCzDEwFyDACFxEuvBRQPQQSPAQQeFgJTT-89BSj.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.006793. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 5.496622. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 62 tetrahedra.
+    Time: 5.496858. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 9.992180. Searches: 146. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 9.992251. Searches: 146. Primes: 0. #Tri: 2.
+    Time: 10.004572. Searches: 146. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 29 tetrahedra.
+    Time: 10.004620. Searches: 146. Primes: 1. #Tri: 3.
+    Time: 10.017304. Searches: 146. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 10.017358. Searches: 146. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: DLLvLLMPvPMQzMLMvQMQccegikjmllmrnqoprsswvvyzAyCBBCCiiivacxttggcrbwghhtocbwvwaehhc
+    Drilled iso sig for prime #1: CLLvAPMLPLLLwvAQPQMkcegfhghkknmootruswwyyAxAzzBBBiidafjwadicdtdgmmcwffifammagf
+
+19ns_009 # 16nh_0887010
+-----------------------
+Knot sig: JabcdefghijklbcmknolmhpqgfedqprsnoarijstuvwxyzABCDEAxuFGHFvwBEzytIDCGHIRAMPkZSQQQYc---NN--5F45j.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.644460. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 54 tetrahedra.
+    Time: 3.644693. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.019184. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 17 tetrahedra.
+    Time: 4.019250. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.054737. Searches: 38. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.055504. Searches: 38. Primes: 0. #Tri: 2.
+    Time: 4.057184. Searches: 38. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.057232. Searches: 38. Primes: 1. #Tri: 2.
+Edge-ideal: 34 tetrahedra.
+    Time: 4.057255. Searches: 38. Primes: 1. #Tri: 3.
+    Time: 4.078609. Searches: 38. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.078672. Searches: 38. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: qLLLQLLwAAPkbdefefhkjlknmpopphruupgllvaaxvbcsr
+    Drilled iso sig for prime #1: FLLvLLvwLLPPwMPPQwMQQkcehhosnvumqqwtrrtAvAyxDCzCEEBCDEiiijipxiffkjissjrdqiqqiesplpwhev
+
+16ah_059060 # 16nh_0277971
+--------------------------
+Knot sig: GabcdbefghijklmnopqrjironklmfghstupqstuvwxyzABcdCDaevExyDCFAzFBwElvvvvvvnvvf-N-5--hBEWi.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.914377. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 59 tetrahedra.
+    Time: 3.914610. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.309447. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 25 tetrahedra.
+    Time: 4.309516. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 4.314843. Searches: 3. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 28 tetrahedra.
+    Time: 4.314880. Searches: 3. Primes: 1. #Tri: 3.
+    Time: 4.326817. Searches: 3. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.326859. Searches: 3. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: yLLvPvwzLzPQwQMQQcdfgjllkposuqtvrqwtvuwxxxdcagaaaffoiiflxffhtvffvjn
+    Drilled iso sig for prime #1: BLLALvMzvwLzMQAQMMQbedehijkmtpuwswqruvxwxyyzAAAtlftvtaafagjtkxvcbfpmqdljfsb
+
+16ah_152724 # 18ns_25
+---------------------
+Knot sig: IabcdecfghidejklmnophijbqrpkaqfgronmlstuvwxyszABzCDEBACtuFGHEDFvyxwGHxAul1uvvvvvb--d--d-BEJ9a.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.319406. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 47 tetrahedra.
+    Time: 3.319655. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.857865. Searches: 18. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 32 tetrahedra.
+    Time: 3.857933. Searches: 18. Primes: 0. #Tri: 2.
+    Time: 3.877359. Searches: 18. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 12 tetrahedra.
+    Time: 3.877406. Searches: 18. Primes: 1. #Tri: 3.
+    Time: 3.895054. Searches: 36. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.895320. Searches: 36. Primes: 1. #Tri: 3.
+    Time: 3.896435. Searches: 36. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.896531. Searches: 36. Primes: 2. #Tri: 3.
+    Time: 3.896570. Searches: 36. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: FLLPvzzPPLALAPzLzPLQQkbcffghljnmmonqsquuvyxxCCBEADDECEmomtrcrgvgkdcnvglqttvgpsoqojravi
+    Drilled iso sig for prime #1: lLLAwMwQcbedeegihkkjkhhntefxeltsw
+
+19ns_034 # 19ns_231
+-------------------
+Knot sig: MabcdefghijklmcnilopmhqfgqednbrskjarpostuvwxyzABxCDyBEFGHwIJvHGuJICDKLEFtKzALxn1ufZSzMQQmdBMzg2z+--KK-p.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.328153. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 42 tetrahedra.
+    Time: 2.328392. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.638761. Searches: 9. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 20 tetrahedra.
+    Time: 2.638825. Searches: 9. Primes: 0. #Tri: 2.
+    Time: 3.104785. Searches: 67. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.105013. Searches: 67. Primes: 0. #Tri: 2.
+    Time: 3.106999. Searches: 67. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.107043. Searches: 67. Primes: 1. #Tri: 2.
+Edge-ideal: 19 tetrahedra.
+    Time: 3.107066. Searches: 67. Primes: 1. #Tri: 3.
+    Time: 3.157979. Searches: 106. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.161725. Searches: 106. Primes: 1. #Tri: 3.
+    Time: 3.165048. Searches: 106. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.165135. Searches: 106. Primes: 2. #Tri: 3.
+    Time: 3.165155. Searches: 106. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: tLLAzwvzzQMQPkbcedegklpmmnroqpqssstsqssjkamatghogcotog
+    Drilled iso sig for prime #1: sLLLLPzQzLAPQceffhijlilmmooqrqrriilxsgepgpiivsapmiw
+
+16nh_0463980 # 16ah_145035
+--------------------------
+Knot sig: GabcdeafghcijbfklmhgnompejidplonkqrstuvwxysrqzABCvuABCDEztyFEDwxFlTuLAvvvvvf-jFOu+ZdJTb.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.963070. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 63 tetrahedra.
+    Time: 3.963304. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.576422. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 4.576489. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 4.586906. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 32 tetrahedra.
+    Time: 4.586948. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 4.606614. Searches: 1. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.606664. Searches: 1. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLvvLvQMzvALwQQQQQcejpmkjokpowsvyzwztvwAAvxyAziiciesfmvgsaghpqilciahbggobo
+    Drilled iso sig for prime #1: FLLLwwMvzAwvzLQzAQMQQkccfgihlknlpxrxrwtuByByzEEAACBDDEpoaumburjjlirefkrbheauitbbckkfwj
+
+16nh_0610064 # 19ns_108
+-----------------------
+Knot sig: JabcdbefghijkglmhknojipqfrspmlqstuvwxnotuvwxryzABCDeaEFDCBGzHFIdcIEHAGylZSmZQQuvvlfTzgMzaaA8yTg.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.744944. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 50 tetrahedra.
+    Time: 2.745174. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.260848. Searches: 11. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 3.260913. Searches: 11. Primes: 0. #Tri: 2.
+    Time: 3.277010. Searches: 11. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 17 tetrahedra.
+    Time: 3.277068. Searches: 11. Primes: 1. #Tri: 3.
+    Time: 3.416064. Searches: 44. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.418051. Searches: 44. Primes: 1. #Tri: 3.
+    Time: 3.419296. Searches: 44. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.419340. Searches: 44. Primes: 2. #Tri: 3.
+    Time: 3.419356. Searches: 44. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: DLLLLzPvMLMMwvMAAPQQccefehlimponqotrwuuvxwxCCBzAABCiitdvikaiwvugmuibsmueveehfrkuo
+    Drilled iso sig for prime #1: qLLAAvwMAAAkbedeefhlmkmmnoopphhnteanrpoqaqijak
+
+16ns_09 # 16nh_0691819
+----------------------
+Knot sig: GabcdecfghidejklmnhijbopnkaofgpmlqrstuqvwxyzABCDutEABFDwxCFEsrzyvxA0snTmRQQe--Z--8NNF4p.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.827447. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 44 tetrahedra.
+    Time: 2.827676. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 3.246751. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 30 tetrahedra.
+    Time: 3.246815. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 3.264368. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 11 tetrahedra.
+    Time: 3.264466. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 3.282431. Searches: 18. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 3.282687. Searches: 18. Primes: 1. #Tri: 3.
+    Time: 3.283261. Searches: 18. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 3.283334. Searches: 18. Primes: 2. #Tri: 3.
+    Time: 3.283376. Searches: 18. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: CLvvvALQvvzPPPMQQQPkcfgjnlkovstrrwztvxuyAzyzwABBBiccvagcxvnvjjvtssssqaaeaclanv
+    Drilled iso sig for prime #1: kLLAPLMkbeedegihjjjmihwinxhhtp
+
+19ns_025 # 19ns_073
+-------------------
+Knot sig: MabcdecfghijkblgjmnkfopqedqpolrsmnarhistuvwxyuzABCDztEADFGvHIwxIHyJKCBLJGFKLExzMvfZSkZSQmdB--JX-hGzgaMj.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.452627. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 41 tetrahedra.
+    Time: 4.452855. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.856578. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 4.856643. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.813308. Searches: 84. Primes: 0. #Tri: 2.
+Alternate enumeration succeeded on 19-tetrahedron triangulation.
+(Randomisation attempts: 1. Searches: 28.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.818261. Searches: 84. Primes: 0. #Tri: 2.
+    Time: 5.819690. Searches: 84. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.819729. Searches: 84. Primes: 1. #Tri: 2.
+Edge-ideal: 16 tetrahedra.
+    Time: 5.819751. Searches: 84. Primes: 1. #Tri: 3.
+    Time: 5.876840. Searches: 116. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.877726. Searches: 116. Primes: 1. #Tri: 3.
+    Time: 5.883432. Searches: 116. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.884311. Searches: 116. Primes: 2. #Tri: 3.
+    Time: 5.884637. Searches: 116. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: sLLLLLzzMPQMQceffklinlmmqqqprprriihqaijajjohuhjpvil
+    Drilled iso sig for prime #1: pLLLQvLMPPQbdefefljknnlmnoohruupglsoauafgjr
+
+18ns_44 # 16ah_244933
+---------------------
+Knot sig: IabcdecbfghijfklgmnhopaqrolkedprinmjqstusvwxyzABCDvtuEDAFGHwzFBCGyxHERYSZSivvvvvbNzgzgIp4Tbga.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.392191. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 55 tetrahedra.
+    Time: 4.392424. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.973110. Searches: 3. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 18 tetrahedra.
+    Time: 4.973176. Searches: 3. Primes: 0. #Tri: 2.
+    Time: 5.073385. Searches: 49. Primes: 0. #Tri: 2.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.075629. Searches: 49. Primes: 0. #Tri: 2.
+    Time: 5.078036. Searches: 49. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.078118. Searches: 49. Primes: 1. #Tri: 2.
+Edge-ideal: 34 tetrahedra.
+    Time: 5.078173. Searches: 49. Primes: 1. #Tri: 3.
+    Time: 5.108872. Searches: 49. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.108961. Searches: 49. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: rLLLLLMQvAPQcceffkjjklllonoqpqqiieuahpddxbgjsdlsj
+    Drilled iso sig for prime #1: HLLMvPMvPzMvwMMzzPAPQMQbceeghjinmlpntvrsuyyCAACDBFBDEGFGGhgatfbtthtcagtaigwuqxpqanncwfcxgaa
+
+18ns_17 # 16ah_130979
+---------------------
+Knot sig: IabcdecfghijhgklmnopjiqdeqnmrkpolrfstuvwxyzAaBCtuDBEFCDzGxyGwvHbEFsHARQQQQkvzMvZa-Nz4h4N--H-d.
+Embedding knot as an ideal loop.
+    Time: 0.000020. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.567993. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 53 tetrahedra.
+    Time: 3.568220. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.272716. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 31 tetrahedra.
+    Time: 4.272778. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.296034. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 18 tetrahedra.
+    Time: 4.296095. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.413915. Searches: 45. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.416627. Searches: 45. Primes: 1. #Tri: 3.
+    Time: 4.417909. Searches: 45. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.417955. Searches: 45. Primes: 2. #Tri: 3.
+    Time: 4.417972. Searches: 45. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELLvLLzvQwLPMMLMPQPPQcdgijjomqnqppuuszxwvzBwzACADCDDdcgvbrtuirjcolxmdcbbdqriecvpjpm
+    Drilled iso sig for prime #1: rLLLQvLwMMAQcbdefefkjlolmpnqpqqhruupgjsuuucrwural
+
+16ah_251446 # 18ns_26
+---------------------
+Knot sig: IabcdefbghijklamjnokmgcdefpqnorphiqrlstuvwxyzABCDvsECFGzyxEtuDHGABFHwRMzQYmvvvvvb-9-7--Vtl3cb.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.395532. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 56 tetrahedra.
+    Time: 4.395771. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.136037. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 5.136101. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.152276. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 17 tetrahedra.
+    Time: 5.152326. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.207456. Searches: 40. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.210654. Searches: 40. Primes: 1. #Tri: 3.
+    Time: 5.212445. Searches: 40. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.212484. Searches: 40. Primes: 2. #Tri: 3.
+    Time: 5.212501. Searches: 40. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLvLLLzAMvQLMLQLLQAPQccefhnijlproptspryuuwBAyzBDCEFDEFFiixfiffxeirrilgpobogmifpmqompgaio
+    Drilled iso sig for prime #1: qLLLAAvQLPMkbdeffggkjjnomnoppxniqxvjetdllqcfiw
+
+15nh_105141 # 16nh_0941099
+--------------------------
+Knot sig: FabcdefgahijcklmnbhoelmfoijdkngpqrstuvwqrxyzAuBCpsxwCDtAEyzEvBDxrLvvtzvvvblBwmNpnYjHa.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.676860. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 63 tetrahedra.
+    Time: 3.677106. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.376125. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 4.376191. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 4.389345. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 25 tetrahedra.
+    Time: 4.389414. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 4.399690. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.399727. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLvLvvMvAMQLMAwAPQAAQccehmospovponstxvruxwCxBBDBCAEEFFFiiixtehtigsfrblubghivvsojwobupaib
+    Drilled iso sig for prime #1: yLLLwvvALvMMQQMQQcdfeimkposnrqpvuuvwtxuwxxiceaalvvfagaegdpffggavgaa
+
+16nh_0813569 # 16nh_0061824
+---------------------------
+Knot sig: GabcdbefghijkecdhlmgfnomliapjonkpqrstuqvwxyzABCtuDvEFyxFsrEwzABCDRAQQKTSQPQcFW2WoF6pW2h.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.294236. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 59 tetrahedra.
+    Time: 4.294508. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.964016. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 23 tetrahedra.
+    Time: 4.964083. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 4.975100. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 29 tetrahedra.
+    Time: 4.975143. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 4.991250. Searches: 1. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 4.991302. Searches: 1. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: wLvvLALMQvvQMQQkbhjilhlnkjsoqprqvtsuvuvmpvgaottfvakcbjgluuokns
+    Drilled iso sig for prime #1: CLLLwvvLzAvAvQAQQQQkcdfekqklonywrtvztwzAAxxvByBABiceaucvfggamapmnnsbbbjwggfsgf
+
+16nh_0902423 # 19ns_205
+-----------------------
+Knot sig: JabcdefghijkelmfknomldnpqrgsihsjpqrotuvwxyzxwABzyCDEctCFGDEHaIABFGHbuvIxvvLuBQQvgRc-2--z+Z8---p.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.648988. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 53 tetrahedra.
+    Time: 3.649216. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.224649. Searches: 1. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 32 tetrahedra.
+    Time: 4.224714. Searches: 1. Primes: 0. #Tri: 2.
+    Time: 4.239507. Searches: 1. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 17 tetrahedra.
+    Time: 4.239559. Searches: 1. Primes: 1. #Tri: 3.
+    Time: 4.297025. Searches: 39. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 4.297262. Searches: 39. Primes: 1. #Tri: 3.
+    Time: 4.299169. Searches: 39. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 4.299219. Searches: 39. Primes: 2. #Tri: 3.
+    Time: 4.299236. Searches: 39. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ELLAwvzzzAvwLAALQPQQQbeedfinmlotsyqyvyBAuCwBAzCDDBCDddafaaeqfaovacxqaaafurkonkonvvb
+    Drilled iso sig for prime #1: qLLAwwvLMQQkbedeegnjplonpmopohhnteftwduuubboff
+
+16ah_237764 # 15nh_086131
+-------------------------
+Knot sig: FabcdefghijfgklhmnojklipqmcdernqporstuavwtxbyzABCADyvEuxsCBDzwERQQQQk1uvwb-Z8W-VwnBWc.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.427751. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 60 tetrahedra.
+    Time: 4.427984. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.131292. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 33 tetrahedra.
+    Time: 5.131355. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.153583. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 24 tetrahedra.
+    Time: 5.153641. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.160806. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.160841. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: GLLLLzwvMPMwPwAPvPQQLQccefhiinqppomrpvvsxyzCBBAyyADEFEFFiixpvjuivovgucapviamavrvvjkgdquqb
+    Drilled iso sig for prime #1: xLLPwwwMvzAAPMQPcccdefhijloqrpssuruttvwwwhggaaacaaadaicsarqehhida
+
+16ah_332888 # 16nh_0253715
+--------------------------
+Knot sig: GabcdbefcdghaijkhglmnofepnmjklopiqrsqtuvwxvrsyzABCyDEutFDzCwxBAEFlt1YMuvvvvfFMHNZ-dd8dm.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.814793. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 67 tetrahedra.
+    Time: 4.815063. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.867756. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 25 tetrahedra.
+    Time: 5.867823. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 5.880610. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 34 tetrahedra.
+    Time: 5.880653. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 5.899460. Searches: 2. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 5.899518. Searches: 2. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: yLvvLvvLQLPQPMQQQcflsopnqlvonswrsvtxuwxuvxdpaueatatmmvbufbvklkxafvo
+    Drilled iso sig for prime #1: HLLLvPLvALLvQvPAMzQQQPQcefijmjlstwtuAsrwxwvCEEDCFEBACFGGGiiegvivtiiiltuuclivjjdqucttsscunwn
+
+18ns_58 # 16nh_0434978
+----------------------
+Knot sig: IabcdbefghiejkfilmcdnoajkpqlmrpghqrnostuvwxyszAxwBCDzEFGyvutDCBAHFGHElZSKzwRSsRsbFaGpaWppF+hc.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 2.323231. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 46 tetrahedra.
+    Time: 2.323491. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 2.672117. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 2.672180. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 2.688743. Searches: 2. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 15 tetrahedra.
+    Time: 2.688809. Searches: 2. Primes: 1. #Tri: 3.
+    Time: 2.746456. Searches: 41. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 2.746694. Searches: 41. Primes: 1. #Tri: 3.
+    Time: 2.747780. Searches: 41. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 2.747817. Searches: 41. Primes: 2. #Tri: 3.
+    Time: 2.747834. Searches: 41. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: BLLvLLvPQPMLPLAMQLQceijnijokqqporppwvtuxxyyAzAAiihnpofhejrccaogmnkcpduxapgc
+    Drilled iso sig for prime #1: oLLAwwLMQPcbedeegjikmllnnnhhntefrgbtlqvcf
+
+16nh_0470132 # 19ns_037
+-----------------------
+Knot sig: JabcdefgchijkblmhknoplgqefqdmrosaprijnstuvwxtyzABCDEvuyzFGEwxDGFCHIBAIHxXSwLzSulRsfl9Fp8-E+5hod.
+Embedding knot as an ideal loop.
+    Time: 0.000025. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 4.824939. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 50 tetrahedra.
+    Time: 4.825212. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 5.550668. Searches: 11. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 28 tetrahedra.
+    Time: 5.550755. Searches: 11. Primes: 0. #Tri: 2.
+    Time: 5.564880. Searches: 11. Primes: 1. #Tri: 2.
+Found a hyperbolic knot!
+Edge-ideal: 19 tetrahedra.
+    Time: 5.564977. Searches: 11. Primes: 1. #Tri: 3.
+    Time: 5.624957. Searches: 41. Primes: 1. #Tri: 3.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 5.629603. Searches: 41. Primes: 1. #Tri: 3.
+    Time: 5.632388. Searches: 41. Primes: 1. #Tri: 3.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 5.632434. Searches: 41. Primes: 2. #Tri: 3.
+    Time: 5.632452. Searches: 41. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: ALLvvLvMLvLMMQQQQQcceipkmqwtxztztuxqsszywvvyxyiivisdaofspbabjbnvbaqfbfmgm
+    Drilled iso sig for prime #1: sLLLAAzzMALAQbdeffggikknnmqqprrrxniqxvjwifaattatjfg
+
+16nh_0995376 # 19ns_229
+-----------------------
+Knot sig: JabcdefgcbhfeijklmankoplnhgdqropsqijrsmtuvwxyzABCDzEFABGHwtyEFGIvuDCIHxRQzMkZmvvvnf32--4--CYmCc.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 3.798001. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 64 tetrahedra.
+    Time: 3.798232. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 4.239621. Searches: 2. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Edge-ideal: 22 tetrahedra.
+    Time: 4.239687. Searches: 2. Primes: 0. #Tri: 2.
+    Time: 6.085019. Searches: 103. Primes: 0. #Tri: 2.
+Alternate enumeration succeeded on 22-tetrahedron triangulation.
+(Randomisation attempts: 3. Searches: 67.)
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 6.088117. Searches: 103. Primes: 0. #Tri: 2.
+    Time: 6.090027. Searches: 103. Primes: 0. #Tri: 2.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 6.090068. Searches: 103. Primes: 1. #Tri: 2.
+Edge-ideal: 39 tetrahedra.
+    Time: 6.090090. Searches: 103. Primes: 1. #Tri: 3.
+    Time: 6.118483. Searches: 103. Primes: 2. #Tri: 3.
+Found a hyperbolic knot!
+    Time: 6.118559. Searches: 103. Primes: 2. #Tri: 3.
+Found 2 primes:
+    Drilled iso sig for prime #0: vLLLQLvLzLAPAQQbdeegggjopmrqstttqsuuuxnidpvjqppjadhhnogkexe
+    Drilled iso sig for prime #1: MLLLLvwvzMLAAQzzQvLwzPQQQQccefhinsrovsnvtrrxzvyxECGFFDIKIEKLHIJKLLiixpjhivrqagidjgmuvorapdskfvwngrbgkojrk
+
+================================
+Total knots: 100.
+Total time: 471.101444.
+All cases computed without timing out.
+Cases slower than 2 times the average:
+    Time: 10.738900. Name: 16nh_0398080 # 16nh_0688514.
+    Time: 12.101932. Name: 16ah_095372 # 16nh_0999557.
+    Time: 10.632387. Name: 16nh_0773708 # 16ah_155053.
+    Time: 10.017358. Name: 16nh_0898369 # 16nh_0812352.
+
