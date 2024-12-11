@@ -282,8 +282,6 @@ class InvariantEdges:
         raise RuntimeError(
                 "Unexpectedly broke out of boundary move loop." )
 
-    #TODO
-
     def _findBoundaryMove(self):
         """
         Returns details of a boundary move that reduces the number of
@@ -303,35 +301,17 @@ class InvariantEdges:
         (0) A boundary edge e on which to perform the move.
         (1) A boolean indicating whether we need to layer across e before
             performing the close book move.
-        (2) A collection of edge locations such that, after performing the
-            move, these edge locations can
-            the _setFromEdgeLocationsImpl() routine can
-        ...
+        (2) A collection of edge locations that describes the location of the
+            invariant edges after performing the move. More precisely, after
+            the move, the collection of invariant edges can be found by
+            passing the edge locations to _setFromEdgeLocationsImpl().
 
-        ...
-
-        Returns details of a boundary move that simplifies the boundary of
-        self.triangulation(), or None if the boundary is already minimal.
-
-        In detail, in the case where the boundary is not yet minimal, this
-        routine guarantees to find a move that reduces the number of boundary
-        triangles by two (without changing the topology of this loop). The
-        return value will be a tuple that describes this move using the
-        following data:
-        (0) A boundary edge e on which to perform the move.
-        (1) A boolean indicating whether we need to layer across e. If this
-            is True, then the move we perform will be to first layer across
-            e, and then perform a close book move on the newly layered edge.
-            Otherwise, the move will simply be a close book move on e.
-        (2) A list of edge indices describing a sequence of edges (in the
-            current triangulation) such that, after performing the move, this
-            edge sequence becomes a loop that is topologically equivalent to
-            this loop.
-
-        The EmbeddedLoop base class does not implement this routine, so
+        The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
         """
         raise NotImplementedError()
+
+    #TODO
 
     def _minimiseVerticesImpl(self):
         """
