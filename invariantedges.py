@@ -167,7 +167,7 @@ class InvariantEdges:
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementatiions for the helper routines listed above.
+        --> supply implementations for the helper routines listed above.
         In the latter case, see the documentation for these helper routines
         for details on the behaviour that must be implemented.
 
@@ -242,7 +242,7 @@ class InvariantEdges:
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementatiions for the helper routines listed above.
+        --> supply implementations for the helper routines listed above.
         In the latter case, see the documentation for these helper routines
         for details on the behaviour that must be implemented.
 
@@ -315,45 +315,31 @@ class InvariantEdges:
 
     def _minimiseVerticesImpl(self):
         """
-        Ensures that the triangulation containing this embedded loop has the
-        smallest possible number of vertices for the 3-manifold that it
-        represents, potentially adding tetrahedra to do this.
+        Attempts to minimise the number of vertices in the ambient
+        triangulation without topologically altering this collection of
+        invariant edges, potentially adding tetrahedra to do this.
 
-        The default implementation of this routine requires the following
-        helper routines, which are *not* fully implemented by default:
+        The default implementation of this routine attempts to reduce the
+        number of vertices by performing some sequence of the following
+        operations, subject to the constraint that this collection of
+        invariant edges is not topologically altered:
+        --> Shortening this collection of invariant edges using the
+            _shortenImpl() routine.
+        --> Close book moves, layerings and/or snap edge moves on
+            self.triangulation().
+        In particular, this implementation never creates new vertices.
+
+        Much of this implementation is deferred to the following helper
+        routines, which are *not* fully implemented by default:
         --> _shortenImpl()
         --> _minimiseBoundaryImpl()
         --> _findSnapEdge()
-        Thus, subclasses that require this routine must either:
+
+        Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementations for the aforementioned helper routines.
-        In the latter case, see the documentation for each respective helper
-        routine for details on the behaviour that must be implemented.
-
-        A side-effect of calling this routine is that it will shorten this
-        embedded loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> If the ambient triangulation is closed, then it will have
-            precisely one vertex.
-        --> If the ambient triangulation has real boundary, then:
-            --- either there will be no internal vertices, or there will be
-                exactly one internal vertex if this embedded loop is required
-                to remain entirely in the interior of the triangulation;
-            --- every 2-sphere boundary component will have exactly two
-                triangles and three vertices;
-            --- every projective plane boundary component will have exactly
-                two triangles and two vertices;
-            --- every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves, layerings and/or snap edge moves on
-            self.triangulation().
-        In particular, this routine never creates new vertices.
+        --> supply implementations for the helper routines listed above.
+        In the latter case, see the documentation for these helper routines
+        for details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.minimiseVertices().
 
@@ -361,12 +347,10 @@ class InvariantEdges:
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) the number of vertices in the ambient triangulation was
-                already minimal to begin with.
+            True if and only if a change was made to either this collection
+            of invariant edges or its ambient triangulation (or both).
         """
+        #TODO
         # Start by minimising the boundary.
         changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
 
