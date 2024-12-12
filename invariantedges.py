@@ -276,7 +276,7 @@ class InvariantEdges:
             if doLayer:
                 edge = self._tri.layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self._setFromEdgeLocationsImpl(edgeLocations)
+            self._setFromEdgeLocationsImpl(newEdgeLocations)
 
         # Should never reach this point.
         raise RuntimeError(
@@ -310,8 +310,6 @@ class InvariantEdges:
         subclasses that require this routine must provide an implementation.
         """
         raise NotImplementedError()
-
-    #TODO
 
     def _minimiseVerticesImpl(self):
         """
@@ -350,41 +348,37 @@ class InvariantEdges:
             True if and only if a change was made to either this collection
             of invariant edges or its ambient triangulation (or both).
         """
-        #TODO
-        # Start by minimising the boundary.
-        changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
+        # Start by attempting to minimise the boundary.
+        changed = self._minimiseBoundaryImpl()
 
-        # All that remains now is to remove internal vertices.
+        # With nothing further we can do on the boundary, all that remains is
+        # to attempt to minimise the number of internal vertices.
         # We do not currently have an implementation of collapseEdge() that
         # keeps track of how edges get relabelled after the move, so we rely
         # entirely on the snapEdge() routine.
         while True:
-            # Shorten this loop to minimise the number of special cases.
-            if self._shortenImpl():     # Might raise BoundsDisc.
+            # Attempt shortening. This has two potential benefits:
+            #   (a) Making further simplifications available later on.
+            #   (b) Reducing the number of cases that we need to handle.
+            if self._shortenImpl():
                 changed = True
 
-            # Is there a snap edge move we can perform to reduce the number
-            # of vertices?
-            moveDetails = self._findSnapEdge()
-            if moveDetails is None:
-                # At this point, there are no more unnecessary internal
-                # vertices.
+            # Is there a snap edge move available?
+            snap = self._findSnapEdge()
+            if snap is None:
+                # Nothing further we can do.
                 return changed
             changed = True
-            edge, newEdgeIndices = moveDetails
+            edge, newEdgeLocations = snap
 
-            # Make sure we will be able to find the edges that form the loop
-            # after performing the move.
-            edgeLocations = []
-            for ei in newEdgeIndices:
-                emb = self._tri.edge(ei).embedding(0)
-                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-
-            # Perform the snap, and then update this ideal loop. We can
-            # assume that the snap is legal, so can perform without checking.
+            # Perform the snap, and then update this collection of invariant
+            # edges. The _findSnapEdge() routine only returns legal snap edge
+            # moves, so we don't need to check again before performing.
             snapEdge( edge, False, True )
-            self._setFromEdgeLocationsImpl(edgeLocations)
+            self._setFromEdgeLocationsImpl(newEdgeLocations)
         return
+
+    #TODO
 
     def _findSnapEdge(self):
         """
