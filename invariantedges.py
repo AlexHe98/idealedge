@@ -378,31 +378,34 @@ class InvariantEdges:
             self._setFromEdgeLocationsImpl(newEdgeLocations)
         return
 
-    #TODO
-
     def _findSnapEdge(self):
         """
-        Returns details of a snap edge move that can be used to reduce the
-        number of vertices() in self.triangulation(), or None if the number
-        of vertices is already minimal.
+        Returns details of a snap edge move that reduces the number of
+        vertices in the ambient triangulation, or None if no such moves are
+        available.
 
-        In detail, in the case where the number of vertices is not yet
-        minimal, this routine returns a tuple consisting of the following:
-        (0) An edge on which a snap edge move can be performed.
-        (1) A list of edge indices describing a sequence of edges (in the
-            current triangulation) such that, after performing the move, this
-            edge sequence becomes a loop that is topologically equivalent to
-            this loop.
+        This routine only considers a snap edge move on an edge e to be
+        "available" if performing this move would not topologically alter
+        this collection of invariant edges. In the case where a suitable edge
+        e exists, this routine returns a tuple consisting of the following:
+        (0) The edge e.
+        (1) A collection of edge locations that describes the location of the
+            invariant edges after performing the snap edge move on the edge
+            e. More precisely, after the snap edge move, the collection of
+            invariant edges can be found by passing the edge locations to
+            _setFromEdgeLocationsImpl().
 
-        The EmbeddedLoop base class does not implement this routine, so
+        The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
 
         Pre-condition:
-        --> This loop cannot be shortened.
+        --> This collection of invariant edges cannot be shortened.
         --> If the ambient triangulation has real boundary, then this
             boundary has already been minimised.
         """
         raise NotImplementedError()
+
+    #TODO
 
     def _simplifyMonotonicImpl( self, include32 ):
         """
