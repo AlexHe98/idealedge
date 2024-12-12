@@ -120,16 +120,13 @@ class InvariantEdges:
         return self._tri
 
     def __len__(self):
-        #TODO Maybe don't assume anything about the data structure.
-        return len( self._edgeIndices )
+        raise NotImplementedError()
 
     def __contains__( self, edgeIndex ):
-        #TODO Maybe don't assume anything about the data structure.
-        return edgeIndex in self._edgeIndices
+        raise NotImplementedError()
 
     def __iter__(self):
-        #TODO Maybe don't assume anything about the data structure.
-        return iter( self._edgeIndices )
+        raise NotImplementedError()
 
     def intersects( self, surf ):
         """
