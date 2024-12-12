@@ -70,8 +70,13 @@ def snapEdge( edge, check=True, perform=True ):
 
 class InvariantEdges:
     """
-    A collection of edges that should be kept invariant as we simplify the
-    ambient triangulation.
+    A collection of edges that should be kept invariant (i.e., we must
+    preserve the topological embedding of this collection of edges) as we
+    simplify the ambient triangulation.
+
+    This is a base class that provides some basic implementations that are
+    intended to be inherited and/or extended by more specialised types of
+    collections of edges.
     """
     def __init__(self):
         self._tri = None
@@ -115,12 +120,15 @@ class InvariantEdges:
         return self._tri
 
     def __len__(self):
+        #TODO Maybe don't assume anything about the data structure.
         return len( self._edgeIndices )
 
     def __contains__( self, edgeIndex ):
+        #TODO Maybe don't assume anything about the data structure.
         return edgeIndex in self._edgeIndices
 
     def __iter__(self):
+        #TODO Maybe don't assume anything about the data structure.
         return iter( self._edgeIndices )
 
     def intersects( self, surf ):
@@ -411,18 +419,20 @@ class InvariantEdges:
         """
         Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
         reduce the number of tetrahedra in the ambient triangulation, while
-        leaving this embedded loop untouched.
+        leaving this collection of invariant edges untouched.
 
-        This routine might raise BoundsDisc.
+        If no such simplification is possible, then the ambient triangulation
+        will not be modified at all.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
 
         Returns:
             True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
+            simplified.
         """
+        #TODO Include _shortenImpl() or _minimiseBoundaryImpl()?
+        #TODO
         changed = False     # Has anything changed ever?    (Return value.)
         changedNow = True   # Did we just change something? (Loop control.)
         while True:
