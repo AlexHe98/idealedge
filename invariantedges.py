@@ -105,12 +105,28 @@ class InvariantEdges:
         tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
         tetrahedron must belong to the same triangulation.
 
-        This routine is *not* implemented by default, so subclasses that
-        require this routine must provide an implementation. Subclasses are
-        free to specify the data structure for the collection of edge
-        locations, as long as each edge location is represented as a pair of
-        the form described above.
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+
+        Subclasses are free to specify the data structure for the collection
+        of edge locations, as long as each edge location is represented as a
+        pair of the form described above.
         """
+        raise NotImplementedError()
+
+    def _setFromRenum( self, renum ):
+        """
+        Sets this collection of invariant edges using the given edge
+        renumbering map.
+
+        This routine is for internal use only.
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
+        #TODO This routine should check that the renumbering doesn't
+        #   topologically alter the collection of invariant edges, and this
+        #   requirement needs to be documented.
         raise NotImplementedError()
 
     def triangulation(self):
@@ -164,17 +180,17 @@ class InvariantEdges:
         triangle F that intersects exactly two of the edges in this
         collection, and redirects these two edges along the third edge of F.
         Only the logic of the search-and-redirect loop is explicitly
-        implemented, and the rest is deferred to the following helper
-        routines, which are *not* implemented by default:
+        implemented, and the rest is deferred to the following subroutines,
+        which are *not* implemented by default:
         --> _findRedirect(), which finds an available redirect operation (if
             any); and
         --> _performRedirect(), which performs a redirect operation.
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementations for the helper routines listed above.
-        In the latter case, see the documentation for these helper routines
-        for details on the behaviour that must be implemented.
+        --> supply implementations for the subroutines listed above.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
 
         Any implementation of this routine must return True if shortening was
         successful, and False otherwise. Moreover, in the False case, the
@@ -218,6 +234,9 @@ class InvariantEdges:
         Performs a redirect across the given triangle that targets the edge
         triangle.edge(edgeNum).
 
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+
         Pre-condition:
         --> The requested redirect operation must be legal, as described in
             the documentation for the _findRedirect() routine.
@@ -228,7 +247,7 @@ class InvariantEdges:
         """
         Attempts to minimise the number of boundary triangles in the ambient
         triangulation without topologically altering this collection of
-        invariant edges.
+        invariant edges, potentially adding tetrahedra to do this.
 
         The default implementation of this routine attempts to reduce the
         number of boundary triangles by performing the following operations
@@ -239,17 +258,17 @@ class InvariantEdges:
         --> Layering across a boundary edge of the ambient triangulation, and
             then immediately performing a close book move across the new
             boundary edge obtained after layering.
-        Much of this implementation is deferred to the following helper
-        routines, which are *not* fully implemented by default:
+        Much of this implementation is deferred to the following subroutines,
+        which are *not* fully implemented by default:
         --> _shortenImpl()
         --> _findBoundaryMove()
         --> _setFromEdgeLocationsImpl()
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementations for the helper routines listed above.
-        In the latter case, see the documentation for these helper routines
-        for details on the behaviour that must be implemented.
+        --> supply implementations for the subroutines listed above.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -328,21 +347,21 @@ class InvariantEdges:
         invariant edges is not topologically altered:
         --> Shortening this collection of invariant edges using the
             _shortenImpl() routine.
-        --> Close book moves, layerings and/or snap edge moves on
-            self.triangulation().
+        --> Close book moves, layerings and/or snap edge moves on the ambient
+            triangulation.
         In particular, this implementation never creates new vertices.
 
-        Much of this implementation is deferred to the following helper
-        routines, which are *not* fully implemented by default:
+        Much of this implementation is deferred to the following subroutines,
+        which are *not* fully implemented by default:
         --> _shortenImpl()
         --> _minimiseBoundaryImpl()
         --> _findSnapEdge()
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply implementations for the helper routines listed above.
-        In the latter case, see the documentation for these helper routines
-        for details on the behaviour that must be implemented.
+        --> supply implementations for the subroutines listed above.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.minimiseVertices().
 
@@ -414,12 +433,33 @@ class InvariantEdges:
 
     def _simplifyMonotonicImpl( self, include32 ):
         """
-        Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
-        reduce the number of tetrahedra in the ambient triangulation, while
-        leaving this collection of invariant edges untouched.
+        Monotonically reduces the number of tetrahedra in the ambient
+        triangulation without topologically altering this collection of
+        invariant edges.
 
-        If no such simplification is possible, then the ambient triangulation
-        will not be modified at all.
+        The default implementation of this routine attempts to reduce the
+        number of tetrahedra by performing some sequence of the following
+        operations, subject to the constraint that this collection of
+        invariant edges is not topologically altered:
+        --> Shortening this collection of invariant edges using the
+            _shortenImpl() routine.
+        --> 2-0 edge moves, 2-1 edge moves and/or (optionally) 3-2 moves on
+            the ambient triangulation.
+
+        If no such simplification is possible, then this collection of
+        invariant edges (and in particular, the ambient triangulation) will
+        not be modified at all.
+
+        The default implementation is partly deferred to the following
+        subroutines, which are *not* implemented by default:
+        --> __iter__()
+        --> _setFromRenum()
+
+        Subclasses that require this routine must therefore either:
+        --> override this routine; or
+        --> supply implementations for the subroutines listed above.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
@@ -428,8 +468,8 @@ class InvariantEdges:
             True if and only if the ambient triangulation was successfully
             simplified.
         """
-        #TODO Include _shortenImpl() or _minimiseBoundaryImpl()?
         #TODO
+        #TODO Include _shortenImpl() here?
         changed = False     # Has anything changed ever?    (Return value.)
         changedNow = True   # Did we just change something? (Loop control.)
         while True:
@@ -448,6 +488,7 @@ class InvariantEdges:
                         break
 
                 # Try a 2-0 edge move.
+                #TODO Check degenerate cases?
                 # This move can destroy the loop if it bounds a disc.
                 renum = twoZero(edge)
                 if renum is not None:
@@ -456,6 +497,7 @@ class InvariantEdges:
                     break
 
                 # Try a 2-1 edge move.
+                #TODO Check degenerate cases?
                 # This move can destroy the loop if it bounds a disc.
                 renum = twoOne( edge, 0 )
                 if renum is not None:
@@ -479,6 +521,10 @@ class InvariantEdges:
                     # As noted above, the loop can only get destroyed if it
                     # bounds a disc.
                     raise BoundsDisc()
+                #TODO Instead of catching the exception here, maybe just let
+                #   subclasses handle things by providing an appropriate
+                #   implementation for _setFromRenum()?
+                #TODO Include _shortenImpl() here?
             else:
                 break
 
