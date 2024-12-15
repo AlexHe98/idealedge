@@ -108,9 +108,14 @@ class InvariantEdges:
         The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
 
-        Subclasses are free to specify the data structure for the collection
-        of edge locations, as long as each edge location is represented as a
-        pair of the form described above.
+        Such an implementation is allowed (but is not required) to include
+        the following features:
+        --> It may specify any particular data structure for the collection
+            of edge locations, as long as each edge location is represented
+            as a pair of the form described above.
+        --> It may raise an error if it detects that the given edge locations
+            have some property that is undesirable (what "undesirable" means
+            may depend on the particular requirements of the subclass).
         """
         raise NotImplementedError()
 
@@ -119,14 +124,22 @@ class InvariantEdges:
         Sets this collection of invariant edges using the given edge
         renumbering map.
 
-        This routine is for internal use only.
+        This routine is for internal use only. The intended use case is for
+        updating this collection of invariant edges in the aftermath of
+        performing an elementary move on the ambient triangulation. This may
+        be necessary because such an elementary move might cause edges to be
+        renumbered, deleted, or even newly created; the given edge
+        renumbering map should describe all such changes to the edges.
 
         The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
+
+        Such an implementation is allowed (but is not required) to include
+        the following feature:
+        --> It may raise an error if it detects that the edge renumbering map
+            has some property that is undesirable (what "undesirable" means
+            may depend on the particular requirements of the subclass).
         """
-        #TODO This routine should check that the renumbering doesn't
-        #   topologically alter the collection of invariant edges, and this
-        #   requirement needs to be documented.
         raise NotImplementedError()
 
     def triangulation(self):
@@ -452,14 +465,24 @@ class InvariantEdges:
 
         The default implementation is partly deferred to the following
         subroutines, which are *not* implemented by default:
-        --> __iter__()
+        --> __contains__()
         --> _setFromRenum()
+        In particular, the default implementation uses _setFromRenum() to
+        update this collection of invariant edges after each elementary move
+        (2-0 edge, 2-1 edge or 3-2).
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
         --> supply implementations for the subroutines listed above.
-        In the latter case, see the documentation for these subroutines for
-        details on the behaviour that must be implemented.
+        In the latter case, note the following requirements:
+        --> The implementations must adhere to the documentation for these
+            subroutines.
+        --> The default implementation does nothing to uphold the promise
+            that this routine will not topologically alter this collection of
+            invariant edges. The intended solution is to provide an
+            implementation for _setFromRenum() that raises a suitable error
+            if it detects that a move has been performed that topologically
+            altered this collection of invariant edges.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
