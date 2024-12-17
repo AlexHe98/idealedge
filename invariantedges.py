@@ -119,6 +119,7 @@ class InvariantEdges:
         """
         raise NotImplementedError()
 
+    #TODO Is this necessary in the base class?
     def _setFromRenum( self, renum ):
         """
         Sets this collection of invariant edges using the given edge
@@ -466,23 +467,31 @@ class InvariantEdges:
         The default implementation is partly deferred to the following
         subroutines, which are *not* implemented by default:
         --> __contains__()
-        --> _setFromRenum()
-        In particular, the default implementation uses _setFromRenum() to
-        update this collection of invariant edges after each elementary move
-        (2-0 edge, 2-1 edge or 3-2).
+        --> _updateInvariantEdges()
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
         --> supply implementations for the subroutines listed above.
-        In the latter case, note the following requirements:
-        --> The implementations must adhere to the documentation for these
-            subroutines.
-        --> The default implementation does nothing to uphold the promise
-            that this routine will not topologically alter this collection of
-            invariant edges. The intended solution is to provide an
-            implementation for _setFromRenum() that raises a suitable error
-            if it detects that a move has been performed that topologically
-            altered this collection of invariant edges.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
+
+        Each of the aforementioned elementary moves (2-0 edge, 2-1 edge and
+        3-2) is performed on an edge e of the ambient triangulation, and has
+        the effect of deleting e from the 1-skeleton. Thus, to ensure that
+        this collection of invariant edges is not topologically altered, the
+        default implementation will never perform one of these elementary
+        moves on one of the invariant edges.
+
+        The 2-0 edge and 2-1 edge moves have the additional effect of merging
+        a pair of edges that share the same endpoints. If both of these
+        merged edges are supposed to be invariant, then this would
+        topologically alter this collection of invariant edges. However, the
+        default implementation does nothing to check whether this happens;
+        instead, this is deferred to the _updateInvariantEdges() subroutine.
+        The subroutine is only executed *after* performing each elementary
+        move, and may raise a suitable exception if it detects that the move
+        topologically altered this collection of invariant edges. The default
+        implementation of this routine simply passes on any such exceptions.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
@@ -537,6 +546,7 @@ class InvariantEdges:
             # the details of the loop, and then check whether we can make
             # further improvements.
             if changedNow:
+                #TODO Replace try-except block with _updateInvariantEdges()?
                 try:
                     # If we destroyed the loop, then this will raise NotLoop.
                     self._setFromRenum(renum)
@@ -544,15 +554,18 @@ class InvariantEdges:
                     # As noted above, the loop can only get destroyed if it
                     # bounds a disc.
                     raise BoundsDisc()
-                #TODO Instead of catching the exception here, maybe just let
-                #   subclasses handle things by providing an appropriate
-                #   implementation for _setFromRenum()?
                 #TODO Include _shortenImpl() here?
             else:
                 break
 
         # Nothing further we can do.
         return changed
+
+    def _updateInvariantEdges( self, renum ):
+        """
+        """
+        #TODO
+        raise NotImplementedError()
 
     def _simplifyImpl(self):
         """
