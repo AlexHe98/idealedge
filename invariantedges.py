@@ -150,12 +150,15 @@ class InvariantEdges:
         return self._tri
 
     def __len__(self):
+        #TODO Document.
         raise NotImplementedError()
 
     def __contains__( self, edgeIndex ):
+        #TODO Document.
         raise NotImplementedError()
 
     def __iter__(self):
+        #TODO Document.
         raise NotImplementedError()
 
     def intersects( self, surf ):
@@ -443,8 +446,6 @@ class InvariantEdges:
         """
         raise NotImplementedError()
 
-    #TODO
-
     def _simplifyMonotonicImpl( self, include32 ):
         """
         Monotonically reduces the number of tetrahedra in the ambient
@@ -500,14 +501,15 @@ class InvariantEdges:
             True if and only if the ambient triangulation was successfully
             simplified.
         """
-        #TODO
-        #TODO Include _shortenImpl() here?
-        changed = False     # Has anything changed ever?    (Return value.)
-        changedNow = True   # Did we just change something? (Loop control.)
+        changed = self._shortenImpl()
+
+        # Repeatedly attempt to reduce the size of the ambient triangulation
+        # until no further reduction is possible via elementary moves.
+        changedNow = True
         while True:
             changedNow = False
             for edge in self._tri.edges():
-                # Make sure to leave the embedded loop untouched.
+                # Make sure not to delete an invariant edge.
                 if edge.index() in self:
                     continue
 
@@ -520,8 +522,9 @@ class InvariantEdges:
                         break
 
                 # Try a 2-0 edge move.
-                #TODO Check degenerate cases?
-                # This move can destroy the loop if it bounds a disc.
+                # This move can topologically alter the collection of
+                # invariant edges, but checking whether this happens is
+                # deferred to the _updateInvariantEdges() routine.
                 renum = twoZero(edge)
                 if renum is not None:
                     changedNow = True
@@ -529,8 +532,9 @@ class InvariantEdges:
                     break
 
                 # Try a 2-1 edge move.
-                #TODO Check degenerate cases?
-                # This move can destroy the loop if it bounds a disc.
+                # This move can topologically alter the collection of
+                # invariant edges, but checking whether this happens is
+                # deferred to the _updateInvariantEdges() routine.
                 renum = twoOne( edge, 0 )
                 if renum is not None:
                     changedNow = True
@@ -546,15 +550,8 @@ class InvariantEdges:
             # the details of the loop, and then check whether we can make
             # further improvements.
             if changedNow:
-                #TODO Replace try-except block with _updateInvariantEdges()?
-                try:
-                    # If we destroyed the loop, then this will raise NotLoop.
-                    self._setFromRenum(renum)
-                except NotLoop:
-                    # As noted above, the loop can only get destroyed if it
-                    # bounds a disc.
-                    raise BoundsDisc()
-                #TODO Include _shortenImpl() here?
+                self._updateInvariantEdges(renum)
+                self._shortenImpl()
             else:
                 break
 
@@ -563,9 +560,26 @@ class InvariantEdges:
 
     def _updateInvariantEdges( self, renum ):
         """
+        Updates this collection of invariant edges using the given edge
+        renumbering map.
+
+        It is assumed that the renumbering map describes how the edge
+        numbering of the ambient triangulation changed after performing one
+        of the following elementary moves:
+        --> 3-2 move
+        --> 2-0 edge move
+        --> 2-1 edge move
+        --> 4-4 move
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must supply an implementation.
+        Such implementations may raise an appropriate exception if the
+        renumbering map comes from an elementary move that would have
+        topologically altered this collection of invariant edges.
         """
-        #TODO
         raise NotImplementedError()
+
+    #TODO
 
     def _simplifyImpl(self):
         """
