@@ -5,7 +5,7 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 """
 from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from invariantedges import snapEdge
+from invariantedges import snapEdge, InvariantEdges
 
 
 class EmbeddedLoopException(Exception):
@@ -35,7 +35,7 @@ class BoundsDisc(EmbeddedLoopException):
 
 
 #TODO Inherit from InvariantEdges
-class EmbeddedLoop:
+class EmbeddedLoop(InvariantEdges):
     """
     A sequence of edges representing an embedded loop in a 3-manifold
     triangulation.
@@ -145,7 +145,7 @@ class EmbeddedLoop:
                 return None
         return lastVert
 
-    def setFromLoop( self, loop, copyTri=True ):
+    def setAsCloneOf( self, loop, copyTri=True ):
         """
         Sets this embedded loop to be a clone of the given loop.
 
@@ -875,7 +875,7 @@ class EmbeddedLoop:
                 ( tempTri.size() == tri.size() and
                     tempTri.countVertices() < tri.countVertices() ) )
         if simplified:
-            self.setFromLoop(tempLoop)
+            self.setAsCloneOf(tempLoop)
         return simplified
 
 
