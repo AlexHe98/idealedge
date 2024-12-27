@@ -113,7 +113,7 @@ class InvariantEdges:
         """
         raise NotImplementedError()
 
-    def _setFromEdgeLocationsImpl( self, edgeLocations ):
+    def setFromEdgeLocations( self, edgeLocations ):
         """
         Sets this embedded loop using the given collection of edge locations.
 
@@ -301,7 +301,7 @@ class InvariantEdges:
         which are *not* fully implemented by default:
         --> _shortenImpl()
         --> _findBoundaryMove()
-        --> _setFromEdgeLocationsImpl()
+        --> setFromEdgeLocations()
 
         Subclasses that require this routine must therefore either:
         --> override this routine; or
@@ -339,7 +339,7 @@ class InvariantEdges:
             if doLayer:
                 edge = self._tri.layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self._setFromEdgeLocationsImpl(newEdgeLocations)
+            self.setFromEdgeLocations(newEdgeLocations)
 
         # Should never reach this point.
         raise RuntimeError(
@@ -367,7 +367,7 @@ class InvariantEdges:
         (2) A collection of edge locations that describes the location of the
             invariant edges after performing the move. More precisely, after
             the move, the collection of invariant edges can be found by
-            passing the edge locations to _setFromEdgeLocationsImpl().
+            passing the edge locations to setFromEdgeLocations().
 
         The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
@@ -438,7 +438,7 @@ class InvariantEdges:
             # edges. The _findSnapEdge() routine only returns legal snap edge
             # moves, so we don't need to check again before performing.
             snapEdge( edge, False, True )
-            self._setFromEdgeLocationsImpl(newEdgeLocations)
+            self.setFromEdgeLocations(newEdgeLocations)
         return
 
     def _findSnapEdge(self):
@@ -456,7 +456,7 @@ class InvariantEdges:
             invariant edges after performing the snap edge move on the edge
             e. More precisely, after the snap edge move, the collection of
             invariant edges can be found by passing the edge locations to
-            _setFromEdgeLocationsImpl().
+            setFromEdgeLocations().
 
         The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
