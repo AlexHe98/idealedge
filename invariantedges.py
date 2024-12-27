@@ -97,6 +97,22 @@ class InvariantEdges:
         self._edgeIndices = edgeIndices
         return
 
+    def setAsCloneOf( self, other, copyTri=True ):
+        """
+        Sets this collection of invariant edges to be a clone of the other
+        collection of invariant edges.
+
+        If copyTri is True (the default), then this collection of invariant
+        edges will be embedded in a copy of the triangulation containing the
+        other collection. Otherwise, if copyTri is False, then this
+        collection of invariant edges will be embedded in the same
+        triangulation as the other collection.
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
+        raise NotImplementedError()
+
     def _setFromEdgeLocationsImpl( self, edgeLocations ):
         """
         Sets this embedded loop using the given collection of edge locations.
@@ -119,27 +135,16 @@ class InvariantEdges:
         """
         raise NotImplementedError()
 
-    #TODO Is this necessary in the base class?
-    def _setFromRenum( self, renum ):
+    def clone(self):
         """
-        Sets this collection of invariant edges using the given edge
-        renumbering map.
+        Returns a clone of this collection of invariant edges.
 
-        This routine is for internal use only. The intended use case is for
-        updating this collection of invariant edges in the aftermath of
-        performing an elementary move on the ambient triangulation. This may
-        be necessary because such an elementary move might cause edges to be
-        renumbered, deleted, or even newly created; the given edge
-        renumbering map should describe all such changes to the edges.
+        The cloned collection of invariant edges will always be embedded in a
+        copy of the triangulation containing this collection of invariant
+        edges.
 
         The InvariantEdges base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
-
-        Such an implementation is allowed (but is not required) to include
-        the following feature:
-        --> It may raise an error if it detects that the edge renumbering map
-            has some property that is undesirable (what "undesirable" means
-            may depend on the particular requirements of the subclass).
         """
         raise NotImplementedError()
 
@@ -579,25 +584,28 @@ class InvariantEdges:
         """
         raise NotImplementedError()
 
-    #TODO
-
     def _simplifyImpl(self):
         """
-        Attempts to simplify this embedded loop.
+        Attempts to simplify this collection of invariant edges.
 
         This routine uses _minimiseVerticesImpl() and
         _simplifyMonotonicImpl(), in combination with random 4-4 moves that
-        leave this loop untouched.
+        leave the invariant edges untouched.
 
-        Note that the helper routine _minimiseVerticesImpl() is *not* fully
-        implemented by default. Thus, subclasses that require this
-        _simplifyImpl() routine must either:
+        The default implementation is partly deferred to the following
+        subroutines, which are *not* fully implemented by default:
+        --> clone()
+        --> _minimiseVerticesImpl()
+        --> _simplifyMonotonicImpl()
+        --> __contains__()
+        --> _updateInvariantEdges()
+        --> setAsCloneOf()
+
+        Subclasses that require this routine must therefore either:
         --> override this routine; or
-        --> supply an implementation for _minimiseVerticesImpl().
-        In the latter case, see the documentation for _minimiseVerticesImpl()
-        for details on the behaviour that must be implemented.
-
-        This routine might raise BoundsDisc.
+        --> supply implementations for the subroutines listed above.
+        In the latter case, see the documentation for these subroutines for
+        details on the behaviour that must be implemented.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -607,23 +615,24 @@ class InvariantEdges:
                 random decisions.
 
         Returns:
-            True if and only if this loop was successfully simplified.
-            Otherwise, this loop will not be modified at all.
+            True if and only if this collection of invariant edges was
+            successfully simplified. Otherwise, this collection of invariant
+            edges will not be modified at all.
         """
         RandomEngine.reseedWithHardware()
 
         # Work with a clone so that we can roll back changes if we are not
         # able to reduce the number of tetrahedra.
-        tempLoop = self.clone()
-        tempTri = tempLoop.triangulation()
+        tempInv = self.clone()
+        tempTri = tempInv.triangulation()
 
         # Start by minimising vertices. This will probably increase the
         # number of tetrahedra if the number of vertices is not already
         # minimal, but hopefully the monotonic simplification saves us.
         #
         # Might raise BoundsDisc.
-        tempLoop._minimiseVerticesImpl()
-        tempLoop._simplifyMonotonicImpl(True)   # Include 3-2 moves.
+        tempInv._minimiseVerticesImpl()
+        tempInv._simplifyMonotonicImpl(True)   # Include 3-2 moves.
 
         # Use random 4-4 moves until it feels like even this is not helping
         # us make any further progress.
@@ -639,8 +648,8 @@ class InvariantEdges:
             # Find all available 4-4 moves.
             fourFourAvailable = []
             for edge in tempTri.edges():
-                if edge.index() in tempLoop:
-                    # We do not want to touch the embedded loop.
+                if edge.index() in tempInv:
+                    # We do not want to touch the invariant edges.
                     continue
                 for axis in range(2):
                     if tempTri.fourFourMove( edge, axis, True, False ):
@@ -655,13 +664,11 @@ class InvariantEdges:
 
             # Perform a random 4-4 move, and see if this is enough to help us
             # simplify the triangulation.
-            #
-            # _simplifyMonotonicImpl() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
             renum = fourFour( *fourFourChoice )
-            tempLoop._setFromRenum(renum)
-            if tempLoop._simplifyMonotonicImpl(True):   # Include 3-2 moves.
+            tempInv._updateInvariantEdges(renum)
+            if tempInv._simplifyMonotonicImpl(True):   # Include 3-2 moves.
                 # We successfully simplified!
                 # Start all over again.
                 fourFourAttempts = 0
@@ -672,11 +679,11 @@ class InvariantEdges:
         # If simplification was successful (either by reducing the number of
         # tetrahedra, or failing that by reducing the number of vertices
         # without increasing the number of tetrahedra), then sync this
-        # embedded loop with the now-simpler tempLoop.
+        # collection of invariant edges with the now-simpler tempInv.
         tri = self.triangulation()
         simplified = ( tempTri.size() < tri.size() or
                 ( tempTri.size() == tri.size() and
                     tempTri.countVertices() < tri.countVertices() ) )
         if simplified:
-            self.setFromLoop(tempLoop)
+            self.setAsCloneOf(tempInv)
         return simplified
