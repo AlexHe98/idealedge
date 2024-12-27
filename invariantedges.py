@@ -155,15 +155,32 @@ class InvariantEdges:
         return self._tri
 
     def __len__(self):
-        #TODO Document.
+        """
+        How many edges are there in this collection of invariant edges?
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
     def __contains__( self, edgeIndex ):
-        #TODO Document.
+        """
+        Does this collection of invariant edges contain the edge with the
+        given index?
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
     def __iter__(self):
-        #TODO Document.
+        """
+        Returns an iterator that runs through all the edges in this
+        collection of invariant edges.
+
+        The InvariantEdges base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
         raise NotImplementedError()
 
     def intersects( self, surf ):
