@@ -1,0 +1,1523 @@
+
++-----------+
+| hyp-15-16 |
++-----------+
+
+Decomposing a sample of knots from the following datasets:
+==========================================================
+hyp-15-16
+    15a-hyp
+    15n-hyp
+    16a-hyp
+    16n-hyp
+
+Sampled 100 knots from set of 1641979. Time: 10.790702.
+=======================================================
+
+16nh_0664778
+------------
+Knot sig: qabcdbefghijfkcdlmkenojgmlhiaponpRvYuvb-E-5Fc.
+Embedding knot as an ideal loop.
+    Time: 0.000024. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.316492. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.316739. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.353177. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.353237. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLvLvLzvAMQALLAMPQQQcefontmqrsnqpuvvtAAxDzxCBCCBBDDiiuieptavbsgkjmtjalejrcnfnwsvjb
+
+16nh_0024193
+------------
+Knot sig: qabcdefbghijklmnakopjihgcfnmedpolRQLQSa-bVH-d.
+Embedding knot as an ideal loop.
+    Time: 0.000019. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.812371. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 21 tetrahedra.
+    Time: 0.812690. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.822445. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.822482. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: uLLvvLwLwPQQQQccelkkjlpqmrntrsqpsrstiiavsfaamlnsrwwcgcwcs
+
+16ah_331127
+-----------
+Knot sig: qabcadebcfghiedjklmgnofmlpjionhkpvvvvvb-dZ2ya.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.686140. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 35 tetrahedra.
+    Time: 1.686368. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.722211. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.722315. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ILLLvPvLLvLMvAQPQQPwPMQkcefihjpoqnztwsusvBAuCACBzyFGGHFGFHHiiegvbafggtltghchdggjgjjgcmhlgwwvjk
+
+16nh_0264684
+------------
+Knot sig: qabcdefghiajgfjkilmdnoeplboncmphklvLSSbFygjjc.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.346110. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.346478. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.358286. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.358325. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: yLLvPvLLAMwzAQAQQcdfgipjlmmlqtusrwvwtxuvxxdcagfehacfgilatawsvginblx
+
+16nh_0362277
+------------
+Knot sig: qabcdbefghieajhklmngopjdcimlknfoplvvLvbT2+XEa.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.020309. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.020539. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.033199. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.033241. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLvvvMMzzLPwPzQPQQQccegomjpqpwuosxAuvByuvAwCzABCCBiigatfddiifsvehorxdvcitcnbkkks
+
+16ah_208636
+-----------
+Knot sig: qabcdeafghidjklmenopfbmlkjcgpohinvvvvvb-Wp8da.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.736982. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.737723. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.757097. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.757155. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLLvPLLzzMzMwMwAQQLQkcefihmjnplnrptsyvtAAACBCxzDBCDEEiiegvibevgfsgttpivhuxqtuggpuufcw
+
+16nh_0889717
+------------
+Knot sig: qabcdbefghijklmicdjknoaepglmhpfnoRQQKQbFgyUzd.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.375701. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.375926. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.400396. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.400438. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLvLvLPLMLLMPwMPPQQMkcegjpjjosnpqwuyyAxzuBDADxABzCEEEiiicafolifcfaiaamcjwoljaggkbejrw
+
+16nh_0564794
+------------
+Knot sig: qabcdefdcghigjkblmnompalefihonjkpRQQMQa-NNT5d.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.356820. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.357044. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.369902. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.369935. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLMvwzwvQPzPLwPQQQbcdfgkiqnoomptsrvxAAzwywyzAzmkfavaglallejavfaswobjvggcrr
+
+16nh_0192782
+------------
+Knot sig: qabcdbefghijkdclfmnghopkleapjionmlvwvvbTydaBa.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.134283. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.134511. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.148370. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.148403. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLvLvMMzwwzQQQwQkceglihomprnwpwsuuvttsvyxyyiimaorqaavoaoptxxhhitoqavr
+
+16nh_0705696
+------------
+Knot sig: qabcdbefcdghijklhgmnfeokjpailmnoplRQSPaHbagdc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.660602. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.660830. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.678251. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.678297. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLvLvvvPvQPQMzPQQQkcehnjnvmvuruvtxqyzytAwAzxzBBBiiitgncnfrvvfvigxaxcifialhfwk
+
+16nh_0713741
+------------
+Knot sig: qabcdbefghigjeaklmfjnohipdcnopmlkRQ0QkbnEEyJd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.524057. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 36 tetrahedra.
+    Time: 1.524326. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.540098. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.540138. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLLLvvQLPvMPAPPAwQQccefeolkkrqtsvupurytywxABABCCBCiitdppatifliiastlpokvceuxunbnv
+
+16nh_0779338
+------------
+Knot sig: qabcdefbghijagcdhiklefmnlkopnmpojBwsvvbp9Eyyc.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.231944. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.232171. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.259280. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.259324. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLLvLLAwwzAALPwvQQQQkcefjnlnomtmrvsxsrvwxEAzCBBDDCEEDiidwiduddisravecseknhccqtuutehgv
+
+16nh_0427009
+------------
+Knot sig: qabcdeafghidegjklmnjopknhicbmlpoflPj7QaNdJrgc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.147498. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.147767. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.168234. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.168282. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLLLLvAwQvvAAAPQQPQcefhhmplqnrryrqtttwzzxBAByCDDCDiidmvimdicaeiqaowsgjnneiqnlwsog
+
+16nh_0753578
+------------
+Knot sig: qabcdeafghijkghkclmbfnopemldjiponlRQ0kb--p-8d.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.581663. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.581889. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.593191. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.593254. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLLLLzvAAzzAMAMALQQcceefglkjqnnsrtrquwyyvvACzzCBBCiiimbimiibvmaaamsbmmcrhelbcobs
+
+16nh_0569574
+------------
+Knot sig: qabcdefghijkldcmkngoajphofebmlnpiNvvvsb-sBsNa.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.542335. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.542566. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.554663. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.554697. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLvvLAMvvPPMQwzQPQQcfhgkjnpptonurqtvuzvwxAyzAzAdpgcwvpaggncwcoravaeacovfjck
+
+16nh_0592713
+------------
+Knot sig: qabcdefbghijagcdklmnjilopmnfepokhBwkTLa-9E+8d.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.096191. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.096431. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.118788. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.118835. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLvLLLMvMMwQMvMMMQQcceihnnirqqnmpuvvsxxywBzBzCCABCiimrimwmcosfvelxfhckwacpkxpkit
+
+16ah_351462
+-----------
+Knot sig: qabcdeafghijklmnjopbegnkoihdcplmfvvvvvb-F4NFc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.420707. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 37 tetrahedra.
+    Time: 1.420944. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.449229. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.449284. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: KLLvLvvwwAMvMLQwMPAAPQQPQcehprsmqvxsywtxBzvBBwEEEICGCHIDFHHJJJiiiideqeimramnielxmqlqbkmogopavstxals
+
+15nh_129297
+-----------
+Knot sig: pabcdbefghidcjkglimnomjealhonkflLvvvT2M0s.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.220515. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.220753. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.232821. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.232854. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLvLvvLzPMQPQAPMQccehosnqlvnoptupvqswyvwxzzyziiimatqtibssovslgrdapuqvfrf
+
+16ah_165269
+-----------
+Knot sig: qabcdefgahifjkglmnophdcbkjeilmponvvvvvb-Zd8da.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.460268. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.460496. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.473366. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.473400. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLAwwzwLPLvwMMQAAAQcbeedfgilonmptrxxuuyyvzzwBABCCCeddfafbdldekqtadckfbfmdglmskwk
+
+16nh_0076518
+------------
+Knot sig: qabcdefghfijakcdelmnobkhgpjmnolipRsAPvbFJ+39c.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.159742. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 23 tetrahedra.
+    Time: 1.159973. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.170929. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.170962. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: wLLvLvzwQvQPMQQkcdjmoinktptoqrusuvvtssviocpifiikjcjcjanddtsscg
+
+16ah_322074
+-----------
+Knot sig: qabcdeafghibejklmnhofpjdcmlkniogpvvvvvb-5F+Fc.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.241048. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 34 tetrahedra.
+    Time: 1.241284. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.250316. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.250347. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: HLLLLLvzLLMMQvLLAAAQPQQcegghnlmstsoqrpvCuyDCzDEBCFEFBFGGGiimmvanseeerowgmabjdaoliomaqlbpujn
+
+16nh_0821099
+------------
+Knot sig: qabcdefgahcijbhklmgjineoklpfndopmRzwjPbp6DZXc.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.616265. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.616497. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.627399. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.627435. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLvvLMPvvMAPAAzQMPQkcffikintqmusoupvrvzwzxBAyyABBipcvvvpaicaswegdbpueuodcnfcpa
+
+16nh_0376135
+------------
+Knot sig: qabcdbefghcdijaefklmnokpjimnhgolpllvwlb-FEBEc.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.298273. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.298501. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.307878. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.307911. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLvvvLMvwAAPQQQQkcekpqomrprpytwuwxyuxtwuvyxiismautapfsajbvsatslscsgtl
+
+16nh_0568199
+------------
+Knot sig: qabcdbefgehijklmahnocdplmpogfnkjiRsZQkb-8--Zd.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.384120. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.384345. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.395993. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.396025. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLvLPLPLLLwAwAQQQccefihmjnprspqtvvsyzwvwxzyyziixsfiflaiabvimaxsujbskxgfl
+
+16ah_164921
+-----------
+Knot sig: qabcdefghfcbihgijkalmnojkpldemnopvvvvvb-88Wma.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.425832. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.426059. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.438523. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.438563. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLwLPLzAwzPzLPPAQMQccfehlinmmmpqpvsvwuzyyByzACDDCDijatbitrwfkadoaktddwwwsoovxpeek
+
+16nh_0557304
+------------
+Knot sig: qabcdeafghijedklmnlkoipgnmcbfphojl1uvtb-ZNtod.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.363785. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.364044. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.382266. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.382308. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLvvvALLMLvvQMPMQQQQccfhjmnlkzsyrrzutxBCuBvywACBAzCickvdhsjmjxjkawjsqlgtblcadeaob
+
+16ah_348694
+-----------
+Knot sig: qabcadefghijklmkdejnoghpnmlbcopifvvvvvb--8mmd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.683700. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 36 tetrahedra.
+    Time: 1.683926. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.713466. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.713517. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ILLLLvLPLPvMALzvAQPPPQQkcefemlkkrqututwyuvEBxCBCBFADHFHGGGHiitdtpatifaiiuatwwunrpkpkaotavvwnfo
+
+16nh_0766560
+------------
+Knot sig: qabcdefghijklfglmneoijapkhobcdnmpRQQYQaFaGzEc.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.482425. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.482643. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.497904. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.497944. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLvLLMzvzwLPMQMLMQQkcgefkjlrmsuoxpwsrvvvBAzzBAzBAitdcavuabnagavijgefwafnoangdr
+
+16ah_101728
+-----------
+Knot sig: qabcadefghijkbcelmnijlopmnhgpofkdvvvvvb-NhaMd.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.944892. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.945122. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.959049. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.959084. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLLAwwQvzvwvMAPPQQQccdefehjilkpovzvswuBAAxCyAyzBCCioaaiiicicgvilooroaparxgtouuvv
+
+16nh_0172012
+------------
+Knot sig: qabcdecbfghiafjklmnjopknedmlihpogRwQQYaN9+F+d.
+Embedding knot as an ideal loop.
+    Time: 0.000034. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.373587. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 25 tetrahedra.
+    Time: 1.373880. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.387975. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.388008. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: yLLLvzvvPwLQQPQQQcdehjkpouqprtosxswvwuuvxxivlvxlnbavbvugnagapalnbob
+
+16nh_0824457
+------------
+Knot sig: qabcdbefghijkglmcdhknoaemlfpoijnplvnvvb-N-5hc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.294840. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.295065. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.310364. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.310424. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLvLvAPwvvzAQAQAPQQcceihllijroxvqqwytztuvCBByCAACBiihcidofngpdgnpdifgfbaxiwtrrix
+
+16nh_1006474
+------------
+Knot sig: qabcdefghijkglmnajimeocbpflhkpodnRQMQQah-8ymc.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.698758. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.698984. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.713256. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.713304. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: GLLvLLvMLMAMvzMAzAAQQQcceihoimprrnspststwxxBADFCEDACCEFFiimriwticocgrslfmjccarxmuetcefjjj
+
+16nh_0350480
+------------
+Knot sig: qabcdbefghcdijaklghmnloefokpjimnpRkTPubFygdMd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.934166. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 0.934393. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.942546. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.942575. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLLLLvwAwLQPwPQQkcefhhkplqsonrqrtvvywvxwwyyiidmvdmdiibgpiiqskpvsssvma
+
+15nh_078753
+-----------
+Knot sig: pabcdefghiahjfeklmnbclojgdkomniR0QQk3E7h4.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.943979. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 24 tetrahedra.
+    Time: 0.944206. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.950779. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.950807. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: xLLvLvwMPLvQQMQQcceikoimoqtnpsrqvtvsuwuwwiimliwdmalsckrkqauoahggn
+
+16ah_249817
+-----------
+Knot sig: qabcdefghijklhabmnklgopfednjimcpovvvvvb-ngYTa.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.710027. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.710261. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.737603. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.737646. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: GLLvALLvwLALwQMAAPwQPQccefhimkpnovtqwvuzsxuxxyyDEDCFEEFFiidaniujwkexsuxqfgjcjrbslformnjxi
+
+16nh_0033208
+------------
+Knot sig: qabcdbefgehijkalmgfmlhnocdkpinojplvvTKb-mpNda.
+Embedding knot as an ideal loop.
+    Time: 0.000026. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.866301. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 23 tetrahedra.
+    Time: 0.866551. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.870985. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.871013. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: wLLMLAvvLPMMwQQkbcdfhfgornoqoppuvsvttuvmvfaikftmwnffgopafbcwjs
+
+16nh_0400433
+------------
+Knot sig: qabcdbefghfeijklmnopnicdjklmaghopl1APsb-FWB4d.
+Embedding knot as an ideal loop.
+    Time: 0.000010. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.073953. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.074204. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.080862. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.080894. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLLLLLvwPzAMzMQQQccefhhmprlrqsptxvtstxyzwwzyziidmvimismblsdiiigofvbwnsvj
+
+16ah_248779
+-----------
+Knot sig: qabcdefghijkalmnofijedkplmnbcoghpvvvvvb-8Wpma.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.578161. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.578408. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.594498. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.594546. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLvLLLMvLPAMLAPAzvQQQkbfgilhkllmqorusqtyyxvzzABEBDCDEEmtpgtollgvgovubvhaugottpacovovfj
+
+16nh_0411526
+------------
+Knot sig: qabcdefbghijakhlmfndomjilpcneopgkRwPYQap7n-Zd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.457431. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.457658. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.468842. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.468876. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALvLvzPPLAzLMMPPQQccefililpqkntopuwxuxwyzzzyxydafvavalmcfabceuaamdfkfkkbr
+
+16nh_0782407
+------------
+Knot sig: qabcdecfghijkbfglmnkopjnalhdeopimxwsvvb-ZFV9c.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.731513. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.731741. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.763063. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.763107. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLvLLLLwzQzvMzQQQQkcdiimjnktmpoxszuwBvuAxByyAyBAicgvtseatfgfakaplaajgofofbfkg
+
+16nh_0417740
+------------
+Knot sig: qabcdefbcdghefijklaghijmnolkpnopmBsvvvbpFMFac.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.270214. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.270443. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.276185. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.276216. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLLvLMQzQvzMvQPQkbcgghimilkolmqtutsuywxyyxxmouovjlchgavoategvgutoscvr
+
+16nh_0938791
+------------
+Knot sig: qabcdefghijdklmkengoafnjihpblmcpoRQQPQaFEy7Nd.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.931866. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.932122. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.951445. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.951491. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLLPvLLMzzzAwAQPMQQcefeihoqklpnwxurzzyyAxwBCCBDDDCiitdvvaiggffaaagapxumbgmhikffvk
+
+16nh_0319697
+------------
+Knot sig: qabcdbefgehijklmcdnomlpjfgkponahilvQAlbF4EwGd.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.117567. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.117819. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.128127. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.128159. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLvLvwPPPvQMPzQQkcehhnolmqmnsstptrvtywywxxyiiivqhxattspeegigpgkrfggog
+
+16ah_136988
+-----------
+Knot sig: qabcadefghijkldmfnoemghijbcplonkpvvvvvbVHjblb.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.403434. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.403661. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.420361. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.420407. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLvLLLLLzMQvvPAQPQAQkceeknjjlpruutqzBszAADDyxxyCBEDEEiiaaifgljvalisqpvigjehkvcnwstduq
+
+16nh_0900493
+------------
+Knot sig: qabcdbefghijklmingopakjecdfnhmlopRQkPQbFmSJnd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.433228. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.433457. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.441239. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.441268. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLLwzzMLvLMAMvMQMQQccdfehljjkppoqrtvAwzyyxAAxBCBCCiceaviaofdqatwjfmhxpllhsskrjcg
+
+16ah_033520
+-----------
+Knot sig: qabcdeafghijklmghijkndcnlmopfbeopvvvvvb-+-TXa.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.256464. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.256691. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.268384. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.268421. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLLzwLvvwwQQzPMQQQbcfgihkmnovwttxysysxAywwvzAAmklaifkvwwldlhmdntbtdlsbrjon
+
+16ah_345419
+-----------
+Knot sig: qabcdefghijkglmnabcflhojnpedpmiokvvvvvb-m5tMa.
+Embedding knot as an ideal loop.
+    Time: 0.000021. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.338494. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 36 tetrahedra.
+    Time: 1.338720. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.383307. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.383368. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: JLLvLLvQvMMwvMwPvPPPQQQQcceihomirqqnmwwzvzEBxBCIHGEAIFHDFGFIHiimrixwmcosfatdddpbccbldqqsmqhkahhob
+
+16nh_0060557
+------------
+Knot sig: qabcdbefaghefijklmknopgdchionlmjplvvLvbTZ8WWa.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.036769. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 22 tetrahedra.
+    Time: 1.037025. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.044601. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.044632. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: vLLAzLAwzQzLMMQcdedfiijklnmnprqssutuuhslfcquhlebbjdtfudlrpm
+
+16nh_0653611
+------------
+Knot sig: qabcdefghijkeflmnjcbiopnmpolkdahgRPQQkb3WVXSa.
+Embedding knot as an ideal loop.
+    Time: 0.000016. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.243999. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.244230. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.256812. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.256850. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLvLwzMPAwvAPMMPQMkcdighnklpnomspwrtvtwAyyzzABBBicgbciaaalifmssggkbbehuafoeap
+
+16ah_142105
+-----------
+Knot sig: qabcdeafghijklfmhnogmbcdepjonipklvvvvvb-Ei9sa.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.743586. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.743813. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.776079. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.776121. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: GLLvLLLvzLPALQQzLwQAQQccefhnlpvnmovqstwrttBxBCAADFDEFCEFiixfixaigscubfvqwgfufkkgoulppdjoc
+
+16nh_0320730
+------------
+Knot sig: qabcdefbghijklmnaghonfemlkpicdjpoBkLvRa-binyc.
+Embedding knot as an ideal loop.
+    Time: 0.000023. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.323034. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.323261. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.339593. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.339641. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLvLLvwwMQzwQPQQkcdiionlosttmpqwryvuuxyxxwyicgvieqmgcrfcribdtaqihbngj
+
+16nh_0545251
+------------
+Knot sig: qabcdefgcbhfidjklmanojklmpnhgieopRQuvPb32+8Wa.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.555189. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.555418. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.571890. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.571933. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLvvvALvAPAwLMQPQQQbjlmlpsksnsryvutvwzwzyxAAxzAmogajmuohaukakrfjdhdhhtuuocj
+
+16ah_265124
+-----------
+Knot sig: qabcadefghijfklghmnlkopnmbcpoejidvvvvvb-NppFc.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.353472. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.353698. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.376087. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.376137. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: GLLLPvwzzLALwzMMPQQMLQcccfhggnmlqotprxxuvBzzBAyCyyDEEFFFdgadgjkvjamppbamgnxhtiugckfmutwvc
+
+16ah_146597
+-----------
+Knot sig: qabcadefghijklhmnbcilopefgmndpokjvvvvvb-d8Wpa.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.509604. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.509872. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.525225. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.525281. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELvLLLLzvwAvMQPQwPQQQcehknknlmywvqstutAsyBzDCCCzDDBBtlladddlcadafwwsgxfdfbnkogbkgoc
+
+16ah_126414
+-----------
+Knot sig: qabcdefghijkablmcnojihkpnfedmlgopvvvvvb--pp-a.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.799397. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.799622. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.811158. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.811191. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLAvLLPvMPALLPAAMQPcbcdehhjlpnmrnoqutvwwvyAABBzCCCtsfxxtjjaxvatbvmiaejcklduumlde
+
+16nh_0972192
+------------
+Knot sig: qabcdefghijkcblhmnopkjilgmpdafnoet1uvvbpHjHpa.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.096502. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 1.096781. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.130485. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.130545. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: HLLvvvLzvLMLPzPQQAQzQQQcepkvtnzwoAsqwxsyDyyAvExCGCDFEEDGGiiefadminfafjfggnlsgqgdbavngncrbvj
+
+16ah_140826
+-----------
+Knot sig: qabcdefghijklhimnomlpfajonkbcdepgvvvvvb-MNn8a.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.541282. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.541550. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.556159. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.556210. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLLvAMLAQwLwAwALMQQacfghjjnolomoqqsuvtwzyCCAADCBDDjkgjlecaxwxwluhaxtoeuruadxppggk
+
+16nh_0695030
+------------
+Knot sig: qabcdbefghcdijheklmnaolkopnijgfmplnvvvbFBaMXc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.383771. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.384168. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.399087. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.399131. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLLLLLvLwLAzQQQLPQkcdfhimorrruvqsyqtwsxyAzBBzyABicegvigcvoatrlxvlhljwpqlpingg
+
+16ah_151939
+-----------
+Knot sig: qabcadefghibcjklmkniopdepohnjmlgfvvvvvb--m-Zd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.541595. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.541828. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.555294. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.555326. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLvwMLLLzvLPAQQQQLQccffjmiplnqsruxvtvyuywBBAzBCDDDdfafapcffgcllamggbvfsguaoodaacv
+
+16nh_0592440
+------------
+Knot sig: qabcdbefcdghijkilmjkanoefphgplmonRYQKLbFMNpjd.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.463916. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.464172. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.477306. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.477356. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLvvLvMwQQwLvQQMQQceipmnssqnolmsxtvzwzuvxyAyAAiivillqtaluqxreqlulcgjcnendi
+
+16nh_0320845
+------------
+Knot sig: qabcdbefcdghijklmnlkogaijefopmnphRsvvwbFo+n4b.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.269954. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.270186. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.279105. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.279139. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: yLLLALvwLvPLAQQQQcegfghlmnttostsrvwuvuwxxxiidahrhrqlsgkskbfrsrgohqt
+
+16nh_0136468
+------------
+Knot sig: qabcdbefghijkghilmcdnojkaemponplflRYmvb-b4HNd.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.067547. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 24 tetrahedra.
+    Time: 1.067771. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.076689. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.076720. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: xvLAvwvAwzQLPQQQcdeefmklntqsopwpvrsvtuuwwbbbhphdabfknjtblboxopuvg
+
+16ah_351877
+-----------
+Knot sig: qabcdeafgdchijklmkhnomlbepfojingpvvvvvb-Sn8ya.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.581620. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 35 tetrahedra.
+    Time: 1.581857. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.607831. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.607948. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ILLvLLvzwzwwAQMQvMLQAQQkcegipjmuqqowptwssttyzEFzCDFHHFDGGGHiidvtfliggjigklgbggfoamchlagogvgvvj
+
+16nh_0552140
+------------
+Knot sig: qabcdbefghaeijklcdmghmnkjopilnopfRLkTQaFjyaac.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.936021. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 28 tetrahedra.
+    Time: 0.936251. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.948841. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.948887. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLvLLLzPPzMwwzQQQQcefhmoloposmnpruyxwzvxwAAyzAiixfmhxdhhiscngikvrwnvnhmkji
+
+16nh_0515911
+------------
+Knot sig: qabcdbefghijkglmcdnopnaejimlhkfpolvnvvb-b+CMa.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.184999. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.185640. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.209529. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.209590. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLvLzvLLPPAzMMQQQccehimlomunusspxrvxvwwvuzyzziiisladlinubbghgptpppeibgbv
+
+16ah_310129
+-----------
+Knot sig: qabcadebcfghijklminohmjpfglkpednovvvvvb-Z2d2d.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.805520. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 1.805892. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.827621. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.827677. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: HLLLLzzvLAwQQzwzPPvPQQQcefehlmmqqqrprrtsvwxwCCAGEBEFDGFEGiitdviogfsgcgkfpuhspghrfpaoeeplffo
+
+16nh_0001794
+------------
+Knot sig: qabcdefgchijkblmnkgfoipnalhdeojpmxPmlNaFop8pd.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.637804. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 17 tetrahedra.
+    Time: 0.638035. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.642629. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.642658. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: qvLLALzzQPQkegdfijlmnlnmopoppsejeovihmpplponvv
+
+16nh_0932047
+------------
+Knot sig: qabcdefghijklmedmniogfapohnlcbkjpRQQYQaFgM5zc.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.266317. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.266547. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.290994. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.291050. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLvLLLvvvLQPQLLAQQQQkcegkjnmmwppwrzsvDvDxABwEyCzACEDEiiixcsfwwbvcbhggioixlhffgvsbgocg
+
+16ah_290224
+-----------
+Knot sig: qabcadefghiejklbcihmnomlpjfgonkpdvvvvvb-tozgc.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.402457. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 33 tetrahedra.
+    Time: 1.402685. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.424476. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.424519. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: GLLvLvvzMMPzwwQPzQQPQPccehmimsluonpvzAyBvxCxBAAzEEzBDFFFiiihgaatiffviaihmttahcnnvphjcotuf
+
+16nh_0263684
+------------
+Knot sig: qabcdbefcdghigajklmnfejopklpomnihltvvvbFo-5-a.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.762196. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 25 tetrahedra.
+    Time: 1.762524. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.773804. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.774119. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: yLLLLvzPLzQPQAzMQcefemlkkrsqnpottptsuwxxwxiitdipatiqcjsoedgddsdnwgb
+
+16nh_0673346
+------------
+Knot sig: qabcdefghijkefilmncbohgpaoljkmndpRQQAQa3-J9mc.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.941594. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.941897. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.956005. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.956083. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLvLvLzLAMAzQLQQQccefomlmoqlnutqrssvuwvzyzyyziixilxaxagcavcgjjexarvvvskr
+
+16nh_0701278
+------------
+Knot sig: qabcdefgahijkflmnbhojpelmdcngkpioR0kPQbFg+9Nc.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.458169. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.458392. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.476415. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.476460. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLvLLvwQzPvzQQPLQQkcehloimlkrpwsuruvstzyxBAyABABiiidicddenfujirtdflnocmdchaht
+
+16nh_0649563
+------------
+Knot sig: qabcdbefghaeijklmnlgopfmnicdjkhopRLvvsbFmda+a.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.200327. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.200557. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.213273. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.213324. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLvLLvAvALQzQMMAQQcehiojmqpqvsppuwwvszwxAzyyAAiilvistaggafrcdaiugfssujwkll
+
+16nh_0960001
+------------
+Knot sig: qabcdefghijkcbklemahnopfmdlpojingtLwvvbNSLqYa.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.142094. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.142345. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.158794. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.158838. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLvvLAMvvLQMQALQMzQQceikhnkwtorvtvuqruywzvAByACDCDDiivsgisiroskgscvjfadlcetbcpxkcb
+
+16ah_349421
+-----------
+Knot sig: qabcdefghijbajklmnohipnfckldempogvvvvvb-2G3Sb.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.776104. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 35 tetrahedra.
+    Time: 1.776328. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.800930. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.800972. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ILLvAwzALwPwLLQMvMzQPMQkcdehflkimprsoqxuxttzzyCEFFDDEDGHHGHicaiviemkthlmvapapxssnaualcjbbihhpv
+
+16ah_246470
+-----------
+Knot sig: qabcdeafgdchfijklmnghbeniompkjplovvvvvb--N-zc.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.407726. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.407956. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.415947. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.415979. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLPwAPLwAvAzLMwzQzQQccdefhgjiklnmqrqutwxxABzzCADCDDhggaaaaaaaaaagofavolmeaaotfmmpg
+
+16nh_0509030
+------------
+Knot sig: qabcdefghdcijkaflmnlohibeopnmpgjkBjvnvbV9pzYd.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.626802. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.627025. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.642529. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.642578. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLPwAvAwLvPwPLQPQQccdfeghklknsusrwwuxxvzzAAyzAhggaaaaocvadmdqafnwfbvrdmgol
+
+15ah_21470
+----------
+Knot sig: pabcdeafghidjkclmnobkjeilonmhgfvvvvv-F+5-.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.373789. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.374014. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.384436. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.384490. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLAvLzwMzvMQLQPPQcbcdehkmloquqsppwtwwvxzxyzyztsfxxajjeiagsbgugutfudtqtvv
+
+16nh_0719751
+------------
+Knot sig: qabcdefghijbcdklejmnohimapnogflkpBLuvvbp2H-hc.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.416574. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.416809. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.433780. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.433827. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: CLLvLvvQzAwvQzMMQQQkcegoolnmnlpxpysswvuBzAAzzyBBAiidmxttattcacpfkdggwwffwrfwkr
+
+16ah_242420
+-----------
+Knot sig: qabcdefghijklmnopdenabijmfglkhcpovvvvvb--Z--a.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.569172. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.569402. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.583371. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.583421. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLvLALwAQwLLwAALAQAQcefjimklloonpsqsxtuvwABzCzBADDDiixfsiuuapafvaabmkgvagcwxbjbmks
+
+16nh_0053734
+------------
+Knot sig: qabcdefbghcdijhgkljimnopaklmefnopNuvvnbZH5--d.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.936961. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 23 tetrahedra.
+    Time: 0.937184. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.945048. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 0.945077. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: wLvLLMzLvPvQQQQkbfejjhiqltpvpstvurvusutmpxrkoosbdklfaqamgqxdhv
+
+16nh_0087157
+------------
+Knot sig: qabcdbefghijklhmnojimpaefglkcdonpln1unb-FM-zc.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.005194. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 24 tetrahedra.
+    Time: 1.005425. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.011799. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.011829. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: xLLvMLvvPPLQwQQQccdggjknqlopsrowqttvwvuwvdkeghhawfrvekoafxhaogfjk
+
+16ah_158631
+-----------
+Knot sig: qabcdefgabhijkclmfgnopldkhijemnopvvvvvb--ZWpa.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.669468. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 31 tetrahedra.
+    Time: 1.669725. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.685444. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.685491. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ELLLLvMAzvAQzzAAMAAPQcddghhkmorqorpstwtyxvAyzBABCDDDpvrgvfagaadmacnfaoudcifiaiscixi
+
+16nh_0258797
+------------
+Knot sig: qabcdbefghijklagmncdopnefmhijkpolRuLSvb--3-+d.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.192949. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 24 tetrahedra.
+    Time: 1.193177. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.198904. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.198934. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: xLLvLLLwLPMPQAAQcceiinnpmqopmrtutsrvsvwwwiidreuluacsfwdiinomnwnrb
+
+15nh_058707
+-----------
+Knot sig: pabcdecfghijfklmanhojdebkgoinlmRQ0Qs9ZEp7.
+Embedding knot as an ideal loop.
+    Time: 0.000011. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.208017. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 24 tetrahedra.
+    Time: 1.208249. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.215948. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.215979. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: xLLzzLMvwLAzMQQQcccdgjhknpmoorvtuvsttuwwwhgggabacuoiadrvssggvshai
+
+16nh_0686320
+------------
+Knot sig: qabcdefghicdjkljemnoahpfmbilkpgnoBjvvwbV4Ktbd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.320222. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.320812. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.344139. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.344198. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLvvvvLzPzMQQMAQQQceknnmtowmosyxvtrwszAxAAxzyziiseaaatssffpvbjgggaagidoedk
+
+16ah_071071
+-----------
+Knot sig: qabcdefghijkcdeflmgbklmjnophinapovvvvvb-NNH8a.
+Embedding knot as an ideal loop.
+    Time: 0.000017. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.149307. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 29 tetrahedra.
+    Time: 1.149536. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.158673. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.158704. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLLPzMAPLLLzPMzMMQbcgefihijklmopqsutvuwyxyzzAAxvauvpfiebaaacaaacaaaagalfkk
+
+16nh_0625265
+------------
+Knot sig: qabcdefghiejklamnomhgpjdcbifpnoklRkvQAbF7d7bd.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.438923. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.439389. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.468202. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.468280. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLvAvvAwzMvQQAQAPQcefhkmlsmsovxpqurxwywvuzzAAAiieatdeishgtajctghqrncbhqean
+
+16ah_298150
+-----------
+Knot sig: qabcadefghdijklghmnokjpnmbcpolfeivvvvvbFEojFc.
+Embedding knot as an ideal loop.
+    Time: 0.000023. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.472135. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 41 tetrahedra.
+    Time: 1.472360. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.499652. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.499717. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ILLvLvvwLPQvQzwPQPPMPMQkcehpsutmonvrqxwAyxyxADzyECDFCFHGHGHiiiiiaaagcaffailllllhagcrfslvlhahns
+
+16nh_0227820
+------------
+Knot sig: qabcdbefghigjkcdklmnojaepolmnpfihl1QYkb-Zp8Wa.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.086604. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 27 tetrahedra.
+    Time: 1.086828. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.100795. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.100827. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: ALLLLLMvMMwwvzQQQQccefhhklonnmpqruuzztyyzxxwxyiidmviimcocsqvcgqtnjwqgckvk
+
+16nh_0697218
+------------
+Knot sig: qabcdefghijklbcdelmjnfohipaognkmpRQQQPa-HFgBc.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.468796. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.469020. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.475015. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.475044. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BLLLLAvzPvPvMPQwQQQbcefiglkmpnvxurwstsAAwzzyyAztstgjvavvbbupavrvgbddctmwjmt
+
+16nh_0959168
+------------
+Knot sig: qabcdefbghijklcmndlojpaihgokenmfpRQQMQa-H-n+d.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.751003. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 34 tetrahedra.
+    Time: 1.751237. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.787673. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.787739. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: HLLvAvLvLzAvQPvAQMQMMQQcefhnotmluvwpusCszDyEEDAyFACFGFGDGiiiaieisruuakhcdbqvwlacboewvdldhcc
+
+16nh_0534314
+------------
+Knot sig: qabcdefbcdghijkfeljmnohplkagpionmRszvvbppHqoa.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.232677. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 28 tetrahedra.
+    Time: 1.232901. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.251973. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.252024. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: BvLALvzLAzPzQvQPAQQdcegjkojpqnprvvrvuxyzuxzyAAAbvvafhavgbcvgexvxvgbubflvtaf
+
+16nh_0359224
+------------
+Knot sig: qabcdbefaghijefkglmdcjinoplmnophklvvMSbTddZ5a.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.260005. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.260236. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.271448. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.271481. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLLvLvwzLPLPQPQMQkcegjporqnqwsutwrpqxxyvyvxyiidgtddajgmghvivgrqiapwgsk
+
+15nh_117804
+-----------
+Knot sig: pabcdefghbcigjaklmndihjomlknefotzvvvpTdja.
+Embedding knot as an ideal loop.
+    Time: 0.000014. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.078439. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 26 tetrahedra.
+    Time: 1.078667. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.089906. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.089939. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: zLvAwLvvMALQAzPQQkcdefhokonqrsnurttwxvwxywyydjaqkkrjoaumfauqkokgfbagpu
+
+16nh_0901393
+------------
+Knot sig: qabcdefghijkalmhinojgpeblonmcdpfkRAQQQaFWayyc.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.239121. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.239351. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.269850. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.269898. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLvvvLwLPAvLQQMQLQQPkceoojnlsuxqwArqzvwyzvDBDyByCECEEiiqtcataapvrannibstabaxaekgcpjip
+
+16nh_0027357
+------------
+Knot sig: qabcdbefcdghijaefklmnokpjimnhgolplRu2kb--F7Fc.
+Embedding knot as an ideal loop.
+    Time: 0.000023. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.357615. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation from planar diagram.
+Edge-ideal: 21 tetrahedra.
+    Time: 1.357850. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.365960. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.365992. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: uLvvLwMLMPPAQQcbfjjjolnmpropnstsrtstxxovvaxttlajkbvmfbmbt
+
+16nh_0775723
+------------
+Knot sig: qabcdefgchijklamnopdgblnoijkhpefmRQSQQandgdac.
+Embedding knot as an ideal loop.
+    Time: 0.000012. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.264477. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 32 tetrahedra.
+    Time: 1.264727. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.294297. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.294339. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: FLLLLLLPLwzzMAzzMQMMQkbdfhhhjjnorspwuuxzBBxyCzyzEDEEDDdwurrsltgcpellfvualemqmetftwhlwj
+
+15nh_048818
+-----------
+Knot sig: pabcdefghijdcbejkhglmkifnoanlmolTsvvF73GN.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.122841. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 23 tetrahedra.
+    Time: 1.123164. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.134981. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.135047. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: wLLvLMLzAwvQPQQkcefihmjkjloqpurssvtvuvuiixsfifxvsgpnluxswsfojn
+
+16nh_0854633
+------------
+Knot sig: qabcdecfgbhijkldemnokpahmnijolfgpRQQMQa-h+T5d.
+Embedding knot as an ideal loop.
+    Time: 0.000018. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 1.458932. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 30 tetrahedra.
+    Time: 1.459241. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 1.469297. Searches: 0. Primes: 1. #Tri: 1.
+Found a hyperbolic knot!
+    Time: 1.469329. Searches: 0. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: DLLLLLzAvLvvMPQMPQQQccefehlmkpywtxAsryuAzzvCwByzCBCiitdvidavdldppggkkfgsomvqkbeqg
+
+================================
+Total knots: 100.
+Total time: 138.477031.
+All cases computed without timing out.
+Cases slower than 2 times the average:
+    (None)
+

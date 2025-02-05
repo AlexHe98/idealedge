@@ -1,0 +1,131 @@
+
++-------------+
+| torus-15-19 |
++-------------+
+
+Decomposing knots from the following datasets:
+==============================================
+torus-15-19
+    15a-torus
+    15n-torus
+    16n-torus
+    17a-torus
+    19a-torus
+
+15at_1
+------
+Knot sig: pabcdefghijklmnoabcdefghijklmnovvvvv-----.
+Embedding knot as an ideal loop.
+    Time: 0.000032. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.705628. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 7 tetrahedra.
+    Time: 0.705869. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.721758. Searches: 7. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 0.721907. Searches: 7. Primes: 0. #Tri: 1.
+    Time: 0.722385. Searches: 7. Primes: 0. #Tri: 1.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 0.722422. Searches: 7. Primes: 1. #Tri: 1.
+    Time: 0.722439. Searches: 7. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: jLAMzMPbcbdefghiidlcqhhhhhk
+
+15nt_1
+------
+Knot sig: pabcdbefghcdijklaefmnijomghnokllnvMz-----.
+Embedding knot as an ideal loop.
+    Time: 0.000013. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.551316. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 5 tetrahedra.
+    Time: 0.551545. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.563009. Searches: 7. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 0.563166. Searches: 7. Primes: 0. #Tri: 1.
+    Time: 0.563382. Searches: 7. Primes: 0. #Tri: 1.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 0.563428. Searches: 7. Primes: 1. #Tri: 1.
+    Time: 0.563448. Searches: 7. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: fLAMcaccdeejjjlxj
+
+16nt_1
+------
+Knot sig: qabcdefbghcdijefklmnopaghijklmnopRmtvvb-----d.
+Embedding knot as an ideal loop.
+    Time: 0.000015. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.557129. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 4 tetrahedra.
+    Time: 0.557352. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.567627. Searches: 4. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 0.567851. Searches: 4. Primes: 0. #Tri: 1.
+    Time: 0.568256. Searches: 4. Primes: 0. #Tri: 1.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 0.568320. Searches: 4. Primes: 1. #Tri: 1.
+    Time: 0.568363. Searches: 4. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: eLAkbbcddainxk
+
+17at_1
+------
+Knot sig: rabcdefghijklmnopqabcdefghijklmnopqvvvvvf-----p.
+Embedding knot as an ideal loop.
+    Time: 0.000021. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.652203. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 8 tetrahedra.
+    Time: 0.652425. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.665772. Searches: 8. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 0.666340. Searches: 8. Primes: 0. #Tri: 1.
+    Time: 0.666756. Searches: 8. Primes: 0. #Tri: 1.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 0.666793. Searches: 8. Primes: 1. #Tri: 1.
+    Time: 0.666811. Searches: 8. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: kLAMzMzkbcbdefghijjdlcqhhhhhhs
+
+19at_1
+------
+Knot sig: tabcdefghijklmnopqrsabcdefghijklmnopqrsvvvvvvb------d.
+Embedding knot as an ideal loop.
+    Time: 0.000022. Searches: 0. Primes: 0. #Tri: 0.
+    Time: 0.701953. Searches: 0. Primes: 0. #Tri: 0.
+Built triangulation using 1/0 Dehn surgery.
+Edge-ideal: 9 tetrahedra.
+    Time: 0.702178. Searches: 0. Primes: 0. #Tri: 1.
+    Time: 0.735864. Searches: 9. Primes: 0. #Tri: 1.
+Main enumeration succeeded.
+Found a prime knot! Is it nontrivial?
+Attempting to enumerate covers of index 2 to 6.
+    Time: 0.736317. Searches: 9. Primes: 0. #Tri: 1.
+    Time: 0.737715. Searches: 9. Primes: 0. #Tri: 1.
+Certified nontrivial using covers of index 2.
+The prime knot is nontrivial!
+    Time: 0.737811. Searches: 9. Primes: 1. #Tri: 1.
+    Time: 0.737861. Searches: 9. Primes: 1. #Tri: 1.
+Found 1 prime:
+    Drilled iso sig for prime #0: lLAMzMzMcbcbdefghijkkdlcqhhhhhhhk
+
+================================
+Total knots: 5.
+Total time: 3.258922.
+All cases computed without timing out.
+Cases slower than 2 times the average:
+    (None)
+
