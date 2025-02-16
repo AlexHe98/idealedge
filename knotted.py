@@ -36,8 +36,16 @@ def knownHyperbolic(loop):
     while True:
         attempts += 1
         sol = spt.solutionType()
-        if ( sol == SnapPeaTriangulation.Solution.Geometric or
-            sol == SnapPeaTriangulation.Solution.Nongeometric ):
+        try:
+            # Introduced in Regina 7.4:
+            geom = SnapPeaTriangulation.Solution.Geometric
+            nong = SnapPeaTriangulation.Solution.Nongeometric
+        except AttributeError:
+            # For backwards compatibility with Regina 7.3 and earlier (but
+            # this usage is deprecated as of Regina 7.4):
+            geom = SnapPeaTriangulation.geometric_solution
+            nong = SnapPeaTriangulation.nongeometric_solution
+        if ( sol == geom or sol == nong ):
             probablyHyperbolic = True
             break
         elif attempts < 4:  # Hard-coded limit on the number of attempts.
