@@ -35,8 +35,9 @@ def knownHyperbolic(loop):
     attempts = 0
     while True:
         attempts += 1
-        if ( spt.solutionType() == SolutionType.geometric_solution or
-                spt.solutionType() == SolutionType.nongeometric_solution ):
+        sol = spt.solutionType()
+        if ( sol == SnapPeaTriangulation.Solution.Geometric or
+            sol == SnapPeaTriangulation.Solution.Nongeometric ):
             probablyHyperbolic = True
             break
         elif attempts < 4:  # Hard-coded limit on the number of attempts.
