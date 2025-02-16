@@ -479,7 +479,7 @@ def _enumerateSerial( oldLoop, tracker ):
             simpLoop = oldLoop.clone()
             simpLoop.randomise()    # Might raise BoundsDisc.
             if simpLoop.triangulation().size() < tri.size():
-                oldLoop.setFromLoop( simpLoop, False )
+                oldLoop.setAsCloneOf( simpLoop, False )
                 tri = oldLoop.triangulation()
                 enumeration = TreeEnumeration( tri, NS_QUAD )
                 beforeReport = "Simplified to {} tetrahedra.".format(
