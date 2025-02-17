@@ -3,6 +3,10 @@ Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
 from loop import IdealLoop, BoundsDisc
+try:
+    import snappy
+except ModuleNotFoundError:
+    snappy = False
 
 
 def loopPacket(loop):
@@ -31,11 +35,11 @@ def embedByFilling( knot, insertAsChild=False ):
     it does not check nontriviality directly. If this routine does happen to
     detect that the given knot is trivial, then it will raise BoundsDisc.
 
-    Warning:
-    --> This routine uses fast heuristics to attempt to construct the desired
-        triangulation, and is not guaranteed to terminate. Use the
-        embedFromDiagram() routine to build the ideal loop using an algorithm
-        that guarantees to terminate.
+    If SnapPy is installed, then this routine is guaranteed to successfully
+    construct the desired triangulation. Otherwise, this routine uses a
+    heuristic construction that is not guaranteed to terminate. In the latter
+    case, use the embedFromDiagram() routine to build the ideal loop using an
+    algorithm that guarantees to terminate.
 
     Returns:
         The constructed ideal loop.
@@ -46,6 +50,23 @@ def embedByFilling( knot, insertAsChild=False ):
         packet = knot
     else:
         packet = None
+
+    # If SnapPy is installed, then the filling can be done quickly and with
+    # a guarantee of termination.
+    if snappy:
+        knot = snappy.Link( knot.pdData() )
+        tri = snappy.exterior_to_link.mcomplex_with_link.link_triangulation(
+                knot.exterior(), add_arcs=True ).regina_triangulation()
+
+        # Last tetrahedron is the base of a layered solid torus, and the
+        # degree-3 edge in this base tetrahedron runs along the knot.
+        base = tri.tetrahedron( tri.size() - 1 )
+        lst = LayeredSolidTorus.recogniseFromBase(base)
+        idealEdge = base.edge( lst.baseEdge(3,0) )
+        return _edgeToIdealLoop( idealEdge, packet )
+
+    # Otherwise, we must fall back to doing the filling using Regina, which
+    # is not guaranteed to terminate.
     knotComplement = knot.complement()
     return reversePinch( knotComplement, packet )
 
@@ -94,6 +115,24 @@ def reversePinch( knotComplement, packet=None ):
     layer = knotComplement.layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
+    return _edgeToIdealLoop( idealEdge, packet )
+
+
+def _edgeToIdealLoop( idealEdge, packet ):
+    """
+    Constructs the ideal loop represented by the given edge.
+
+    If the optional packet is supplied, then this routine will run
+    loopPacket() on the constructed ideal loop, and then insert the resulting
+    packet as a child of the given packet.
+
+    This routine is mainly designed to work with *nontrivial* knots, although
+    it does not check nontriviality directly. If this routine does happen to
+    detect that the given knot is trivial, then it will raise BoundsDisc.
+
+    Warning:
+    --> This routine modifies the triangulation containing the given edge.
+    """
     loop = IdealLoop( [idealEdge] )
     noSimplification = 0
     while noSimplification < 2:
