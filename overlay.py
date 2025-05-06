@@ -30,7 +30,7 @@ def overlay(*braids):
     widths = [ braidWidth(b) for b in braids ]
     strands = [ (0,ii) for ii in range( widths[0] ) ]
     rightmost = [ (0,ii) for ii in range( widths[0] ) ]
-    middle = sum([ len(b) for b in braids ]) // 2
+    numCrossings = sum([ len(b) for b in braids ])
     for i in range( 1, numSummands ):
         if i % 2 == 0:
             _interleaveRight( i, widths, strands, rightmost, braids[i] )
@@ -49,9 +49,16 @@ def overlay(*braids):
                 stillProcessing = True
             else:
                 continue
-            if crossingsProcessed == middle:
+
+            # Puppet trick.
+            if crossingsProcessed == numCrossings // 4:
                 # Add in positive full twist.
                 _addPuppetTwist( compBraid, len(strands), True )
+            elif crossingsProcessed == 3*numCrossings // 4:
+                # Cancel out the positive full twist that we added earlier.
+                _addPuppetTwist( compBraid, len(strands), False )
+
+            # Now process crossing.
             oldCrossing = braid.pop(0)
             crossingsProcessed += 1
             k = abs(oldCrossing)
@@ -66,9 +73,6 @@ def overlay(*braids):
                     prefix.append(-s)
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
-
-    # Cancel out the positive full twist that we added in the middle.
-    _addPuppetTwist( compBraid, len(strands), False )
 
     # Convert compBraid into a composition of the input knots (but with a
     # more complicated diagram than the standard way to compose knots, as a
