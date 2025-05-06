@@ -30,6 +30,7 @@ def overlay(*braids):
     widths = [ braidWidth(b) for b in braids ]
     strands = [ (0,ii) for ii in range( widths[0] ) ]
     rightmost = [ (0,ii) for ii in range( widths[0] ) ]
+    middle = sum([ len(b) for b in braids ]) // 2
     for i in range( 1, numSummands ):
         if i % 2 == 0:
             _interleaveRight( i, widths, strands, rightmost, braids[i] )
@@ -39,6 +40,7 @@ def overlay(*braids):
     # Strands have been interleaved. Now we need to introduce the crossings.
     compBraid = []
     stillProcessing = True
+    crossingsProcessed = 0
     while stillProcessing:
         stillProcessing = False
         for i in range( len(braids) ):
@@ -47,7 +49,11 @@ def overlay(*braids):
                 stillProcessing = True
             else:
                 continue
+            if crossingsProcessed == middle:
+                # Add in positive full twist.
+                _addPuppetTwist( compBraid, len(strands), True )
             oldCrossing = braid.pop(0)
+            crossingsProcessed += 1
             k = abs(oldCrossing)
             startStrand = strands.index( ( i, k-1 ) )
             endStrand = strands.index( ( i, k ) )
@@ -60,6 +66,9 @@ def overlay(*braids):
                     prefix.append(-s)
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
+
+    # Cancel out the positive full twist that we added in the middle.
+    _addPuppetTwist( compBraid, len(strands), False )
 
     # Convert compBraid into a composition of the input knots (but with a
     # more complicated diagram than the standard way to compose knots, as a
@@ -135,6 +144,17 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
             rightmost.append(newStrand)
 
     # All done.
+    return
+
+
+def _addPuppetTwist( braid, totalStrands, isPositive ):
+    for _ in range(totalStrands):
+        if isPositive:
+            for s in range( 1, totalStrands ):
+                braid.append(s)
+        else:
+            for s in range( totalStrands-1, 0, -1 ):
+                braid.append(-s)
     return
 
 
