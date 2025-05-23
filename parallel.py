@@ -1,6 +1,7 @@
 """
 Find the ideal edges after crushing a normal surface.
 """
+from sys import argv
 from regina import *
 from loop import NotLoop, IdealLoop
 
@@ -224,10 +225,27 @@ def _survivingSegments(surf):
 
 
 if __name__ == "__main__":
-    #TODO
-    # SFS [D: (2,1) (2,1)] U/m SFS [D: (2,1) (2,1)], m = [ 0,-1 | 1,0 ] : #1
-    sig = "hLALMkbcceffggemkbtibj"
+    ## SFS [D: (2,1) (2,1)] U/m SFS [D: (2,1) (2,1)], m = [ 0,-1 | 1,0 ] : #1
+    #sig = "hLALMkbcceffggemkbtibj"
+    sig = argv[1]
+    num = int( argv[2] )
     tri = Triangulation3.fromIsoSig(sig)
     qvsurfs = NormalSurfaces( tri, NormalCoords.NS_QUAD )
-    surf = qvsurfs[1]
-    print(surf)
+    surf = qvsurfs[num]
+    #print(surf)
+
+    #TODO
+    survivors = _survivingSegments(surf)
+    found = []
+    for e in tri.edges():
+        ei = e.index()
+        wt = surf.edgeWeight(ei).safeLongValue()
+
+        # Find ideal edges.
+        for s in range( 1, wt ):
+            result = findIdealEdges( surf, ( ei, s ), survivors )
+            if result not in found:
+                found.append(result)
+    print()
+    for f in found:
+        print(f)
