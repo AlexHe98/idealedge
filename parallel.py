@@ -6,7 +6,158 @@ from regina import *
 from loop import NotLoop, IdealLoop
 
 
-def findIdealEdges( surf, start, targets=None ):
+def findIdealEdges( surf, targets=None ):
+    """
+    Returns details of the ideal edges after crushing surf.
+
+    Specifically, this routine returns a list of pairs of the form (t, n),
+    where t is the index after crushing of a tetrahedron that will be
+    incident to some ideal edge E, and n is an edge number of this
+    tetrahedron that corresponds to the edge E. Each ideal edge will be
+    represented by exactly one such pair in the returned list.
+
+    If the dictionary of surviving segments has been precomputed using the
+    _survivingSegments() routine, then this can be supplied using the
+    optional targets argument. Otherwise, this routine will compute the
+    surviving segments for itself.
+    """
+    tri = surf.triangulation()
+    #TODO Decide if we need targets.
+    if targets is None:
+        targets = _survivingSegments(surf)
+
+    #NOTE BEGIN TRAVERSE VERTICAL
+    # Traverse all vertical boundary components of the parallelity bundle.
+    pairedVertices = [
+            [ 1,0,3,2 ],
+            [ 2,3,0,1 ],
+            [ 3,2,1,0 ] ]
+    alreadyTraversedVertBdryQuads = set()
+    for tet in tri.tetrahedra():
+        quadType = _quadType( surf, tet.index() )
+        if quadType is None:
+            continue
+
+        # This tet contains quads, so it might touch...
+        for face in range(3):
+            if ( tet.index(), face ) in alreadyTraversedVertBdryQuads:
+                continue
+
+            # Found a vertical boundary component that we have yet to
+            # traverse.
+    #NOTE END TRAVERSE VERTICAL
+
+    #NOTE BEGIN TRAVERSE SURVIVING
+    #NOTE END TRAVERSE SURVIVING
+
+    #TODO
+    raise NotImplementedError()
+
+
+def _assignWeights(surf):
+    """
+    Assign weights to the edge segments induced by the given normal surface,
+    so that the total weight in each component C of the parallelity bundle
+    gives twice the Euler characteristic of the base of C.
+    """
+    tri = surf.triangulation()
+
+    # Vertices of the base correspond to type-2 segments.
+    weights = dict()
+    for edge in tri.edges():
+        ei = edge.index()
+        edgeWt = surf.edgeWeight(ei).safeLongValue()
+        for segment in range( edgeWt+1 ):
+            if segment in { 0, edgeWt }:
+                weights[ (ei,segment) ] = 0
+            else:
+                # Want twice the Euler characteristic, so double-count the
+                # vertices of the base.
+                weights[ (ei,segment) ] = 2
+
+    # Edges of the base correspond to parallel faces of the induced cell
+    # decomposition, and faces of the base correspond to parallel cells.
+    #
+    # Let:  E = number of edges of the base
+    #       F = number of faces of the base
+    #       q = number of parallel quad cells
+    #       t = number of parallel triangle cells
+    #       b = number of parallel faces in the vertical boundary
+    #       i = number of isolated parallel faces 
+    # We adjust weights using the following observation:
+    #   -2E + 2F = -(4q + 3t + b + 2i) + 2(q + t) = -2q - t - b - 2i.
+    for tet in tri.tetrahedra():
+        teti = tet.index()
+
+        # For each quad cell, adjust the weight on one incident segment.
+        quads = _quads( surf, teti )
+        if ( quads is not None ) and ( quads[1] >= 2 ):
+            # We have at least one parallel quad cell.
+            quadType, quadCount = quads
+            incidentEdgeNum = quadType+2    # Can check this works by hand.
+            ei = tet.edge(incidentEdgeNum).index()
+            v = tet.edgeMapping(incidentEdgeNum)[0]
+            quadStart = surf.triangles( teti, v ).safeLongValue()
+            for segment in range( quadStart + 1, quadStart + quadCount ):
+                weights[ (ei,segment) ] -= 2
+
+        # For each triangle cell, adjust the weight on one incident segment.
+        for triType in range(4):
+            triCount = surf.triangles( teti, triType ).safeLongValue()
+            if triCount < 2:
+                continue
+
+            # We have at least one parallel triangle cell.
+            if triType in {0,3}:
+                incidentEdgeNum = 2
+            else:
+                incidentEdgeNum = 3
+            ei = tet.edge(incidentEdgeNum).index()
+            if tet.edgeMapping(incidentEdgeNum)[0] == triType:
+                for segment in range( 1, triCount ):
+                    weights[ (ei,segment) ] -= 1
+            else:
+                edgeWt = surf.edgeWeight(ei).safeLongValue()
+                for segment in range( edgeWt - 1, edgeWt - triCount, -1 ):
+                    weights[ (ei,segment) ] -= 1
+
+        # For each parallel face that is either isolated or on the boundary
+        # of the parallelity bundle, adjust the weight on one incident
+        # segment. In the isolated case, we only need to subtract 1 on this
+        # side, because we will eventually subtract another 1 on the other
+        # side as well.
+        #TODO
+        pass
+    #TODO
+    raise NotImplementedError()
+
+
+def _quadType( surf, tetIndex ):
+    """
+    Returns the quad type in which the given normal surface intersects the
+    tetrahedron with the given index, or None if there is no such quad.
+    """
+    quads = _quads( surf, tetIndex )
+    if quads is None:
+        return None
+    else:
+        return quads[0]
+
+
+def _quads( surf, tetIndex ):
+    """
+    Returns the quad type and the number of quads in which the given normal
+    surface intersects the tetrahedron with the given index, or None if there
+    is no such quad.
+    """
+    for quadType in range(3):
+        quadCount = surf.quads( tetIndex, quadType ).safeLongValue()
+        if quadCount > 0:
+            return ( quadType, quadCount )
+    return None
+
+
+def findIdealEdges_old( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
@@ -201,6 +352,7 @@ def _survivingSegments(surf):
     shift = 0
     for tet in tri.tetrahedra():
         teti = tet.index()
+        #TODO Refactor using helper function.
         hasQuads = False
         for q in range(3):
             if surf.quads( teti, q ).safeLongValue() > 0:
@@ -243,7 +395,7 @@ if __name__ == "__main__":
 
         # Find ideal edges.
         for s in range( 1, wt ):
-            result = findIdealEdges( surf, ( ei, s ), survivors )
+            result = findIdealEdges_old( surf, ( ei, s ), survivors )
             if result not in found:
                 found.append(result)
     print()
