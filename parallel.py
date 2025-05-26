@@ -85,7 +85,9 @@ def _eulerWeights(surf):
         edgeWt = surf.edgeWeight(ei).safeLongValue()
         for segment in range( edgeWt+1 ):
             if segment in { 0, edgeWt }:
-                weights[ (ei,segment) ] = 0
+                #TODO TEST
+                pass
+                #weights[ (ei,segment) ] = 0
             else:
                 # Want twice the Euler characteristic, so double-count the
                 # vertices of the base.
@@ -121,10 +123,14 @@ def _eulerWeights(surf):
             if tet.edgeMapping(incidentEdgeNum)[0] == triType:
                 for segment in range( 1, triCount ):
                     weights[ (ei,segment) ] -= 1
+                    #TODO TEST
+                    #print(teti,"tri -1")
             else:
                 edgeWt = surf.edgeWeight(ei).safeLongValue()
                 for segment in range( edgeWt - 1, edgeWt - triCount, -1 ):
                     weights[ (ei,segment) ] -= 1
+                    #TODO TEST
+                    #print(teti,"tri -1")
 
         # We also need to adjust weights using parallel quad cells, and
         # parallel faces that are either boundary or isolated. Such cases
@@ -144,6 +150,8 @@ def _eulerWeights(surf):
             quadStart = surf.triangles( teti, v ).safeLongValue()
             for segment in range( quadStart + 1, quadStart + quadCount ):
                 weights[ (ei,segment) ] -= 2
+                #TODO TEST
+                #print(teti,"quad -2")
 
         # For each parallel face that is either isolated or on the boundary
         # of the parallelity bundle, adjust the weight on one incident
@@ -154,7 +162,7 @@ def _eulerWeights(surf):
         opposite = _quadOpposite[quadType]
         for face in range(4):
             triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
-            if triCount < 2:
+            if triCount == 0:
                 continue
 
             # We have a parallel face that is either isolated or boundary.
@@ -168,6 +176,8 @@ def _eulerWeights(surf):
                 edgeWt = surf.edgeWeight(ei).safeLongValue()
                 segment = edgeWt - triCount
             weights[ (ei,segment) ] -= 1
+            #TODO TEST
+            #print(teti,"face -1")
 
     # All done!
     return weights
@@ -427,21 +437,22 @@ if __name__ == "__main__":
     surf = qvsurfs[num]
     #print(surf)
 
-    ##TODO
-    #survivors = _survivingSegments(surf)
-    #found = []
-    #for e in tri.edges():
-    #    ei = e.index()
-    #    wt = surf.edgeWeight(ei).safeLongValue()
+    #TODO
+    survivors = _survivingSegments(surf)
+    found = []
+    for e in tri.edges():
+        ei = e.index()
+        wt = surf.edgeWeight(ei).safeLongValue()
 
-    #    # Find ideal edges.
-    #    for s in range( 1, wt ):
-    #        result = findIdealEdges_old( surf, ( ei, s ), survivors )
-    #        if result not in found:
-    #            found.append(result)
-    #print()
-    #for f in found:
-    #    print(f)
+        # Find ideal edges.
+        for s in range( 1, wt ):
+            result = findIdealEdges_old( surf, ( ei, s ), survivors )
+            if result not in found:
+                found.append(result)
+    print()
+    for f in found:
+        print(f)
 
     #TODO Test _eulerWeights() routine.
+    print()
     print( _eulerWeights(surf) )
