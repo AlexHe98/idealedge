@@ -6,6 +6,21 @@ from regina import *
 from loop import NotLoop, IdealLoop
 
 
+#TODO
+#_quadMapping = [
+#        Perm4(0,1,2,3),
+#        Perm4(0,2,1,3),
+#        Perm4(0,3,1,2) ]
+_quadSameSide = [
+        Perm4(1,0,3,2),
+        Perm4(2,3,0,1),
+        Perm4(3,2,1,0) ]
+_quadOpposite = [
+        Perm4(2,3,0,1),
+        Perm4(1,0,3,2),
+        Perm4(1,0,3,2)]
+
+
 def findIdealEdges( surf, targets=None ):
     """
     Returns details of the ideal edges after crushing surf.
@@ -54,11 +69,12 @@ def findIdealEdges( surf, targets=None ):
     raise NotImplementedError()
 
 
-def _assignWeights(surf):
+def _eulerWeights(surf):
     """
-    Assign weights to the edge segments induced by the given normal surface,
-    so that the total weight in each component C of the parallelity bundle
-    gives twice the Euler characteristic of the base of C.
+    Returns a dictionary that assigns weights to the edge segments induced by
+    the given normal surface, such that the total weight in each component C
+    of the parallelity bundle gives twice the Euler characteristic of the
+    base of C.
     """
     tri = surf.triangulation()
 
@@ -89,19 +105,8 @@ def _assignWeights(surf):
     for tet in tri.tetrahedra():
         teti = tet.index()
 
-        # For each quad cell, adjust the weight on one incident segment.
-        quads = _quads( surf, teti )
-        if ( quads is not None ) and ( quads[1] >= 2 ):
-            # We have at least one parallel quad cell.
-            quadType, quadCount = quads
-            incidentEdgeNum = quadType+2    # Can check this works by hand.
-            ei = tet.edge(incidentEdgeNum).index()
-            v = tet.edgeMapping(incidentEdgeNum)[0]
-            quadStart = surf.triangles( teti, v ).safeLongValue()
-            for segment in range( quadStart + 1, quadStart + quadCount ):
-                weights[ (ei,segment) ] -= 2
-
-        # For each triangle cell, adjust the weight on one incident segment.
+        # For each parallel triangle cell, adjust the weight on one incident
+        # segment.
         for triType in range(4):
             triCount = surf.triangles( teti, triType ).safeLongValue()
             if triCount < 2:
@@ -121,15 +126,51 @@ def _assignWeights(surf):
                 for segment in range( edgeWt - 1, edgeWt - triCount, -1 ):
                     weights[ (ei,segment) ] -= 1
 
+        # We also need to adjust weights using parallel quad cells, and
+        # parallel faces that are either boundary or isolated. Such cases
+        # only arise in tetrahedra that contain at least one quad.
+        quads = _quads( surf, teti )
+        if quads is None:
+            continue
+        quadType, quadCount = quads
+
+        # For each parallel quad cell, adjust the weight on one incident
+        # segment.
+        if quadCount >= 2:
+            # We have at least one parallel quad cell.
+            incidentEdgeNum = quadType+2    # Can check this works by hand.
+            ei = tet.edge(incidentEdgeNum).index()
+            v = tet.edgeMapping(incidentEdgeNum)[0]
+            quadStart = surf.triangles( teti, v ).safeLongValue()
+            for segment in range( quadStart + 1, quadStart + quadCount ):
+                weights[ (ei,segment) ] -= 2
+
         # For each parallel face that is either isolated or on the boundary
         # of the parallelity bundle, adjust the weight on one incident
         # segment. In the isolated case, we only need to subtract 1 on this
         # side, because we will eventually subtract another 1 on the other
         # side as well.
-        #TODO
-        pass
-    #TODO
-    raise NotImplementedError()
+        sameSide = _quadSameSide[quadType]
+        opposite = _quadOpposite[quadType]
+        for face in range(4):
+            triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
+            if triCount < 2:
+                continue
+
+            # We have a parallel face that is either isolated or boundary.
+            incidentEdgeNum = Edge3.faceNumber( Perm4(
+                sameSide[face], opposite[face],
+                face, opposite[sameSide[face]] ) )
+            ei = tet.edge(incidentEdgeNum).index()
+            if tet.edgeMapping(incidentEdgeNum)[0] == sameSide[face]:
+                segment = triCount
+            else:
+                edgeWt = surf.edgeWeight(ei).safeLongValue()
+                segment = edgeWt - triCount
+            weights[ (ei,segment) ] -= 1
+
+    # All done!
+    return weights
 
 
 def _quadType( surf, tetIndex ):
@@ -386,18 +427,21 @@ if __name__ == "__main__":
     surf = qvsurfs[num]
     #print(surf)
 
-    #TODO
-    survivors = _survivingSegments(surf)
-    found = []
-    for e in tri.edges():
-        ei = e.index()
-        wt = surf.edgeWeight(ei).safeLongValue()
+    ##TODO
+    #survivors = _survivingSegments(surf)
+    #found = []
+    #for e in tri.edges():
+    #    ei = e.index()
+    #    wt = surf.edgeWeight(ei).safeLongValue()
 
-        # Find ideal edges.
-        for s in range( 1, wt ):
-            result = findIdealEdges_old( surf, ( ei, s ), survivors )
-            if result not in found:
-                found.append(result)
-    print()
-    for f in found:
-        print(f)
+    #    # Find ideal edges.
+    #    for s in range( 1, wt ):
+    #        result = findIdealEdges_old( surf, ( ei, s ), survivors )
+    #        if result not in found:
+    #            found.append(result)
+    #print()
+    #for f in found:
+    #    print(f)
+
+    #TODO Test _eulerWeights() routine.
+    print( _eulerWeights(surf) )
