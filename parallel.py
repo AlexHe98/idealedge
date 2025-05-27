@@ -21,52 +21,127 @@ _quadOpposite = [
         Perm4(1,0,3,2)]
 
 
-def findIdealEdges( surf, targets=None ):
+def survivingParallelityBoundaries( surf, survivingSegments=None ):
     """
-    Returns details of the ideal edges after crushing surf.
+    Finds boundary components of the parallelity bundle that would survive
+    (as an edge) after crushing the given normal surface.
 
-    Specifically, this routine returns a list of pairs of the form (t, n),
-    where t is the index after crushing of a tetrahedron that will be
-    incident to some ideal edge E, and n is an edge number of this
-    tetrahedron that corresponds to the edge E. Each ideal edge will be
-    represented by exactly one such pair in the returned list.
+    In detail, each such boundary component B is identified using a single
+    edge E that contains a surviving segment inside B. This routine returns a
+    list of such edges, and each such edge is specified using a pair of the
+    form (t,n), where:
+    --> t is the index of a tetrahedron whose central cell C is incident to
+        the corresponding surviving segment S; and
+    --> n is the edge number of tetrahedron t whose intersection with C is
+        precisely the surviving segment S.
+    Note that each such pair specifies a surviving segment uniquely, since
+    any edge of a tetrahedron has exactly one segment incident to the central
+    cell (assuming that the tetrahedron contains no quads).
 
-    If the dictionary of surviving segments has been precomputed using the
-    _survivingSegments() routine, then this can be supplied using the
-    optional targets argument. Otherwise, this routine will compute the
-    surviving segments for itself.
+    If the dictionary of all surviving segments has been precomputed using
+    the _survivingSegments() routine, then this can be supplied using the
+    optional survivingSegments argument. Otherwise, this routine will compute
+    the surviving segments for itself.
     """
     tri = surf.triangulation()
-    #TODO Decide if we need targets.
-    if targets is None:
-        targets = _survivingSegments(surf)
+    #TODO Decide whether computing the survivingSegments is necessary.
+#    if survivingSegments is None:
+#        survivingSegments = _survivingSegments(surf)
 
     #NOTE BEGIN TRAVERSE VERTICAL
-    # Traverse all vertical boundary components of the parallelity bundle.
-    pairedVertices = [
-            [ 1,0,3,2 ],
-            [ 2,3,0,1 ],
-            [ 3,2,1,0 ] ]
-    alreadyTraversedVertBdryQuads = set()
-    for tet in tri.tetrahedra():
-        quadType = _quadType( surf, tet.index() )
-        if quadType is None:
-            continue
-
-        # This tet contains quads, so it might touch...
-        for face in range(3):
-            if ( tet.index(), face ) in alreadyTraversedVertBdryQuads:
-                continue
-
-            # Found a vertical boundary component that we have yet to
-            # traverse.
+#    # Traverse all vertical boundary components of the parallelity bundle.
+#    pairedVertices = [
+#            [ 1,0,3,2 ],
+#            [ 2,3,0,1 ],
+#            [ 3,2,1,0 ] ]
+#    alreadyTraversedVertBdryQuads = set()
+#    for tet in tri.tetrahedra():
+#        quadType = _quadType( surf, tet.index() )
+#        if quadType is None:
+#            continue
+#
+#        # This tet contains quads, so it might touch...
+#        for face in range(3):
+#            if ( tet.index(), face ) in alreadyTraversedVertBdryQuads:
+#                continue
+#
+#            # Found a vertical boundary component that we have yet to
+#            # traverse.
     #NOTE END TRAVERSE VERTICAL
 
     #NOTE BEGIN TRAVERSE SURVIVING
+    for edge in tri.edges():
+        type2SurvivorPositions = dict()
+        for embIndex, emb in enumerate( edge.embeddings() ):
+            central = _type2CentralSegment( emb, surf )
+            if central is None:
+                continue
+
+            # Found a type-2 surviving segment.
+            if central in type2SurvivorPositions:
+                type2SurvivorPositions[central].append(embIndex)
+            else:
+                type2SurvivorPositions[central] = [embIndex]
+
+        #TODO TEST
+        print( edge.index(), type2SurvivorPositions )
     #NOTE END TRAVERSE SURVIVING
 
     #TODO
     raise NotImplementedError()
+
+
+def _type2CentralSegment( edgeEmb, surf ):
+    """
+    Returns the position of the type-2 central segment for the given edge
+    embedding (with respect to the given normal surface), or None if there is
+    no such segment.
+    """
+    # To have a central segment, the tetrahedron must have no quads.
+    teti = edgeEmb.tetrahedron().index()
+    if _quadType( surf, teti ) is not None:
+        return None
+
+    # Central segment occurs immediately after all the triangles at vertex 0
+    # of the edge.
+    # For this to be type-2, there must be a positive number triangles at
+    # both vertex 0 and vertex 1.
+    verts = edgeEmb.vertices()
+    triCount = [ surf.triangles( teti, verts[i] ).safeLongValue()
+                for i in range(2) ]
+    if triCount[0] > 0 and triCount[1] > 0:
+        return triCount[0]
+    return None
+
+
+def _nextEdgeEmbeddingIndex( edge, currentEmbIndex, forwards=True ):
+    if forwards:
+        # Forwards.
+        if currentEmbIndex == edge.degree() - 1:
+            return 0
+        else:
+            return currentEmbIndex + 1
+    else:
+        # Backwards.
+        if currentEmbIndex == 0:
+            return edge.degree() - 1
+        else:
+            return currentEmbIndex - 1
+
+
+def parallelityBaseEuler(surf):
+    """
+    Calculates the Euler characteristic of the base of each component of the
+    parallelity bundle.
+
+    In detail, this routine returns a list consisting of pairs (s,e), where
+    s is a list of type-2 segments that are all in the same component of the
+    parallelity bundle, and w is the Euler characteristic of the base of that
+    component.
+    """
+    #TODO There should be a better way to specify the orbit.
+    return [ ( orbit, wt//2 ) for orbit, wt in
+            parallelityBundleWeights( surf, _eulerWeights(surf) ) ]
 
 
 def parallelityBundleWeights( surf, weights ):
@@ -82,6 +157,7 @@ def parallelityBundleWeights( surf, weights ):
         sense for the given normal surface. Therefore, this routine may
         produce undefined behaviour when given invalid input arguments.
     """
+    #TODO There should be a better way to specify the orbit.
     # Naively compute orbits using repeated depth-first search.
     # At least in theory, it would be better to do this using something like
     # the Agol-Hass-Thurston weighted orbit-counting algorithm.
@@ -95,30 +171,33 @@ def parallelityBundleWeights( surf, weights ):
         # Compute the total weight of the orbit of this type-2 segment.
         orbit = _computeOrbit( surf, seg )
         totalWeight = 0
-        for seg in orbit:
-            totalWeight += weights[seg]
-        orbitWeights.append( ( orbit, weight ) )
+        for otherSeg in orbit:
+            totalWeight += weights[otherSeg]
+
+            # Make sure to only process each orbit once.
+            if otherSeg != seg:
+                del segments[otherSeg]
+        orbitWeights.append( ( orbit, totalWeight ) )
     return orbitWeights
 
 
 def _computeOrbit( surf, start ):
-    tri = surf.triangulation()  #TODO Is this needed?
+    tri = surf.triangulation()
 
     # Depth-first search.
     stack = [start]
-    visited = set()
+    orbit = set()
     while stack:
         current = stack.pop()
-        if current in visited:
+        if current in orbit:
             continue
+        orbit.add(current)
 
         # We haven't visited the current segment yet, so we need to find all
         # segments that are adjacent to it along parallel cells or faces.
-        #TODO Update implementation and documentation.
         ei, seg = current
         e = tri.edge(ei)
         wt = surf.edgeWeight(ei).safeLongValue()
-        visited.add(current)    # Record as visited now, so we don't forget.
         for emb in e.embeddings():
             tet = emb.tetrahedron()
             teti = tet.index()
@@ -159,15 +238,7 @@ def _computeOrbit( surf, start ):
                     else:
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - seg )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        found.add(output)
-                        #return output
-                    else:
-                        stack.append(adjacent)
+                    stack.append(adjacent)
             elif seg > f[0] + q:
                 # The current segment belongs to a parallel triangular cell
                 # at vertex ver[1].
@@ -185,15 +256,7 @@ def _computeOrbit( surf, start ):
                     else:
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        found.add(output)
-                        #return output
-                    else:
-                        stack.append(adjacent)
+                    stack.append(adjacent)
             elif q > 0:
                 # The quadrilaterals divide tet into two "sides". The edge
                 # opposite this segment has endpoints lying on different
@@ -230,24 +293,12 @@ def _computeOrbit( surf, start ):
                         adjacent = ( eiAdj, triangles + qDepth )
                     else:
                         adjacent = ( eiAdj, triangles + q - qDepth )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        found.add(output)
-                        #return output
-                    else:
-                        stack.append(adjacent)
+                    stack.append(adjacent)
 
         # End of loop. Move on to the next embedding of edge e.
 
-    # If the search terminates without finding the ideal edge, then the ideal
-    # edge must belong to a component that gets destroyed.
-    #TODO
-    raise NotImplementedError()
-    #return found
-    #return None
+    # All done!
+    return orbit
 
 
 def _segments(surf):
@@ -658,6 +709,10 @@ if __name__ == "__main__":
     for f in found:
         print(f)
 
-    #TODO Test _eulerWeights() routine.
+    #TODO Test parallelityBaseEuler() routine.
     print()
-    print( _eulerWeights(surf) )
+    print( parallelityBaseEuler(surf) )
+
+    #TODO Test survivingParallelityBoundaries() routine.
+    print()
+    survivingParallelityBoundaries(surf)
