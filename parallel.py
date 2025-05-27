@@ -69,6 +69,214 @@ def findIdealEdges( surf, targets=None ):
     raise NotImplementedError()
 
 
+def parallelityBundleWeights( surf, weights ):
+    """
+    Calculates the total weight of each component of the parallelity bundle.
+
+    In detail, this routine returns a list consisting of pairs (s,w), where
+    s is a list of type-2 segments that are all in the same component of the
+    parallelity bundle, and w is the total weight of that component.
+
+    WARNING:
+    --> This routine does not check whether the given segment weights make
+        sense for the given normal surface. Therefore, this routine may
+        produce undefined behaviour when given invalid input arguments.
+    """
+    # Naively compute orbits using repeated depth-first search.
+    # At least in theory, it would be better to do this using something like
+    # the Agol-Hass-Thurston weighted orbit-counting algorithm.
+    segments = _segments(surf)
+    orbitWeights = []
+    while segments:
+        seg, segType = segments.popitem()
+        if segType != 2:
+            continue
+
+        # Compute the total weight of the orbit of this type-2 segment.
+        orbit = _computeOrbit( surf, seg )
+        totalWeight = 0
+        for seg in orbit:
+            totalWeight += weights[seg]
+        orbitWeights.append( ( orbit, weight ) )
+    return orbitWeights
+
+
+def _computeOrbit( surf, start ):
+    tri = surf.triangulation()  #TODO Is this needed?
+
+    # Depth-first search.
+    stack = [start]
+    visited = set()
+    while stack:
+        current = stack.pop()
+        if current in visited:
+            continue
+
+        # We haven't visited the current segment yet, so we need to find all
+        # segments that are adjacent to it along parallel cells or faces.
+        #TODO Update implementation and documentation.
+        ei, seg = current
+        e = tri.edge(ei)
+        wt = surf.edgeWeight(ei).safeLongValue()
+        visited.add(current)    # Record as visited now, so we don't forget.
+        for emb in e.embeddings():
+            tet = emb.tetrahedron()
+            teti = tet.index()
+            en = emb.face()
+            ver = emb.vertices()
+
+            # To locate the relevant parallel cells and faces in tet, need to
+            # get the normal coordinates incident to e.
+            f = [ surf.triangles( teti, ver[i] ).safeLongValue()
+                    for i in range(2) ]
+            q = 0
+            qType = None
+            for qt in range(3):
+                if qt in { en, 5-en }:
+                    continue
+                quads = surf.quads( teti, qt ).safeLongValue()
+                if quads > 0:
+                    q = quads
+                    qType = qt
+                    break
+
+            # Does the current segment belong to a parallel cell or face in
+            # this tet? If so, then we need to find all adjacent segments.
+            if seg < f[0]:
+                # The current segment belongs to a parallel triangular cell
+                # at vertex ver[0].
+                for otherEnd in range(4):
+                    if otherEnd in { ver[0], ver[1] }:
+                        continue
+
+                    # The current segment is adjacent to a segment of the
+                    # edge with endpoints ver[0] and otherEnd.
+                    eiOther = tet.edge( ver[0], otherEnd ).index()
+                    enOther = Edge3.edgeNumber[ver[0]][otherEnd]
+                    verOther = tet.edgeMapping(enOther)
+                    if verOther[0] == ver[0]:
+                        adjacent = ( eiOther, seg )
+                    else:
+                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
+                        adjacent = ( eiOther, wtOther - seg )
+
+                    # If the adjacent segment is one of the targets, then we
+                    # are done; otherwise, we add it to the stack.
+                    output = targets.get( adjacent, None )
+                    if output is not None:
+                        found.add(output)
+                        #return output
+                    else:
+                        stack.append(adjacent)
+            elif seg > f[0] + q:
+                # The current segment belongs to a parallel triangular cell
+                # at vertex ver[1].
+                for otherEnd in range(4):
+                    if otherEnd in { ver[0], ver[1] }:
+                        continue
+
+                    # The current segment is adjacent to a segment of the
+                    # edge with endpoints ver[1] and otherEnd.
+                    eiOther = tet.edge( ver[1], otherEnd ).index()
+                    enOther = Edge3.edgeNumber[ver[1]][otherEnd]
+                    verOther = tet.edgeMapping(enOther)
+                    if verOther[0] == ver[1]:
+                        adjacent = ( eiOther, wt - seg )
+                    else:
+                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
+                        adjacent = ( eiOther, wtOther - wt + seg )
+
+                    # If the adjacent segment is one of the targets, then we
+                    # are done; otherwise, we add it to the stack.
+                    output = targets.get( adjacent, None )
+                    if output is not None:
+                        found.add(output)
+                        #return output
+                    else:
+                        stack.append(adjacent)
+            elif q > 0:
+                # The quadrilaterals divide tet into two "sides". The edge
+                # opposite this segment has endpoints lying on different
+                # sides, so we label these endpoints accordingly.
+                side = [ { 0, qType + 1 } ]
+                side.append( {0,1,2,3} - side[0] )
+                if ver[0] not in side[0]:
+                    side[0], side[1] = side[1], side[0]
+                side[0].remove( ver[0] )
+                side[1].remove( ver[1] )
+                opp = [ side[0].pop(), side[1].pop() ]
+
+                # Find all edges containing segments that are adjacent to the
+                # current segment.
+                qDepth = seg - f[0]     # 0 <= qDepth <= q
+                if qDepth == 0:
+                    adjEndpoints = [ [ ver[0], opp[1] ] ]
+                elif qDepth == q:
+                    adjEndpoints = [ [ opp[0], ver[1] ] ]
+                else:
+                    adjEndpoints = [
+                            [ ver[0], opp[1] ],
+                            [ opp[0], ver[1] ],
+                            [ opp[0], opp[1] ] ]
+                for start, end in adjEndpoints:
+                    # The current segment is adjacent to a segment of the
+                    # edge going from start to end.
+                    eiAdj = tet.edge( start, end ).index()
+                    enAdj = Edge3.edgeNumber[start][end]
+                    verAdj = tet.edgeMapping(enAdj)
+                    triangles = surf.triangles(
+                            teti, verAdj[0] ).safeLongValue()
+                    if verAdj[0] == start:
+                        adjacent = ( eiAdj, triangles + qDepth )
+                    else:
+                        adjacent = ( eiAdj, triangles + q - qDepth )
+
+                    # If the adjacent segment is one of the targets, then we
+                    # are done; otherwise, we add it to the stack.
+                    output = targets.get( adjacent, None )
+                    if output is not None:
+                        found.add(output)
+                        #return output
+                    else:
+                        stack.append(adjacent)
+
+        # End of loop. Move on to the next embedding of edge e.
+
+    # If the search terminates without finding the ideal edge, then the ideal
+    # edge must belong to a component that gets destroyed.
+    #TODO
+    raise NotImplementedError()
+    #return found
+    #return None
+
+
+def _segments(surf):
+    """
+    Returns all segments induced by the given normal surface.
+
+    In detail, the returned object is a dictionary whose items are of the
+    form
+        (e,s): t
+    where:
+    --> e is the index of the edge containing the segment;
+    --> s is position of the segment along edge e; and
+    --> t is the type of the segment.
+    """
+    tri = surf.triangulation()
+    segments = dict()
+    for ei in range( tri.countEdges() ):
+        edgeWt = surf.edgeWeight(ei).safeLongValue()
+        if edgeWt == 0:
+            segments[ (ei,0) ] = 0
+        else:
+            for seg in range( edgeWt + 1 ):
+                if seg in {0,edgeWt}:
+                    segments[ (ei,seg) ] = 1
+                else:
+                    segments[ (ei,seg) ] = 2
+    return segments
+
+
 def _eulerWeights(surf):
     """
     Returns a dictionary that assigns weights to the edge segments induced by
@@ -80,18 +288,15 @@ def _eulerWeights(surf):
 
     # Vertices of the base correspond to type-2 segments.
     weights = dict()
-    for edge in tri.edges():
-        ei = edge.index()
-        edgeWt = surf.edgeWeight(ei).safeLongValue()
-        for segment in range( edgeWt+1 ):
-            if segment in { 0, edgeWt }:
-                #TODO TEST
-                pass
-                #weights[ (ei,segment) ] = 0
-            else:
-                # Want twice the Euler characteristic, so double-count the
-                # vertices of the base.
-                weights[ (ei,segment) ] = 2
+    segments = _segments(surf)
+    for seg in segments:
+        segType = segments[seg]
+        if segType == 2:
+            weights[seg] = 2
+        else:
+            #TODO TEST
+            pass
+            #weights[seg] = 0
 
     # Edges of the base correspond to parallel faces of the induced cell
     # decomposition, and faces of the base correspond to parallel cells.
