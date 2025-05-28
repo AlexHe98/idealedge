@@ -21,73 +21,32 @@ _quadOpposite = [
         Perm4(1,0,3,2)]
 
 
-def survivingParallelityBoundaries( surf, survivingSegments=None ):
+def parallelityBoundaries(surf):
     """
-    Finds boundary components of the parallelity bundle that would survive
-    (as an edge) after crushing the given normal surface.
+    Finds all boundary components of the parallelity bundle.
 
     In detail, each such boundary component B is identified using a single
-    edge E that contains a surviving segment inside B. This routine returns a
-    list of such edges, and each such edge is specified using a pair of the
-    form (t,n), where:
-    --> t is the index of a tetrahedron whose central cell C is incident to
-        the corresponding surviving segment S; and
-    --> n is the edge number of tetrahedron t whose intersection with C is
-        precisely the surviving segment S.
-    Note that each such pair specifies a surviving segment uniquely, since
-    any edge of a tetrahedron has exactly one segment incident to the central
-    cell (assuming that the tetrahedron contains no quads).
-
-    If the dictionary of all surviving segments has been precomputed using
-    the _survivingSegments() routine, then this can be supplied using the
-    optional survivingSegments argument. Otherwise, this routine will compute
-    the surviving segments for itself.
+    segment S inside B; in the case where B contains at least one surviving
+    segment, the chosen segment S is guaranteed to be one of the surviving
+    segments.
     """
     tri = surf.triangulation()
     #TODO Decide whether computing the survivingSegments is necessary.
 #    if survivingSegments is None:
 #        survivingSegments = _survivingSegments(surf)
 
-    #NOTE BEGIN TRAVERSE VERTICAL
-#    # Traverse all vertical boundary components of the parallelity bundle.
-#    pairedVertices = [
-#            [ 1,0,3,2 ],
-#            [ 2,3,0,1 ],
-#            [ 3,2,1,0 ] ]
-#    alreadyTraversedVertBdryQuads = set()
-#    for tet in tri.tetrahedra():
-#        quadType = _quadType( surf, tet.index() )
-#        if quadType is None:
-#            continue
-#
-#        # This tet contains quads, so it might touch...
-#        for face in range(3):
-#            if ( tet.index(), face ) in alreadyTraversedVertBdryQuads:
-#                continue
-#
-#            # Found a vertical boundary component that we have yet to
-#            # traverse.
-    #NOTE END TRAVERSE VERTICAL
-
-    #NOTE BEGIN TRAVERSE SURVIVING
+    # Find where type-2 segments change between thick and thin regions, since
+    # we will need this information to be able to traverse boundary
+    # components of the parallelity bundle.
+    thickToThin = []
+    thinToThick = []
     for edge in tri.edges():
-        type2SurvivorPositions = dict()
-        for embIndex, emb in enumerate( edge.embeddings() ):
-            central = _type2CentralSegment( emb, surf )
-            if central is None:
-                continue
+        regionChanges = _type2SegmentRegionChanges( edge, surf )
+        thickToThin.append( regionChanges[0] )
+        thinToThick.append( regionChanges[1] )
 
-            # Found a type-2 surviving segment.
-            if central in type2SurvivorPositions:
-                type2SurvivorPositions[central].append(embIndex)
-            else:
-                type2SurvivorPositions[central] = [embIndex]
-
-        #TODO TEST
-        print( edge.index(), type2SurvivorPositions )
-    #NOTE END TRAVERSE SURVIVING
-
-    #TODO
+    #
+    #TODO Data structure for the return value?
     raise NotImplementedError()
 
 
@@ -115,6 +74,117 @@ def _type2CentralSegment( edgeEmb, surf ):
     if triCount[0] > 0 and triCount[1] > 0:
         return triCount[0]
     return None
+
+
+def _type2SegmentRegionChanges( edge, surf ):
+    """
+    Records the places where type-2 segments of the given edge (with respect
+    to the given normal surface) change regions from either thick to thin or
+    thin to thick.
+
+    In detail, this routine returns a pair of dictionaries:
+    (0) the first specifies changes from thick to thin; and
+    (1) the second specifies changes from thin to thick.
+    Each such dictionary maps segments S to dictionaries that specify the
+    region changes for S. The latter dictionaries map the location of the
+    region change, specified as an index of an edge embedding, to the
+    parallel face that witnesses the region change. Parallel faces are
+    specified using pairs of the form (t,f), where t is a tetrahedron index
+    and f is the face number of the tetrahedron that contains the parallel
+    face in question.
+    """
+    edgeEmbIndices = _edgeEmbeddingIndices( surf.triangulation() )
+    edgeWt = surf.edgeWeight( edge.index() ).safeLongValue()
+    thickToThin = dict()
+    thinToThick = dict()
+    for embIndex, emb in enumerate( edge.embeddings() ):
+        edgeNum = emb.face()
+        ver = emb.vertices()
+        tet = emb.tetrahedron()
+        teti = tet.index()
+
+        # Changes from thick to thin or thin to thick occur when tet contains
+        # a quad that intersects the given edge.
+        quadType = _quadType( surf, teti )
+        if ( quadType is None ) or ( quadType in {edgeNum,5-edgeNum} ):
+            continue
+
+        # Changes occur at the segments identified below.
+        changeSegs = []
+        triCount = [ surf.triangles( teti, ver[i] ).safeLongValue()
+                    for i in range(2) ]
+        if triCount[0] > 0:
+            changeSegs.append( triCount[0] )
+        else:
+            changeSegs.append(None)
+        if triCount[1] > 0:
+            changeSegs.append( edgeWt - triCount[1] )
+        else:
+            changeSegs.append(None)
+
+        # The following permutations ensure that for any value of v in
+        # {0,1,2,3}, the vertex labels satisfy the following:
+        #
+        #                  sameSide[v]
+        #                       *
+        #                      /|\
+        #                     / | \
+        #                    /  |  \
+        #                   /   |   \
+        #                  /____|____\
+        #                 /|    |    |\
+        #                / |    |    | \
+        #   opposite[v] *--|----|----|--* opposite[sameSide[v]]
+        #                \ |    |    | /
+        #                 \|___/|\___|/
+        #                  \  / | \  /
+        #                   \/__|__\/
+        #                    \  |  /
+        #                     \ | /
+        #                      \|/
+        #                       *
+        #                       v
+        #
+        sameSide = _quadSameSide[quadType]
+        #opposite = _quadOpposite[quadType]
+
+        # Record the changes.
+        for j in range(2):
+            seg = changeSegs[j]
+            if seg is None:
+                continue
+            v = ver[j]
+
+            # Record the index embedding where the change occurs, together
+            # with the location of the parallel face that witnesses this
+            # change.
+            parallelFace = ( teti, sameSide[v] )
+
+            # Change is from thick to thin if sameSide[v] == ver[2], and from
+            # thin to thick if sameSide[v] == ver[3].
+            if sameSide[v] == ver[2]:
+                if seg not in thickToThin:
+                    thickToThin[seg] = dict()
+                thickToThin[seg][embIndex] = parallelFace
+            else:
+                if seg not in thinToThick:
+                    thinToThick[seg] = dict()
+                thinToThick[seg][embIndex] = parallelFace
+
+    # All done!
+    return thickToThin, thinToThick
+
+
+def _edgeEmbeddingIndices(tri):
+    embIndices = { teti: { n: None for n in range(6) }
+                  for teti in range( tri.size() ) }
+    for edge in tri.edges():
+        ei = edge.index()
+        for embIndex, emb in enumerate( edge.embeddings() ):
+            teti = emb.tetrahedron().index()
+            edgeNum = emb.face()
+            embIndices[teti][edgeNum] = ( ei, embIndex )
+    return embIndices
 
 
 def _boundaryParallelFaceData(surf):
@@ -195,6 +265,91 @@ def _boundaryParallelFaceData(surf):
                 faceSegments[parallelFace].add(
                         ( edgeIndex, segPosition ) )
     #TODO
+    return faceSegments
+
+
+def _boundaryParallelFaceSegmentEmbeddings(
+        surf, parallelFace, edgeEmbeddingIndices=None ):
+    """
+    Returns information about how the two vertical edges of the given
+    boundary parallel face are embedded as segments with respect to the given
+    normal surface.
+
+    In detail, this routine returns a 2-element list, where each element
+    specifies a segment embedding using a tuple of the form (e,i,s), where:
+    (0) e is an edge index;
+    (1) i is an embedding index; and
+    (2) s is the position of the segment along edge e.
+
+    The given parallel face should be specified by a pair (t,f), where t is a
+    tetrahedron index and f is a face number. This must specify a boundary
+    parallel face, which means that this parallel face must be suitably
+    sandwiched between a quad and a triangle. This routine will raise a
+    ValueError if no suitable quad and/or triangle exists.
+    """
+    tri = surf.triangulation()
+    if edgeEmbeddingIndices is None:
+        edgeEmbeddingIndices = _edgeEmbeddingIndices(tri)
+    teti, face = parallelFace
+
+    # The given parallel face is supposed to be sandwiched between a quad and
+    # a triangle. Find the quad.
+    quadType = _quadType( surf, teti )
+    if quadType is None:
+        raise ValueError(
+                "No parallel face because there are no quads!" )
+
+    # The following permutations ensure that for any value of face in
+    # {0,1,2,3}, the vertex labels satisfy the following:
+    #
+    #                        face
+    #                          *
+    #                         /|\
+    #                        / | \
+    #                       /  |  \
+    #                      /   |   \
+    #                     /____|____\
+    #                    /|    |    |\
+    #                   / |    |    | \
+    #   opposite[face] *--|----|----|--* opposite[sameSide[face]]
+    #                   \ |    |    | /
+    #                    \|___/|\___|/
+    #                     \  / | \  /
+    #                      \/__|__\/
+    #                       \  |  /
+    #                        \ | /
+    #                         \|/
+    #                          *
+    #                   sameSide[face]
+    #
+    sameSide = _quadSameSide[quadType]
+    opposite = _quadOpposite[quadType]
+
+    # Now find the triangle.
+    incidentSegs = []
+    triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
+    if triCount == 0:
+        raise ValueError(
+                "No parallel face because there are no triangles!" )
+
+    # Find the two segments incident to the given parallel face.
+    faceSegments = []
+    endpts = [ opposite[face], opposite[sameSide[face]] ]
+    for i in range(2):
+        # Look within one of the edges incident to the parallel face.
+        edgeNum = Edge3.faceNumber( Perm4(
+            sameSide[face], endpts[i],
+            face, endpts[1-i] ) )
+        edgeIndex = tet.edge(edgeNum).index()
+        embIndex = edgeEmbeddingIndices[teti][edgeNum]
+
+        # Find the segment.
+        if tet.edgeMapping(edgeNum)[0] == sameSide[face]:
+            segPosition = triCount
+        else:
+            edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
+            segPosition = edgeWt - triCount
+        faceSegments.append( ( edgeIndex, embIndex, segPosition ) )
     return faceSegments
 
 
@@ -800,12 +955,18 @@ if __name__ == "__main__":
     print( "parallelityBaseEuler(surf)" )
     print( parallelityBaseEuler(surf) )
 
-    #TODO Test survivingParallelityBoundaries() routine.
-    #print()
-    #print( "survivingParallelityBoundaries(surf)" )
-    #survivingParallelityBoundaries(surf)
-
     #TODO Test _boundaryParallelFaceData() routine.
     print()
     print( "_boundaryParallelFaceData(surf)" )
     print( _boundaryParallelFaceData(surf) )
+
+    #TODO Test _type2SegmentRegionChanges() routine.
+    print()
+    print( "_type2SegmentRegionChanges()" )
+    for e in tri.edges():
+        print( e.index(), _type2SegmentRegionChanges( e, surf ) )
+
+    #TODO Test survivingParallelityBoundaries() routine.
+    #print()
+    #print( "survivingParallelityBoundaries(surf)" )
+    #survivingParallelityBoundaries(surf)
