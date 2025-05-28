@@ -21,7 +21,7 @@ _quadOpposite = [
         Perm4(1,0,3,2)]
 
 
-def parallelityBoundaries(surf):
+def parallelityBoundaries( surf, survivingSegments=None ):
     """
     Finds all boundary components of the parallelity bundle.
 
@@ -31,9 +31,8 @@ def parallelityBoundaries(surf):
     segments.
     """
     tri = surf.triangulation()
-    #TODO Decide whether computing the survivingSegments is necessary.
-#    if survivingSegments is None:
-#        survivingSegments = _survivingSegments(surf)
+    if survivingSegments is None:
+        survivingSegments = _survivingSegments(surf)
 
     # Find where type-2 segments change between thick and thin regions, since
     # we will need this information to be able to traverse boundary
@@ -46,7 +45,24 @@ def parallelityBoundaries(surf):
         thinToThick.append( regionChanges[1] )
 
     #
-    #TODO Data structure for the return value?
+    bdrySegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
+    parallelBoundaries = set()  #TODO Set or list?
+    while bdrySegEmbs:
+        bdryParFace, segEmbs = bdrySegEmbs.popitem()
+        currentSegEmb, stopSegEmb = segEmbs
+        representativeSeg = ( currentSegEmb[0], currentSegEmb[1] )
+        isRepSegSurviving = ( representativeSeg in survivingSegments )
+        while True:
+            # Walk around the link of the current segment until we find the
+            # next boundary parallel face.
+            #TODO
+
+            #TODO Break out when we reach stopSegEmb.
+            #TODO
+            pass
+        #TODO
+        pass
+    #TODO
     raise NotImplementedError()
 
 
@@ -187,25 +203,27 @@ def _edgeEmbeddingIndices(tri):
     return embIndices
 
 
-def _boundaryParallelFaceData(surf):
+def _boundaryParallelFaceSegmentEmbeddings(surf):
     """
-    Returns information about the parallel faces that lie in the vertical
-    boundary of the parallelity bundle.
+    Returns information about how the two vertical edges of each boundary
+    parallel face are embedded as segments with respect to the given normal
+    surface.
 
-    In detail, each such parallel face P is specified using a pair of the
+    In detail, each boundary parallel face P is specified using a pair of the
     form (t,f), where:
     --> t is the index of the tetrahedron incident to P on the "outside"; and
     --> f is the face number of tetrahedron t specifying the triangular face
         that contains P.
     The output of this routine is a dictionary that maps each such pair to a
-    2-element list L, where each element of L specifies a segment incident to
-    the face P. Specifically, each such segment is given by a pair of the
-    form (e,s), where:
-    --> e is the index of the edge containing the segment; and
+    2-element list L, where each element of L specifies an embedding of one
+    of one of the vertical edges of P as a segment. Specifically, each such
+    segment embedding is given by a tuple of the form (e,i,s), where:
+    --> e is the index of the edge containing the segment;
+    --> i is the index of the edge embedding; and
     --> s is the position of the segment along edge e.
     """
-    #TODO Document, and improve usability of the output.
     tri = surf.triangulation()
+    edgeEmbeddingIndices = _edgeEmbeddingIndices(tri)
     faceSegments = dict()
     for tet in tri.tetrahedra():
         teti = tet.index()
@@ -255,6 +273,7 @@ def _boundaryParallelFaceData(surf):
                         sameSide[face], opposite[endpts[i]],
                         face, opposite[endpts[1-i]] ) )
                 edgeIndex = tet.edge(edgeNum).index()
+                embIndex = edgeEmbeddingIndices[teti][edgeNum]
 
                 # Find the segment incident to P.
                 if tet.edgeMapping(edgeNum)[0] == sameSide[face]:
@@ -263,93 +282,8 @@ def _boundaryParallelFaceData(surf):
                     edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
                     segPosition = edgeWt - triCount
                 faceSegments[parallelFace].add(
-                        ( edgeIndex, segPosition ) )
-    #TODO
-    return faceSegments
+                        ( edgeIndex, embIndex, segPosition ) )
 
-
-def _boundaryParallelFaceSegmentEmbeddings(
-        surf, parallelFace, edgeEmbeddingIndices=None ):
-    """
-    Returns information about how the two vertical edges of the given
-    boundary parallel face are embedded as segments with respect to the given
-    normal surface.
-
-    In detail, this routine returns a 2-element list, where each element
-    specifies a segment embedding using a tuple of the form (e,i,s), where:
-    (0) e is an edge index;
-    (1) i is an embedding index; and
-    (2) s is the position of the segment along edge e.
-
-    The given parallel face should be specified by a pair (t,f), where t is a
-    tetrahedron index and f is a face number. This must specify a boundary
-    parallel face, which means that this parallel face must be suitably
-    sandwiched between a quad and a triangle. This routine will raise a
-    ValueError if no suitable quad and/or triangle exists.
-    """
-    tri = surf.triangulation()
-    if edgeEmbeddingIndices is None:
-        edgeEmbeddingIndices = _edgeEmbeddingIndices(tri)
-    teti, face = parallelFace
-
-    # The given parallel face is supposed to be sandwiched between a quad and
-    # a triangle. Find the quad.
-    quadType = _quadType( surf, teti )
-    if quadType is None:
-        raise ValueError(
-                "No parallel face because there are no quads!" )
-
-    # The following permutations ensure that for any value of face in
-    # {0,1,2,3}, the vertex labels satisfy the following:
-    #
-    #                        face
-    #                          *
-    #                         /|\
-    #                        / | \
-    #                       /  |  \
-    #                      /   |   \
-    #                     /____|____\
-    #                    /|    |    |\
-    #                   / |    |    | \
-    #   opposite[face] *--|----|----|--* opposite[sameSide[face]]
-    #                   \ |    |    | /
-    #                    \|___/|\___|/
-    #                     \  / | \  /
-    #                      \/__|__\/
-    #                       \  |  /
-    #                        \ | /
-    #                         \|/
-    #                          *
-    #                   sameSide[face]
-    #
-    sameSide = _quadSameSide[quadType]
-    opposite = _quadOpposite[quadType]
-
-    # Now find the triangle.
-    incidentSegs = []
-    triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
-    if triCount == 0:
-        raise ValueError(
-                "No parallel face because there are no triangles!" )
-
-    # Find the two segments incident to the given parallel face.
-    faceSegments = []
-    endpts = [ opposite[face], opposite[sameSide[face]] ]
-    for i in range(2):
-        # Look within one of the edges incident to the parallel face.
-        edgeNum = Edge3.faceNumber( Perm4(
-            sameSide[face], endpts[i],
-            face, endpts[1-i] ) )
-        edgeIndex = tet.edge(edgeNum).index()
-        embIndex = edgeEmbeddingIndices[teti][edgeNum]
-
-        # Find the segment.
-        if tet.edgeMapping(edgeNum)[0] == sameSide[face]:
-            segPosition = triCount
-        else:
-            edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
-            segPosition = edgeWt - triCount
-        faceSegments.append( ( edgeIndex, embIndex, segPosition ) )
     return faceSegments
 
 
@@ -888,7 +822,7 @@ def _survivingSegments(surf):
         of surf on edge ei.
     The segments for each edge e are numbered in ascending order from the one
     incident to e.vertex(0) to the one incident to e.vertex(1). The returned
-    dictionary will map each such segment to a pair (t, en), where:
+    dictionary will map each surviving segment to a pair (t, en), where:
     --> t is the index after crushing of a tetrahedron that will be incident
         to the segment in question; and
     --> en is an edge number (from 0 to 5, inclusive) of this tetrahedron
