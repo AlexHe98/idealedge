@@ -97,14 +97,17 @@ def _type2CentralSegment( edgeEmb, surf ):
     embedding (with respect to the given normal surface), or None if there is
     no such segment.
     """
-    # To have a central segment, the tetrahedron must have no quads.
+    # To have a central segment, the tetrahedron must not contain a quad
+    # intersecting the edge.
     teti = edgeEmb.tetrahedron().index()
-    if _quadType( surf, teti ) is not None:
+    eNum = edgeEmb.face()
+    quadType = _quadType( surf, teti )
+    if ( quadType is not None ) and ( quadType not in {eNum,5-eNum} ):
         return None
 
     # Central segment occurs immediately after all the triangles at vertex 0
     # of the edge.
-    # For this to be type-2, there must be a positive number triangles at
+    # For this to be type-2, there must be a positive number of triangles at
     # both vertex 0 and vertex 1.
     verts = edgeEmb.vertices()
     triCount = [ surf.triangles( teti, verts[i] ).safeLongValue()
@@ -114,7 +117,72 @@ def _type2CentralSegment( edgeEmb, surf ):
     return None
 
 
+def _boundaryParallelFaces(surf):
+    tri = surf.triangulation()
+    faceSegments = dict()
+    for tet in tri.tetrahedra():
+        teti = tet.index()
+        quadType = _quadType( surf, teti )
+        if quadType is None:
+            continue
+
+        # Find boundary parallel faces incident to tet.
+        sameSide = _quadSameSide[quadType]
+        opposite = _quadOpposite[quadType]
+        # The above permutations ensure that for any value of face in
+        # {0,1,2,3}, the vertex labels satisfy the following:
+        #
+        #                        face
+        #                          *
+        #                         /|\
+        #                        / | \
+        #                       /  |  \
+        #                      /   |   \
+        #                     /____|____\
+        #                    /|    |    |\
+        #                   / |    |    | \
+        #   opposite[face] *--|----|----|--* opposite[sameSide[face]]
+        #                   \ |    |    | /
+        #                    \|___/|\___|/
+        #                     \  / | \  /
+        #                      \/__|__\/
+        #                       \  |  /
+        #                        \ | /
+        #                         \|/
+        #                          *
+        #                   sameSide[face]
+        for face in range(4):
+            triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
+            if triCount == 0:
+                continue
+
+            # We have a parallel face P that is boundary (or isolated, in the
+            # case where it is "boundary on both sides").
+            parallelFace = ( teti, face )
+            faceSegments[parallelFace] = set()
+            endpts = [ face, sameSide[face] ]
+            triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
+            for i in range(2):
+                # Look at one of the edges incident to P.
+                edgeNum = Edge3.faceNumber( Perm4(
+                        sameSide[face], opposite[endpts[i]],
+                        face, opposite[endpts[1-i]] ) )
+                edgeIndex = tet.edge(edgeNum).index()
+
+                # Find the segment incident to P.
+                if tet.edgeMapping(edgeNum)[0] == sameSide[face]:
+                    segPosition = triCount
+                else:
+                    edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
+                    segPosition = edgeWt - triCount
+                faceSegments[parallelFace].add(
+                        ( edgeIndex, segPosition ) )
+    #TODO
+    return faceSegments
+
+
 def _nextEdgeEmbeddingIndex( edge, currentEmbIndex, forwards=True ):
+    #TODO Is this routine necessary?
     if forwards:
         # Forwards.
         if currentEmbIndex == edge.degree() - 1:
@@ -706,13 +774,21 @@ if __name__ == "__main__":
             if result not in found:
                 found.append(result)
     print()
+    print( "_survivingSegments(surf)" )
     for f in found:
         print(f)
 
     #TODO Test parallelityBaseEuler() routine.
     print()
+    print( "parallelityBaseEuler(surf)" )
     print( parallelityBaseEuler(surf) )
 
     #TODO Test survivingParallelityBoundaries() routine.
+    #print()
+    #print( "survivingParallelityBoundaries(surf)" )
+    #survivingParallelityBoundaries(surf)
+
+    #TODO Test _boundaryParallelFaces() routine.
     print()
-    survivingParallelityBoundaries(surf)
+    print( "_boundaryParallelFaces(surf)" )
+    print( _boundaryParallelFaces(surf) )
