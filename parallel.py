@@ -117,7 +117,24 @@ def _type2CentralSegment( edgeEmb, surf ):
     return None
 
 
-def _boundaryParallelFaces(surf):
+def _boundaryParallelFaceData(surf):
+    """
+    Returns information about the parallel faces that lie in the vertical
+    boundary of the parallelity bundle.
+
+    In detail, each such parallel face P is specified using a pair of the
+    form (t,f), where:
+    --> t is the index of the tetrahedron incident to P on the "outside"; and
+    --> f is the face number of tetrahedron t specifying the triangular face
+        that contains P.
+    The output of this routine is a dictionary that maps each such pair to a
+    2-element list L, where each element of L specifies a segment incident to
+    the face P. Specifically, each such segment is given by a pair of the
+    form (e,s), where:
+    --> e is the index of the edge containing the segment; and
+    --> s is the position of the segment along edge e.
+    """
+    #TODO Document, and improve usability of the output.
     tri = surf.triangulation()
     faceSegments = dict()
     for tet in tri.tetrahedra():
@@ -788,7 +805,7 @@ if __name__ == "__main__":
     #print( "survivingParallelityBoundaries(surf)" )
     #survivingParallelityBoundaries(surf)
 
-    #TODO Test _boundaryParallelFaces() routine.
+    #TODO Test _boundaryParallelFaceData() routine.
     print()
-    print( "_boundaryParallelFaces(surf)" )
-    print( _boundaryParallelFaces(surf) )
+    print( "_boundaryParallelFaceData(surf)" )
+    print( _boundaryParallelFaceData(surf) )
