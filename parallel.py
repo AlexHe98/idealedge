@@ -37,12 +37,9 @@ def parallelityBoundaries( surf, survivingSegments=None ):
     # Find where type-2 segments change between thick and thin regions, since
     # we will need this information to be able to traverse boundary
     # components of the parallelity bundle.
-    thickToThin = []
-    thinToThick = []
+    regionChanges = []
     for edge in tri.edges():
-        regionChanges = _type2SegmentRegionChanges( edge, surf )
-        thickToThin.append( regionChanges[0] )
-        thinToThick.append( regionChanges[1] )
+        regionChanges.append( _type2SegmentRegionChanges( edge, surf ) )
 
     #
     bdrySegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
@@ -53,12 +50,39 @@ def parallelityBoundaries( surf, survivingSegments=None ):
         representativeSeg = ( currentSegEmb[0], currentSegEmb[1] )
         isRepSegSurviving = ( representativeSeg in survivingSegments )
         while True:
+            currentEdgeInd, currentEmbInd, currentSegPos = currentSegEmb
+
             # Walk around the link of the current segment until we find the
             # next boundary parallel face.
-            #TODO
+            for changeInd, changeData in enumerate(
+                    regionChanges[currentEdgeInd] ):
+                change, embInd, _ = changeData
+                if embInd == currentEmbInd:
+                    break
+            if change > 0:
+                # We are currently at a change from thin to thick, so we need
+                # to walk around in the forwards direction.
+                changeInd += 1
+                if changeInd == len( regionChanges[currentEdgeInd] ):
+                    changeInd = 0
+            else:
+                # We are currently at a change from thick to thin, so we need
+                # to walk around in the backwards direction.
+                changeInd -= 1
+            nextRegionChange = regionChanges[currentEdgeInd][changeInd]
+            _, nextEmbInd, nextParallelFace = nextRegionChange
+            nextSegEmb = ( currentEdgeInd, nextEmbInd, currentSegPos )
 
-            #TODO Break out when we reach stopSegEmb.
-            #TODO
+            # Have we come back to the first parallel face in this boundary
+            # component of the parallelity bundle?
+            if nextSegEmb == stopSegEmb:
+                break
+
+            #
+            #TODO Don't forget to:
+            #   --> update the representative segment; and
+            #   --> remove from bdrySegEmbs so that we only visit every
+            #       segment once.
             pass
         #TODO
         pass
