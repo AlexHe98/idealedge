@@ -42,11 +42,11 @@ def parallelityBoundaries( surf, survivingSegments=None ):
         regionChanges.append( _type2SegmentRegionChanges( edge, surf ) )
 
     #
-    bdrySegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
+    bdryParFaceSegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
     parallelBoundaries = set()  #TODO Set or list?
-    while bdrySegEmbs:
-        bdryParFace, segEmbs = bdrySegEmbs.popitem()
-        currentSegEmb, stopSegEmb = segEmbs
+    while bdryParFaceSegEmbs:
+        _, startSegEmbs = bdryParFaceSegEmbs.popitem()
+        currentSegEmb, stopSegEmb = startSegEmbs
         representativeSeg = ( currentSegEmb[0], currentSegEmb[1] )
         isRepSegSurviving = ( representativeSeg in survivingSegments )
         while True:
@@ -70,20 +70,27 @@ def parallelityBoundaries( surf, survivingSegments=None ):
                 # to walk around in the backwards direction.
                 changeInd -= 1
             nextRegionChange = regionChanges[currentEdgeInd][changeInd]
-            _, nextEmbInd, nextParallelFace = nextRegionChange
-            nextSegEmb = ( currentEdgeInd, nextEmbInd, currentSegPos )
+            _, nextEmbInd, nextParFace = nextRegionChange
+            currentSegEmb = ( currentEdgeInd, nextEmbInd, currentSegPos )
 
             # Have we come back to the first parallel face in this boundary
             # component of the parallelity bundle?
-            if nextSegEmb == stopSegEmb:
+            if currentSegEmb == stopSegEmb:
                 break
 
-            #
-            #TODO Don't forget to:
-            #   --> update the representative segment; and
-            #   --> remove from bdrySegEmbs so that we only visit every
-            #       segment once.
-            pass
+            # Continue traversing along this boundary component of the
+            # parallelity bundle by walking along the next parallel face.
+            nextParFaceSegEmbs = bdryParFaceSegEmbs.pop(nextParFace)
+            i = nextParFaceSegEmbs.index(currentSegEmb)
+            currentSegEmb = nextParFaceSegEmbs[1-i]
+
+            # If necessary, update the representative segment.
+            if isRepSegSurviving:
+                continue
+            currentSeg = ( currentSegEmb[0], currentSegEmb[1] )
+            if currentSeg in survivingSegs:
+                representativeSeg = currentSeg
+                isRepSegSurviving = True
         #TODO
         pass
     #TODO
