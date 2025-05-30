@@ -98,21 +98,18 @@ def _type2SegmentRegionChanges( edge, surf ):
     to the given normal surface) change regions from either thick to thin or
     thin to thick.
 
-    In detail, this routine returns a pair of dictionaries:
-    (0) the first specifies changes from thick to thin; and
-    (1) the second specifies changes from thin to thick.
-    Each such dictionary maps segments S to dictionaries that specify the
-    region changes for S. The latter dictionaries map the location of the
-    region change, specified as an index of an edge embedding, to the
-    parallel face that witnesses the region change. Parallel faces are
-    specified using pairs of the form (t,f), where t is a tetrahedron index
-    and f is the face number of the tetrahedron that contains the parallel
-    face in question.
+    In detail, this routine returns a dictionary that maps each type-2
+    segment S to a list L that specifies the region changes for S. The
+    entries of such a list L are of the form ( c, i, (t,f) ), where:
+    --> c is +1 if the change is from thin to thick, and -1 if the change is
+        from thick to thin;
+    --> i is the index of the edge embedding at which the change occurs; and
+    --> (t,f) specifies the parallel face that witnesses the region change,
+        using a tetrahedron index t and a face number f.
     """
     edgeEmbIndices = _edgeEmbeddingIndices( surf.triangulation() )
     edgeWt = surf.edgeWeight( edge.index() ).safeLongValue()
-    thickToThin = dict()
-    thinToThick = dict()
+    regionChanges = dict()
     for embIndex, emb in enumerate( edge.embeddings() ):
         edgeNum = emb.face()
         ver = emb.vertices()
@@ -171,24 +168,25 @@ def _type2SegmentRegionChanges( edge, surf ):
                 continue
             v = ver[j]
 
-            # Record the index embedding where the change occurs, together
-            # with the location of the parallel face that witnesses this
-            # change.
-            parallelFace = ( teti, sameSide[v] )
-
             # Change is from thick to thin if sameSide[v] == ver[2], and from
             # thin to thick if sameSide[v] == ver[3].
             if sameSide[v] == ver[2]:
-                if seg not in thickToThin:
-                    thickToThin[seg] = dict()
-                thickToThin[seg][embIndex] = parallelFace
+                change = -1
             else:
-                if seg not in thinToThick:
-                    thinToThick[seg] = dict()
-                thinToThick[seg][embIndex] = parallelFace
+                change = 1
+
+            # Record the index of the edge embedding where the change occurs,
+            # together with the location of the parallel face that witnesses
+            # this change.
+            parallelFace = ( teti, sameSide[v] )
+            data = ( change, embIndex, parallelFace )
+            if seg in regionChanges:
+                regionChanges[seg].append(data)
+            else:
+                regionChanges[seg] = [data]
 
     # All done!
-    return thickToThin, thinToThick
+    return regionChanges
 
 
 def _edgeEmbeddingIndices(tri):
@@ -264,7 +262,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
             # We have a parallel face P that is boundary (or isolated, in the
             # case where it is "boundary on both sides").
             parallelFace = ( teti, face )
-            faceSegments[parallelFace] = set()
+            faceSegments[parallelFace] = []
             endpts = [ face, sameSide[face] ]
             triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
             for i in range(2):
@@ -273,7 +271,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
                         sameSide[face], opposite[endpts[i]],
                         face, opposite[endpts[1-i]] ) )
                 edgeIndex = tet.edge(edgeNum).index()
-                embIndex = edgeEmbeddingIndices[teti][edgeNum]
+                embIndex = edgeEmbeddingIndices[teti][edgeNum][1]
 
                 # Find the segment incident to P.
                 if tet.edgeMapping(edgeNum)[0] == sameSide[face]:
@@ -281,7 +279,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
                 else:
                     edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
                     segPosition = edgeWt - triCount
-                faceSegments[parallelFace].add(
+                faceSegments[parallelFace].append(
                         ( edgeIndex, embIndex, segPosition ) )
 
     return faceSegments
@@ -889,10 +887,10 @@ if __name__ == "__main__":
     print( "parallelityBaseEuler(surf)" )
     print( parallelityBaseEuler(surf) )
 
-    #TODO Test _boundaryParallelFaceData() routine.
+    #TODO Test _boundaryParallelFaceSegmentEmbeddings() routine.
     print()
-    print( "_boundaryParallelFaceData(surf)" )
-    print( _boundaryParallelFaceData(surf) )
+    print( "_boundaryParallelFaceSegmentEmbeddings(surf)" )
+    print( _boundaryParallelFaceSegmentEmbeddings(surf) )
 
     #TODO Test _type2SegmentRegionChanges() routine.
     print()
