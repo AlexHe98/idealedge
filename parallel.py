@@ -21,14 +21,41 @@ _quadOpposite = [
         Perm4(1,0,3,2)]
 
 
-def parallelityBoundaries( surf, survivingSegments=None ):
+def parallelityBaseTopology(surf):
+    """
+    Determines the topology of the base B of each component of the
+    parallelity bundle by computing the Euler characteristic and the number
+    of boundary curves of B.
+    """
+    weights = _eulerWeights(surf)
+    parOrbits = _computeParallelityOrbits(surf)
+    survivingSegments = _survivingSegments(surf)
+    parBdries = _parallelityBoundaries( surf, survivingSegments )
+
+    # The _eulerWeights() routine assigns segment weights so that the total
+    # weight is *twice* the Euler characteristic of the base.
+    euler = [ wt//2 for wt in
+             _parallelityBundleWeights( surf, weights, parOrbits ) ]
+
+    # Work out which parallelity boundaries belong to each orbit.
+    bdryCurves = []
+    for orbit in parOrbits:
+        bdryCurves.append( parBdries.intersection(orbit) )
+
+    # Done!
+    return euler, bdryCurves
+
+
+def _parallelityBoundaries( surf, survivingSegments=None ):
     """
     Finds all boundary components of the parallelity bundle.
 
     In detail, each such boundary component B is identified using a single
     segment S inside B; in the case where B contains at least one surviving
     segment, the chosen segment S is guaranteed to be one of the surviving
-    segments.
+    segments. This routine returns a set consisting of these chosen segments,
+    with exactly one such segment for each boundary component of the
+    parallelity bundle.
     """
     tri = surf.triangulation()
     if survivingSegments is None:
@@ -41,7 +68,8 @@ def parallelityBoundaries( surf, survivingSegments=None ):
     for edge in tri.edges():
         regionChanges.append( _type2SegmentRegionChanges( edge, surf ) )
 
-    #
+    # Traverse vertical boundary components of the parallelity boundary until
+    # we have visited every boundary parallel face.
     bdryParFaceSegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
     parallelBoundaries = set()  #TODO Set or list?
     while bdryParFaceSegEmbs:
@@ -49,6 +77,8 @@ def parallelityBoundaries( surf, survivingSegments=None ):
         currentSegEmb, stopSegEmb = startSegEmbs
         representativeSeg = ( currentSegEmb[0], currentSegEmb[1] )
         isRepSegSurviving = ( representativeSeg in survivingSegments )
+
+        # Traverse the current boundary component.
         while True:
             currentEdgeInd, currentEmbInd, currentSegPos = currentSegEmb
 
@@ -56,6 +86,9 @@ def parallelityBoundaries( surf, survivingSegments=None ):
             # next boundary parallel face.
             for changeInd, changeData in enumerate(
                     regionChanges[currentEdgeInd] ):
+                #TODO BEGIN TEST
+                print(changeData)
+                #TODO END TEST
                 change, embInd, _ = changeData
                 if embInd == currentEmbInd:
                     break
@@ -91,10 +124,13 @@ def parallelityBoundaries( surf, survivingSegments=None ):
             if currentSeg in survivingSegs:
                 representativeSeg = currentSeg
                 isRepSegSurviving = True
-        #TODO
-        pass
-    #TODO
-    raise NotImplementedError()
+
+        # Record the representative segment for the current boundary
+        # component of the parallelity bundle.
+        parallelBoundaries.add(representativeSeg)
+
+    # All done!
+    return parallelBoundaries
 
 
 def _type2CentralSegment( edgeEmb, surf ):
@@ -332,56 +368,45 @@ def _nextEdgeEmbeddingIndex( edge, currentEmbIndex, forwards=True ):
             return currentEmbIndex - 1
 
 
-def parallelityBaseEuler(surf):
-    """
-    Calculates the Euler characteristic of the base of each component of the
-    parallelity bundle.
-
-    In detail, this routine returns a list consisting of pairs (s,e), where
-    s is a list of type-2 segments that are all in the same component of the
-    parallelity bundle, and w is the Euler characteristic of the base of that
-    component.
-    """
-    #TODO There should be a better way to specify the orbit.
-    return [ ( orbit, wt//2 ) for orbit, wt in
-            parallelityBundleWeights( surf, _eulerWeights(surf) ) ]
-
-
-def parallelityBundleWeights( surf, weights ):
+def _parallelityBundleWeights( surf, weights, parOrbits ):
     """
     Calculates the total weight of each component of the parallelity bundle.
 
-    In detail, this routine returns a list consisting of pairs (s,w), where
-    s is a list of type-2 segments that are all in the same component of the
-    parallelity bundle, and w is the total weight of that component.
+    In detail, this routine returns a list of orbit weights, in the same
+    order as the orbits in the given parOrbits list.
 
     WARNING:
     --> This routine does not check whether the given segment weights make
         sense for the given normal surface. Therefore, this routine may
         produce undefined behaviour when given invalid input arguments.
     """
-    #TODO There should be a better way to specify the orbit.
+    orbitWeights = []
+    for orbit in parOrbits:
+        totalWeight = 0
+        for seg in orbit:
+            totalWeight += weights[seg]
+        orbitWeights.append(totalWeight)
+    return orbitWeights
+
+
+def _computeParallelityOrbits(surf):
     # Naively compute orbits using repeated depth-first search.
     # At least in theory, it would be better to do this using something like
     # the Agol-Hass-Thurston weighted orbit-counting algorithm.
     segments = _segments(surf)
-    orbitWeights = []
+    parOrbits = []
     while segments:
         seg, segType = segments.popitem()
         if segType != 2:
             continue
 
-        # Compute the total weight of the orbit of this type-2 segment.
+        # Compute the orbit of this type-2 segment.
         orbit = _computeOrbit( surf, seg )
-        totalWeight = 0
         for otherSeg in orbit:
-            totalWeight += weights[otherSeg]
-
-            # Make sure to only process each orbit once.
             if otherSeg != seg:
                 del segments[otherSeg]
-        orbitWeights.append( ( orbit, totalWeight ) )
-    return orbitWeights
+        parOrbits.append(orbit)
+    return parOrbits
 
 
 def _computeOrbit( surf, start ):
@@ -913,11 +938,6 @@ if __name__ == "__main__":
     for f in found:
         print(f)
 
-    #TODO Test parallelityBaseEuler() routine.
-    print()
-    print( "parallelityBaseEuler(surf)" )
-    print( parallelityBaseEuler(surf) )
-
     #TODO Test _boundaryParallelFaceSegmentEmbeddings() routine.
     print()
     print( "_boundaryParallelFaceSegmentEmbeddings(surf)" )
@@ -929,7 +949,7 @@ if __name__ == "__main__":
     for e in tri.edges():
         print( e.index(), _type2SegmentRegionChanges( e, surf ) )
 
-    #TODO Test survivingParallelityBoundaries() routine.
-    #print()
-    #print( "survivingParallelityBoundaries(surf)" )
-    #survivingParallelityBoundaries(surf)
+    #TODO Test parallelityBaseTopology() routine.
+    print()
+    print( "parallelityBaseTopology(surf)" )
+    print( parallelityBaseTopology(surf) )
