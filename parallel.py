@@ -43,7 +43,7 @@ def parallelityBaseTopology(surf):
         bdryCurves.append( parBdries.intersection(orbit) )
 
     # Done!
-    return euler, bdryCurves
+    return list( zip( euler, bdryCurves ) )
 
 
 def _parallelityBoundaries( surf, survivingSegments=None ):
@@ -75,7 +75,7 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     while bdryParFaceSegEmbs:
         _, startSegEmbs = bdryParFaceSegEmbs.popitem()
         currentSegEmb, stopSegEmb = startSegEmbs
-        representativeSeg = ( currentSegEmb[0], currentSegEmb[1] )
+        representativeSeg = ( currentSegEmb[0], currentSegEmb[2] )
         isRepSegSurviving = ( representativeSeg in survivingSegments )
 
         # Traverse the current boundary component.
@@ -84,11 +84,8 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
 
             # Walk around the link of the current segment until we find the
             # next boundary parallel face.
-            for changeInd, changeData in enumerate(
-                    regionChanges[currentEdgeInd] ):
-                #TODO BEGIN TEST
-                print(changeData)
-                #TODO END TEST
+            currentChanges = regionChanges[currentEdgeInd][currentSegPos]
+            for changeInd, changeData in enumerate(currentChanges):
                 change, embInd, _ = changeData
                 if embInd == currentEmbInd:
                     break
@@ -96,13 +93,13 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
                 # We are currently at a change from thin to thick, so we need
                 # to walk around in the forwards direction.
                 changeInd += 1
-                if changeInd == len( regionChanges[currentEdgeInd] ):
+                if changeInd == len(currentChanges):
                     changeInd = 0
             else:
                 # We are currently at a change from thick to thin, so we need
                 # to walk around in the backwards direction.
                 changeInd -= 1
-            nextRegionChange = regionChanges[currentEdgeInd][changeInd]
+            nextRegionChange = currentChanges[changeInd]
             _, nextEmbInd, nextParFace = nextRegionChange
             currentSegEmb = ( currentEdgeInd, nextEmbInd, currentSegPos )
 
@@ -120,8 +117,8 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
             # If necessary, update the representative segment.
             if isRepSegSurviving:
                 continue
-            currentSeg = ( currentSegEmb[0], currentSegEmb[1] )
-            if currentSeg in survivingSegs:
+            currentSeg = ( currentSegEmb[0], currentSegEmb[2] )
+            if currentSeg in survivingSegments:
                 representativeSeg = currentSeg
                 isRepSegSurviving = True
 
@@ -945,11 +942,17 @@ if __name__ == "__main__":
 
     #TODO Test _type2SegmentRegionChanges() routine.
     print()
-    print( "_type2SegmentRegionChanges()" )
+    print( "_type2SegmentRegionChanges( e, surf )" )
     for e in tri.edges():
         print( e.index(), _type2SegmentRegionChanges( e, surf ) )
+
+    #TODO Test _parallelityBoundaries() routine.
+    print()
+    print( "_parallelityBoundaries( surf, survivors )" )
+    print( _parallelityBoundaries( surf, survivors ) )
 
     #TODO Test parallelityBaseTopology() routine.
     print()
     print( "parallelityBaseTopology(surf)" )
-    print( parallelityBaseTopology(surf) )
+    for b in parallelityBaseTopology(surf):
+        print(b)
