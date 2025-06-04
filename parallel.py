@@ -60,6 +60,7 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     tri = surf.triangulation()
     if survivingSegments is None:
         survivingSegments = _survivingSegments(surf)
+    parallelBoundaries = set()  #TODO Set or list?
 
     # Find where type-2 segments change between thick and thin regions, since
     # we will need this information to be able to traverse boundary
@@ -68,10 +69,21 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     for edge in tri.edges():
         regionChanges.append( _type2SegmentRegionChanges( edge, surf ) )
 
+        # Special case
+        # ------------
+        # We will consider a component of the parallelity bundle consisting
+        # entirely of a single segment S to have boundary given by S itself;
+        # in other words, S is an "isolated" parallelity segment. Such
+        # isolated parallelity segments can be characterised as central
+        # segments that have no changes between thick and thin regions.
+        isolatedPos = _type2CentralSegment( edge.embedding(0), surf )
+        if ( isolatedPos is None ) or ( isolatedPos in regionChanges[-1] ):
+            continue
+        parallelBoundaries.add( ( edge.index(), isolatedPos ) )
+
     # Traverse vertical boundary components of the parallelity boundary until
     # we have visited every boundary parallel face.
     bdryParFaceSegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
-    parallelBoundaries = set()  #TODO Set or list?
     while bdryParFaceSegEmbs:
         _, startSegEmbs = bdryParFaceSegEmbs.popitem()
         currentSegEmb, stopSegEmb = startSegEmbs
@@ -170,6 +182,8 @@ def _type2SegmentRegionChanges( edge, surf ):
     --> i is the index of the edge embedding at which the change occurs; and
     --> (t,f) specifies the parallel face that witnesses the region change,
         using a tetrahedron index t and a face number f.
+    If the segment has no changes between thick and thin regions, then the
+    segment will not appear as a key in the returned dictionary.
     """
     edgeEmbIndices = _edgeEmbeddingIndices( surf.triangulation() )
     edgeWt = surf.edgeWeight( edge.index() ).safeLongValue()
