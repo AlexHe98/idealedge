@@ -737,5 +737,39 @@ if __name__ == "__main__":
     # Test parallelityBaseTopology() routine.
     print()
     print( "parallelityBaseTopology(surf)" )
-    for b in parallelityBaseTopology(surf):
+    parBaseTop = parallelityBaseTopology(surf)
+    for b in parBaseTop:
         print(b)
+
+    # Print some extra information that is helpful for manual experimentation
+    # in the GUI.
+    print()
+    print( "Ideal edges" )
+    crushed = surf.crush()
+    comp = crushed.triangulateComponents()
+    compSize = [ 0 for _ in range( crushed.countComponents() ) ]
+    compTeti = []
+    for tet in crushed.tetrahedra():
+        compi = tet.component().index()
+        compTeti.append( compSize[compi] )
+        compSize[compi] += 1
+    for eulerChar, parBdryData in parBaseTop:
+        if eulerChar == 1:
+            # Don't need to worry about contractible parallelity components,
+            # and we can assume that no parallelity components have
+            # projective plane base.
+            continue
+
+        # Print details of ideal edges.
+        for parBdrySeg, survivor in parBdryData.items():
+            if survivor is None:
+                continue
+
+            # Surviving edge is an ideal edge.
+            idTeti, idEdgeNum = survivor
+            idTet = crushed.tetrahedron(idTeti)
+            idCompi = idTet.component().index()
+            idCompTeti = compTeti[idTeti]
+            idEdge = comp[idCompi].tetrahedron(idCompTeti).edge(idEdgeNum)
+            print( "{}: Component #{}, Edge #{}".format(
+                parBdrySeg, 1 + idCompi, idEdge.index() ) )
