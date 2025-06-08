@@ -154,7 +154,7 @@ def _type2CentralSegment( edgeEmb, surf ):
     # intersecting the edge.
     teti = edgeEmb.tetrahedron().index()
     eNum = edgeEmb.face()
-    quadType = _quadType( surf, teti )
+    quadType = tetQuadType( surf, teti )
     if ( quadType is not None ) and ( quadType not in {eNum,5-eNum} ):
         return None
 
@@ -198,7 +198,7 @@ def _type2SegmentRegionChanges( edge, surf ):
 
         # Changes from thick to thin or thin to thick occur when tet contains
         # a quad that intersects the given edge.
-        quadType = _quadType( surf, teti )
+        quadType = tetQuadType( surf, teti )
         if ( quadType is None ) or ( quadType in {edgeNum,5-edgeNum} ):
             continue
 
@@ -305,7 +305,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
     faceSegments = dict()
     for tet in tri.tetrahedra():
         teti = tet.index()
-        quadType = _quadType( surf, teti )
+        quadType = tetQuadType( surf, teti )
         if quadType is None:
             continue
 
@@ -613,7 +613,7 @@ def _eulerWeights(surf):
         # We also need to adjust weights using parallel quad cells, and
         # parallel faces that are either boundary or isolated. Such cases
         # only arise in tetrahedra that contain at least one quad.
-        quads = _quads( surf, teti )
+        quads = tetQuads( surf, teti )
         if quads is None:
             continue
         quadType, quadCount = quads
@@ -657,19 +657,19 @@ def _eulerWeights(surf):
     return weights
 
 
-def _quadType( surf, tetIndex ):
+def tetQuadType( surf, tetIndex ):
     """
     Returns the quad type in which the given normal surface intersects the
     tetrahedron with the given index, or None if there is no such quad.
     """
-    quads = _quads( surf, tetIndex )
+    quads = tetQuads( surf, tetIndex )
     if quads is None:
         return None
     else:
         return quads[0]
 
 
-def _quads( surf, tetIndex ):
+def tetQuads( surf, tetIndex ):
     """
     Returns the quad type and the number of quads in which the given normal
     surface intersects the tetrahedron with the given index, or None if there
@@ -706,7 +706,7 @@ def _survivingSegments(surf):
     shift = 0
     for tet in tri.tetrahedra():
         teti = tet.index()
-        if _quadType( surf, teti ) is not None:
+        if tetQuadType( surf, teti ) is not None:
             # Presence of quads means tet is destroyed by crushing, which
             # will shift all larger tetrahedron indices down by one.
             shift += 1
