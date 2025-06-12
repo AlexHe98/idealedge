@@ -64,12 +64,12 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
         survivingSegments = _survivingSegments(surf)
     parallelBoundaries = set()
 
-    # Find where type-2 segments change between thick and thin regions, since
-    # we will need this information to be able to traverse boundary
-    # components of the parallelity bundle.
+    # Find where type-1 and type-2 segments change between thick and thin
+    # regions, since we will need this information to be able to traverse
+    # boundary components of the parallelity bundle.
     regionChanges = []
     for edge in tri.edges():
-        regionChanges.append( _type2SegmentRegionChanges( edge, surf ) )
+        regionChanges.append( _segmentRegionChanges( edge, surf ) )
 
         # Special case
         # ------------
@@ -78,16 +78,16 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
         # in other words, S is an "isolated" parallelity segment. Such
         # isolated parallelity segments can be characterised as central
         # segments that have no changes between thick and thin regions.
-        isolatedPos = _type2CentralSegment( edge.embedding(0), surf )
+        isolatedPos = _centralSegment( edge.embedding(0), surf )
         if ( isolatedPos is None ) or ( isolatedPos in regionChanges[-1] ):
             continue
         parallelBoundaries.add( ( edge.index(), isolatedPos ) )
 
     # Traverse vertical boundary components of the parallelity boundary until
     # we have visited every boundary parallel face.
-    bdryParFaceSegEmbs = _boundaryParallelFaceSegmentEmbeddings(surf)
-    while bdryParFaceSegEmbs:
-        _, startSegEmbs = bdryParFaceSegEmbs.popitem()
+    parBdryFaceSegEmbs = _parallelityBoundaryFaceSegmentEmbeddings(surf)
+    while parBdryFaceSegEmbs:
+        _, startSegEmbs = parBdryFaceSegEmbs.popitem()
         currentSegEmb, stopSegEmb = startSegEmbs
         representativeSeg = ( currentSegEmb[0], currentSegEmb[2] )
         isRepSegSurviving = ( representativeSeg in survivingSegments )
@@ -124,7 +124,7 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
 
             # Continue traversing along this boundary component of the
             # parallelity bundle by walking along the next parallel face.
-            nextParFaceSegEmbs = bdryParFaceSegEmbs.pop(nextParFace)
+            nextParFaceSegEmbs = parBdryFaceSegEmbs.pop(nextParFace)
             i = nextParFaceSegEmbs.index(currentSegEmb)
             currentSegEmb = nextParFaceSegEmbs[1-i]
 
@@ -144,11 +144,11 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     return parallelBoundaries
 
 
-def _type2CentralSegment( edgeEmb, surf ):
+def _centralSegment( edgeEmb, surf ):
     """
-    Returns the position of the type-2 central segment for the given edge
-    embedding (with respect to the given normal surface), or None if there is
-    no such segment.
+    Returns the position of the type-1 or type-2 central segment for the
+    given edge embedding (with respect to the given normal surface), or None
+    if there is no such segment.
     """
     # To have a central segment, the tetrahedron must not contain a quad
     # intersecting the edge.
@@ -160,24 +160,24 @@ def _type2CentralSegment( edgeEmb, surf ):
 
     # Central segment occurs immediately after all the triangles at vertex 0
     # of the edge.
-    # For this to be type-2, there must be a positive number of triangles at
-    # both vertex 0 and vertex 1.
+    # We don't want to include type-0 segments, so check that there is at
+    # least one triangle at either vertex 0 or vertex 1 of the edge.
     verts = edgeEmb.vertices()
     triCount = [ surf.triangles( teti, verts[i] ).safeLongValue()
                 for i in range(2) ]
-    if triCount[0] > 0 and triCount[1] > 0:
+    if triCount[0] > 0 or triCount[1] > 0:
         return triCount[0]
     return None
 
 
-def _type2SegmentRegionChanges( edge, surf ):
+def _segmentRegionChanges( edge, surf ):
     """
-    Records the places where type-2 segments of the given edge (with respect
-    to the given normal surface) change regions from either thick to thin or
-    thin to thick.
+    Records the places where type-1 and type-2 segments of the given edge
+    (with respect to the given normal surface) change regions from either
+    thick to thin or thin to thick.
 
-    In detail, this routine returns a dictionary that maps each type-2
-    segment S to a list L that specifies the region changes for S. The
+    In detail, this routine returns a dictionary that maps each type-1 or
+    type-2 segment S to a list L that specifies the region changes for S. The
     entries of such a list L are of the form ( c, i, (t,f) ), where:
     --> c is +1 if the change is from thin to thick, and -1 if the change is
         from thick to thin;
@@ -206,14 +206,8 @@ def _type2SegmentRegionChanges( edge, surf ):
         changeSegs = []
         triCount = [ surf.triangles( teti, ver[i] ).safeLongValue()
                     for i in range(2) ]
-        if triCount[0] > 0:
-            changeSegs.append( triCount[0] )
-        else:
-            changeSegs.append(None)
-        if triCount[1] > 0:
-            changeSegs.append( edgeWt - triCount[1] )
-        else:
-            changeSegs.append(None)
+        changeSegs.append( triCount[0] )
+        changeSegs.append( edgeWt - triCount[1] )
 
         # The following permutations ensure that for any value of v in
         # {0,1,2,3}, the vertex labels satisfy the following:
@@ -258,8 +252,8 @@ def _type2SegmentRegionChanges( edge, surf ):
             # Record the index of the edge embedding where the change occurs,
             # together with the location of the parallel face that witnesses
             # this change.
-            parallelFace = ( teti, sameSide[v] )
-            data = ( change, embIndex, parallelFace )
+            parFace = ( teti, sameSide[v] )
+            data = ( change, embIndex, parFace )
             if seg in regionChanges:
                 regionChanges[seg].append(data)
             else:
@@ -281,14 +275,14 @@ def _edgeEmbeddingIndices(tri):
     return embIndices
 
 
-def _boundaryParallelFaceSegmentEmbeddings(surf):
+def _parallelityBoundaryFaceSegmentEmbeddings(surf):
     """
-    Returns information about how the two vertical edges of each boundary
-    parallel face are embedded as segments with respect to the given normal
+    Returns information about how the two vertical edges of each parallelity
+    boundary face are embedded as segments with respect to the given normal
     surface.
 
-    In detail, each boundary parallel face P is specified using a pair of the
-    form (t,f), where:
+    In detail, each parallelity boundary face P is specified using a pair of
+    the form (t,f), where:
     --> t is the index of the tetrahedron incident to P on the "outside"; and
     --> f is the face number of tetrahedron t specifying the triangular face
         that contains P.
@@ -309,7 +303,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
         if quadType is None:
             continue
 
-        # Find boundary parallel faces incident to tet.
+        # Find parallelity boundary faces incident to tet.
         sameSide = _quadSameSide[quadType]
         opposite = _quadOpposite[quadType]
         # The above permutations ensure that for any value of face in
@@ -335,14 +329,10 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
         #                          *
         #                   sameSide[face]
         for face in range(4):
-            triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
-            if triCount == 0:
-                continue
-
-            # We have a parallel face P that is boundary (or isolated, in the
-            # case where it is "boundary on both sides").
-            parallelFace = ( teti, face )
-            faceSegments[parallelFace] = []
+            # We have a corner or parallel face P that is boundary (or
+            # isolated, in the case where it is "boundary on both sides").
+            parFace = ( teti, face )
+            faceSegments[parFace] = []
             endpts = [ face, sameSide[face] ]
             triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
             for i in range(2):
@@ -359,7 +349,7 @@ def _boundaryParallelFaceSegmentEmbeddings(surf):
                 else:
                     edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
                     segPosition = edgeWt - triCount
-                faceSegments[parallelFace].append(
+                faceSegments[parFace].append(
                         ( edgeIndex, embIndex, segPosition ) )
 
     return faceSegments
@@ -394,10 +384,10 @@ def _computeParallelityOrbits(surf):
     parOrbits = []
     while segments:
         seg, segType = segments.popitem()
-        if segType != 2:
+        if segType == 0:
             continue
 
-        # Compute the orbit of this type-2 segment.
+        # Compute the orbit of this type-1 or type-2 segment.
         orbit = _computeOrbit( surf, seg )
         for otherSeg in orbit:
             if otherSeg != seg:
@@ -419,7 +409,8 @@ def _computeOrbit( surf, start ):
         orbit.add(current)
 
         # We haven't visited the current segment yet, so we need to find all
-        # segments that are adjacent to it along parallel cells or faces.
+        # segments that are adjacent to it along corner/parallel cells or
+        # corner/parallel faces.
         ei, seg = current
         e = tri.edge(ei)
         wt = surf.edgeWeight(ei).safeLongValue()
@@ -429,8 +420,9 @@ def _computeOrbit( surf, start ):
             en = emb.face()
             ver = emb.vertices()
 
-            # To locate the relevant parallel cells and faces in tet, need to
-            # get the normal coordinates incident to e.
+            # To locate the relevant corner/parallel cells and
+            # corner/parallel faces in tet, need to get the normal
+            # coordinates incident to e.
             f = [ surf.triangles( teti, ver[i] ).safeLongValue()
                     for i in range(2) ]
             q = 0
@@ -444,11 +436,12 @@ def _computeOrbit( surf, start ):
                     qType = qt
                     break
 
-            # Does the current segment belong to a parallel cell or face in
-            # this tet? If so, then we need to find all adjacent segments.
+            # Does the current segment belong to a corner/parallel cell or
+            # corner/parallel face in this tet? If so, then we need to find
+            # all adjacent segments.
             if seg < f[0]:
-                # The current segment belongs to a parallel triangular cell
-                # at vertex ver[0].
+                # The current segment belongs to a corner/parallel triangular
+                # cell at vertex ver[0].
                 for otherEnd in range(4):
                     if otherEnd in { ver[0], ver[1] }:
                         continue
@@ -465,8 +458,8 @@ def _computeOrbit( surf, start ):
                         adjacent = ( eiOther, wtOther - seg )
                     stack.append(adjacent)
             elif seg > f[0] + q:
-                # The current segment belongs to a parallel triangular cell
-                # at vertex ver[1].
+                # The current segment belongs to a corner/parallel triangular
+                # cell at vertex ver[1].
                 for otherEnd in range(4):
                     if otherEnd in { ver[0], ver[1] }:
                         continue
@@ -562,38 +555,39 @@ def _eulerWeights(surf):
     """
     tri = surf.triangulation()
 
-    # Vertices of the base correspond to type-2 segments.
+    # Vertices of the base correspond to type-1 or type-2 segments.
     weights = dict()
     segments = _segments(surf)
     for seg in segments:
         segType = segments[seg]
-        if segType == 2:
+        if segType != 0:
             weights[seg] = 2
         else:
-            # Could set weights for non-type-2 segments, but this is not
+            # Could set weights for type-0 segments, but this is not
             # necessary.
             #weights[seg] = 0
             pass
 
-    # Edges of the base correspond to parallel faces of the induced cell
-    # decomposition, and faces of the base correspond to parallel cells.
+    # Edges of the base correspond to corner/parallel faces of the induced
+    # cell decomposition, and faces of the base correspond to corner/parallel
+    # cells.
     #
     # Let:  E = number of edges of the base
     #       F = number of faces of the base
     #       q = number of parallel quad cells
-    #       t = number of parallel triangle cells
-    #       b = number of parallel faces in the vertical boundary
-    #       i = number of isolated parallel faces 
+    #       t = number of corner/parallel triangle cells
+    #       b = number of corner/parallel faces in the vertical boundary
+    #       i = number of isolated corner/parallel faces 
     # We adjust weights using the following observation:
     #   -2E + 2F = -(4q + 3t + b + 2i) + 2(q + t) = -2q - t - b - 2i.
     for tet in tri.tetrahedra():
         teti = tet.index()
 
-        # For each parallel triangle cell, adjust the weight on one incident
-        # segment.
+        # For each corner/parallel triangle cell, adjust the weight on one
+        # incident segment.
         for triType in range(4):
             triCount = surf.triangles( teti, triType ).safeLongValue()
-            if triCount < 2:
+            if triCount == 0:
                 continue
 
             # We have at least one parallel triangle cell.
@@ -603,11 +597,11 @@ def _eulerWeights(surf):
                 incidentEdgeNum = 3
             ei = tet.edge(incidentEdgeNum).index()
             if tet.edgeMapping(incidentEdgeNum)[0] == triType:
-                for segment in range( 1, triCount ):
+                for segment in range( 0, triCount ):
                     weights[ (ei,segment) ] -= 1
             else:
                 edgeWt = surf.edgeWeight(ei).safeLongValue()
-                for segment in range( edgeWt - 1, edgeWt - triCount, -1 ):
+                for segment in range( edgeWt, edgeWt - triCount, -1 ):
                     weights[ (ei,segment) ] -= 1
 
         # We also need to adjust weights using parallel quad cells, and
@@ -629,11 +623,11 @@ def _eulerWeights(surf):
             for segment in range( quadStart + 1, quadStart + quadCount ):
                 weights[ (ei,segment) ] -= 2
 
-        # For each parallel face that is either isolated or on the boundary
-        # of the parallelity bundle, adjust the weight on one incident
-        # segment. In the isolated case, we only need to subtract 1 on this
-        # side, because we will eventually subtract another 1 on the other
-        # side as well.
+        # For each corner/parallel face that is either isolated or on the
+        # boundary of the parallelity bundle, adjust the weight on one
+        # incident segment. In the isolated case, we only need to subtract 1
+        # on this side, because we will eventually subtract another 1 on the
+        # other side as well.
         sameSide = _quadSameSide[quadType]
         opposite = _quadOpposite[quadType]
         for face in range(4):
