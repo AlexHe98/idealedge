@@ -590,7 +590,7 @@ def _eulerWeights(surf):
             if triCount == 0:
                 continue
 
-            # We have at least one parallel triangle cell.
+            # We have at least one corner/parallel triangle cell.
             if triType in {0,3}:
                 incidentEdgeNum = 2
             else:
@@ -631,11 +631,10 @@ def _eulerWeights(surf):
         sameSide = _quadSameSide[quadType]
         opposite = _quadOpposite[quadType]
         for face in range(4):
+            # A corner/parallel face that is isolated/boundary occurs
+            # immediately after the triangles (if any) at the relevant corner
+            # of the tetrahedron.
             triCount = surf.triangles( teti, sameSide[face] ).safeLongValue()
-            if triCount == 0:
-                continue
-
-            # We have a parallel face that is either isolated or boundary.
             incidentEdgeNum = Edge3.faceNumber( Perm4(
                 sameSide[face], opposite[face],
                 face, opposite[sameSide[face]] ) )
