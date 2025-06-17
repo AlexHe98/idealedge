@@ -24,6 +24,8 @@ def parallelityBaseTopology(surf):
     """
     weights = _eulerWeights(surf)
     parOrbits = _computeParallelityOrbits(surf)
+    survivors, regionChanges = _segmentSurvivorsAndRegionChanges(surf)
+    #TODO
     survivingSegments = _survivingSegments(surf)
     parBdries = _parallelityBoundaries( surf, survivingSegments )
 
@@ -64,6 +66,156 @@ def _getSegFromEmb(segEmb):
     return ( segEmb[0], segEmb[2] )
 
 
+#TODO Refactor other routines to use this helper instead of the old
+#   _survivingSegments() and _segmentRegionChanges()
+def _segmentSurvivorsAndRegionChanges(surf):
+    """
+    Records the places where type-1 and type-2 segments (with respect to the
+    given normal surface) either survive crushing, or change between thick
+    and thin regions.
+
+    In detail, this routine returns an ordered pair whose first entry is a
+    dictionary that gives information about the survivors, and whose second
+    entry is a list that gives information about the region changes.
+
+    The survivors dictionary maps segment embeddings that meet central cells
+    to the position of the corresponding edge in the triangulation after
+    crushing. The segment embeddings are encoded as triples (e, i, s), where:
+    --> e is an edge index;
+    --> i is an embedding index; and
+    --> s is the position of the segment along edge e.
+    Each such segment embedding is mapped to a pair (t, en), where:
+    --> t is the index after crushing of a tetrahedron that will be incident
+        to the segment in question; and
+    --> en is an edge number (from 0 to 5, inclusive) of this tetrahedron
+        that corresponds to the segment in question.
+
+    The region changes list R consists of dictionaries such that for each
+    edge index e, the dictionary R[e] gives information about the region
+    changes for edge e. Specifically, this dictionary maps each type-1 or
+    type-2 segment of edge e to a list of triples ( c, i, (t,f) ), where:
+    --> c is +1 if the change is from thin to thick, and -1 if the change is
+        from thick to thin;
+    --> i is the index of the edge embedding at which the change occurs; and
+    --> (t,f) specifies the parallel face that witnesses the region change,
+        using a tetrahedron index t and a face number f.
+    If the segment has no changes between thick and thin regions, then the
+    segment will not appear as a key in the dictionary R[e].
+    """
+    tri = surf.triangulation()
+
+    # Compute the new tetrahedron indices after crushing.
+    tetShift = 0
+    newTetInd = []
+    quadType = []
+    for tet in tri.tetrahedra():
+        teti = tet.index()
+        quadType.append( tetQuadType( surf, teti ) )
+        if quadType[-1] is None:
+            # Tetrahedron survives.
+            newTetInd.append( teti - tetShift )
+        else:
+            # Tetrahedron doesn't survive, which means that all larger
+            # tetrahedron indices will be shifted down.
+            newTetInd.append(None)
+            tetShift += 1
+
+    # Compute survivors and region changes one edge at a time.
+    edgeEmbIndices = _edgeEmbeddingIndices(tri)
+    survivors = dict()
+    changesList = []
+    for edge in tri.edges():
+        edgeIndex = edge.index()
+        edgeWt = surf.edgeWeight(edgeIndex).safeLongValue()
+        regionChanges = dict()
+        for embIndex, emb in enumerate( edge.embeddings() ):
+            edgeNum = emb.face()
+            ver = emb.vertices()
+            tet = emb.tetrahedron()
+            teti = tet.index()
+
+            # We have a survivor if tet contains no quads.
+            if quadType[teti] is None:
+                # Surviving segment occurs immediately after the triangles at
+                # vertex 0 of the edge of interest.
+                segPos = surf.triangles( teti, ver[0] ).safeLongValue()
+                segEmb = ( edgeIndex, embIndex, segPos )
+                survivors[segEmb] = ( newTetInd[teti], edgeNum )
+
+                # Survivors and region changes are mutually exclusive, so at
+                # this point we can immediately move on the next segment
+                # embedding.
+                continue
+
+            # Now we know that tet contains at least one quad. We have a
+            # change between thick and thin regions if this quad intersects
+            # the edge of interest.
+            if quadType[teti] in { edgeNum, 5 - edgeNum }:
+                continue
+
+            # Region changes occur at the segments identified below.
+            changeSegs = []
+            triCount = [ surf.triangles( teti, ver[i] ).safeLongValue()
+                        for i in range(2) ]
+            changeSegs.append( triCount[0] )
+            changeSegs.append( edgeWt - triCount[1] )
+
+            # The following permutations ensure that for any value of v in
+            # {0,1,2,3}, the vertex labels satisfy the following:
+            #
+            #                  sameSide[v]
+            #                       *
+            #                      /|\
+            #                     / | \
+            #                    /  |  \
+            #                   /   |   \
+            #                  /____|____\
+            #                 /|    |    |\
+            #                / |    |    | \
+            #   opposite[v] *--|----|----|--* opposite[sameSide[v]]
+            #                \ |    |    | /
+            #                 \|___/|\___|/
+            #                  \  / | \  /
+            #                   \/__|__\/
+            #                    \  |  /
+            #                     \ | /
+            #                      \|/
+            #                       *
+            #                       v
+            #
+            sameSide = _quadSameSide[ quadType[teti] ]
+            #opposite = _quadOpposite[ quadType[teti] ]
+
+            # Record the region changes.
+            for j in range(2):
+                seg = changeSegs[j]
+                v = ver[j]
+
+                # Change is from thick to thin if sameSide[v] == ver[2], and
+                # from thin to thick if sameSide[v] == ver[3].
+                if sameSide[v] == ver[2]:
+                    change = -1
+                else:
+                    change = 1
+
+                # Record the index of the edge embedding where the region
+                # change occurs, together with the location of the parallel
+                # face that witnesses this change.
+                parFace = ( teti, sameSide[v] )
+                data = ( change, embIndex, parFace )
+                if seg in regionChanges:
+                    regionChanges[seg].append(data)
+                else:
+                    regionChanges[seg] = [data]
+
+        # All done with the current edge.
+        changesList.append(regionChanges)
+
+    # All done!
+    return survivors, changesList
+
+
+#TODO Refactor to take both survivors and regionChanges as arguments.
 def _parallelityBoundaries( surf, survivingSegments=None ):
     """
     Finds all boundary components of the parallelity bundle.
@@ -693,6 +845,8 @@ def tetQuads( surf, tetIndex ):
     return None
 
 
+#TODO FIX TO ACCOUNT FOR SURVIVING SEGMENTS THAT GET SEPARATED ALONG PINCHED
+#   PARTS OF THE PARALLELITY BUNDLE.
 def _survivingSegments(surf):
     """
     Uses the given normal surface to divide the edges of the ambient
