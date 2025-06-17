@@ -35,17 +35,33 @@ def parallelityBaseTopology(surf):
     # Work out which parallelity boundaries belong to each orbit.
     bdryCurves = []
     for orbit in parOrbits:
-        bdryCurves.append( parBdries.intersection(orbit) )
+        bdrySegEmbs = []
+        for repSegEmb in parBdries:
+            if _getSegFromEmb(repSegEmb) in orbit:
+                bdrySegEmbs.append(repSegEmb)
+        bdryCurves.append(bdrySegEmbs)
 
     # Put information together.
     output = []
     for i, eulerChar in enumerate(euler):
-        boundaries = bdryCurves[i]
+        bdrySegEmbs = bdryCurves[i]
         survivors = dict()
-        for b in boundaries:
-            survivors[b] = survivingSegments.get( b, None )
+        for repSegEmb in bdrySegEmbs:
+            survivors[repSegEmb] = survivingSegments.get(
+                    _getSegFromEmb(repSegEmb), None )
         output.append( ( eulerChar, survivors ) )
     return output
+
+
+def _getSegFromEmb(segEmb):
+    """
+    Returns the segment corresponding to the given segment embedding.
+
+    The input format should be of the form (e, i, s), where e is an edge
+    index, i is an embedding index and s is the segment position. The output
+    will be (e, s).
+    """
+    return ( segEmb[0], segEmb[2] )
 
 
 def _parallelityBoundaries( surf, survivingSegments=None ):
@@ -53,16 +69,16 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     Finds all boundary components of the parallelity bundle.
 
     In detail, each such boundary component B is identified using a single
-    segment S inside B; in the case where B contains at least one surviving
-    segment, the chosen segment S is guaranteed to be one of the surviving
-    segments. This routine returns a set consisting of these chosen segments,
-    with exactly one such segment for each boundary component of the
+    segment embedding E inside B; in the case where B contains at least one
+    surviving segment, E is guaranteed to be an embedding of a surviving
+    segment. This routine returns a list of such segment embeddings, with
+    exactly one such embedding for each vertical boundary component of the
     parallelity bundle.
     """
     tri = surf.triangulation()
     if survivingSegments is None:
         survivingSegments = _survivingSegments(surf)
-    parallelBoundaries = set()
+    parallelBoundaries = []
 
     # Find where type-1 and type-2 segments change between thick and thin
     # regions, since we will need this information to be able to traverse
@@ -81,7 +97,9 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
         isolatedPos = _centralSegment( edge.embedding(0), surf )
         if ( isolatedPos is None ) or ( isolatedPos in regionChanges[-1] ):
             continue
-        parallelBoundaries.add( ( edge.index(), isolatedPos ) )
+
+        # In this case, any embedding of the segment will do.
+        parallelBoundaries.append( ( edge.index(), 0, isolatedPos ) )
 
     # Traverse vertical boundary components of the parallelity boundary until
     # we have visited every boundary parallel face.
@@ -89,8 +107,9 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
     while parBdryFaceSegEmbs:
         _, startSegEmbs = parBdryFaceSegEmbs.popitem()
         currentSegEmb, stopSegEmb = startSegEmbs
-        representativeSeg = ( currentSegEmb[0], currentSegEmb[2] )
-        isRepSegSurviving = ( representativeSeg in survivingSegments )
+        repSegEmb = currentSegEmb
+        isRepSegSurviving = (
+                _getSegFromEmb(repSegEmb) in survivingSegments )
 
         # Traverse the current boundary component.
         while True:
@@ -128,17 +147,16 @@ def _parallelityBoundaries( surf, survivingSegments=None ):
             i = nextParFaceSegEmbs.index(currentSegEmb)
             currentSegEmb = nextParFaceSegEmbs[1-i]
 
-            # If necessary, update the representative segment.
+            # If necessary, update the representative segment embedding.
             if isRepSegSurviving:
                 continue
-            currentSeg = ( currentSegEmb[0], currentSegEmb[2] )
-            if currentSeg in survivingSegments:
-                representativeSeg = currentSeg
+            if _getSegFromEmb(currentSegEmb) in survivingSegments:
+                repSegEmb = currentSegEmb
                 isRepSegSurviving = True
 
         # Record the representative segment for the current boundary
         # component of the parallelity bundle.
-        parallelBoundaries.add(representativeSeg)
+        parallelBoundaries.append(repSegEmb)
 
     # All done!
     return parallelBoundaries
