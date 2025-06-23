@@ -24,9 +24,9 @@ def parallelityBaseTopology(surf):
     """
     weights = _eulerWeights(surf)
     parOrbits = _computeParallelityOrbits(surf)
+    regionChanges = _segmentSurvivorsAndRegionChanges(surf)
     #TODO
-    survivors, regionChanges = _segmentSurvivorsAndRegionChanges(surf)
-    parBdries = _parallelityBoundaries( surf, survivors, regionChanges )
+    parBdries = _parallelityBoundaries( surf, regionChanges )
 
     # The _eulerWeights() routine assigns segment weights so that the total
     # weight is *twice* the Euler characteristic of the base.
@@ -67,6 +67,8 @@ def _getSegFromEmb(segEmb):
 
 #TODO Need to associate survivors to thick regions. Will need to refactor
 #   everywhere we use this routine.
+#TODO Probably want the output of this to be more friendly for working with
+#   segment embeddings.
 def _segmentSurvivorsAndRegionChanges(surf):
     """
     Records the places where type-1 and type-2 segments (with respect to the
@@ -76,8 +78,9 @@ def _segmentSurvivorsAndRegionChanges(surf):
     In detail, this routine returns a list D of dictionaries such that for
     each edge index ei, the dictionary D[ei] gives information about the
     survivors and region changes for the segments of edge ei. Specifically,
-    this dictionary maps each type-1 or type-2 segment of edge ei to a list
-    of tuples ( c, i, (t,f), s ), where:
+    for each type-1 or type-2 segment S of edge ei that has at least one
+    region change, this dictionary maps the position of S to a list of tuples
+    ( c, i, (t,f), s ), where:
     --> c is +1 if the change is from thin to thick, and -1 if the change is
         from thick to thin;
     --> i is the index of the edge embedding at which the change occurs;
@@ -129,12 +132,11 @@ def _segmentSurvivorsAndRegionChanges(surf):
                 # Surviving segment occurs immediately after the triangles at
                 # vertex 0 of the edge of interest.
                 segPos = surf.triangles( teti, ver[0] ).safeLongValue()
-                seg = ( edgeIndex, segPos )
                 survivor = ( newTetInd[teti], edgeNum )
-                if seg in segTours:
-                    segTours[seg].append(survivor)
+                if segPos in segTours:
+                    segTours[segPos].append(survivor)
                 else:
-                    segTours[seg] = [survivor]
+                    segTours[segPos] = [survivor]
 
                 # Survivors and region changes are mutually exclusive, so at
                 # this point we can immediately move on the next segment
@@ -182,7 +184,7 @@ def _segmentSurvivorsAndRegionChanges(surf):
 
             # Record the region changes.
             for j in range(2):
-                seg = changeSegs[j]
+                segPos = changeSegs[j]
                 v = ver[j]
 
                 # Change is from thick to thin if sameSide[v] == ver[2], and
@@ -197,10 +199,10 @@ def _segmentSurvivorsAndRegionChanges(surf):
                 # face that witnesses this change.
                 parFace = ( teti, sameSide[v] )
                 data = ( change, embIndex, parFace )
-                if seg in segTours:
-                    segTours[seg].append(data)
+                if segPos in segTours:
+                    segTours[segPos].append(data)
                 else:
-                    segTours[seg] = [data]
+                    segTours[segPos] = [data]
 
         # All done with the current edge.
         edgeTours.append(segTours)
@@ -210,9 +212,9 @@ def _segmentSurvivorsAndRegionChanges(surf):
     for edgeIndex in range( tri.countEdges() ):
         edgeRegionChanges = dict()
         segTours = edgeTours[edgeIndex]
-        for seg in segTours:
+        for segPos in segTours:
             segRegionChanges = []
-            for changeInd, changeData in enumerate( segTours[seg] ):
+            for changeInd, changeData in enumerate( segTours[segPos] ):
                 if len(changeData) == 2:
                     # We are looking at a survivor.
                     continue
@@ -221,10 +223,10 @@ def _segmentSurvivorsAndRegionChanges(surf):
                 # region incident to a central cell?
                 change, embIndex, parFace = changeData
                 thickInd = changeInd + change
-                if thickInd >= len( segTours[seg] ):
+                if thickInd >= len( segTours[segPos] ):
                     # Wrap back around.
                     thickInd = 0
-                thickData = segTours[seg][thickInd]
+                thickData = segTours[segPos][thickInd]
                 if len(thickData) == 3:
                     # Adjacent thick region is not incident to a central
                     # cell.
@@ -235,7 +237,7 @@ def _segmentSurvivorsAndRegionChanges(surf):
                         ( change, embIndex, parFace, thickData ) )
 
             # Done with the current segment.
-            edgeRegionChanges[seg] = segRegionChanges
+            edgeRegionChanges[segPos] = segRegionChanges
 
         # Done with the current edge.
         output.append(edgeRegionChanges)
@@ -244,7 +246,7 @@ def _segmentSurvivorsAndRegionChanges(surf):
     return output
 
 
-def _parallelityBoundaries( surf, survivors, regionChanges ):
+def _parallelityBoundaries( surf, regionChanges ):
     """
     Finds all boundary components of the parallelity bundle.
 
@@ -282,8 +284,11 @@ def _parallelityBoundaries( surf, survivors, regionChanges ):
         _, startSegEmbs = parBdryFaceSegEmbs.popitem()
         currentSegEmb, stopSegEmb = startSegEmbs
         repSegEmb = currentSegEmb
-        #TODO
-        isRepSegSurviving = ( repSegEmb in survivors )
+
+        # Does the current representative segment survive?
+        repEdgeInd, repEmbInd, repSegPos = repSegEmb
+        repChanges = regionChanges[repEdgeInd][repSegPos]
+        repSurvivor = repChanges[3]
 
         # Traverse the current boundary component.
         while True:
@@ -293,21 +298,15 @@ def _parallelityBoundaries( surf, survivors, regionChanges ):
             # next boundary parallel face.
             currentChanges = regionChanges[currentEdgeInd][currentSegPos]
             for changeInd, changeData in enumerate(currentChanges):
-                change, embInd, _ = changeData
+                change, embInd, _, _ = changeData
                 if embInd == currentEmbInd:
                     break
-            if change > 0:
-                # We are currently at a change from thin to thick, so we need
-                # to walk around in the forwards direction.
-                changeInd += 1
-                if changeInd == len(currentChanges):
-                    changeInd = 0
-            else:
-                # We are currently at a change from thick to thin, so we need
-                # to walk around in the backwards direction.
-                changeInd -= 1
+            changeInd += change
+            if changeInd == len(currentChanges):
+                # Wrap back around.
+                changeInd = 0
             nextRegionChange = currentChanges[changeInd]
-            _, nextEmbInd, nextParFace = nextRegionChange
+            _, nextEmbInd, nextParFace, nextSurvivor = nextRegionChange
             currentSegEmb = ( currentEdgeInd, nextEmbInd, currentSegPos )
 
             # Have we come back to the first parallel face in this boundary
@@ -322,12 +321,8 @@ def _parallelityBoundaries( surf, survivors, regionChanges ):
             currentSegEmb = nextParFaceSegEmbs[1-i]
 
             # If necessary, update the representative segment embedding.
-            if isRepSegSurviving:
-                continue
-            #TODO
-            if currentSegEmb in survivors:
-                repSegEmb = currentSegEmb
-                isRepSegSurviving = True
+            if repSurvivor is None:
+                repSurvivor = nextSurvivor
 
         # Record the representative segment for the current boundary
         # component of the parallelity bundle.
