@@ -208,12 +208,37 @@ def _segmentSurvivorsAndRegionChanges(surf):
     # Use intermediate data structure to construct the final output.
     output = []
     for edgeIndex in range( tri.countEdges() ):
-        regionChanges = dict()
-        for seg in edgeTours[edgeIndex]:
-            #TODO
-            pass
-        #TODO IMPLEMENT!
-        pass
+        edgeRegionChanges = dict()
+        segTours = edgeTours[edgeIndex]
+        for seg in segTours:
+            segRegionChanges = []
+            for changeInd, changeData in enumerate( segTours[seg] ):
+                if len(changeData) == 2:
+                    # We are looking at a survivor.
+                    continue
+
+                # We are looking at a region change. Is the adjacent thick
+                # region incident to a central cell?
+                change, embIndex, parFace = changeData
+                thickInd = changeInd + change
+                if thickInd >= len( segTours[seg] ):
+                    # Wrap back around.
+                    thickInd = 0
+                thickData = segTours[seg][thickInd]
+                if len(thickData) == 3:
+                    # Adjacent thick region is not incident to a central
+                    # cell.
+                    thickData = None
+
+                # Record this region change.
+                segRegionChanges.append(
+                        ( change, embIndex, parFace, thickData ) )
+
+            # Done with the current segment.
+            edgeRegionChanges[seg] = segRegionChanges
+
+        # Done with the current edge.
+        output.append(edgeRegionChanges)
 
     # All done!
     return output
