@@ -24,8 +24,7 @@ def parallelityBaseTopology(surf):
     """
     weights = _eulerWeights(surf)
     parOrbits = _computeParallelityOrbits(surf)
-    regionChanges = _segmentSurvivorsAndRegionChanges(surf)
-    #TODO
+    regionChanges = _segmentRegionChangeData(surf)
     parBdries = _parallelityBoundaries( surf, regionChanges )
 
     # The _eulerWeights() routine assigns segment weights so that the total
@@ -48,6 +47,20 @@ def parallelityBaseTopology(surf):
         bdrySegEmbs = bdryCurves[i]
         repTetEdges = dict()
         for repSegEmb in bdrySegEmbs:
+            repEdgeInd, _, repSegPos = repSegEmb
+            edgeChanges = regionChanges[repEdgeInd]
+
+            # Does this parallelity boundary component survive as an ideal
+            # edge after crushing? There are two ways this can happen:
+            #   --> We have an isolated parallelity segment that survives.
+            #   --> We have a representative segment that survives.
+            if repSegPos in edgeChanges:
+                # We have a representative segment. Does it survive?
+                survivor = edgeChanges[repSegPos][3]
+            else:
+                # We have an isolated segment. Does it survive?
+                #TODO
+                pass
             #TODO
             repTetEdges[repSegEmb] = survivors.get( repSegEmb, None )
         output.append( ( eulerChar, repTetEdges ) )
@@ -67,19 +80,20 @@ def _getSegFromEmb(segEmb):
 
 #TODO Need to associate survivors to thick regions. Will need to refactor
 #   everywhere we use this routine.
-#TODO Probably want the output of this to be more friendly for working with
-#   segment embeddings.
-def _segmentSurvivorsAndRegionChanges(surf):
+#TODO What about isolated segments? Maybe better to include in output?
+def _segmentRegionChangeData(surf):
     """
     Records the places where type-1 and type-2 segments (with respect to the
     given normal surface) either survive crushing, or change between thick
     and thin regions.
 
-    In detail, this routine returns a list D of dictionaries such that for
-    each edge index ei, the dictionary D[ei] gives information about the
-    survivors and region changes for the segments of edge ei. Specifically,
-    for each type-1 or type-2 segment S of edge ei that has at least one
-    region change, this dictionary maps the position of S to a list of tuples
+    In detail, this routine returns a pair consisting of:
+    (0) a list D that describes the region changes; and
+    (1) a dictionary I that describes the isolated parallelity segments.
+
+    The returned list D consists of dictionaries such that for each edge
+    index ei, if segment p of edge ei is a type-1 or type-2 segment that has
+    at least one region change, then D[ei][p] is a list of tuples of the form
     ( c, i, (t,f), s ), where:
     --> c is +1 if the change is from thin to thick, and -1 if the change is
         from thick to thin;
@@ -92,6 +106,12 @@ def _segmentSurvivorsAndRegionChanges(surf):
     pair (n,e), where n is the index after crushing of the corresponding
     tetrahedron, and e is the edge number (from 0 to 5, inclusive) of the
     edge containing the segment; otherwise, s is None.
+
+    The returned dictionary I maps each isolated segment to either:
+    --> None, if the segment is not incident to any central cells; or
+    --> a pair ( t, n ), where t is a tetrahedron index after crushing
+        corresponding to a central cell incident to the segment, and n is an
+        edge number corresponding to the segment.
     """
     tri = surf.triangulation()
 
@@ -111,6 +131,7 @@ def _segmentSurvivorsAndRegionChanges(surf):
             newTetInd.append(None)
             tetShift += 1
 
+    #TODO
     # Compute intermediate data structure by walking around the edges on at a
     # time.
     edgeEmbIndices = _edgeEmbeddingIndices(tri)
@@ -208,6 +229,7 @@ def _segmentSurvivorsAndRegionChanges(surf):
         edgeTours.append(segTours)
 
     # Use intermediate data structure to construct the final output.
+    #TODO What happens here with isolated segments?
     output = []
     for edgeIndex in range( tri.countEdges() ):
         edgeRegionChanges = dict()
@@ -246,19 +268,26 @@ def _segmentSurvivorsAndRegionChanges(surf):
     return output
 
 
+#TODO Is there a way to incorporate isolated data in the output? Or maybe the
+#   output should incorporate survivor data?
 def _parallelityBoundaries( surf, regionChanges ):
     """
     Finds all boundary components of the parallelity bundle.
 
     In detail, each such boundary component B is identified using a single
-    segment embedding E inside B; in the case where B contains at least one
-    surviving segment, E is guaranteed to be an embedding of a surviving
-    segment. This routine returns a list of such segment embeddings, with
-    exactly one such embedding for each vertical boundary component of the
-    parallelity bundle.
+    representative segment embedding E inside B; in the case where B contains
+    at least one segment embedding that "survives", meaning that the adjacent
+    thick region is incident to a central cell, then it is guaranteed that
+    such a surviving segment embedding will be chosen as the representative.
+    This routine returns a dictionary that maps each representative segment
+    embedding to either:
+    --> None if it does not survive; or
+    --> a pair ( t, n ), where t is a tetrahedron index after crushing and
+        n is an edge number corresponding to the edge that witnesses the
+        survival of the segment.
     """
     tri = surf.triangulation()
-    parallelBoundaries = []
+    parallelBoundaries = dict()
 
     # Special case
     # ------------
@@ -274,8 +303,11 @@ def _parallelityBoundaries( surf, regionChanges ):
             continue
 
         # In this case, we can use any embedding of the segment as the
-        # representative.
-        parallelBoundaries.append( ( ei, 0, isolatedPos ) )
+        # representative. We still need to determine whether this survives.
+        repSegEmb = ( ei, 0, isolatedPos )
+        #TODO
+        parallelBoundaries[repSegEmb] = 
+    #TODO
 
     # Traverse vertical boundary components of the parallelity boundary until
     # we have visited every boundary parallel face.
