@@ -80,7 +80,6 @@ def _getSegFromEmb(segEmb):
 
 #TODO Need to associate survivors to thick regions. Will need to refactor
 #   everywhere we use this routine.
-#TODO What about isolated segments? Maybe better to include in output?
 def _segmentRegionChangeData(surf):
     """
     Records the places where type-1 and type-2 segments (with respect to the
@@ -131,9 +130,8 @@ def _segmentRegionChangeData(surf):
             newTetInd.append(None)
             tetShift += 1
 
-    #TODO
-    # Compute intermediate data structure by walking around the edges on at a
-    # time.
+    # Compute intermediate data structure by walking around the edges one at
+    # a time.
     edgeEmbIndices = _edgeEmbeddingIndices(tri)
     edgeTours = []
     for edge in tri.edges():
@@ -229,12 +227,25 @@ def _segmentRegionChangeData(surf):
         edgeTours.append(segTours)
 
     # Use intermediate data structure to construct the final output.
-    #TODO What happens here with isolated segments?
-    output = []
+    regionChanges = []
+    isolated = dict()
     for edgeIndex in range( tri.countEdges() ):
         edgeRegionChanges = dict()
         segTours = edgeTours[edgeIndex]
         for segPos in segTours:
+            # First handle the case where the segment does not survive and
+            # has no region changes.
+            if not segTours[segPos]:
+                isolatedPos = _centralSegment(
+                        tri.edge(edgeIndex).embedding(0), surf )
+                if isolatedPos == segPos:
+                    # We have an isolated segment (that does not survive).
+                    isolated[ ( edgeIndex, segPos ) ] = None
+
+                # Nothing further to do with this segment.
+                continue
+
+            # Now handle the other cases.
             segRegionChanges = []
             for changeInd, changeData in enumerate( segTours[segPos] ):
                 if len(changeData) == 2:
@@ -258,14 +269,20 @@ def _segmentRegionChangeData(surf):
                 segRegionChanges.append(
                         ( change, embIndex, parFace, thickData ) )
 
-            # Done with the current segment.
-            edgeRegionChanges[segPos] = segRegionChanges
+            # Do we have any region changes at all?
+            if segRegionChanges:
+                # Yes, so record data about these region changes.
+                edgeRegionChanges[segPos] = segRegionChanges
+            else:
+                # No, so we have an isolated segment that survives. We can
+                # record any survivor.
+                isolated[ ( edgeIndex, segPos ) ] = segTours[segPos][0]
 
         # Done with the current edge.
-        output.append(edgeRegionChanges)
+        regionChanges.append(edgeRegionChanges)
 
     # All done!
-    return output
+    return regionChanges, isolated
 
 
 #TODO Is there a way to incorporate isolated data in the output? Or maybe the
