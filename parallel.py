@@ -24,8 +24,8 @@ def parallelityBaseTopology(surf):
     """
     weights = _eulerWeights(surf)
     parOrbits = _computeParallelityOrbits(surf)
-    regionChanges = _segmentRegionChangeData(surf)
-    parBdries = _parallelityBoundaries( surf, regionChanges )
+    regionChanges, isolated = _segmentRegionChangeData(surf)
+    parBdries = _nonisolatedParallelityBoundaries( surf, regionChanges )
 
     # The _eulerWeights() routine assigns segment weights so that the total
     # weight is *twice* the Euler characteristic of the base.
@@ -33,36 +33,22 @@ def parallelityBaseTopology(surf):
              _parallelityBundleWeights( surf, weights, parOrbits ) ]
 
     # Work out which parallelity boundaries belong to each orbit.
-    bdryCurves = []
-    for orbit in parOrbits:
-        bdrySegEmbs = []
+    output = []
+    for i, orbit in enumerate(parOrbits):
+        eulerChar = euler[i]
+
+        # Handle isolated segments first.
+        if orbit[0] in isolated:
+            output.append( ( eulerChar,
+                            { orbit[0]: isolated[orbit[0]] } ) )
+            continue
+
+        # Now handle nonisolated components of the parallelity bundle.
+        repTetEdges = dict()
         for repSegEmb in parBdries:
             if _getSegFromEmb(repSegEmb) in orbit:
-                bdrySegEmbs.append(repSegEmb)
-        bdryCurves.append(bdrySegEmbs)
-
-    # Put information together.
-    output = []
-    for i, eulerChar in enumerate(euler):
-        bdrySegEmbs = bdryCurves[i]
-        repTetEdges = dict()
-        for repSegEmb in bdrySegEmbs:
-            repEdgeInd, _, repSegPos = repSegEmb
-            edgeChanges = regionChanges[repEdgeInd]
-
-            # Does this parallelity boundary component survive as an ideal
-            # edge after crushing? There are two ways this can happen:
-            #   --> We have an isolated parallelity segment that survives.
-            #   --> We have a representative segment that survives.
-            if repSegPos in edgeChanges:
-                # We have a representative segment. Does it survive?
-                survivor = edgeChanges[repSegPos][3]
-            else:
-                # We have an isolated segment. Does it survive?
-                #TODO
-                pass
-            #TODO
-            repTetEdges[repSegEmb] = survivors.get( repSegEmb, None )
+                repEdgeInd, _, repSegPos = repSegEmb
+                repTetEdges[repSegEmb] = parBdries[repSegEmb]
         output.append( ( eulerChar, repTetEdges ) )
     return output
 
@@ -78,8 +64,6 @@ def _getSegFromEmb(segEmb):
     return ( segEmb[0], segEmb[2] )
 
 
-#TODO Need to associate survivors to thick regions. Will need to refactor
-#   everywhere we use this routine.
 def _segmentRegionChangeData(surf):
     """
     Records the places where type-1 and type-2 segments (with respect to the
@@ -232,12 +216,12 @@ def _segmentRegionChangeData(surf):
     for edgeIndex in range( tri.countEdges() ):
         edgeRegionChanges = dict()
         segTours = edgeTours[edgeIndex]
+        isolatedPos = _centralSegment(
+                tri.edge(edgeIndex).embedding(0), surf )
         for segPos in segTours:
             # First handle the case where the segment does not survive and
             # has no region changes.
             if not segTours[segPos]:
-                isolatedPos = _centralSegment(
-                        tri.edge(edgeIndex).embedding(0), surf )
                 if isolatedPos == segPos:
                     # We have an isolated segment (that does not survive).
                     isolated[ ( edgeIndex, segPos ) ] = None
@@ -285,11 +269,9 @@ def _segmentRegionChangeData(surf):
     return regionChanges, isolated
 
 
-#TODO Is there a way to incorporate isolated data in the output? Or maybe the
-#   output should incorporate survivor data?
-def _parallelityBoundaries( surf, regionChanges ):
+def _nonisolatedParallelityBoundaries( surf, regionChanges ):
     """
-    Finds all boundary components of the parallelity bundle.
+    Finds all nonisolated boundary components of the parallelity bundle.
 
     In detail, each such boundary component B is identified using a single
     representative segment embedding E inside B; in the case where B contains
@@ -306,26 +288,6 @@ def _parallelityBoundaries( surf, regionChanges ):
     tri = surf.triangulation()
     parallelBoundaries = dict()
 
-    # Special case
-    # ------------
-    # We will consider a component of the parallelity bundle consisting
-    # entire of a single segment S to have boundary given by S itself; in
-    # other words, S is an "isolated" parallelity segment. Such isolated
-    # parallelity segments can be characterised as central segments that have
-    # no changes between thick and thin regions.
-    for edge in tri.edges():
-        ei = edge.index()
-        isolatedPos = _centralSegment( edge.embedding(0), surf )
-        if ( isolatedPos is None ) or ( isolatedPos in regionChanges[ei] ):
-            continue
-
-        # In this case, we can use any embedding of the segment as the
-        # representative. We still need to determine whether this survives.
-        repSegEmb = ( ei, 0, isolatedPos )
-        #TODO
-        parallelBoundaries[repSegEmb] = 
-    #TODO
-
     # Traverse vertical boundary components of the parallelity boundary until
     # we have visited every boundary parallel face.
     parBdryFaceSegEmbs = _parallelityBoundaryFaceSegmentEmbeddings(surf)
@@ -337,7 +299,9 @@ def _parallelityBoundaries( surf, regionChanges ):
         # Does the current representative segment survive?
         repEdgeInd, repEmbInd, repSegPos = repSegEmb
         repChanges = regionChanges[repEdgeInd][repSegPos]
-        repSurvivor = repChanges[3]
+        for _, compEmbInd, _, repSurvivor in repChanges:
+            if compEmbInd == repEmbInd:
+                break
 
         # Traverse the current boundary component.
         while True:
@@ -370,12 +334,13 @@ def _parallelityBoundaries( surf, regionChanges ):
             currentSegEmb = nextParFaceSegEmbs[1-i]
 
             # If necessary, update the representative segment embedding.
-            if repSurvivor is None:
+            if ( repSurvivor is None ) and ( nextSurvivor is not None ):
                 repSurvivor = nextSurvivor
+                repSegEmb = currentSegEmb
 
         # Record the representative segment for the current boundary
         # component of the parallelity bundle.
-        parallelBoundaries.append(repSegEmb)
+        parallelBoundaries[repSegEmb] = repSurvivor
 
     # All done!
     return parallelBoundaries
@@ -545,12 +510,12 @@ def _computeOrbit( surf, start ):
 
     # Depth-first search.
     stack = [start]
-    orbit = set()
+    orbit = []
     while stack:
         current = stack.pop()
         if current in orbit:
             continue
-        orbit.add(current)
+        orbit.append(current)
 
         # We haven't visited the current segment yet, so we need to find all
         # segments that are adjacent to it along corner/parallel cells or
