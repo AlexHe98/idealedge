@@ -61,6 +61,13 @@ def overlay(*braids):
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
 
+    # To build the desired composite knot, we take appropriate pairs of
+    # strands of compBraid and join them to each other (rather than simply
+    # closing up the strands like we would if we were constructing the braid
+    # closure).
+    pd = _overlayPD( compBraid, strands )
+    #TODO
+
     #TODO Remove dependence on SnapPy's recursive implementation of braids.
     # Convert compBraid into a composition of the input knots (but with a
     # more complicated diagram than the standard way to compose knots, as a
@@ -137,6 +144,136 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
 
     # All done.
     return
+
+
+def _overlayPD( braid, threads ):
+    # To build the desired composite knot, we take appropriate pairs of
+    # threads of compBraid and join them to each other (rather than simply
+    # closing up the threads like we would if we were constructing the braid
+    # closure).
+    joinedLeft = set()
+    joinedRight = set()
+    for i in range( numSummands - 1 ):
+        if i % 2 == 0:
+            j = threads.index( ( i, 0 ) )
+        else:
+            j = threads.index( ( i, widths[i] - 1 ) )
+        joinedLeft.add(j)
+        joinedRight.add(j+1)
+
+    # Crossings are indexed in the same order as their corresponding elements
+    # in the given braid word.
+    totalStrands = 0
+    totalCrossings = len(braid)
+    pd = [ [None,None,None,None] for _ in range(totalCrossings) ]
+
+    #TODO Because of how we join threads, we need to distinguish between
+    #   traversing a thread forwards vs backwards.
+    forwards = True
+    #TODO
+
+    # Traverse "threads" of the braid. (Here we use the word "thread" to
+    # distinguish them from "strands" of the knot diagram.)
+    remainingThreads = { i for i in range(
+        max( [ abs(s) for s in braid ] ) + 1 ) }
+    while True:     # Loop to traverse components of this link.
+        if not remainingThreads:
+            # We have traversed every thread, so all that remains is to
+            # traverse the crossing circle.
+            break
+
+        # Pick a remaining thread, and traverse the component that includes
+        # this thread.
+        startThread = remainingThreads.pop()
+        currentPosition = startThread
+        totalStrands += 1
+        startStrand = totalStrands  # Start strand for this component.
+        while True:     # Loop to traverse threads in this component.
+            backtrack = None
+
+            # Traverse this thread.
+            for i in range( len(braid) ):
+                s = braid[i]
+
+                # We have reached a crossing that exchanges threads
+                # (|s| - 1) and |s|.
+                if s > 0:
+                    # Positive crossing.
+                    if currentPosition == s - 1:
+                        pd[i][1] = totalStrands
+                        totalStrands += 1
+                        pd[i][3] = totalStrands
+                        backtrack = (i,3)
+                        currentPosition += 1
+                    elif currentPosition == s:
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentPosition -= 1
+                elif s < 0:
+                    # Negative crossing.
+                    if currentPosition == -s - 1:
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentPosition += 1
+                    elif currentPosition == -s:
+                        pd[i][3] = totalStrands
+                        totalStrands += 1
+                        pd[i][1] = totalStrands
+                        backtrack = (i,1)
+                        currentPosition -= 1
+                else:
+                    raise ValueError()
+
+            #TODO Adapt the code below to account for threads that are joined
+            #   to each other instead of closed up.
+
+            # We are now at the bottom of the braid. If necessary, walk
+            # through additional crossings given by the crossing circle.
+            if currentPosition < n:
+                # Current position is at one of the leftmost n strands, so we
+                # do indeed walk through the crossing circle.
+
+                # First walk over the crossing circle.
+                crossingIndex = braidCrossings + currentPosition
+                pd[crossingIndex][3] = totalStrands
+                totalStrands += 1
+                pd[crossingIndex][1] = totalStrands
+
+                # Then walk under the crossing circle.
+                crossingIndex += n
+                pd[crossingIndex][0] = totalStrands
+                totalStrands += 1
+                pd[crossingIndex][2] = totalStrands
+                backtrack = ( crossingIndex, 2 )
+
+            # We have now traversed past the crossing circle. When we go back
+            # to the top, we will either:
+            #   --> start traversing a new thread; or
+            #   --> find that we have returned to the start of this
+            #       component.
+            if currentPosition == startThread:
+                # We have returned to the start of this component, which
+                # means we need to make adjustments to account for the fact
+                # that we have already visited the current strand.
+                totalStrands -= 1
+                pd[ backtrack[0] ][ backtrack[1] ] = startStrand
+
+                # We have finished with this component, so move on to the
+                # next one.
+                break
+            else:
+                # This component continues along another thread.
+                remainingThreads.remove(currentPosition)
+
+        # End of thread loop.
+    # End of component loop.
+
+    # All done!
+    return pd
 
 
 if __name__ == "__main__":
