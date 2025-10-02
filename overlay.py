@@ -166,11 +166,7 @@ def _overlayPD( braid, threads ):
     totalStrands = 0
     totalCrossings = len(braid)
     pd = [ [None,None,None,None] for _ in range(totalCrossings) ]
-
-    #TODO Because of how we join threads, we need to distinguish between
-    #   traversing a thread forwards vs backwards.
-    forwards = True
-    #TODO
+    overcrossingSwap = [ False for _ in range(totalCrossings) ]
 
     # Traverse "threads" of the braid. (Here we use the word "thread" to
     # distinguish them from "strands" of the knot diagram.)
@@ -182,63 +178,107 @@ def _overlayPD( braid, threads ):
             # traverse the crossing circle.
             break
 
+        #TODO Make code below keep track of overcrossingSwap data.
+
         # Pick a remaining thread, and traverse the component that includes
         # this thread.
         startThread = remainingThreads.pop()
-        currentPosition = startThread
+        currentThread = startThread
         totalStrands += 1
         startStrand = totalStrands  # Start strand for this component.
+        forwards = True
+        #TODO Make sure code below keeps track of forwards vs backwards.
         while True:     # Loop to traverse threads in this component.
             backtrack = None
+            if forwards:
+                # Traverse this thread forwards.
+                for i in range( len(braid) ):
+                    s = braid[i]
 
-            # Traverse this thread.
-            for i in range( len(braid) ):
-                s = braid[i]
+                    # We have reached a crossing that exchanges threads
+                    # (|s| - 1) and |s|.
+                    if s > 0:
+                        # Positive crossing.
+                        if currentThread == s - 1:
+                            pd[i][1] = totalStrands
+                            totalStrands += 1
+                            pd[i][3] = totalStrands
+                            backtrack = (i,3)
+                            currentThread += 1
+                        elif currentThread == s:
+                            pd[i][0] = totalStrands
+                            totalStrands += 1
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
+                            currentThread -= 1
+                    elif s < 0:
+                        # Negative crossing.
+                        if currentThread == -s - 1:
+                            pd[i][0] = totalStrands
+                            totalStrands += 1
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
+                            currentThread += 1
+                        elif currentThread == -s:
+                            pd[i][3] = totalStrands
+                            totalStrands += 1
+                            pd[i][1] = totalStrands
+                            backtrack = (i,1)
+                            currentThread -= 1
+                    else:
+                        raise ValueError()
+            else:
+                # Traverse thread backwards.
+                for i in range( len(braid) - 1, -1, -1 ):
+                    s = braid[i]
 
-                # We have reached a crossing that exchanges threads
-                # (|s| - 1) and |s|.
-                if s > 0:
-                    # Positive crossing.
-                    if currentPosition == s - 1:
-                        pd[i][1] = totalStrands
-                        totalStrands += 1
-                        pd[i][3] = totalStrands
-                        backtrack = (i,3)
-                        currentPosition += 1
-                    elif currentPosition == s:
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
-                        currentPosition -= 1
-                elif s < 0:
-                    # Negative crossing.
-                    if currentPosition == -s - 1:
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
-                        currentPosition += 1
-                    elif currentPosition == -s:
-                        pd[i][3] = totalStrands
-                        totalStrands += 1
-                        pd[i][1] = totalStrands
-                        backtrack = (i,1)
-                        currentPosition -= 1
-                else:
-                    raise ValueError()
+                    # We have reached a crossing that exchanges threads
+                    # (|s| - 1) and |s|.
+                    if s > 0:
+                        # Positive crossing.
+                        #TODO
+                        if currentThread == s - 1:
+                            pd[i][1] = totalStrands
+                            totalStrands += 1
+                            pd[i][3] = totalStrands
+                            backtrack = (i,3)
+                            currentThread += 1
+                        elif currentThread == s:
+                            pd[i][0] = totalStrands
+                            totalStrands += 1
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
+                            currentThread -= 1
+                    elif s < 0:
+                        # Negative crossing.
+                        if currentThread == -s - 1:
+                            pd[i][0] = totalStrands
+                            totalStrands += 1
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
+                            currentThread += 1
+                        elif currentThread == -s:
+                            pd[i][3] = totalStrands
+                            totalStrands += 1
+                            pd[i][1] = totalStrands
+                            backtrack = (i,1)
+                            currentThread -= 1
+                    else:
+                        raise ValueError()
+                #TODO
+                raise NotImplementedError()
 
             #TODO Adapt the code below to account for threads that are joined
             #   to each other instead of closed up.
 
             # We are now at the bottom of the braid. If necessary, walk
             # through additional crossings given by the crossing circle.
-            if currentPosition < n:
+            if currentThread < n:
                 # Current position is at one of the leftmost n strands, so we
                 # do indeed walk through the crossing circle.
 
                 # First walk over the crossing circle.
-                crossingIndex = braidCrossings + currentPosition
+                crossingIndex = braidCrossings + currentThread
                 pd[crossingIndex][3] = totalStrands
                 totalStrands += 1
                 pd[crossingIndex][1] = totalStrands
@@ -255,7 +295,7 @@ def _overlayPD( braid, threads ):
             #   --> start traversing a new thread; or
             #   --> find that we have returned to the start of this
             #       component.
-            if currentPosition == startThread:
+            if currentThread == startThread:
                 # We have returned to the start of this component, which
                 # means we need to make adjustments to account for the fact
                 # that we have already visited the current strand.
@@ -267,7 +307,7 @@ def _overlayPD( braid, threads ):
                 break
             else:
                 # This component continues along another thread.
-                remainingThreads.remove(currentPosition)
+                remainingThreads.remove(currentThread)
 
         # End of thread loop.
     # End of component loop.
