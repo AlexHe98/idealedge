@@ -8,6 +8,7 @@ from hardknot import randomHardComposite
 
 
 if __name__ == "__main__":
+    #TODO Allow composites of more than 2 knots.
     n = int( argv[1] )
     filename = argv[2]
     setrecursionlimit(1000000)

@@ -9,6 +9,7 @@ from regina import *
 from overlay import braidWidth, overlay
 
 
+#TODO Remove discriminate parameter.
 def randomHardComposite( numSummands, discriminate=True, verbose=True ):
     """
     Randomly generate a hard diagram of a composite knot by repeatedly
@@ -83,6 +84,7 @@ def randomHardComposite( numSummands, discriminate=True, verbose=True ):
 
 
 if __name__ == "__main__":
+    #TODO Remove dependence on SnapPy's recursive implementation of braids.
     setrecursionlimit(1000000)
 
     # Although in principle we could try to construct hard diagrams with more

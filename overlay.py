@@ -61,6 +61,7 @@ def overlay(*braids):
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
 
+    #TODO Remove dependence on SnapPy's recursive implementation of braids.
     # Convert compBraid into a composition of the input knots (but with a
     # more complicated diagram than the standard way to compose knots, as a
     # deliberate consequence of the above overlaying construction).
@@ -139,6 +140,7 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
 
 
 if __name__ == "__main__":
+    #TODO Remove dependence on SnapPy's recursive implementation of braids.
     # Use the overlaying construction to compose some given knots from
     # SnapPy's database, and see whether this gives a hard diagram of a
     # composite knot.
