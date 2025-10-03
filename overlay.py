@@ -166,19 +166,19 @@ def _overlayPD( braid, threads ):
     totalStrands = 0
     totalCrossings = len(braid)
     pd = [ [None,None,None,None] for _ in range(totalCrossings) ]
-    overcrossingSwap = [ False for _ in range(totalCrossings) ]
+    overcrossingSwap = set()
 
     # Traverse "threads" of the braid. (Here we use the word "thread" to
     # distinguish them from "strands" of the knot diagram.)
     remainingThreads = { i for i in range(
         max( [ abs(s) for s in braid ] ) + 1 ) }
     while True:     # Loop to traverse components of this link.
+        #TODO Fix remainingThreads logic, since this previously assumed that
+        #   we only ever traverse downwards.
         if not remainingThreads:
             # We have traversed every thread, so all that remains is to
             # traverse the crossing circle.
             break
-
-        #TODO Make code below keep track of overcrossingSwap data.
 
         # Pick a remaining thread, and traverse the component that includes
         # this thread.
@@ -186,12 +186,11 @@ def _overlayPD( braid, threads ):
         currentThread = startThread
         totalStrands += 1
         startStrand = totalStrands  # Start strand for this component.
-        forwards = True
-        #TODO Make sure code below keeps track of forwards vs backwards.
+        downwards = True
         while True:     # Loop to traverse threads in this component.
             backtrack = None
-            if forwards:
-                # Traverse this thread forwards.
+            if downwards:
+                # Traverse this thread downwards.
                 for i in range( len(braid) ):
                     s = braid[i]
 
@@ -200,26 +199,42 @@ def _overlayPD( braid, threads ):
                     if s > 0:
                         # Positive crossing.
                         if currentThread == s - 1:
+                            # Overcrossing strand.
+                            # We assume for now that the undercrossing strand
+                            # will come in from above, and we will fix this
+                            # later if necessary.
                             pd[i][1] = totalStrands
                             totalStrands += 1
                             pd[i][3] = totalStrands
                             backtrack = (i,3)
                             currentThread += 1
                         elif currentThread == s:
+                            # Undercrossing strand.
                             pd[i][0] = totalStrands
                             totalStrands += 1
                             pd[i][2] = totalStrands
                             backtrack = (i,2)
                             currentThread -= 1
+                            # This strand is coming in from above, so the
+                            # overcrossing strand won't need to be fixed
+                            # later.
                     elif s < 0:
                         # Negative crossing.
                         if currentThread == -s - 1:
+                            # Undercrossing strand.
                             pd[i][0] = totalStrands
                             totalStrands += 1
                             pd[i][2] = totalStrands
                             backtrack = (i,2)
                             currentThread += 1
+                            # This strand is coming in from above, so the
+                            # overcrossing strand won't need to be fixed
+                            # later.
                         elif currentThread == -s:
+                            # Overcrossing strand.
+                            # We assume for now that the undercrossing strand
+                            # will come in from above, and we will fix this
+                            # later if necessary.
                             pd[i][3] = totalStrands
                             totalStrands += 1
                             pd[i][1] = totalStrands
@@ -228,7 +243,7 @@ def _overlayPD( braid, threads ):
                     else:
                         raise ValueError()
             else:
-                # Traverse thread backwards.
+                # Traverse thread upwards.
                 for i in range( len(braid) - 1, -1, -1 ):
                     s = braid[i]
 
@@ -236,38 +251,71 @@ def _overlayPD( braid, threads ):
                     # (|s| - 1) and |s|.
                     if s > 0:
                         # Positive crossing.
-                        #TODO
                         if currentThread == s - 1:
-                            pd[i][1] = totalStrands
+                            # Undercrossing strand.
+                            pd[i][0] = totalStrands
                             totalStrands += 1
-                            pd[i][3] = totalStrands
-                            backtrack = (i,3)
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
                             currentThread += 1
+                            # This strand is coming in from below, so we will
+                            # need to fix the overcrossing strand later.
+                            overcrossingSwap.add(i)
                         elif currentThread == s:
-                            pd[i][0] = totalStrands
-                            totalStrands += 1
-                            pd[i][2] = totalStrands
-                            backtrack = (i,2)
-                            currentThread -= 1
-                    elif s < 0:
-                        # Negative crossing.
-                        if currentThread == -s - 1:
-                            pd[i][0] = totalStrands
-                            totalStrands += 1
-                            pd[i][2] = totalStrands
-                            backtrack = (i,2)
-                            currentThread += 1
-                        elif currentThread == -s:
+                            # Overcrossing strand.
+                            # We assume for now that the undercrossing strand
+                            # will come in from above, and we will fix this
+                            # later if necessary.
                             pd[i][3] = totalStrands
                             totalStrands += 1
                             pd[i][1] = totalStrands
                             backtrack = (i,1)
                             currentThread -= 1
+                    elif s < 0:
+                        # Negative crossing.
+                        if currentThread == -s - 1:
+                            # Overcrossing strand.
+                            # We assume for now that the undercrossing strand
+                            # will come in from above, and we will fix this
+                            # later if necessary.
+                            pd[i][1] = totalStrands
+                            totalStrands += 1
+                            pd[i][3] = totalStrands
+                            backtrack = (i,3)
+                            currentThread += 1
+                        elif currentThread == -s:
+                            # Undercrossing strand.
+                            pd[i][0] = totalStrands
+                            totalStrands += 1
+                            pd[i][2] = totalStrands
+                            backtrack = (i,2)
+                            currentThread -= 1
+                            # This strand is coming in from below, so we will
+                            # need to fix the overcrossing strand later.
+                            overcrossingSwap.add(i)
                     else:
                         raise ValueError()
+
+            # We are now at the bottom (if traversing downwards) or top (if
+            # traversing upwards) of the braid. Do we turn around and join to
+            # an adjacent thread, or do we continue traversing?
+            if currentThread in joinedLeft:
+                #TODO
+                raise NotImplementedError()
+            elif currentThread in joinedRight:
                 #TODO
                 raise NotImplementedError()
 
+            # Are we done?
+            if currentThread == startThread:
+                #TODO
+                raise NotImplementedError()
+            else:
+                #TODO
+                raise NotImplementedError()
+
+            #TODO Make code below keep track of overcrossingSwap data.
+            #TODO Make sure code below keeps track of downwards vs upwards.
             #TODO Adapt the code below to account for threads that are joined
             #   to each other instead of closed up.
 
