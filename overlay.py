@@ -165,38 +165,16 @@ def _overlayPD( braid, threads, numSummands ):
                 if s > 0:
                     # Positive crossing.
                     if currentThread == s - 1:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][1] = totalStrands
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
                         totalStrands += 1
-                        pd[i][3] = totalStrands
-                        backtrack = (i,3)
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
                         currentThread += 1
+                        # This strand is coming in from above, so the
+                        # overcrossing strand won't need to be fixed
+                        # later.
                     elif currentThread == s:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
-                        currentThread -= 1
-                        # This strand is coming in from above, so the
-                        # overcrossing strand won't need to be fixed
-                        # later.
-                elif s < 0:
-                    # Negative crossing.
-                    if currentThread == -s - 1:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
-                        currentThread += 1
-                        # This strand is coming in from above, so the
-                        # overcrossing strand won't need to be fixed
-                        # later.
-                    elif currentThread == -s:
                         # Overcrossing strand.
                         # We assume for now that the undercrossing strand
                         # will come in from above, and we will fix this
@@ -206,6 +184,28 @@ def _overlayPD( braid, threads, numSummands ):
                         pd[i][1] = totalStrands
                         backtrack = (i,1)
                         currentThread -= 1
+                elif s < 0:
+                    # Negative crossing.
+                    if currentThread == -s - 1:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][1] = totalStrands
+                        totalStrands += 1
+                        pd[i][3] = totalStrands
+                        backtrack = (i,3)
+                        currentThread += 1
+                    elif currentThread == -s:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread -= 1
+                        # This strand is coming in from above, so the
+                        # overcrossing strand won't need to be fixed
+                        # later.
                 else:
                     raise ValueError()
         else:
@@ -218,28 +218,6 @@ def _overlayPD( braid, threads, numSummands ):
                 if s > 0:
                     # Positive crossing.
                     if currentThread == s - 1:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
-                        currentThread += 1
-                        # This strand is coming in from below, so we will
-                        # need to fix the overcrossing strand later.
-                        overcrossingSwap.add(i)
-                    elif currentThread == s:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][3] = totalStrands
-                        totalStrands += 1
-                        pd[i][1] = totalStrands
-                        backtrack = (i,1)
-                        currentThread -= 1
-                elif s < 0:
-                    # Negative crossing.
-                    if currentThread == -s - 1:
                         # Overcrossing strand.
                         # We assume for now that the undercrossing strand
                         # will come in from above, and we will fix this
@@ -249,7 +227,7 @@ def _overlayPD( braid, threads, numSummands ):
                         pd[i][3] = totalStrands
                         backtrack = (i,3)
                         currentThread += 1
-                    elif currentThread == -s:
+                    elif currentThread == s:
                         # Undercrossing strand.
                         pd[i][0] = totalStrands
                         totalStrands += 1
@@ -259,6 +237,28 @@ def _overlayPD( braid, threads, numSummands ):
                         # This strand is coming in from below, so we will
                         # need to fix the overcrossing strand later.
                         overcrossingSwap.add(i)
+                elif s < 0:
+                    # Negative crossing.
+                    if currentThread == -s - 1:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread += 1
+                        # This strand is coming in from below, so we will
+                        # need to fix the overcrossing strand later.
+                        overcrossingSwap.add(i)
+                    elif currentThread == -s:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][3] = totalStrands
+                        totalStrands += 1
+                        pd[i][1] = totalStrands
+                        backtrack = (i,1)
+                        currentThread -= 1
                 else:
                     raise ValueError()
 
@@ -277,7 +277,7 @@ def _overlayPD( braid, threads, numSummands ):
             # We are back to the start, so we need to backtrack and fix the
             # most recent strand.
             totalStrands -= 1
-            pd[ backtrack[0] ][ backtrack[1] ] = 0
+            pd[ backtrack[0] ][ backtrack[1] ] = 1
 
             # We might also need to fix some overcrossing strands.
             for i in overcrossingSwap:
