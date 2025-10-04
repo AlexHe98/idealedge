@@ -61,24 +61,12 @@ def overlay(*braids):
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
 
-    # Convert compBraid into a composition of the input knots (but with a
-    # more complicated diagram than the standard way to compose knots, as a
-    # deliberate consequence of the above overlaying construction).
-    tangle = BraidTangle(compBraid)
-    top, bot = tangle.boundary
-    unjoined = set( range( len(strands) ) )
-    for i in range(numSummands-1):
-        if i % 2 == 0:
-            j = strands.index( ( i, 0 ) )
-        else:
-            j = strands.index( ( i, widths[i] - 1 ) )
-        join_strands( tangle.adjacent[j], tangle.adjacent[j+1] )
-        join_strands( tangle.adjacent[top+j], tangle.adjacent[top+j+1] )
-        unjoined.remove(j)
-        unjoined.remove(j+1)
-    for j in unjoined:
-        join_strands( tangle.adjacent[j], tangle.adjacent[top+j] )
-    return snappy.Link( tangle.crossings, check_planarity=False )
+    # To build the desired composite knot, we take appropriate pairs of
+    # strands of compBraid and join them to each other (rather than simply
+    # closing up the strands like we would if we were constructing the braid
+    # closure).
+    pd = _overlayPD( compBraid, strands, numSummands, widths )
+    return snappy.Link(pd)
 
 
 def _interleaveRight( i, widths, strands, rightmost, braid ):
@@ -138,11 +126,172 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
     return
 
 
+def _overlayPD( braid, threads, numSummands, widths ):
+    # To build the desired composite knot, we take appropriate pairs of
+    # threads of compBraid and join them to each other (rather than simply
+    # closing up the threads like we would if we were constructing the braid
+    # closure).
+    joinedLeft = set()
+    joinedRight = set()
+    for i in range( numSummands - 1 ):
+        if i % 2 == 0:
+            j = threads.index( ( i, 0 ) )
+        else:
+            j = threads.index( ( i, widths[i] - 1 ) )
+        joinedLeft.add(j)
+        joinedRight.add(j+1)
+
+    # Crossings are indexed in the same order as their corresponding elements
+    # in the given braid word.
+    totalStrands = 0
+    totalCrossings = len(braid)
+    pd = [ [None,None,None,None] for _ in range(totalCrossings) ]
+    overcrossingSwap = set()
+
+    # Traverse "threads" of the braid. (Here we use the word "thread" to
+    # distinguish them from "strands" of the knot diagram.)
+    currentThread = 0
+    totalStrands += 1
+    downwards = True
+    while True:     # Loop to traverse threads.
+        backtrack = None
+        if downwards:
+            # Traverse currentThread downwards.
+            for i in range( len(braid) ):
+                s = braid[i]
+
+                # We have reached a crossing that exchanges threads
+                # (|s| - 1) and |s|.
+                if s > 0:
+                    # Positive crossing.
+                    if currentThread == s - 1:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread += 1
+                        # This strand is coming in from above, so the
+                        # overcrossing strand won't need to be fixed
+                        # later.
+                    elif currentThread == s:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][3] = totalStrands
+                        totalStrands += 1
+                        pd[i][1] = totalStrands
+                        backtrack = (i,1)
+                        currentThread -= 1
+                elif s < 0:
+                    # Negative crossing.
+                    if currentThread == -s - 1:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][1] = totalStrands
+                        totalStrands += 1
+                        pd[i][3] = totalStrands
+                        backtrack = (i,3)
+                        currentThread += 1
+                    elif currentThread == -s:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread -= 1
+                        # This strand is coming in from above, so the
+                        # overcrossing strand won't need to be fixed
+                        # later.
+                else:
+                    raise ValueError()
+        else:
+            # Traverse currentThread upwards.
+            for i in range( len(braid) - 1, -1, -1 ):
+                s = braid[i]
+
+                # We have reached a crossing that exchanges threads
+                # (|s| - 1) and |s|.
+                if s > 0:
+                    # Positive crossing.
+                    if currentThread == s - 1:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][1] = totalStrands
+                        totalStrands += 1
+                        pd[i][3] = totalStrands
+                        backtrack = (i,3)
+                        currentThread += 1
+                    elif currentThread == s:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread -= 1
+                        # This strand is coming in from below, so we will
+                        # need to fix the overcrossing strand later.
+                        overcrossingSwap.add(i)
+                elif s < 0:
+                    # Negative crossing.
+                    if currentThread == -s - 1:
+                        # Undercrossing strand.
+                        pd[i][0] = totalStrands
+                        totalStrands += 1
+                        pd[i][2] = totalStrands
+                        backtrack = (i,2)
+                        currentThread += 1
+                        # This strand is coming in from below, so we will
+                        # need to fix the overcrossing strand later.
+                        overcrossingSwap.add(i)
+                    elif currentThread == -s:
+                        # Overcrossing strand.
+                        # We assume for now that the undercrossing strand
+                        # will come in from above, and we will fix this
+                        # later if necessary.
+                        pd[i][3] = totalStrands
+                        totalStrands += 1
+                        pd[i][1] = totalStrands
+                        backtrack = (i,1)
+                        currentThread -= 1
+                else:
+                    raise ValueError()
+
+        # We are now at the bottom (if traversing downwards) or top (if
+        # traversing upwards) of the braid. Do we turn around and join to
+        # an adjacent thread, or do we continue traversing?
+        if currentThread in joinedLeft:
+            downwards = not downwards
+            currentThread += 1
+        elif currentThread in joinedRight:
+            downwards = not downwards
+            currentThread -= 1
+
+        # Are we done?
+        if downwards and currentThread == 0:
+            # We are back to the start, so we need to backtrack and fix the
+            # most recent strand.
+            totalStrands -= 1
+            pd[ backtrack[0] ][ backtrack[1] ] = 1
+
+            # We might also need to fix some overcrossing strands.
+            for i in overcrossingSwap:
+                pd[i][1], pd[i][3] = pd[i][3], pd[i][1]
+
+            # All done!
+            return pd
+
+    # End of traversal loop.
+    # We should never reach this point.
+    raise RuntimeError()
+
+
 if __name__ == "__main__":
-    # Use the overlaying construction to compose some given knots from
-    # SnapPy's database, and see whether this gives a hard diagram of a
-    # composite knot.
-    setrecursionlimit(1000000)
     knotNames = argv[1:]
     knots = [ snappy.Link(name) for name in knotNames ]
     composite = compose(*knots)
