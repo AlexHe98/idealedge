@@ -65,7 +65,7 @@ def overlay(*braids):
     # strands of compBraid and join them to each other (rather than simply
     # closing up the strands like we would if we were constructing the braid
     # closure).
-    pd = _overlayPD( compBraid, strands, numSummands )
+    pd = _overlayPD( compBraid, strands, numSummands, widths )
     return snappy.Link(pd)
 
 
@@ -126,7 +126,7 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
     return
 
 
-def _overlayPD( braid, threads, numSummands ):
+def _overlayPD( braid, threads, numSummands, widths ):
     # To build the desired composite knot, we take appropriate pairs of
     # threads of compBraid and join them to each other (rather than simply
     # closing up the threads like we would if we were constructing the braid

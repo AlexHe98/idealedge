@@ -2,14 +2,14 @@
 Try to generate a hard diagram of a composite knot by randomly composing
 prime knots using the overlaying construction.
 """
-from sys import setrecursionlimit
+from sys import argv
 from timeit import default_timer
 import snappy
 from regina import *
 from overlay import braidWidth, overlay
 
 
-#TODO Remove discriminate parameter.
+#TODO Decide whether to keep or remove the discriminate parameter.
 def randomHardComposite( numSummands, discriminate=True, verbose=True ):
     """
     Randomly generate a hard diagram of a composite knot by repeatedly
@@ -23,7 +23,6 @@ def randomHardComposite( numSummands, discriminate=True, verbose=True ):
     and a significant amount of time, it is often helpful to run this routine
     in verbose mode (this is the default).
     """
-    recursionErrors = 0
     if verbose:
         start = default_timer()
         attempts = 0
@@ -41,10 +40,6 @@ def randomHardComposite( numSummands, discriminate=True, verbose=True ):
         widths = [ braidWidth(b) for b in braids ]
         if discriminate:
             # Ignore cases that usually don't yield hard diagrams anyway.
-            if sum(widths) >= 20:
-                # This is to avoid excessive recursion due to SnapPy's
-                # recursive implementation of braids and tangles.
-                continue
             if max(widths) - min(widths) >= numSummands:
                 # Empirically, the overlaying construction seems to be more
                 # likely to lead to a hard diagram when all the overlaid
@@ -55,15 +50,7 @@ def randomHardComposite( numSummands, discriminate=True, verbose=True ):
                 attempts, default_timer() - start, widths ) )
 
         # Try composing.
-        try:
-            comp = overlay(*braids)
-        except RecursionError:
-            print( "!!!!!!!!" )
-            recursionErrors += 1
-            if recursionErrors == 5:
-                raise RuntimeError( "Too many recursion errors." )
-            else:
-                continue
+        comp = overlay(*braids)
         for _ in range(5):
             comp.simplify('global')
 
@@ -84,15 +71,8 @@ def randomHardComposite( numSummands, discriminate=True, verbose=True ):
 
 
 if __name__ == "__main__":
-    #TODO Remove dependence on SnapPy's recursive implementation of braids.
-    setrecursionlimit(1000000)
-
-    # Although in principle we could try to construct hard diagrams with more
-    # than 2 summands, a quirk of SnapPy's implementation of braids and
-    # tangles means that we run into excessive recursion far too often to be
-    # able to effectively generate hard diagrams in practice. Therefore we
-    # stick to 2 summands.
-    names, comp = randomHardComposite(2)
+    numSummands = int( argv[1] )
+    names, comp = randomHardComposite(numSummands)
     for n in names:
         print(n)
     print()
