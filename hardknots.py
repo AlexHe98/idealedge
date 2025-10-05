@@ -10,14 +10,18 @@ from hardknot import randomHardComposite
 if __name__ == "__main__":
     numSamples = int( argv[1] )
     numSummands = int( argv[2] )
-    filename = argv[3]
+    workers = int( argv[3] )
+    filename = argv[4]
+    print( "Sampling {} hard diagrams, each with {} summands.".format(
+        numSamples, numSummands ) )
+    print( "{} workers.".format(workers) )
+    print()
 
     # Save sample to file
     with ( open( filename + ".sig", "w" ) as sigs,
           open( filename + ".txt", "w" ) as pdcodes ):
         for _ in range(numSamples):
-            _, composite = randomHardComposite(2)
-            pd = composite.PD_code( min_strand_index=1 )
+            _, pd, _ = randomHardComposite( numSummands, workers )
             pdcodes.write( str(pd) + "\n" )
             sig = Link.fromPD(pd).knotSig()
             sigs.write( sig + "\n" )
