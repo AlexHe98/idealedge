@@ -24,7 +24,8 @@ def attemptHardComposite(numSummands):
         #    continue
 
         # Yes! We have a "hard" diagram of a composite knot.
-        return tuple( [ k.name() for k in sample ] ), compPD
+        newPD = comp.PD_code( min_strand_index=1 )
+        return tuple( [ k.name() for k in sample ] ), newPD
     
     # No, we did not find a "hard" diagram.
     return None
