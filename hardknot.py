@@ -60,6 +60,7 @@ def randomHardComposite( numSummands, workers, verbose=True ):
                         comp = snappy.Link(compPD)
                         print( msg.format(
                             default_timer() - start, total, processed ) )
+                        print()
                         return names, compPD, comp
             for i in nowFinished:
                 del unfinished[i]
@@ -80,6 +81,9 @@ def randomHardComposite( numSummands, workers, verbose=True ):
 if __name__ == "__main__":
     numSummands = int( argv[1] )
     workers = int( argv[2] )
+    print( "{} summands. {} workers.".format(
+        numSummands, workers ) )
+    print()
     names, pd, comp = randomHardComposite( numSummands, workers )
     for n in names:
         print(n)
