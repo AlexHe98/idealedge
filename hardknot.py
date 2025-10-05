@@ -2,81 +2,94 @@
 Try to generate a hard diagram of a composite knot by randomly composing
 prime knots using the overlaying construction.
 """
-from sys import argv
+from sys import argv, stdout
 from timeit import default_timer
+from multiprocessing import Pool, TimeoutError
 import snappy
 from regina import *
-from overlay import braidWidth, overlay
+from hardknotimpl import attemptHardComposite
 
 
-#TODO Decide whether to keep or remove the discriminate parameter.
-def randomHardComposite( numSummands, discriminate=True, verbose=True ):
+def randomHardComposite( numSummands, workers, verbose=True ):
     """
     Randomly generate a hard diagram of a composite knot by repeatedly
     composing n random prime knots, where n = numSummands.
 
-    If discriminate is True (the default), then this routine only processes
-    composite knots that are "likely" to yield a hard diagram. See the
-    implementation for precise details about what this means.
-
     Since generating the desired hard diagram often requires many attempts
     and a significant amount of time, it is often helpful to run this routine
-    in verbose mode (this is the default).
+    with multiple concurrent worker processes. It may also be helpful to
+    regularly print progress updates using verbose mode (which is switched on
+    by default).
     """
+    start = default_timer()
     if verbose:
-        start = default_timer()
-        attempts = 0
-    while True:
-        attempts += 1
+        prev = start
+    total = 0
+    processed = 0
+    unfinished = dict()
+    maxSize = 2*workers
+    msg = "Time: {:.6f}. Generated: {}. Processed: {}."
+    with Pool( processes=workers ) as pool:
+        # Generate random composite knots, overlay, and check whether this
+        # leads to a hard diagram.
+        for _ in range(maxSize):
+            unfinished[total] = pool.apply_async(
+                    attemptHardComposite, args = (numSummands,) )
+            total += 1
+        while unfinished:
+            if len(unfinished) < maxSize:
+                unfinished[total] = pool.apply_async(
+                        attemptHardComposite, args = (numSummands,) )
+                total += 1
 
-        # Randomly sample some knots to compose together.
-        knots = snappy.HTLinkExteriors(cusps=1)
-        sample = [ knots.random() for _ in range(numSummands) ]
-        summands = [ k.link() for k in sample ]
-        size = sum( [ len(k) for k in summands ] )
-        braids = [ k.braid_word() for k in summands ]
+            # Check for new results.
+            nowFinished = set()
+            for i in unfinished:
+                try:
+                    output = unfinished[i].get( timeout=0.001 )
+                except TimeoutError:
+                    pass
+                else:
+                    # Got a new result!
+                    nowFinished.add(i)
+                    processed += 1
 
-        # Filter out things that usually don't give a hard diagram.
-        widths = [ braidWidth(b) for b in braids ]
-        if discriminate:
-            # Ignore cases that usually don't yield hard diagrams anyway.
-            if max(widths) - min(widths) >= numSummands:
-                # Empirically, the overlaying construction seems to be more
-                # likely to lead to a hard diagram when all the overlaid
-                # braids have similar widths.
-                continue
-        if verbose:
-            print( "Attempt #{}. Time: {:.6f}. Widths: {}.".format(
-                attempts, default_timer() - start, widths ) )
+                    # Is it the hard diagram we want?
+                    if output is not None:
+                        names, compPD = output
+                        comp = snappy.Link(compPD)
+                        print( msg.format(
+                            default_timer() - start, total, processed ) )
+                        return names, compPD, comp
+            for i in nowFinished:
+                del unfinished[i]
 
-        # Try composing.
-        comp = overlay(*braids)
-        for _ in range(5):
-            comp.simplify('global')
-
-        # Do we get an interesting diagram?
-        if ( len(comp) > 1.25*size and
-            len( list( comp.dual_graph().two_cycles() ) ) == 0 ):
-            #summands = comp.deconnect_sum()
-            #if len(summands) != 1:
-            #    continue
-
-            # We have a "hard" diagram of a composite knot.
+            # In verbose mode, print periodic updates.
             if verbose:
-                print()
-                print( "Found a hard diagram! Time: {:.6f}.".format(
-                    default_timer() - start ) )
-            print()
-            return [ k.name() for k in sample ], comp
+                time = default_timer()
+                if time - prev > 10:
+                    prev = time
+                    print( msg.format(
+                        time - start, total, processed ) )
+                    stdout.flush()
+
+    # Should never reach this point.
+    raise RuntimeError()
 
 
 if __name__ == "__main__":
     numSummands = int( argv[1] )
-    names, comp = randomHardComposite(numSummands)
+    workers = int( argv[2] )
+    names, pd, comp = randomHardComposite( numSummands, workers )
     for n in names:
         print(n)
     print()
     print(comp)
     print()
-    pd = comp.PD_code( min_strand_index=1 )
+
+    # View the knot diagram using the PLink viewer.
+    #NOTE This doesn't seem to work on all machines.
+    comp.view().window.mainloop()
+
+    # Print knot signature.
     print( Link.fromPD(pd).knotSig() )
