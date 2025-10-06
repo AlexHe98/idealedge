@@ -5,7 +5,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, idealLoops
 from idealedge import isAnnulus, isSphere, fillIdealEdge
-from loop import IdealLoop
+from loop import IdealLoop, BoundsDisc
 from subdivide import drillMeridian
 
 
@@ -22,6 +22,7 @@ def meridian( tri, edgeIndex ):
     return drillMeridian( IdealLoop( [ tri.edge(edgeIndex) ] ) )
 
 
+#TODO Experiment with crushing Mobius bands as well.
 def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
@@ -104,6 +105,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                             else:
                                 idTeti += 1
 
+        #TODO Experiment with drillMeridian() instead of pinchEdge().
         # Go through the components and try to identify their topology.
         for compNum, comp in enumerate(components):
             print( "    Time: {:.6f}. Component #{}.".format(
@@ -118,6 +120,37 @@ def crushAnnuli( surfaces, threshold=30 ):
                     "Closed, ideal edge {}".format(
                         invIdEdge.index() ) ) )
                 comp.insertChildLast(filled)
+
+                # Have we isolated a single exceptional fibre?
+                invIdLoop = IdealLoop( [invIdEdge] )
+                try:
+                    # The meridian of the ideal loop is a candidate for an
+                    # exceptional fibre.
+                    mer = drillMeridian(invIdLoop)
+                except BoundsDisc:
+                    # The meridian bounds a disc "on the outside", so the
+                    # filled triangulation must have been S2 x S1. In
+                    # particular, the meridian cannot be an exceptional
+                    # fibre.
+                    name = "S2 x S1, meridian is not a fibre"
+                    #TODO
+                    raise NotImplementedError()
+                else:
+                    # Successfully drilled.
+                    drilled = PacketOfTriangulation3( mer.triangulation() )
+                    filled.insertChildLast(drilled)
+                    merEdges = []
+                    for ei in mer:
+                        merEdges.append(ei)
+                    drilled.setLabel( comp.adornedLabel(
+                        "Drilled, meridian edges {}".format(merEdges) ) )
+
+                    # If the drilled triangulation is a solid torus, then
+                    # finding the compression disc will tell us the
+                    # parameters of the exceptional fibre.
+                    #TODO
+                    raise NotImplementedError()
+                #TODO
 
                 # Just in case, let's see if we can simplify and identify the
                 # manifold given by drilling out the ideal edge.
