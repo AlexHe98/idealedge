@@ -14,11 +14,14 @@ if __name__ == "__main__":
     except IndexError:
         # If no knot signature is provided, then try to randomly generate a
         # hard diagram of a composite knot.
-        summands, snappyKnot = randomHardComposite(2)
+        print( "Generating a random hard diagram..." )
+        print()
+        numSummands = 2
+        workers = 15
+        summands, pd, snappyKnot = randomHardComposite( numSummands, workers )
         print("Diagram constructed from following summands:")
         for s in summands:
             print(s)
-        pd = snappyKnot.PD_code( min_strand_index=1 )
         knot = Link.fromPD(pd)
     else:
         knot = Link.fromKnotSig(sig)
