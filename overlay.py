@@ -3,7 +3,7 @@ Compose knot diagrams using a non-standard construction that overlays the
 knots on top of each other, with the goal of obtaining a composite knot with
 a diagram that is not obviously composite.
 """
-from sys import argv, setrecursionlimit
+from sys import argv
 import snappy
 from spherogram.links.tangles import BraidTangle, join_strands
 from regina import *
