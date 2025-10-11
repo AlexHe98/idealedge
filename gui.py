@@ -132,64 +132,85 @@ def crushAnnuli( surfaces, threshold=30 ):
                     # filled triangulation must have been S2 x S1. In
                     # particular, the meridian cannot be an exceptional
                     # fibre.
-                    name = "S2 x S1, meridian is not a fibre"
-                    #TODO
-                    raise NotImplementedError()
+                    filled.setLabel(
+                            filled.label() + ": {}".format(
+                                "S2 x S1, meridian is not a fibre" ) )
                 else:
                     # Successfully drilled.
+                    mer.minimiseBoundary()
+                    mer.simplify()
+                    mer.simplify()
                     drilled = PacketOfTriangulation3( mer.triangulation() )
                     filled.insertChildLast(drilled)
-                    merEdges = []
-                    for ei in mer:
-                        merEdges.append(ei)
+
+                    # Because we minimised the boundary, the meridian is
+                    # guaranteed to be given by a single edge.
+                    merEdgeIndex = mer[0]
                     drilled.setLabel( comp.adornedLabel(
-                        "Drilled, meridian edges {}".format(merEdges) ) )
+                        "Drilled, meridian edge {}".format(merEdgeIndex) ) )
 
                     # If the drilled triangulation is a solid torus, then
                     # finding the compression disc will tell us the
                     # parameters of the exceptional fibre.
-                    #TODO
-                    raise NotImplementedError()
+                    surf = drilled.nonTrivialSphereOrDisc()
+                    if surf is None:
+                        # No compression disc means we have not yet cut out a
+                        # single fibre.
+                        name = "Not a fibred solid torus"
+                    else:
+                        #TODO Actually do something with the surface.
+                        # Calculate boundary edge weights.
+                        merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
+                        name = "Contains surface, euler={}, merWt={}".format(
+                                surf.eulerChar().safeLongValue(), merWt )
+                        for e in drilled.edges():
+                            if e.index() == merEdgeIndex or not e.isBoundary():
+                                continue
+                            name += ", e{}_Wt={}".format(
+                                    e.index(),
+                                    surf.edgeWeight( e.index() ).safeLongValue() )
+                    drilled.setLabel(
+                            drilled.label() + ": {}".format(name) )
                 #TODO
 
-                # Just in case, let's see if we can simplify and identify the
-                # manifold given by drilling out the ideal edge.
-                drilled = PacketOfTriangulation3(filled)
-                filled.insertChildLast(drilled)
-                ide = drilled.edge( invIdEdge.index() )
-                drilled.setLabel( comp.adornedLabel(
-                    "Closed, pinched edge {}".format( ide.index() ) ) )
-                drilled.pinchEdge(ide)
-                drilled.intelligentSimplify()
-                drilled.intelligentSimplify()
-                if ( ( drilled.knowsSolidTorus() or
-                    drilled.size() < threshold ) and
-                    drilled.isSolidTorus() ):
-                    name = "Ideal solid torus"
-                else:
-                    # Try to combinatorially recognise after truncating the
-                    # ideal vertex.
-                    trunc = PacketOfTriangulation3(drilled)
-                    drilled.insertChildLast(trunc)
-                    trunc.idealToFinite()
-                    trunc.intelligentSimplify()
-                    trunc.intelligentSimplify()
-                    std = StandardTriangulation.recognise(trunc)
-                    if std is None:
-                        name = "Not recognised"
-                        if drilled.knowsSolidTorus():
-                            name += ", not solid torus"
-                    else:
-                        name = std.manifold().name()
-                    trunc.setLabel( drilled.adornedLabel(
-                        "Truncated" ) + ": {}".format(name) )
-                drilled.setLabel(
-                        drilled.label() + ": {}".format(name) )
-
-                # Decompose the filled manifold into prime pieces (unless it
-                # has too many tetrahedra).
-                print( "        Attempted prime decomposition: {}.".format(
-                    recogniseSummands( filled, threshold ) ) )
+#                # Just in case, let's see if we can simplify and identify the
+#                # manifold given by drilling out the ideal edge.
+#                drilled = PacketOfTriangulation3(filled)
+#                filled.insertChildLast(drilled)
+#                ide = drilled.edge( invIdEdge.index() )
+#                drilled.setLabel( comp.adornedLabel(
+#                    "Closed, pinched edge {}".format( ide.index() ) ) )
+#                drilled.pinchEdge(ide)
+#                drilled.intelligentSimplify()
+#                drilled.intelligentSimplify()
+#                if ( ( drilled.knowsSolidTorus() or
+#                    drilled.size() < threshold ) and
+#                    drilled.isSolidTorus() ):
+#                    name = "Ideal solid torus"
+#                else:
+#                    # Try to combinatorially recognise after truncating the
+#                    # ideal vertex.
+#                    trunc = PacketOfTriangulation3(drilled)
+#                    drilled.insertChildLast(trunc)
+#                    trunc.idealToFinite()
+#                    trunc.intelligentSimplify()
+#                    trunc.intelligentSimplify()
+#                    std = StandardTriangulation.recognise(trunc)
+#                    if std is None:
+#                        name = "Not recognised"
+#                        if drilled.knowsSolidTorus():
+#                            name += ", not solid torus"
+#                    else:
+#                        name = std.manifold().name()
+#                    trunc.setLabel( drilled.adornedLabel(
+#                        "Truncated" ) + ": {}".format(name) )
+#                drilled.setLabel(
+#                        drilled.label() + ": {}".format(name) )
+#
+#                # Decompose the filled manifold into prime pieces (unless it
+#                # has too many tetrahedra).
+#                print( "        Attempted prime decomposition: {}.".format(
+#                    recogniseSummands( filled, threshold ) ) )
             else:
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
