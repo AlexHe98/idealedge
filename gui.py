@@ -24,7 +24,6 @@ def meridian( tri, edgeIndex ):
 
 
 #TODO Experiment with crushing Mobius bands as well.
-#TODO Add packet option to allow experimentation independent of GUI.
 def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given list of normal surfaces.
@@ -125,7 +124,6 @@ def crushAnnuli( surfaces, threshold=30 ):
                             else:
                                 idTeti += 1
 
-        #TODO Experiment with drillMeridian() instead of pinchEdge().
         # Go through the components and try to identify their topology.
         for compNum, comp in enumerate(components):
             print( "    Time: {:.6f}. Component #{}.".format(
@@ -277,6 +275,7 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                print( "        Attempted prime decomposition: {}.".format(
 #                    recogniseSummands( filled, threshold ) ) )
             else:
+                #TODO Experiment with drillMeridian() instead of pinchEdge().
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
