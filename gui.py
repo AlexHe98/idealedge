@@ -23,6 +23,7 @@ def meridian( tri, edgeIndex ):
 
 
 #TODO Experiment with crushing Mobius bands as well.
+#TODO Add packet option to allow experimentation independent of GUI.
 def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given packet of normal surfaces, and adds a
@@ -150,25 +151,52 @@ def crushAnnuli( surfaces, threshold=30 ):
                         "Drilled, meridian edge {}".format(merEdgeIndex) ) )
 
                     # If the drilled triangulation is a solid torus, then
-                    # finding the compression disc will tell us the
+                    # finding the compression disc D will tell us the
                     # parameters of the exceptional fibre.
+                    #
+                    # In detail, let M denote the weight of D on the
+                    # meridian and let E denote the weight of D on one of the
+                    # other boundary edges (labelled e in the diagram below).
+                    # Orient the meridian edge (upwards in the diagram below)
+                    # and number the intersection points in order from 0 to
+                    # M-1. An arc of the boundary of D leaving point p along
+                    # the meridian will return to the meridian at:
+                    #       (p plus/minus E) mod M
+                    # The choice between p+E or p-E depends on the direction
+                    # of the arc, as well as on whether E > M or M > E.
+                    #
+                    #           e
+                    #       +-------+
+                    #       |       |
+                    #   mer ^       ^
+                    #       |       |
+                    #       +-------+
+                    #
+                    # Thus, ignoring orientation, we can determine the
+                    # parameters of the exceptional fibre by computing the
+                    # multiplicative inverse of E mod M (which exists because
+                    # gcd(E,M) = 1).
                     surf = drilled.nonTrivialSphereOrDisc()
                     if surf is None:
                         # No compression disc means we have not yet cut out a
                         # single fibre.
                         name = "Not a fibred solid torus"
+                    elif surf.eulerChar() == 2:
+                        #TODO Sphere. Probably want to crush.
+                        name = "Contains nontrivial sphere"
                     else:
-                        #TODO Actually do something with the surface.
-                        # Calculate boundary edge weights.
+                        # Use boundary edge weights of the disc to calculate
+                        # Seifert parameters (as outlined above).
                         merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                        name = "Contains surface, euler={}, merWt={}".format(
-                                surf.eulerChar().safeLongValue(), merWt )
                         for e in drilled.edges():
                             if e.index() == merEdgeIndex or not e.isBoundary():
                                 continue
-                            name += ", e{}_Wt={}".format(
-                                    e.index(),
-                                    surf.edgeWeight( e.index() ).safeLongValue() )
+
+                            # Found another boundary edge.
+                            bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
+                            break
+                        name = "Seifert fibre (p,q)=({},{})".format(
+                                merWt, pow( bdyWt, -1, merWt ) )
                     drilled.setLabel(
                             drilled.label() + ": {}".format(name) )
                 #TODO
