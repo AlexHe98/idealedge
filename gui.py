@@ -179,8 +179,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                         drilled.setLabel( comp.adornedLabel(
                             "Drilled, meridian edge {}".format(merEdgeIndex) ) )
                     else:
-                        print( "        Drilled, meridian edge {}".format(
-                            merEdgeIndex ) )
+                        print( "        Drilled, meridian edge {} (Time: {:.6f})".format(
+                            merEdgeIndex, default_timer() - start ) )
 
                     # If the drilled triangulation is a solid torus, then
                     # finding the compression disc D will tell us the
