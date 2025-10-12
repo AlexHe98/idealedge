@@ -1,6 +1,7 @@
 """
 Routines for experimenting with the ideal edge code in Regina's GUI.
 """
+from sys import argv
 from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, idealLoops
@@ -26,8 +27,12 @@ def meridian( tri, edgeIndex ):
 #TODO Add packet option to allow experimentation independent of GUI.
 def crushAnnuli( surfaces, threshold=30 ):
     """
-    Crushes all annuli in the given packet of normal surfaces, and adds a
-    Container of the resulting triangulations as a child of the given packet.
+    Crushes all annuli in the given list of normal surfaces.
+
+    If the given surfaces are contained in a PacketOfNormalSurface, then this
+    routine adds a Container of the crushed triangulations as a child of the
+    given surfaces packet. Otherwise, this routine simply prints details of
+    the crushed triangulations.
 
     This routine attempts to identify the topology of the manifold that
     results from crushing. The main strategy is to simplify and attempt
@@ -41,8 +46,10 @@ def crushAnnuli( surfaces, threshold=30 ):
         component incident to this annulus must be a two-triangle torus.
     """
     start = default_timer()
-    results = Container( "Crush annuli" )
-    surfaces.insertChildLast(results)
+    usingPackets = isinstance( surfaces, PacketOfNormalSurfaces )
+    if usingPackets:
+        results = Container( "Crush annuli" )
+        surfaces.insertChildLast(results)
     annulusCount = 0
     for surfNum, surf in enumerate(surfaces):
         if not isAnnulus(surf):
@@ -60,16 +67,21 @@ def crushAnnuli( surfaces, threshold=30 ):
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
         tri = PacketOfTriangulation3( surf.crush() )
-        tri.setLabel( "Crushed #{}".format(surfNum) )
+        if usingPackets:
+            tri.setLabel( "Crushed #{}".format(surfNum) )
+            results.insertChildLast(tri)
         thin = surf.isThinEdgeLink()
         if thin[0] is not None:
             # Adorn label with details of this thin edge link.
             adorn = "Thin edge {}".format( thin[0].index() )
             if thin [1] is not None:
                 adorn += " and {}".format( thin[1].index() )
-            tri.setLabel( tri.adornedLabel(adorn) )
+            if usingPackets:
+                tri.setLabel( tri.adornedLabel(adorn) )
+            else:
+                # Or just print if we're not using packets.
+                print(adorn)
         components = []
-        results.insertChildLast(tri)
         idEdgeDetails = idealLoops(surf)
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
@@ -79,19 +91,26 @@ def crushAnnuli( surfaces, threshold=30 ):
             idEdge = None
         idComp = None
         if tri.isEmpty():
-            tri.setLabel( tri.label() + ": Empty" )
+            if usingPackets:
+                tri.setLabel( tri.label() + ": Empty" )
+            else:
+                print("Empty triangulation")
         else:
             if tri.isConnected():
                 components.append(tri)
                 if idEdge is not None:
                     idComp = 0
             else:
-                tri.setLabel( tri.label() + ": Disconnected" )
+                if usingPackets:
+                    tri.setLabel( tri.label() + ": Disconnected" )
+                else:
+                    print("Disconnected triangulation")
                 for compNum, c in enumerate( tri.triangulateComponents() ):
                     comp = PacketOfTriangulation3(c)
-                    comp.setLabel( "Component #{}".format(compNum) )
                     components.append(comp)
-                    tri.insertChildLast(comp)
+                    if usingPackets:
+                        comp.setLabel( "Component #{}".format(compNum) )
+                        tri.insertChildLast(comp)
 
                 # Find the component containing the ideal edge, and adjust
                 # the ideal tetrahedron index.
@@ -112,15 +131,22 @@ def crushAnnuli( surfaces, threshold=30 ):
             print( "    Time: {:.6f}. Component #{}.".format(
                 default_timer() - start, compNum ) )
             if not comp.isValid():
-                comp.setLabel( comp.label() + ": INVALID" )
+                if usingPackets:
+                    comp.setLabel( comp.label() + ": INVALID" )
+                else:
+                    print( "        INVALID" )
 
                 # Fill in invalid boundary.
                 filled = PacketOfTriangulation3(comp)
                 invIdEdge = fillIdealEdge(filled)
-                filled.setLabel( comp.adornedLabel(
-                    "Closed, ideal edge {}".format(
-                        invIdEdge.index() ) ) )
-                comp.insertChildLast(filled)
+                if usingPackets:
+                    filled.setLabel( comp.adornedLabel(
+                        "Closed, ideal edge {}".format(
+                            invIdEdge.index() ) ) )
+                    comp.insertChildLast(filled)
+                else:
+                    print( "        Closed, ideal edge {}".format(
+                        invIdEdge.index() ) )
 
                 # Have we isolated a single exceptional fibre?
                 invIdLoop = IdealLoop( [invIdEdge] )
@@ -133,22 +159,30 @@ def crushAnnuli( surfaces, threshold=30 ):
                     # filled triangulation must have been S2 x S1. In
                     # particular, the meridian cannot be an exceptional
                     # fibre.
-                    filled.setLabel(
-                            filled.label() + ": {}".format(
-                                "S2 x S1, meridian is not a fibre" ) )
+                    if usingPackets:
+                        filled.setLabel(
+                                filled.label() + ": {}".format(
+                                    "S2 x S1, meridian is not a fibre" ) )
+                    else:
+                        print( "        S2 x S1, meridian is not a fibre" )
                 else:
                     # Successfully drilled.
                     mer.minimiseBoundary()
                     mer.simplify()
                     mer.simplify()
                     drilled = PacketOfTriangulation3( mer.triangulation() )
-                    filled.insertChildLast(drilled)
+                    if usingPackets:
+                        filled.insertChildLast(drilled)
 
                     # Because we minimised the boundary, the meridian is
                     # guaranteed to be given by a single edge.
                     merEdgeIndex = mer[0]
-                    drilled.setLabel( comp.adornedLabel(
-                        "Drilled, meridian edge {}".format(merEdgeIndex) ) )
+                    if usingPackets:
+                        drilled.setLabel( comp.adornedLabel(
+                            "Drilled, meridian edge {}".format(merEdgeIndex) ) )
+                    else:
+                        print( "        Drilled, meridian edge {}".format(
+                            merEdgeIndex ) )
 
                     # If the drilled triangulation is a solid torus, then
                     # finding the compression disc D will tell us the
@@ -197,8 +231,11 @@ def crushAnnuli( surfaces, threshold=30 ):
                             break
                         name = "Seifert fibre (p,q)=({},{})".format(
                                 merWt, pow( bdyWt, -1, merWt ) )
-                    drilled.setLabel(
-                            drilled.label() + ": {}".format(name) )
+                    if usingPackets:
+                        drilled.setLabel(
+                                drilled.label() + ": {}".format(name) )
+                    else:
+                        print( "        " + name )
                 #TODO
 
 #                # Just in case, let's see if we can simplify and identify the
@@ -244,14 +281,16 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
                     drilled = PacketOfTriangulation3(comp)
-                    comp.insertChildLast(drilled)
+                    if usingPackets:
+                        comp.insertChildLast(drilled)
                     ide = drilled.tetrahedron( idEdge[0] ).edge( idEdge[1] )
 
                     # Need to label *before* drilling.
-                    drilled.setLabel( comp.adornedLabel(
-                        "Pinched edge {}".format( ide.index() ) ) )
-                    comp.setLabel( comp.adornedLabel(
-                        "Ideal edge {}".format( ide.index() ) ) )
+                    if usingPackets:
+                        drilled.setLabel( comp.adornedLabel(
+                            "Pinched edge {}".format( ide.index() ) ) )
+                        comp.setLabel( comp.adornedLabel(
+                            "Ideal edge {}".format( ide.index() ) ) )
                     drilled.pinchEdge(ide)
                     drilled.intelligentSimplify()
                     drilled.intelligentSimplify()
@@ -265,7 +304,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # Try to combinatorially recognise after truncating
                         # the ideal vertex.
                         trunc = PacketOfTriangulation3(drilled)
-                        drilled.insertChildLast(trunc)
+                        if usingPackets:
+                            drilled.insertChildLast(trunc)
                         trunc.idealToFinite()
                         trunc.intelligentSimplify()
                         trunc.intelligentSimplify()
@@ -276,10 +316,14 @@ def crushAnnuli( surfaces, threshold=30 ):
                                 name += ", not solid torus"
                         else:
                             name = std.manifold().name()
-                        trunc.setLabel( drilled.adornedLabel(
-                            "Truncated" ) + ": {}".format(name) )
-                    drilled.setLabel(
-                            drilled.label() + ": {}".format(name) )
+                        if usingPackets:
+                            trunc.setLabel( drilled.adornedLabel(
+                                "Truncated" ) + ": {}".format(name) )
+                    if usingPackets:
+                        drilled.setLabel(
+                                drilled.label() + ": {}".format(name) )
+                    else:
+                        print( "        " + name)
 
                 # Decompose this component into prime pieces (unless this
                 # component has too many tetrahedra).
@@ -290,8 +334,9 @@ def crushAnnuli( surfaces, threshold=30 ):
     print()
     print( "Time: {:.6f}. All done!".format(
         default_timer() - start ) )
-    results.setLabel( results.adornedLabel(
-        "Total {}".format(annulusCount) ) )
+    if usingPackets:
+        results.setLabel( results.adornedLabel(
+            "Total {}".format(annulusCount) ) )
 
 
 def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
@@ -408,3 +453,15 @@ def recogniseSummands( tri, threshold=40 ):
             summand.setLabel( "Summand #{}: {}".format(
                 sumNum, name ) )
     return True
+
+
+if __name__ == "__main__":
+    p = int( argv[1] )
+    q = int( argv[2] )
+    knot = ExampleLink.torus(p,q)
+    ext = knot.complement()
+    ext.idealToFinite()
+    ext.intelligentSimplify()
+    ext.intelligentSimplify()
+    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
+    crushAnnuli(surfaces)
