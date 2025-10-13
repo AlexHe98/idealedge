@@ -279,55 +279,144 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    drilled = PacketOfTriangulation3(comp)
-                    if usingPackets:
-                        comp.insertChildLast(drilled)
-                    ide = drilled.tetrahedron( idEdge[0] ).edge( idEdge[1] )
-
-                    # Need to label *before* drilling.
-                    if usingPackets:
-                        drilled.setLabel( comp.adornedLabel(
-                            "Pinched edge {}".format( ide.index() ) ) )
-                        comp.setLabel( comp.adornedLabel(
-                            "Ideal edge {}".format( ide.index() ) ) )
-                    drilled.pinchEdge(ide)
-                    drilled.intelligentSimplify()
-                    drilled.intelligentSimplify()
-
-                    # Try to recognise the drilled manifold.
-                    if ( ( drilled.knowsSolidTorus() or
-                        drilled.size() < threshold ) and
-                        drilled.isSolidTorus() ):
-                        name = "Ideal solid torus"
-                    else:
-                        # Try to combinatorially recognise after truncating
-                        # the ideal vertex.
-                        trunc = PacketOfTriangulation3(drilled)
+                    #TODO
+                    idLoop = IdealLoop( [
+                            comp.tetrahedron( idEdge[0] ).edge( idEdge[1] ) ] )
+                    try:
+                        # The meridian of the ideal loop is a candidate for an
+                        # exceptional fibre.
+                        mer = drillMeridian(idLoop)
+                    except BoundsDisc:
+                        # The meridian bounds a disc "on the outside", so the
+                        # filled triangulation must have been S2 x S1. In
+                        # particular, the meridian cannot be an exceptional
+                        # fibre.
                         if usingPackets:
-                            drilled.insertChildLast(trunc)
-                        trunc.idealToFinite()
-                        trunc.intelligentSimplify()
-                        trunc.intelligentSimplify()
-                        std = StandardTriangulation.recognise(trunc)
-                        if std is None:
-                            name = "Not recognised"
-                            if drilled.knowsSolidTorus():
-                                name += ", not solid torus"
+                            filled.setLabel(
+                                    filled.label() + ": {}".format(
+                                        "S2 x S1, meridian is not a fibre" ) )
                         else:
-                            name = std.manifold().name()
-                        if usingPackets:
-                            trunc.setLabel( drilled.adornedLabel(
-                                "Truncated" ) + ": {}".format(name) )
-                    if usingPackets:
-                        drilled.setLabel(
-                                drilled.label() + ": {}".format(name) )
+                            print( "        S2 x S1, meridian is not a fibre" )
                     else:
-                        print( "        " + name)
+                        # Successfully drilled.
+                        mer.minimiseBoundary()
+                        mer.simplify()
+                        mer.simplify()
+                        drilled = PacketOfTriangulation3( mer.triangulation() )
+                        if usingPackets:
+                            filled.insertChildLast(drilled)
 
-                # Decompose this component into prime pieces (unless this
-                # component has too many tetrahedra).
-                print( "        Attempted prime decomposition: {}.".format(
-                    recogniseSummands( comp, threshold ) ) )
+                        # Because we minimised the boundary, the meridian is
+                        # guaranteed to be given by a single edge.
+                        merEdgeIndex = mer[0]
+                        if usingPackets:
+                            drilled.setLabel( comp.adornedLabel(
+                                "Drilled, meridian edge {}".format(merEdgeIndex) ) )
+                        else:
+                            print( "        Drilled, meridian edge {} (Time: {:.6f})".format(
+                                merEdgeIndex, default_timer() - start ) )
+
+                        # If the drilled triangulation is a solid torus, then
+                        # finding the compression disc D will tell us the
+                        # parameters of the exceptional fibre.
+                        #
+                        # In detail, let M denote the weight of D on the
+                        # meridian and let E denote the weight of D on one of the
+                        # other boundary edges (labelled e in the diagram below).
+                        # Orient the meridian edge (upwards in the diagram below)
+                        # and number the intersection points in order from 0 to
+                        # M-1. An arc of the boundary of D leaving point p along
+                        # the meridian will return to the meridian at:
+                        #       (p plus/minus E) mod M
+                        # The choice between p+E or p-E depends on the direction
+                        # of the arc, as well as on whether E > M or M > E.
+                        #
+                        #           e
+                        #       +-------+
+                        #       |       |
+                        #   mer ^       ^
+                        #       |       |
+                        #       +-------+
+                        #
+                        # Thus, ignoring orientation, we can determine the
+                        # parameters of the exceptional fibre by computing the
+                        # multiplicative inverse of E mod M (which exists because
+                        # gcd(E,M) = 1).
+                        surf = drilled.nonTrivialSphereOrDisc()
+                        if surf is None:
+                            # No compression disc means we have not yet cut out a
+                            # single fibre.
+                            name = "Not a fibred solid torus"
+                        elif surf.eulerChar() == 2:
+                            #TODO Sphere. Probably want to crush.
+                            name = "Contains nontrivial sphere"
+                        else:
+                            # Use boundary edge weights of the disc to calculate
+                            # Seifert parameters (as outlined above).
+                            merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
+                            for e in drilled.edges():
+                                if e.index() == merEdgeIndex or not e.isBoundary():
+                                    continue
+
+                                # Found another boundary edge.
+                                bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
+                                break
+                            name = "Seifert fibre (p,q)=({},{})".format(
+                                    merWt, pow( bdyWt, -1, merWt ) )
+                        if usingPackets:
+                            drilled.setLabel(
+                                    drilled.label() + ": {}".format(name) )
+                        else:
+                            print( "        " + name )
+#                    drilled = PacketOfTriangulation3(comp)
+#                    if usingPackets:
+#                        comp.insertChildLast(drilled)
+#                    ide = drilled.tetrahedron( idEdge[0] ).edge( idEdge[1] )
+#
+#                    # Need to label *before* drilling.
+#                    if usingPackets:
+#                        drilled.setLabel( comp.adornedLabel(
+#                            "Pinched edge {}".format( ide.index() ) ) )
+#                        comp.setLabel( comp.adornedLabel(
+#                            "Ideal edge {}".format( ide.index() ) ) )
+#                    drilled.pinchEdge(ide)
+#                    drilled.intelligentSimplify()
+#                    drilled.intelligentSimplify()
+#
+#                    # Try to recognise the drilled manifold.
+#                    if ( ( drilled.knowsSolidTorus() or
+#                        drilled.size() < threshold ) and
+#                        drilled.isSolidTorus() ):
+#                        name = "Ideal solid torus"
+#                    else:
+#                        # Try to combinatorially recognise after truncating
+#                        # the ideal vertex.
+#                        trunc = PacketOfTriangulation3(drilled)
+#                        if usingPackets:
+#                            drilled.insertChildLast(trunc)
+#                        trunc.idealToFinite()
+#                        trunc.intelligentSimplify()
+#                        trunc.intelligentSimplify()
+#                        std = StandardTriangulation.recognise(trunc)
+#                        if std is None:
+#                            name = "Not recognised"
+#                            if drilled.knowsSolidTorus():
+#                                name += ", not solid torus"
+#                        else:
+#                            name = std.manifold().name()
+#                        if usingPackets:
+#                            trunc.setLabel( drilled.adornedLabel(
+#                                "Truncated" ) + ": {}".format(name) )
+#                    if usingPackets:
+#                        drilled.setLabel(
+#                                drilled.label() + ": {}".format(name) )
+#                    else:
+#                        print( "        " + name)
+#
+#                # Decompose this component into prime pieces (unless this
+#                # component has too many tetrahedra).
+#                print( "        Attempted prime decomposition: {}.".format(
+#                    recogniseSummands( comp, threshold ) ) )
 
     # All done!
     print()
