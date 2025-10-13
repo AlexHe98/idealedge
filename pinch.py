@@ -9,12 +9,31 @@ def pinch(loop):
     Returns the meridian of the given ideal loop, represented as a curve in a
     vertex link of a newly constructed ideal triangulation given by pinching
     the given ideal loop.
+
+    Pre-condition:
+    --> The given ideal loop has length one.
     """
+    if len(loop) != 1:
+        raise ValueError("Can only pinch an ideal loop of length one.")
+    tri = Triangulation3( loop.triangulation() )
+
+    # Before we make any modifications to tri, we should find the face along
+    # which we will insert the pinch gadget.
+    emb = tri.edge( loop[0] ).embedding(0)
+    tet = emb.tetrahedron()
+    ver = emb.vertices()
+
+    # Introduce a pinched 3-ball such that the core curve of the annulus link
+    # can be found at the triangle linking vertex merVert of pinchTet[0],
+    # along the edge running from merStart to merEnd.
+    pinchTet, merVert, merStart, merEnd = _addPinchGadgetWithMeridian(tri)
+
+    # Actually glue in the pinched 3-ball.
     #TODO
     raise NotImplementedError()
 
 
-def _insertPinchGadgetWithMeridian(tri):
+def _addPinchGadgetWithMeridian(tri):
     pinchTet = tri.newTetrahedra(2)
 
     # Form a snapped 3-ball with pinchTet[0] so that:
@@ -66,6 +85,15 @@ def _insertPinchGadgetWithMeridian(tri):
     # If we cut open a face F of the given triangulation and glue in this
     # pinched 3-ball, the result will be to pinch (a curve parallel to) an
     # edge of F down to a point. We can find the meridian of the pinched
-    # curve in the link of the pinched vertex.
-    #TODO
-    raise NotImplementedError()
+    # curve as a single edge in the link of the pinched vertex.
+    return pinchTet, 3, 1, 2
+
+
+if __name__ == "__main__":
+    tri = Triangulation3()
+    _addPinchGadgetWithMeridian(tri)
+    print( tri.detail() )
+    print()
+    for v in tri.vertices():
+        if not v.isValid():
+            print( v.index() )
