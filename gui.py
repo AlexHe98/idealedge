@@ -544,12 +544,24 @@ def recogniseSummands( tri, threshold=40 ):
 
 
 if __name__ == "__main__":
-    p = int( argv[1] )
-    q = int( argv[2] )
-    knot = ExampleLink.torus(p,q)
-    ext = knot.complement()
-    ext.idealToFinite()
-    ext.intelligentSimplify()
-    ext.intelligentSimplify()
-    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
+    params = [ int(n) for n in argv[1:] ]
+    manifold = SFSpace()
+    manifold.insertFibre(3,1)
+    while params:
+        q = params.pop()
+        p = params.pop()
+        manifold.insertFibre(p,q)
+    tri = manifold.construct()
+    tri.removeTetrahedronAt(3)
+    tri.intelligentSimplify()
+    tri.intelligentSimplify()
+#    p = int( argv[1] )
+#    q = int( argv[2] )
+#    knot = ExampleLink.torus(p,q)
+#    ext = knot.complement()
+#    ext.idealToFinite()
+#    ext.intelligentSimplify()
+#    ext.intelligentSimplify()
+#    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
+    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
     crushAnnuli(surfaces)
