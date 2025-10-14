@@ -135,8 +135,11 @@ def truncate( tri, vertices ):
     Returns the triangulation given by truncating the vertices at the given
     indices in the given triangulation.
 
+    If the given triangulation is oriented, then the same is guaranteed to be
+    true for the truncated triangulation constructed by this routine.
+
     Preconditions:
-    --- vertices is a set of integers, each of which is greater than or equal
+    --> vertices is a set of integers, each of which is greater than or equal
         to 0, and strictly less than tri.size().
     """
     oldSize = tri.size()
@@ -265,7 +268,12 @@ if __name__ == "__main__":
     tri = Triangulation3()
     _addPinchGadgetWithMeridian(tri)
     print( tri.detail() )
-    print()
+    print( tri.isOriented() )
     for v in tri.vertices():
         if not v.isValid():
-            print( v.index() )
+            truncVertIndex = v.index()
+    truncTri = truncate( tri, {truncVertIndex} )
+    print( truncTri.isOriented() )
+    print( truncTri.isValid() )
+    print( truncTri.isSolidTorus() )
+    print( truncTri.size() )
