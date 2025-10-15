@@ -130,138 +130,190 @@ def _addPinchGadgetWithMeridian(tri):
     return pinchTet, 3, 0
 
 
-def truncate( tri, vertices ):
+class TruncatedTriangulation:
     """
-    Returns the triangulation given by truncating the vertices at the given
-    indices in the given triangulation.
-
-    If the given triangulation is oriented, then the same is guaranteed to be
-    true for the truncated triangulation constructed by this routine.
-
-    Preconditions:
-    --> vertices is a set of integers, each of which is greater than or equal
-        to 0, and strictly less than tri.size().
+    A triangulation obtained by truncating some subset of the vertices of a
+    given reference triangulation.
     """
-    oldSize = tri.size()
-    truncated = Triangulation3()
-    if len(vertices) == 0:
-        truncated.insertTriangulation(tri)
-        return truncated
-    tet = truncated.newTetrahedra( 32*oldSize )
+    def __init__( self, tri, vertices ):
+        """
+        Constructs the triangulation given by truncating the vertices at the
+        given indices of the given reference triangulation.
 
-    tip = []
-    interior = []
-    edge = [ [], [], [], [] ]
-    vertex = [ [], [], [], [] ]
+        If the reference triangulation is oriented, then the same is
+        guaranteed to be true for the constructed truncated triangulation.
 
-    i = 0
-    for j in range(4):
-        tip.append(i)
-        interior.append(i+1)
-        i += 2
-        for k in range(4):
-            if j == k:
-                edge[j].append(None)
-                vertex[j].append(None)
-            else:
-                edge[j].append(i)
-                vertex[j].append(i+1)
-                i += 2
+        Preconditions:
+        --> vertices is a set of integers, each of which is greater than or
+            equal to 0, and strictly less than tri.size().
+        """
+        self._reference = tri
+        self._truncVertices = vertices  #TODO Do we need this?
+        self._construct( tri, vertices )
 
-    # First, glue groups of 32 tetrahedra together to form subdivided copies
-    # of the tetrahedra in tri.
-    flip = Perm4(0,1)
-    for i in range(oldSize):
-        # Glue each tip tetrahedron (this is a tetrahedron that will
-        # eventually be deleted if it meets a vertex that is meant to be
-        # truncated) to an interior tetrahedron.
+    def triangulation(self):
+        """
+        Returns the truncated triangulation.
+        """
+        return self._truncTri
+
+    def linkEdge( self, refTetIndex, refVert, refFace ):
+        """
+        Returns the edge of this truncated triangulation that corresponds to
+        the vertex-link edge at the given location in the reference
+        triangulation.
+
+        In detail, the location of the vertex-link edge E should be specified
+        by the following pieces of data:
+        --> refTetIndex, the index of a reference tetrahedron T that is
+            incident to E;
+        --> refVert, the vertex number of T whose corresponding
+            vertex-linking triangle L is incident to E; and
+        --> refFace, the face number of T that intersects L in the desired
+            edge E.
+        """
+        truncTet = self._truncTri[
+                self._interior[refVert] + 32*refTetIndex ]
+        endpoints = {0,1,2,3} - { self._flip[refVert], self._flip[refFace] }
+        return truncTet.edge(*endpoints)
+
+    def _construct( self, tri, vertices ):
+        """
+        Constructs the triangulation given by truncating the vertices at the
+        given indices in the given triangulation.
+
+        If the given triangulation is oriented, then the same is guaranteed
+        to be true for the truncated triangulation constructed by this routine.
+
+        Preconditions:
+        --> vertices is a set of integers, each of which is greater than or
+            equal to 0, and strictly less than tri.size().
+        """
+        oldSize = tri.size()
+        truncated = Triangulation3()
+        if len(vertices) == 0:
+            truncated.insertTriangulation(tri)
+            self._truncTri = truncated
+            return
+        tet = truncated.newTetrahedra( 32*oldSize )
+
+        tip = []
+        self._interior = []
+        edge = [ [], [], [], [] ]
+        vertex = [ [], [], [], [] ]
+
+        i = 0
         for j in range(4):
-            tet[ tip[j] + 32*i ].join(
-                    j, tet[ interior[j] + 32*i ], flip )
-
-        # Glue each interior tetrahedron to three vertex tetrahedra.
-        for j in range(4):
+            tip.append(i)
+            self._interior.append(i+1)
+            i += 2
             for k in range(4):
                 if j == k:
-                    continue
-                # Triangle j of tet[ vertex[k][j] + 32*i ] will
-                # form part of the subdivided copy of triangle
-                # k of tri.tetrahedron(i).
-                tet[ interior[j] + 32*i ].join(
-                        flip[k], tet[ vertex[k][j] + 32*i ], flip )
+                    edge[j].append(None)
+                    vertex[j].append(None)
+                else:
+                    edge[j].append(i)
+                    vertex[j].append(i+1)
+                    i += 2
 
-        # Glue pairs of edge tetrahedra together, and then glue these pairs
-        # to the vertex tetrahedra.
-        for j in range(4):
-            for k in range(4):
-                if j == k:
+        # First, glue groups of 32 tetrahedra together to form subdivided
+        # copies of the tetrahedra in tri.
+        self._flip = Perm4(0,1)
+        for i in range(oldSize):
+            # Glue each tip tetrahedron (this is a tetrahedron that will
+            # eventually be deleted if it meets a vertex that is meant to be
+            # truncated) to an interior tetrahedron.
+            for j in range(4):
+                tet[ tip[j] + 32*i ].join(
+                        j, tet[ self._interior[j] + 32*i ], self._flip )
+
+            # Glue each interior tetrahedron to three vertex tetrahedra.
+            for j in range(4):
+                for k in range(4):
+                    if j == k:
+                        continue
+                    # Triangle j of tet[ vertex[k][j] + 32*i ] will
+                    # form part of the subdivided copy of triangle
+                    # k of tri.tetrahedron(i).
+                    tet[ self._interior[j] + 32*i ].join(
+                            self._flip[k],
+                            tet[ vertex[k][j] + 32*i ],
+                            self._flip )
+
+            # Glue pairs of edge tetrahedra together, and then glue these
+            # pairs to the vertex tetrahedra.
+            for j in range(4):
+                for k in range(4):
+                    if j == k:
+                        continue
+                    # Triangle k of tet[ edge[k][j] + 32*i ] will form part
+                    # of the subdivided copy of triangle k of
+                    #       tri.tetrahedron(i).
+                    # This also holds if we interchange j and k.
+                    if j < k:
+                        # Glue two edge tetrahedra together.
+                        tet[ edge[j][k] + 32*i ].join(
+                                k, tet[ edge[k][j] + 32*i ], Perm4(j,k) )
+                    other = []
+                    for l in range(4):
+                        if l != j and l != k:
+                            other.append(l)
+                    for l in other:
+                        # Glue an edge tetrahedron to two vertex tetrahedra.
+                        p = Perm4( other[0], other[1] )
+                        tet[ edge[j][k] + 32*i ].join(
+                                p[l], tet[ vertex[j][l] + 32*i ],
+                                Perm4( j, l, k, j, l, p[l], p[l], k ) )
+
+        # Now glue all the subdivided copies together according to the
+        # gluings in tri.
+        for i in range(oldSize):
+            oldTet = tri.tetrahedron(i)
+            for j in range(4):
+                adjTet = oldTet.adjacentTetrahedron(j)
+                if adjTet is None:
                     continue
-                # Triangle k of tet[ edge[k][j] + 32*i ] will
-                # form part of the subdivided copy of triangle
-                # k of tri.tetrahedron(i).
-                # This also holds if we interchange j and k.
-                if j < k:
-                    # Glue two edge tetrahedra together.
+                ii = adjTet.index()
+                if ii < i:
+                    continue
+                if ii == i and oldTet.adjacentFace(j) < j:
+                    continue
+                p = oldTet.adjacentGluing(j)
+
+                # Glue tip tetrahedra.
+                for k in range(4):
+                    if j == k:
+                        continue
+                    tet[ tip[k] + 32*i ].join(
+                            j, tet[ tip[p[k]] + 32*ii ], p )
+
+                # Glue edge tetrahedra.
+                for k in range(4):
+                    if j == k:
+                        continue
                     tet[ edge[j][k] + 32*i ].join(
-                            k, tet[ edge[k][j] + 32*i ], Perm4(j,k) )
-                other = []
-                for l in range(4):
-                    if l != j and l != k:
-                        other.append(l)
-                for l in other:
-                    # Glue an edge tetrahedron to two vertex tetrahedra.
-                    p = Perm4( other[0], other[1] )
-                    tet[ edge[j][k] + 32*i ].join(
-                            p[l], tet[ vertex[j][l] + 32*i ],
-                            Perm4( j, l, k, j, l, p[l], p[l], k ) )
+                            j, tet[ edge[p[j]][p[k]] + 32*ii ], p )
 
-    # Now glue all the subdivided copies together according to the gluings
-    # in tri.
-    for i in range(oldSize):
-        oldTet = tri.tetrahedron(i)
-        for j in range(4):
-            adjTet = oldTet.adjacentTetrahedron(j)
-            if adjTet is None:
-                continue
-            ii = adjTet.index()
-            if ii < i:
-                continue
-            if ii == i and oldTet.adjacentFace(j) < j:
-                continue
-            p = oldTet.adjacentGluing(j)
+                # Glue vertex tetrahedra.
+                for k in range(4):
+                    if j == k:
+                        continue
+                    tet[ vertex[j][k] + 32*i ].join(
+                            k, tet[ vertex[p[j]][p[k]] + 32*ii ],
+                            Perm4(p[j],p[k]) * p * Perm4(j,k) )
 
-            # Glue tip tetrahedra.
-            for k in range(4):
-                if j == k:
-                    continue
-                tet[ tip[k] + 32*i ].join(
-                        j, tet[ tip[p[k]] + 32*ii ], p )
-
-            # Glue edge tetrahedra.
-            for k in range(4):
-                if j == k:
-                    continue
-                tet[ edge[j][k] + 32*i ].join(
-                        j, tet[ edge[p[j]][p[k]] + 32*ii ], p )
-
-            # Glue vertex tetrahedra.
-            for k in range(4):
-                if j == k:
-                    continue
-                tet[ vertex[j][k] + 32*i ].join(
-                        k, tet[ vertex[p[j]][p[k]] + 32*ii ],
-                        Perm4(p[j],p[k]) * p * Perm4(j,k) )
-
-    # Remove the tetrahedra that meet the vertices with the given indices.
-    doomed = []
-    for v in vertices:
-        for emb in tri.vertex(v).embeddings():
-            i = emb.tetrahedron().index()
-            j = emb.face()
-            doomed.append( tet[ tip[j] + 32*i ] )
-    for t in doomed:
-        truncated.removeTetrahedron(t)
-    return truncated
+        # Remove the tetrahedra that meet the vertices with the given
+        # indices.
+        doomed = []
+        for v in vertices:
+            for emb in tri.vertex(v).embeddings():
+                i = emb.tetrahedron().index()
+                j = emb.face()
+                doomed.append( tet[ tip[j] + 32*i ] )
+        for t in doomed:
+            truncated.removeTetrahedron(t)
+        self._truncTri = truncated
+        return
 
 
 if __name__ == "__main__":
@@ -272,7 +324,8 @@ if __name__ == "__main__":
     for v in tri.vertices():
         if not v.isValid():
             truncVertIndex = v.index()
-    truncTri = truncate( tri, {truncVertIndex} )
+    truncTri = TruncatedTriangulation(
+            tri, {truncVertIndex} ).triangulation()
     print( truncTri.isOriented() )
     print( truncTri.isValid() )
     print( truncTri.isSolidTorus() )
