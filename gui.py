@@ -7,7 +7,7 @@ from regina import *
 from idealedge import decomposeAlong, idealLoops
 from idealedge import isAnnulus, isSphere, fillIdealEdge
 from loop import IdealLoop, BoundsDisc
-from subdivide import drillMeridian
+from pinch import drillMeridian
 
 
 def meridian( tri, edgeIndex ):

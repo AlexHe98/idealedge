@@ -2,6 +2,25 @@
 Pinch an ideal loop without forgetting the meridian.
 """
 from regina import *
+from loop import BoundaryLoop
+
+
+def drillMeridian(loop):
+    """
+    Builds a BoundaryLoop representing the meridian curve obtained by
+    drilling out the given IdealLoop.
+
+    This routine might raise BoundsDisc if the meridian curve bounds a disc
+    in the complement of the given loop.
+    """
+    refTri, merTetIndex, merVert, merFace = pinch(loop)
+    truncTri = TruncatedTriangulation(
+            refTri,
+            { refTri.tetrahedron(merTetIndex).vertex(merVert).index() } )
+    merEdge = truncTri.linkEdge( merTetIndex, merVert, merFace )
+    meridian = BoundaryLoop( [merEdge] )
+    meridian.simplify()     # Might raise BoundsDisc.
+    return meridian
 
 
 def pinch(loop):
@@ -10,8 +29,9 @@ def pinch(loop):
     vertex link of a newly constructed ideal triangulation given by pinching
     the given ideal loop.
 
-    This routine returns a triple (t, v, f), where:
-    --> t is a tetrahedron incident to the meridian;
+    This routine returns a triple (t, i, v, f), where:
+    --> t is the pinched triangulation;
+    --> i is the index of a tetrahedron incident to the meridian;
     --> v is a vertex number of t whose corresponding vertex-linking triangle
         is incident to the meridian; and
     --> f is a triangle number of t whose corresponding triangle is incident
@@ -67,7 +87,7 @@ def pinch(loop):
     pinchTet[1].join( 2, adj, glue * ver * Perm4(0,2,3,1) )
 
     # All done!
-    return pinchTet[0], merVer, merFace
+    return tri, pinchTet[0].index(), merVert, merFace
 
 
 def _addPinchGadgetWithMeridian(tri):
@@ -148,7 +168,6 @@ class TruncatedTriangulation:
             equal to 0, and strictly less than tri.size().
         """
         self._reference = tri
-        self._truncVertices = vertices  #TODO Do we need this?
         self._construct( tri, vertices )
 
     def triangulation(self):
@@ -172,10 +191,15 @@ class TruncatedTriangulation:
         --> refFace, the face number of T that intersects L in the desired
             edge E.
         """
-        truncTet = self._truncTri[
-                self._interior[refVert] + 32*refTetIndex ]
+        origIndex = self._interior[refVert] + 32*refTetIndex
+        truncTetIndex = origIndex
+        for i in self._deletedTetIndices:
+            # Need to shift tetrahedron indices down to account for
+            # tetrahedra that were deleted.
+            if i < origIndex:
+                truncTetIndex -= 1
         endpoints = {0,1,2,3} - { self._flip[refVert], self._flip[refFace] }
-        return truncTet.edge(*endpoints)
+        return self._truncTri.tetrahedron(truncTetIndex).edge(*endpoints)
 
     def _construct( self, tri, vertices ):
         """
@@ -190,12 +214,11 @@ class TruncatedTriangulation:
             equal to 0, and strictly less than tri.size().
         """
         oldSize = tri.size()
-        truncated = Triangulation3()
+        self._truncTri = Triangulation3()
         if len(vertices) == 0:
-            truncated.insertTriangulation(tri)
-            self._truncTri = truncated
+            self._truncTri.insertTriangulation(tri)
             return
-        tet = truncated.newTetrahedra( 32*oldSize )
+        tet = self._truncTri.newTetrahedra( 32*oldSize )
 
         tip = []
         self._interior = []
@@ -305,14 +328,15 @@ class TruncatedTriangulation:
         # Remove the tetrahedra that meet the vertices with the given
         # indices.
         doomed = []
+        self._deletedTetIndices = set()
         for v in vertices:
             for emb in tri.vertex(v).embeddings():
                 i = emb.tetrahedron().index()
                 j = emb.face()
                 doomed.append( tet[ tip[j] + 32*i ] )
+                self._deletedTetIndices.add( doomed[-1].index() )
         for t in doomed:
-            truncated.removeTetrahedron(t)
-        self._truncTri = truncated
+            self._truncTri.removeTetrahedron(t)
         return
 
 
@@ -325,8 +349,9 @@ if __name__ == "__main__":
         if not v.isValid():
             truncVertIndex = v.index()
     truncTri = TruncatedTriangulation(
-            tri, {truncVertIndex} ).triangulation()
-    print( truncTri.isOriented() )
-    print( truncTri.isValid() )
-    print( truncTri.isSolidTorus() )
-    print( truncTri.size() )
+            tri, {truncVertIndex} )
+    print( truncTri.triangulation().isOriented() )
+    print( truncTri.triangulation().isValid() )
+    print( truncTri.triangulation().isSolidTorus() )
+    print( truncTri.triangulation().size() )
+    print( truncTri.linkEdge( 0, 3, 0 ) )
