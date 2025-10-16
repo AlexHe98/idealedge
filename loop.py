@@ -158,6 +158,7 @@ class EmbeddedLoop:
 
         # We don't know which direction is the correct way to traverse the
         # given sequence of edges, so try both.
+        #TODO Initialise orientation.
         firstVert = edge.vertex(0)
         lastVert = self._traverse( edges, firstVert )
         if lastVert is None:
@@ -465,6 +466,22 @@ class EmbeddedLoop:
         # Don't forget to include the last component.
         components.append( [ *nextComponent, *lastComponent ] )
         return components
+
+    def orientation(self):
+        """
+        """
+        #TODO Decide how to choose +1 or -1 for the orientation. Whatever we
+        #   choose needs to be consistent (in some way) with signs of
+        #   permutations arising from an oriented triangulation; for example,
+        #   maybe it should be consistent with the vertices() permutation
+        #   given by an edgeEmbedding.
+        raise NotImplementedError()
+
+    def reverseOrientation(self):
+        """
+        """
+        #TODO
+        raise NotImplementedError()
 
     def _shortenImpl(self):
         """
