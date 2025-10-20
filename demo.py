@@ -22,6 +22,7 @@ if __name__ == "__main__":
         print("Diagram constructed from following summands:")
         for s in summands:
             print(s)
+            snappy.Link(s).view()
         knot = Link.fromPD(pd)
     else:
         knot = Link.fromKnotSig(sig)
@@ -38,7 +39,15 @@ if __name__ == "__main__":
 
     # Finally, try to identify the summands.
     print( "Algorithm computed the following summands:" )
+    last = None
     for p in primeLoops:
         drilled = p.drill()
         mfd = snappy.Manifold( snappy.Triangulation( drilled.isoSig() ) )
-        print( mfd.identify() )
+        identified = mfd.identify()
+        if identified:
+            print( identified[0] )
+            last = identified[0].link().view()
+        else:
+            print( "Unidentified prime knot" )
+    if last is not None:
+        last.window.mainloop()
