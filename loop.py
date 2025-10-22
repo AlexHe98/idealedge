@@ -95,6 +95,10 @@ class BoundsDisc(EmbeddedLoopException):
         return
 
 
+#TODO Go through the entire class and its subclasses, and check what needs to
+#   be modified to track orientations.
+#TODO Find all uses of the "setFrom" routines, and see how the usage needs to
+#   be modified to track orientations.
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -106,23 +110,34 @@ class EmbeddedLoop:
     aforementioned subclasses.
 
     A core feature of this class is that it effectively stores a list of edge
-    *indices* corresponding to the edges of the embedded loop. Thus, for any
-    instance loop of this class, the following functionality is available:
+    *indices* corresponding to the edges of the embedded loop; moreover, the
+    order that these edge indices appear in the list corresponds to an
+    orientation on the loop. Thus, for any instance loop of this class, the
+    following functionality is available:
     --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
         edge in the loop
     --> len(loop) is the number of edges in the loop
+    --> iterating through the loop yields all the edge indices in an order
+        that matches the loop's orientation
     --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
-        index of the ith edge in the loop
-    --> iterating through the loop yields all the edge indices in order
+        index of the ith edge in the loop, and again the order matches the
+        loop's orientation
     """
-    def __init__( self, edges=None ):
-        """
+    def __init__( self, edges=None, orientation=None ):
+        r"""
         Creates an embedded loop from the given list of edges.
 
         If no edges are supplied, then creates an empty object with no data.
         In this case, one of the "set from" routines must be called on the
         embedded loop before performing any computations.
 
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
@@ -131,14 +146,45 @@ class EmbeddedLoop:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
+        #NOTE For reference, it is often helpful to work with orientations
+        #   using edge embeddings. In detail, let e = edges[0], and let
+        #   emb = e.embedding(i) for any i in { 0, ..., e.degree() - 1 }
+        #   (everything we say here will be independent of the choice of i).
+        #
+        #   Orientation +1 means that e is embedded in emb.tetrahedron() with
+        #   an orientation that runs away from emb.vertices()[0] and towards
+        #   emb.vertices()[1]. On the other hand, orientation -1 means that
+        #   the orientation on e runs away from emb.vertices()[1] and towards
+        #   emb.vertices()[0]. Pictorially, the diagram below left shows a +1
+        #   orientation, and the diagram below right shows a -1 orientation.
+        #
+        #         emb.vertices()[1]          emb.vertices()[1]
+        #                 •                          •
+        #                /|\                        /|\
+        #               / | \                      / | \
+        #              /  ↑  \                    /  ↓  \
+        #             •---|---•                  •---|---•
+        #              \  ↑  /                    \  ↓  /
+        #               \ | /                      \ | /
+        #                \|/                        \|/
+        #                 •                          •
+        #         emb.vertices()[0]          emb.vertices()[0]
+        #
         if edges is not None:
-            self.setFromEdges(edges)
+            self.setFromEdges( edges, orientation )
         return
 
-    def setFromEdges( self, edges ):
+    def setFromEdges( self, edges, orientation=None ):
         """
         Sets this embedded loop using the given list of edges.
 
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
         match the order in which the edges appear in the loop.
@@ -147,6 +193,10 @@ class EmbeddedLoop:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
+        if ( ( orientation is not None ) and ( orientation != 1 ) and
+            ( orientation != -1 ) ):
+            raise ValueError(
+                    "If supplied, orientation must be either +1 or -1." )
         edge = edges[0]
         self._tri = edge.triangulation()
         self._reset()
@@ -158,7 +208,6 @@ class EmbeddedLoop:
 
         # We don't know which direction is the correct way to traverse the
         # given sequence of edges, so try both.
-        #TODO Initialise orientation.
         firstVert = edge.vertex(0)
         lastVert = self._traverse( edges, firstVert )
         if lastVert is None:
@@ -171,6 +220,11 @@ class EmbeddedLoop:
         if ( ( lastVert != firstVert ) or
                 ( len( self._vertIndices ) != len(edges) ) ):
             raise NotLoop(edges)
+
+        # If necessary, reverse orientation to match the user specification.
+        if ( ( orientation is not None ) and
+            ( self.orientation() != orientation ) ):
+            self.reverseOrientation()
         return
 
     def _reset(self):
@@ -214,6 +268,9 @@ class EmbeddedLoop:
         embedded in a copy of the triangulation containing the given loop.
         Otherwise, if copyTri is False, then this embedded loop will be
         embedded in the same triangulation as the given loop.
+
+        The orientation of the cloned loop is guaranteed to match the
+        orientation of the given loop.
         """
         if copyTri:
             tri = Triangulation3( loop.triangulation() )
@@ -222,16 +279,23 @@ class EmbeddedLoop:
         edges = []
         for ei in loop:
             edges.append( tri.edge(ei) )
-        self.setFromEdges(edges)
+        self.setFromEdges( edges, loop.orientation() )
         return
 
-    def setFromEdgeLocations( self, edgeLocations ):
+    def setFromEdgeLocations( self, edgeLocations, orientation=None ):
         """
         Sets this embedded loop using the given list of edge locations.
 
         In detail, each edge location must be a pair (t, e), where t is a
         tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
         tetrahedron must belong to the same triangulation.
+
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -245,21 +309,29 @@ class EmbeddedLoop:
         edges = []
         for tet, edgeNum in edgeLocations:
             edges.append( tet.edge(edgeNum) )
-        self.setFromEdges(edges)
+        self.setFromEdges( edges, orientation )
         return
 
-    def setFromLightweight( self, sig, edgeLocations ):
+    def setFromLightweight( self, sig, edgeLocations, orientation ):
         """
         Sets this embedded loop using a lightweight description, as
         constructed by EmbeddedLoop.lightweightDescription().
+
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
         """
         tri = Triangulation3.fromIsoSig(sig)
         edges = []
         for tetIndex, edgeNum in edgeLocations:
             edges.append( tri.tetrahedron(tetIndex).edge(edgeNum) )
-        self.setFromEdges(edges)
+        self.setFromEdges( edges, orientation )
         return
 
+    #TODO What do we need to change to track orientations?
     def _setFromRenum( self, renum ):
         """
         Sets this embedded loop using the given edge renumbering map.
@@ -330,16 +402,19 @@ class EmbeddedLoop:
                 return False
         return True
 
+    #TODO This probably needs to output a correct orientation.
     def lightweightDescription(self):
         """
         Returns a lightweight description of this embedded loop.
 
-        In detail, this routine returns a pair (S,L), where:
-        --> S is the isomorphism signature for self.triangulation(); and
+        In detail, this routine returns a pair (S,L,O), where:
+        --> S is the isomorphism signature for self.triangulation();
         --> L is the list of edge locations in Triangulation3.fromIsoSig(S)
             corresponding to this embedded loop, with each edge location
             being given by a pair consisting of a tetrahedron index and an
-            edge number.
+            edge number; and
+        --> O is the orientation of the loop in Triangulation3.fromIsoSig(S)
+            that corresponds to this embedded loop.
         Thus, the returned description can be used to build an embedded loop
         that is, up to combinatorial isomorphism, the same as this one.
         """
@@ -380,6 +455,8 @@ class EmbeddedLoop:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
 
+    #TODO Need to track and return orientations for each component (mainly
+    #   required for length-1 components).
     def components( self, surf ):
         """
         Returns a list describing the components into which the given normal
@@ -469,19 +546,38 @@ class EmbeddedLoop:
 
     def orientation(self):
         """
+        Returns the orientation of this embedded loop.
+
+        In detail, the returned value will be:
+        --> +1 if the first edge e in this embedded loop is oriented from
+            vertex 0 to vertex 1; and
+        --> -1 if e is oriented from vertex 1 to vertex 0.
         """
-        #TODO Decide how to choose +1 or -1 for the orientation. Whatever we
-        #   choose needs to be consistent (in some way) with signs of
-        #   permutations arising from an oriented triangulation; for example,
-        #   maybe it should be consistent with the vertices() permutation
-        #   given by an edgeEmbedding.
-        raise NotImplementedError()
+        if self._tails[0] == 0:
+            # Tail at 0, head at 1.
+            return 1
+        # Tail at 1, head at 0.
+        return -1
 
     def reverseOrientation(self):
         """
+        Reverses the orientation of this embedded loop.
+
+        This routine preserves the first edge in this embedded loop, and
+        therefore ensures that the sign of self.orientation() is actually
+        reversed after calling this routine.
         """
-        #TODO
-        raise NotImplementedError()
+        # Preserve the first edge, but reverse the order in which we traverse
+        # the other edges of this loop.
+        self._edgeIndices[1:] = self._edgeIndices[:0:-1]
+        self._tails[1:] = self._tails[:0:-1]
+
+        # Switch head and tail for each edge of this loop.
+        self._tails = [ 1 - i for i in self._tails ]
+        return
+
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
 
     def _shortenImpl(self):
         """
