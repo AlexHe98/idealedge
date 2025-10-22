@@ -186,6 +186,7 @@ def idealLoops( surf, oldLoops=[] ):
         # The given surface splits the current oldLoop into some number of
         # components. Which of these components survive to become new ideal
         # loops after crushing?
+        #TODO Will need to tweak this to track orientations.
         for comp in oldLoop.components(surf):
             seg = comp[0]
             idEdge = _findIdealEdge( surf, seg, targets )

@@ -228,7 +228,7 @@ def _embedParallel( knot, tracker ):
             diagramProcess.join()
             if fillingReceiver.poll():
                 loop = IdealLoop()
-                loop.setFromLightweight( *fillingReceiver.recv() )
+                loop.setFromBlueprint( *fillingReceiver.recv() )
             else:
                 # If fillingProcess terminated without sending information,
                 # then the given knot must be unknotted.
@@ -243,7 +243,7 @@ def _embedParallel( knot, tracker ):
             fillingProcess.join()
             if diagramReceiver.poll():
                 loop = IdealLoop()
-                loop.setFromLightweight( *diagramReceiver.recv() )
+                loop.setFromBlueprint( *diagramReceiver.recv() )
             else:
                 # If diagramProcess terminated without sending information,
                 # then the given knot must be unknotted.
@@ -262,7 +262,7 @@ def _runFilling( knotSig, sender ):
     except BoundsDisc:
         # Send nothing if the given knot is unknotted.
         return
-    sender.send( loop.lightweightDescription() )
+    sender.send( loop.blueprint() )
     return
 
 
@@ -273,7 +273,7 @@ def _runDiagram( knotSig, sender ):
     except BoundsDisc:
         # Send nothing if the given knot is unknotted.
         return
-    sender.send( loop.lightweightDescription() )
+    sender.send( loop.blueprint() )
     return
 
 
@@ -284,7 +284,7 @@ def _enumerateParallel( oldLoop, tracker ):
     # when the enumeration takes a long time for the given oldLoop, it is
     # often helpful to randomise the loop and attempt the enumeration on the
     # new loop.
-    description = oldLoop.lightweightDescription()
+    blueprint = oldLoop.blueprint()
     tri = oldLoop.triangulation()
 
     # Set up a child process to repeatedly randomise the given ideal loop,
@@ -292,7 +292,7 @@ def _enumerateParallel( oldLoop, tracker ):
     # alternate enumerations.
     randomiseReceiver, randomiseSender = Pipe(False)
     randomiseProcess = Process( target=_perpetualRandomise,
-            args=( description, tri.size(), randomiseSender ) )
+            args=( blueprint, tri.size(), randomiseSender ) )
     randomiseProcess.start()
 
     # Set up a child process to run the alternate enumerations.
@@ -321,20 +321,20 @@ def _enumerateParallel( oldLoop, tracker ):
             randomiseProcess.terminate()
             alternateProcess.join()
             randomiseProcess.join()
-            newLoopDescs, attempts, searches, size = alternateReceiver.recv()
+            newBlueprints, attempts, searches, size = alternateReceiver.recv()
             msg = "Alternate enumeration succeeded on "
             msg += "{}-tetrahedron triangulation.\n".format(size)
             msg += "(Randomisation attempts: {}. Searches: {}.)".format(
                     attempts, searches )
-            if newLoopDescs is None:
+            if newBlueprints is None:
                 # Found a prime!
                 return ( None, msg )
             else:
                 # Build new loops and return them.
                 newLoops = []
-                for description in newLoopDescs:
+                for blueprint in newBlueprints:
                     newLoop = IdealLoop()
-                    newLoop.setFromLightweight( *description )
+                    newLoop.setFromBlueprint( *blueprint )
                     newLoops.append(newLoop)
                 return ( newLoops, msg )
 
@@ -388,10 +388,10 @@ def _enumerateParallel( oldLoop, tracker ):
     return
 
 
-def _perpetualRandomise( description, size, sender ):
+def _perpetualRandomise( blueprint, size, sender ):
     RandomEngine.reseedWithHardware()
     loop = IdealLoop()
-    loop.setFromLightweight( *description )
+    loop.setFromBlueprint( *blueprint )
     attempts = 0
     while True:
         attempts += 1
@@ -402,7 +402,7 @@ def _perpetualRandomise( description, size, sender ):
             return
         if loop.triangulation().size() <= size:
             # Send randomised loop.
-            sender.send( ( loop.lightweightDescription(), attempts ) )
+            sender.send( ( loop.blueprint(), attempts ) )
     return
 
 
@@ -411,16 +411,16 @@ def _indefiniteEnumerate( receiver, sender ):
     searches = 0
     while not receiver.poll():
         sleep(0.01)
-    description, attempts = receiver.recv()
-    loop.setFromLightweight( *description )
+    blueprint, attempts = receiver.recv()
+    loop.setFromBlueprint( *blueprint )
     tri = loop.triangulation()
     enumeration = TreeEnumeration( tri, NS_QUAD )
     while True:
         if searches > 20 and receiver.poll():
             # Restart the enumeration with a new ideal loop.
             searches = 0
-            description, attempts = receiver.recv()
-            loop.setFromLightweight( *description )
+            blueprint, attempts = receiver.recv()
+            loop.setFromBlueprint( *blueprint )
             tri = loop.triangulation()
             enumeration = TreeEnumeration( tri, NS_QUAD )
 
@@ -445,14 +445,14 @@ def _indefiniteEnumerate( receiver, sender ):
         if wt != 0 and wt != 2:
             continue
         decomposed = decomposeAlong( sphere, [loop] )
-        newLoopDescriptions = []
+        newBlueprints = []
         for decomposedLoops in decomposed:
             if decomposedLoops:
                 # We are guaranteed to have len(decomposedLoops) == 1.
-                newLoopDescriptions.append(
-                        decomposedLoops[0].lightweightDescription() )
+                newBlueprints.append(
+                        decomposedLoops[0].blueprint() )
         sender.send(
-                ( newLoopDescriptions, attempts, searches, tri.size() ) )
+                ( newBlueprints, attempts, searches, tri.size() ) )
         return
     return
 
@@ -821,23 +821,10 @@ class DecompositionTracker:
         """
         self._numTri += 1
         size = loop.triangulation().size()
-        sig, edgeLocations = loop.lightweightDescription()
-        beforeReport = "Edge-ideal: {} ".format(sig)
-        if size == 1:
-            beforeReport += "(1 tetrahedron). "
-        else:
-            beforeReport += "({} tetrahedra). ".format(size)
-
-        # Work out edge indices after reconstructing from iso sig.
-        temp = Triangulation3.fromIsoSig(sig)
-        edgeIndices = []
-        for tetIndex, edgeNum in edgeLocations:
-            edgeIndices.append( str(
-                    temp.tetrahedron(tetIndex).edge(edgeNum).index() ) )
-        if len(loop) == 1:
-            beforeReport += "Edge {}.".format( edgeIndices[0] )
-        else:
-            beforeReport += "Edges {}.".format( ", ".join(edgeIndices) )
+        beforeReport = "Processing new {}-tetrahedron".format(size)
+        beforeReport += " edge-ideal triangulation.\n    Blueprint:"
+        for data in loop.blueprint():
+            beforeReport += "\n        {}".format(data)
 
         # This counts as a new event.
         self._newEvent(beforeReport)

@@ -312,22 +312,32 @@ class EmbeddedLoop:
         self.setFromEdges( edges, orientation )
         return
 
-    def setFromLightweight( self, sig, edgeLocations, orientation ):
+    #TODO Delete this entirely at a later date.
+    def setFromLightweight( self, sig, edgeLocations ):
         """
-        Sets this embedded loop using a lightweight description, as
-        constructed by EmbeddedLoop.lightweightDescription().
+        This routine is no longer available; use the new setFromBlueprint()
+        routine instead.
+        """
+        raise NotImplementedError( "Use setFromBlueprint() instead." )
 
-        If the optional orientation argument is not supplied, then the
-        embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+    def setFromBlueprint( self, sig, tetImages, facePerms,
+                         edgeIndices, orientation ):
         """
+        Sets this embedded loop using a picklable blueprint, as constructed
+        by EmbeddedLoop.blueprint().
+        """
+        # Reconstruct the triangulation with the original labelling (not the
+        # canonical labelling given by fromIsoSig()).
         tri = Triangulation3.fromIsoSig(sig)
-        edges = []
-        for tetIndex, edgeNum in edgeLocations:
-            edges.append( tri.tetrahedron(tetIndex).edge(edgeNum) )
+        isom = Isomorphism3( tri.size() )
+        for i in range( tri.size() ):
+            isom.setSimpImage( i, tetImages[i] )
+            isom.setFacePerm( i, Perm4( *facePerms[i] ) )
+
+        # To directly clone the embedded loop, we need to recover the
+        # original labelling.
+        tri = isom.inverse()(tri)
+        edges = [ tri.edge(ei) for ei in edgeIndices ]
         self.setFromEdges( edges, orientation )
         return
 
@@ -402,32 +412,45 @@ class EmbeddedLoop:
                 return False
         return True
 
-    #TODO This probably needs to output a correct orientation.
+    #TODO Delete this entirely at a later date.
     def lightweightDescription(self):
         """
-        Returns a lightweight description of this embedded loop.
+        This routine is no longer available; use the new blueprint() routine
+        instead.
+        """
+        raise NotImplementedError( "Use blueprint() instead." )
 
-        In detail, this routine returns a pair (S,L,O), where:
-        --> S is the isomorphism signature for self.triangulation();
-        --> L is the list of edge locations in Triangulation3.fromIsoSig(S)
-            corresponding to this embedded loop, with each edge location
-            being given by a pair consisting of a tetrahedron index and an
-            edge number; and
-        --> O is the orientation of the loop in Triangulation3.fromIsoSig(S)
-            that corresponds to this embedded loop.
-        Thus, the returned description can be used to build an embedded loop
-        that is, up to combinatorial isomorphism, the same as this one.
+    def blueprint(self):
+        """
+        Returns a picklable blueprint for this embedded loop.
+
+        In detail, this routine returns a tuple (S,T,F,E,O), where:
+        --> S is the isomorphism signature for
+            oldTri := self.triangulation();
+        --> T is a list such that T[i] gives the index of the tetrahedron in
+            newTri := Triangulation3.fromIsoSig(S) that corresponds to
+            tetrahedron i of oldTri;
+        --> F is a list such that F[i] is length-4 list with F[i][j] being
+            the vertex number of newTri.tetrahedron( T[i] ) that corresponds
+            to vertex j of oldTri.tetrahedron(i);
+        --> E is the list of edge indices given by this embedded loop; and
+        --> O is the orientation of this embedded loop.
+        The returned blueprint can be used, via the setFromBlueprint()
+        routine, to build a clone of this embedded loop.
         """
         sig, isom = self._tri.isoSigDetail()
-        newEdgeLocations = []
-        for ei in self:
-            emb = self._tri.edge(ei).embedding(0)
-            oldIndex = emb.tetrahedron().index()
-            newIndex = isom.simpImage(oldIndex)
-            edgeNumber = Edge3.faceNumber(
-                    isom.facetPerm(oldIndex) * emb.vertices() )
-            newEdgeLocations.append( ( newIndex, edgeNumber ) )
-        return ( sig, newEdgeLocations )
+
+        # Convert the isomorphism into the lists T and F.
+        tetImages = []
+        facePerms = []
+        for i in range( self._tri.size() ):
+            tetImages.append( isom.simpImage(i) )
+            facePerms.append(
+                    [ isom.facetPerm(i)[j] for j in range(4) ] )
+
+        # For safety, return a copy of this loop's edge index list.
+        return ( sig, tetImages, facePerms,
+                list(self._edgeIndices), self.orientation() )
 
     def intersects( self, surf ):
         """
@@ -455,26 +478,28 @@ class EmbeddedLoop:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
 
-    #TODO Need to track and return orientations for each component (mainly
-    #   required for length-1 components).
     def components( self, surf ):
         """
         Returns a list describing the components into which the given normal
         surface surf splits this embedded loop.
 
-        In detail, each item of the returned list is a list of edge segments,
-        where:
-        --> Each list of edge segments is ordered according to the order in
-            which the segments appear as we traverse this embedded loop.
-        --> Each edge segment is encoded as a pair (ei, n) such that:
+        In detail, each item of the returned list is a pair (L,O), where:
+        --> L is a list of edge segments appearing in the same order as they
+            do when we traverse this embedded loop.
+        --> Each edge segment in L is encoded as a pair (ei, n) such that:
             --- ei is the index of the edge containing the segment in
                 question; and
             --- n is the segment number (from 0 to w, inclusive, where w is
                 the weight of the surface on edge ei).
+        --> O is either +1 or -1, and indicates the orientation of the first
+            edge segment in L.
         Note that for each edge e, the segments are numbered in ascending
         order from the segment incident to e.vertex(0) to the segment
         incident to e.vertex(1).
         """
+        #TODO Decide how to work with orientations.
+        #TODO Reimplement components() appropriately.
+
         # We find all the components by simply walking around the loop. Take
         # the first component to be the one that begins *after* the first
         # point at which this loop gets split by the given surf. Thus, our
