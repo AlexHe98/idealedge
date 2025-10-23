@@ -560,7 +560,7 @@ def decomposeUsingAnnulus( knot, tracker=False, insertAsChild=False ):
     computation as descendents of the given knot packet. This feature is also
     switched off by default.
     """
-    #TODO
+    #TODO Decide whether to bother with implementing decomposeUsingAnnulus().
     raise NotImplementedError()
 
 

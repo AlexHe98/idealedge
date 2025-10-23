@@ -47,6 +47,7 @@ def decomposeAlong( surf, oldLoops ):
         same triangulation.
     """
     # Find where the new ideal loops will be after crushing.
+    #TODO Might need to update this once idealLoops() has been reimplemented.
     loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
 
@@ -106,6 +107,8 @@ def decomposeAlong( surf, oldLoops ):
     return output
 
 
+#TODO This needs to track orientation. Probably the easiest way to do this is
+#   is to replace edge numbers with tail and head vertex numbers.
 def idealLoops( surf, oldLoops=[] ):
     """
     Returns information about the ideal loops after crushing the given normal
@@ -333,6 +336,8 @@ def countIncidentBoundaries(s):
     return len(incident)
 
 
+#TODO This needs to track orientation. Probably the easiest way to do this is
+#   is to return tail and head vertex numbers (instead of an edge number).
 def _findIdealEdge( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start

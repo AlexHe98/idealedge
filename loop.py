@@ -483,21 +483,24 @@ class EmbeddedLoop:
         Returns a list describing the components into which the given normal
         surface surf splits this embedded loop.
 
-        In detail, each item of the returned list is a pair (L,O), where:
-        --> L is a list of edge segments appearing in the same order as they
-            do when we traverse this embedded loop.
-        --> Each edge segment in L is encoded as a pair (ei, n) such that:
+        In detail, each item of the returned list is a list of edge segments
+        that all belong to the same component, satisfying the following
+        conditions:
+        --> The edge segments appear in the same order as they do when we
+            traverse this embedded loop.
+        --> Each edge segment in L is encoded as a triple (ei, n, o) such
+            that:
             --- ei is the index of the edge containing the segment in
-                question; and
+                question;
             --- n is the segment number (from 0 to w, inclusive, where w is
-                the weight of the surface on edge ei).
-        --> O is either +1 or -1, and indicates the orientation of the first
-            edge segment in L.
+                the weight of the given surface on edge ei); and
+            --- o is +1 if edge ei is oriented from vertex 0 to vertex 1, and
+                -1 if edge ei is oriented from vertex 1 to vertex 0.
         Note that for each edge e, the segments are numbered in ascending
         order from the segment incident to e.vertex(0) to the segment
         incident to e.vertex(1).
         """
-        #TODO Decide how to work with orientations.
+        #TODO WORKING HERE.
         #TODO Reimplement components() appropriately.
 
         # We find all the components by simply walking around the loop. Take
@@ -578,7 +581,18 @@ class EmbeddedLoop:
             vertex 0 to vertex 1; and
         --> -1 if e is oriented from vertex 1 to vertex 0.
         """
-        if self._tails[0] == 0:
+        return self.edgeOrientation(0)
+
+    def edgeOrientation( self, index ):
+        """
+        Returns the orientation of the edge at the given index in this
+        embedded loop.
+
+        In detail, the returned value will be:
+        --> +1 if the edge is oriented from vertex 0 to vertex 1; and
+        --> -1 if the edge is oriented from vertex 1 to vertex 0.
+        """
+        if self._tails[index] == 0:
             # Tail at 0, head at 1.
             return 1
         # Tail at 1, head at 0.
