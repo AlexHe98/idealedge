@@ -114,10 +114,10 @@ def idealLoops( surf, oldLoops=[] ):
     Returns information about the ideal loops after crushing the given normal
     surface surf.
 
-    The given oldLoops list (which is empty by default) should be a list of
-    pre-existing ideal loops, encoded as instances of IdealLoop. Each of
-    these ideal loops must lie in the same triangulation as surf, and these
-    ideal loops must all be mutually disjoint.
+    The given oldLoops list (which may be empty, and is empty by default)
+    should be a list of pre-existing ideal loops, encoded as instances of
+    IdealLoop. Each of these ideal loops must lie in the same triangulation
+    as surf, and these ideal loops must all be mutually disjoint.
 
     The given normal surface surf should be either:
     --> an annulus or 2-sphere that is disjoint from all of the pre-existing
@@ -132,8 +132,10 @@ def idealLoops( surf, oldLoops=[] ):
     this routine does not check this condition.
 
     This routine returns a list describing the ideal loops that would arise
-    after crushing the given surface. Each such ideal loop is encoded as a
-    list of pairs of the form (t,e), where:
+    after crushing the given surface (see below for a more detailed
+    description of how the ideal loops before crushing are related to the
+    ideal loops after crushing). Each such ideal loop is encoded as a list of
+    pairs of the form (t,e), where:
     --> t is the index after crushing of a tetrahedron that will be incident
         to one of the ideal edges; and
     --> e is an edge number (from 0 to 5, inclusive) of this tetrahedron that
@@ -143,6 +145,19 @@ def idealLoops( surf, oldLoops=[] ):
     such that the two edges get merged to become a single non-loop edge after
     crushing. This routine does not check for such degenerate loops, so they
     might appear in the returned list.
+
+    Crushing the given surface has the following effects:
+    --> Pre-existing ideal loops that are disjoint from the surface will be
+        left topologically untouched. In particular, their orientations will
+        be preserved.
+    --> Ideal loops that intersect the surface will be split into multiple
+        arcs, and each such arc may or may not survive to become a new ideal
+        loop after crushing. The orientation will be preserved for the arcs
+        that do survive.
+    --> If the surface is an annulus (which, as specified above, must be
+        disjoint from all pre-existing ideal loops), then crushing might
+        create an entirely new ideal loop. This new loop will be assigned an
+        arbitrary orientation.
 
     Pre-condition:
     --> The given surf should be a quadrilateral vertex normal surface.
@@ -191,6 +206,7 @@ def idealLoops( surf, oldLoops=[] ):
         # loops after crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
+            #TODO Will need to update usage of _findIdealEdge().
             idEdge = _findIdealEdge( surf, seg, targets )
             if idEdge is None:
                 # This component does not survive after crushing.
@@ -199,24 +215,25 @@ def idealLoops( surf, oldLoops=[] ):
             # This component survives after crushing.
             newLoop = [idEdge]
             for seg in arc[1:]:
+                #TODO Will need to update usage of _findIdealEdge().
                 newLoop.append( _findIdealEdge( surf, seg, targets ) )
             newLoops.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
     # chain of boundary bigons?
     if possibleLoopFromBoundary and countIncidentBoundaries(surf) == 1:
-        #TODO Will need to tweak this to track orientations.
-        #TODO WORKING HERE.
         # Find a segment incident to the chain of boundary bigons.
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
                     surf.edgeWeight(ei).safeLongValue() >= 2 ):
-                seg = ( ei, 1 )
+                # Arbitrarily assign orientation +1.
+                seg = ( ei, 1, 1 )
                 break
 
         # If this segment survives after crushing, then it forms a new ideal
         # loop of length one.
+        #TODO Will need to update usage of _findIdealEdge().
         idEdge = _findIdealEdge( surf, seg )
         if idEdge is not None:
             newLoops.append( [idEdge] )
@@ -224,6 +241,11 @@ def idealLoops( surf, oldLoops=[] ):
     #TODO If we crushed an annulus, it would probably be useful to use
     #   fillIdealEdge() to include additional ideal loops obtained by filling
     #   in pinched 2-sphere boundary components.
+    #
+    #   If/when we implement this functionality, we will need to document the
+    #   possibility that we could create an addiitonal new ideal loop. We
+    #   should probably also note that this would come at the cost of
+    #   introducing a new tetrahedron.
 
     # Done!
     return newLoops
@@ -340,22 +362,30 @@ def countIncidentBoundaries(s):
 #TODO This needs to track orientation. Probably the easiest way to do this is
 #   is to return tail and head vertex numbers (instead of an edge number).
 def _findIdealEdge( surf, start, targets=None ):
-    #TODO WORKING HERE.
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
 
-    Specifically, if the ideal edge belongs to a component that gets
+    Specifically, if the ideal edge belongs to an ideal arc that gets
     destroyed after crushing, then this routine returns None. Otherwise, this
-    routine returns a pair (t, e), where t is the index after crushing of a
-    tetrahedron that will be incident to the ideal edge, and e is an edge
-    number of this tetrahedron that corresponds to the ideal edge.
+    routine returns a triple (i, t, h), where:
+    --> i is the index after crushing of a tetrahedron that will be incident
+        to the ideal edge;
+    --> t is the vertex number of this tetrahedron that is at the tail of the
+        ideal edge; and
+    --> h is the vertex number that is at the head of the ideal edge.
+    Here, "tail" and "head" are with respect to the orientation of the ideal
+    edge, which will be consistent with the given start segment.
 
     If the dictionary of surviving segments has been precomputed using the
     _survivingSegments() routine, then this can be supplied using the
     optional targets argument. Otherwise, this routine will compute the
     surviving segments for itself.
     """
+    #TODO WORKING HERE.
+    #TODO Can no longer use targets directly since we now have orientations.
+    #   We might even need to completely overhaul the algorithms used for
+    #   _survivingSegments() and/or this routine.
     tri = surf.triangulation()
     if targets is None:
         targets = _survivingSegments(surf)
