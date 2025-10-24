@@ -317,6 +317,12 @@ class EmbeddedLoop:
         """
         This routine is no longer available; use the new setFromBlueprint()
         routine instead.
+
+        The old "lightweight description" consisted of an isomorphism
+        signature and a list of edge locations. Unlike the new "picklable
+        blueprint", this did not keep track of the orientation of the
+        embedded loop, and only provided enough information to reconstruct
+        the ambient triangulation up to combinatorial isomorphism.
         """
         raise NotImplementedError( "Use setFromBlueprint() instead." )
 
@@ -417,6 +423,12 @@ class EmbeddedLoop:
         """
         This routine is no longer available; use the new blueprint() routine
         instead.
+
+        The old "lightweight description" consisted of an isomorphism
+        signature and a list of edge locations. Unlike the new "picklable
+        blueprint", this did not keep track of the orientation of the
+        embedded loop, and only provided enough information to reconstruct
+        the ambient triangulation up to combinatorial isomorphism.
         """
         raise NotImplementedError( "Use blueprint() instead." )
 
@@ -478,14 +490,24 @@ class EmbeddedLoop:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
 
+    #TODO Delete this entirely at a later date.
     def components( self, surf ):
         """
-        Returns a list describing the components into which the given normal
+        This routine is no longer available; use the new splitArcs() routine
+        instead.
+
+        Apart from the improvement in the name, the new splitArcs() routine
+        also keeps track of the orientation of the embedded loop.
+        """
+        raise NotImplementedError()
+
+    def splitArcs( self, surf ):
+        """
+        Returns a list describing the arcs into which the given normal
         surface surf splits this embedded loop.
 
         In detail, each item of the returned list is a list of edge segments
-        that all belong to the same component, satisfying the following
-        conditions:
+        that all belong to the same arc, satisfying the following conditions:
         --> The edge segments appear in the same order as they do when we
             traverse this embedded loop.
         --> Each edge segment in L is encoded as a triple (ei, n, o) such
@@ -499,78 +521,86 @@ class EmbeddedLoop:
         Note that for each edge e, the segments are numbered in ascending
         order from the segment incident to e.vertex(0) to the segment
         incident to e.vertex(1).
-        """
-        #TODO WORKING HERE.
-        #TODO Reimplement components() appropriately.
 
-        # We find all the components by simply walking around the loop. Take
-        # the first component to be the one that begins *after* the first
-        # point at which this loop gets split by the given surf. Thus, our
-        # walk starts in the middle of the last component, so we need to make
-        # sure to remember all the segments of the last component.
-        lastComponent = []
+        Note also that the order of the arcs need not be the same as the
+        order in which they appear as we traverse this loop. Only the order
+        of edge segments within each individual arc is guaranteed to match
+        the traversal order.
+        """
+        # We find all the arcs by simply walking around the loop. Take the
+        # first arc to be the one that begins *after* the first point at
+        # which this loop gets split by the given surf. Thus, our walk starts
+        # in the middle of the last arc, so we need to make sure to remember
+        # all the segments of the last arc.
+        lastArc = []
         splitIndex = None
         for i in range( len(self) ):
             edgeIndex = self._edgeIndices[i]
+            orientation = self.edgeOrientation(i)
             wt = surf.edgeWeight(edgeIndex).safeLongValue()
             if wt > 0:
-                # We found the point at which the first component begins.
+                # We found the point at which the first arc begins.
                 if self._tails[i] == 0:
-                    lastComponent.append( ( edgeIndex, 0 ) )
-                    headSeg = ( edgeIndex, wt )
+                    lastArc.append( ( edgeIndex, 0, orientation ) )
+                    headSeg = ( edgeIndex, wt, orientation )
                 else:
-                    lastComponent.append( ( edgeIndex, wt ) )
-                    headSeg = ( edgeIndex, 0 )
+                    lastArc.append( ( edgeIndex, wt, orientation ) )
+                    headSeg = ( edgeIndex, 0, orientation )
                 splitIndex = i
                 break
             else:
-                # We are still in the middle of the last component.
-                lastComponent.append( ( edgeIndex, 0 ) )
+                # We are still in the middle of the last arc.
+                lastArc.append( ( edgeIndex, 0, orientation ) )
         if splitIndex is None:
             # If this loop is disjoint from the surface, then there is only
-            # one component, and we have already found all the constituent
-            # segments of this component.
-            return [lastComponent]
+            # one arc, and we have already found all the constituent segments
+            # of this arc.
+            return [lastArc]
 
-        # The given surf splits this embedded loop into multiple components,
-        # so we need to do a bit more work.
-        components = []
+        # The given surf splits this embedded loop into multiple arcs, so we
+        # need to do a bit more work.
+        arcs = []
         while splitIndex is not None:
+            orientation = headSeg[-1]
             for seg in range( 1, wt ):
-                # For wt >= 2, we get a sequence of short components given by
+                # For wt >= 2, we get a sequence of short arcs given by
                 # type-2 segments.
-                components.append( [ ( edgeIndex, seg ) ] )
+                #
+                # If orientation == -1 and wt > 2, then this will add new
+                # arcs in the "wrong" order.
+                arcs.append( [ ( edgeIndex, seg, orientation ) ] )
 
             # We now need to find all the segments that comprise the next
-            # (long) component.
-            nextComponent = [headSeg]
+            # (long) arc.
+            nextArc = [headSeg]
             continuation = splitIndex + 1
 
-            # Unless we have already returned to the last component, we must
-            # eventually find another split point at which the next component
+            # Unless we have already returned to the last arc, we must
+            # eventually find another split point at which the next arc
             # begins.
             splitIndex = None
             for i in range( continuation, len(self) ):
                 edgeIndex = self._edgeIndices[i]
+                orientation = self.edgeOrientation(i)
                 wt = surf.edgeWeight(edgeIndex).safeLongValue()
                 if wt > 0:
                     # Found the next split point.
                     if self._tails[i] == 0:
-                        nextComponent.append( ( edgeIndex, 0 ) )
-                        headSeg = ( edgeIndex, wt )
+                        nextArc.append( ( edgeIndex, 0, orientation ) )
+                        headSeg = ( edgeIndex, wt, orientation )
                     else:
-                        nextComponent.append( ( edgeIndex, wt ) )
-                        headSeg = ( edgeIndex, 0 )
+                        nextArc.append( ( edgeIndex, wt, orientation ) )
+                        headSeg = ( edgeIndex, 0, orientation )
                     splitIndex = i
-                    components.append(nextComponent)
+                    arcs.append(nextArc)
                     break
                 else:
-                    # We are still in the middle of the current component.
-                    nextComponent.append( ( edgeIndex, 0 ) )
+                    # We are still in the middle of the current arc.
+                    nextArc.append( ( edgeIndex, 0, orientation ) )
 
-        # Don't forget to include the last component.
-        components.append( [ *nextComponent, *lastComponent ] )
-        return components
+        # Don't forget to include the last arc.
+        arcs.append( [ *nextArc, *lastArc ] )
+        return arcs
 
     def orientation(self):
         """
@@ -617,6 +647,7 @@ class EmbeddedLoop:
 
     #TODO Check what needs to be done for orientations for everything below
     #   this point.
+    #TODO WORKING HERE.
 
     def _shortenImpl(self):
         """

@@ -189,9 +189,8 @@ def idealLoops( surf, oldLoops=[] ):
         # The given surface splits the current oldLoop into some number of
         # components. Which of these components survive to become new ideal
         # loops after crushing?
-        #TODO Will need to tweak this to track orientations.
-        for comp in oldLoop.components(surf):
-            seg = comp[0]
+        for arc in oldLoop.splitArcs(surf):
+            seg = arc[0]
             idEdge = _findIdealEdge( surf, seg, targets )
             if idEdge is None:
                 # This component does not survive after crushing.
@@ -199,13 +198,15 @@ def idealLoops( surf, oldLoops=[] ):
 
             # This component survives after crushing.
             newLoop = [idEdge]
-            for seg in comp[1:]:
+            for seg in arc[1:]:
                 newLoop.append( _findIdealEdge( surf, seg, targets ) )
             newLoops.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
     # chain of boundary bigons?
     if possibleLoopFromBoundary and countIncidentBoundaries(surf) == 1:
+        #TODO Will need to tweak this to track orientations.
+        #TODO WORKING HERE.
         # Find a segment incident to the chain of boundary bigons.
         for e in tri.edges():
             ei = e.index()
@@ -339,6 +340,7 @@ def countIncidentBoundaries(s):
 #TODO This needs to track orientation. Probably the easiest way to do this is
 #   is to return tail and head vertex numbers (instead of an edge number).
 def _findIdealEdge( surf, start, targets=None ):
+    #TODO WORKING HERE.
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
