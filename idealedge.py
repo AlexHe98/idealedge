@@ -361,6 +361,7 @@ def countIncidentBoundaries(s):
 
 #TODO This needs to track orientation. Probably the easiest way to do this is
 #   is to return tail and head vertex numbers (instead of an edge number).
+#TODO Alternatively, maybe we should just rely on tet.edgeMapping()?
 def _findIdealEdge( surf, start, segReps=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
@@ -543,16 +544,49 @@ def _findIdealEdge( surf, start, segReps=None ):
 #TODO WORKING HERE.
 #TODO Completely overhaul _survivingSegments(), probably even with a
 #   renaming, and then update every usage.
-#TODO Values for the returned dictionary might need to include a boolean
-#   indicating whether the representative survives (either that, or we simply
-#   compute this as needed).
+#TODO Maybe give segment representatives both a before and after tetrahedron
+#   index, which would also provide an easy indicator for surviving segments.
 def _segmentRepresentatives(surf):
     """
     Uses the given normal surface to divide the edges of the ambient
     triangulation into segments, and returns a dictionary mapping all the
     oriented embeddings of each segment to a single oriented representative.
+
+    For segments that would survive crushing, the chosen representative is
+    guaranteed to be an embedding of the segment into a central cell. For
+    other segments, the representative is arbitrary.
     """
-    #TODO
+    tri = surf.triangulation()
+
+    # Populate keys with oriented segment embeddings.
+    segReps = dict()
+    for ei in range( tri.countEdges() ):
+        #
+        #TODO
+        raise NotImplementedError()
+
+    # Populate values with oriented segment representatives.
+    shift = 0
+    for tet in tri.tetrahedra():
+        teti = tet.index()
+        quadType = None
+        for q in range(3):
+            if surf.quads( teti, q ).safeLongValue() > 0:
+                quadType = q
+                break
+        if quadType is not None:
+            # Presence of quads means tet is destroyed by crushing, which
+            # will shift all larger tetrahedron indices down by one.
+            shift += 1
+        #TODO Try to do this by iterating through tetrahedra.
+
+        # No quads in tet, so there is a cell in the centre that survives
+        # crushing. Find the edges of this cell that survive.
+        for en in range(6):
+            v = tet.edgeMapping(en)[0]
+            ei = tet.edge(en).index()
+            s = surf.triangles( teti, v ).safeLongValue()
+            survivors[ (ei,s) ] = ( teti - shift, en )
     raise NotImplementedError()
 
 
