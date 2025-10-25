@@ -184,7 +184,7 @@ def idealLoops( surf, oldLoops=[] ):
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
     newLoops = []
-    segReps = _segmentRepresentatives(surf)
+    targets = _survivingSegments(surf)
     for oldLoop in oldLoops:
         wt = oldLoop.weight(surf)
         if wt == 2:
@@ -207,7 +207,7 @@ def idealLoops( surf, oldLoops=[] ):
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
             #TODO Will need to update usage of _findIdealEdge().
-            idEdge = _findIdealEdge( surf, seg, segReps )
+            idEdge = _findIdealEdge( surf, seg, targets )
             if idEdge is None:
                 # This component does not survive after crushing.
                 continue
@@ -216,7 +216,7 @@ def idealLoops( surf, oldLoops=[] ):
             newLoop = [idEdge]
             for seg in arc[1:]:
                 #TODO Will need to update usage of _findIdealEdge().
-                newLoop.append( _findIdealEdge( surf, seg, segReps ) )
+                newLoop.append( _findIdealEdge( surf, seg, targets ) )
             newLoops.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
@@ -361,8 +361,8 @@ def countIncidentBoundaries(s):
 
 #TODO This needs to track orientation. Probably the easiest way to do this is
 #   is to return tail and head vertex numbers (instead of an edge number).
-#TODO Alternatively, maybe we should just rely on tet.edgeMapping()?
-def _findIdealEdge( surf, start, segReps=None ):
+#TODO Can rely on tet.edgeMapping() on keep track of orientations.
+def _findIdealEdge( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
@@ -378,18 +378,17 @@ def _findIdealEdge( surf, start, segReps=None ):
     Here, "tail" and "head" are with respect to the orientation of the ideal
     edge, which will be consistent with the given start segment.
 
-    If the dictionary of segment representatives has been precomputed using
-    the _segmentRepresentatives() routine, then this can be supplied using
-    the optional segReps argument. Otherwise, this routine will compute the
-    segment representatives for itself.
+    If the dictionary of surviving segments has been precomputed using the
+    _survivingSegments() routine, then this can be supplied using the
+    optional targets argument. Otherwise, this routine will compute the
+    surviving segments for itself.
     """
     tri = surf.triangulation()
-    if segReps is None:
-        segReps = _segmentRepresentatives()(surf)
+    if targets is None:
+        targets = _survivingSegments(surf)
 
-    # If the start segment survives, then we are already done.
-    #TODO Need to convert start into a suitable key for segReps.
-    output = segReps.get( start, None )
+    # If the start segment is one of the targets, then we are already done.
+    output = targets.get( start, None )
     if output is not None:
         return output
 
@@ -454,10 +453,9 @@ def _findIdealEdge( surf, start, segReps=None ):
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - seg )
 
-                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = segReps.get( adjacent, None )
+                    output = targets.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -480,10 +478,9 @@ def _findIdealEdge( surf, start, segReps=None ):
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
 
-                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = segReps.get( adjacent, None )
+                    output = targets.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -525,10 +522,9 @@ def _findIdealEdge( surf, start, segReps=None ):
                     else:
                         adjacent = ( eiAdj, triangles + q - qDepth )
 
-                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = segReps.get( adjacent, None )
+                    output = targets.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -539,55 +535,6 @@ def _findIdealEdge( surf, start, segReps=None ):
     # If the search terminates without finding the ideal edge, then the ideal
     # edge must belong to a component that gets destroyed.
     return None
-
-
-#TODO WORKING HERE.
-#TODO Completely overhaul _survivingSegments(), probably even with a
-#   renaming, and then update every usage.
-#TODO Maybe give segment representatives both a before and after tetrahedron
-#   index, which would also provide an easy indicator for surviving segments.
-def _segmentRepresentatives(surf):
-    """
-    Uses the given normal surface to divide the edges of the ambient
-    triangulation into segments, and returns a dictionary mapping all the
-    oriented embeddings of each segment to a single oriented representative.
-
-    For segments that would survive crushing, the chosen representative is
-    guaranteed to be an embedding of the segment into a central cell. For
-    other segments, the representative is arbitrary.
-    """
-    tri = surf.triangulation()
-
-    # Populate keys with oriented segment embeddings.
-    segReps = dict()
-    for ei in range( tri.countEdges() ):
-        #
-        #TODO
-        raise NotImplementedError()
-
-    # Populate values with oriented segment representatives.
-    shift = 0
-    for tet in tri.tetrahedra():
-        teti = tet.index()
-        quadType = None
-        for q in range(3):
-            if surf.quads( teti, q ).safeLongValue() > 0:
-                quadType = q
-                break
-        if quadType is not None:
-            # Presence of quads means tet is destroyed by crushing, which
-            # will shift all larger tetrahedron indices down by one.
-            shift += 1
-        #TODO Try to do this by iterating through tetrahedra.
-
-        # No quads in tet, so there is a cell in the centre that survives
-        # crushing. Find the edges of this cell that survive.
-        for en in range(6):
-            v = tet.edgeMapping(en)[0]
-            ei = tet.edge(en).index()
-            s = surf.triangles( teti, v ).safeLongValue()
-            survivors[ (ei,s) ] = ( teti - shift, en )
-    raise NotImplementedError()
 
 
 def _survivingSegments(surf):
@@ -628,10 +575,14 @@ def _survivingSegments(surf):
         # No quads in tet, so there is a cell in the centre that survives
         # crushing. Find the edges of this cell that survive.
         for en in range(6):
-            v = tet.edgeMapping(en)[0]
+            tail = tet.edgeMapping(en)[0]
+            head = tet.edgeMapping(en)[1]
             ei = tet.edge(en).index()
-            s = surf.triangles( teti, v ).safeLongValue()
-            survivors[ (ei,s) ] = ( teti - shift, en )
+            s = surf.triangles( teti, tail ).safeLongValue()
+
+            # Include both possible orientations.
+            survivors[ (ei,s,1) ] = ( teti - shift, tail, head )
+            survivors[ (ei,s,-1) ] = ( teti - shift, head, tail )
 
     # Done!
     return survivors
