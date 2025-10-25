@@ -408,7 +408,6 @@ def _findIdealEdge( surf, start, targets=None ):
         # We haven't visited the current segment yet, so we need to find all
         # segments that are adjacent to it along parallel cells or faces.
         ei, seg, orient = current
-        #TODO WORKING HERE.
         e = tri.edge(ei)
         wt = surf.edgeWeight(ei).safeLongValue()
         visited.add(current)    # Record as visited now, so we don't forget.
@@ -444,14 +443,24 @@ def _findIdealEdge( surf, start, targets=None ):
 
                     # The current segment is adjacent to a segment of the
                     # edge with endpoints ver[0] and otherEnd.
+                    #
+                    #           ver[0]
+                    #              •
+                    #             / \
+                    #            /   \
+                    #           /     \
+                    #    ver[1]•       •otherEnd
+                    #
                     eiOther = tet.edge( ver[0], otherEnd ).index()
                     enOther = Edge3.edgeNumber[ver[0]][otherEnd]
                     verOther = tet.edgeMapping(enOther)
                     if verOther[0] == ver[0]:
-                        adjacent = ( eiOther, seg )
+                        # Same tails, hence same orientation.
+                        adjacent = ( eiOther, seg, orient )
                     else:
+                        # Opposite orientation.
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - seg )
+                        adjacent = ( eiOther, wtOther - seg, -orient )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
@@ -469,14 +478,24 @@ def _findIdealEdge( surf, start, targets=None ):
 
                     # The current segment is adjacent to a segment of the
                     # edge with endpoints ver[1] and otherEnd.
+                    #
+                    #           ver[0]
+                    #              •
+                    #             /
+                    #            /
+                    #           /
+                    #    ver[1]•-------•otherEnd
+                    #
                     eiOther = tet.edge( ver[1], otherEnd ).index()
                     enOther = Edge3.edgeNumber[ver[1]][otherEnd]
                     verOther = tet.edgeMapping(enOther)
                     if verOther[0] == ver[1]:
-                        adjacent = ( eiOther, wt - seg )
+                        # Opposite orientation.
+                        adjacent = ( eiOther, wt - seg, -1 )
                     else:
+                        # Same orientation.
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - wt + seg )
+                        adjacent = ( eiOther, wtOther - wt + seg, 1 )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
@@ -486,6 +505,7 @@ def _findIdealEdge( surf, start, targets=None ):
                     else:
                         stack.append(adjacent)
             elif q > 0:
+    #TODO WORKING HERE.
                 # The quadrilaterals divide tet into two "sides". The edge
                 # opposite this segment has endpoints lying on different
                 # sides, so we label these endpoints accordingly.
