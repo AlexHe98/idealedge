@@ -184,7 +184,7 @@ def idealLoops( surf, oldLoops=[] ):
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
     newLoops = []
-    targets = _survivingSegments(surf)
+    segReps = _segmentRepresentatives(surf)
     for oldLoop in oldLoops:
         wt = oldLoop.weight(surf)
         if wt == 2:
@@ -207,7 +207,7 @@ def idealLoops( surf, oldLoops=[] ):
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
             #TODO Will need to update usage of _findIdealEdge().
-            idEdge = _findIdealEdge( surf, seg, targets )
+            idEdge = _findIdealEdge( surf, seg, segReps )
             if idEdge is None:
                 # This component does not survive after crushing.
                 continue
@@ -216,7 +216,7 @@ def idealLoops( surf, oldLoops=[] ):
             newLoop = [idEdge]
             for seg in arc[1:]:
                 #TODO Will need to update usage of _findIdealEdge().
-                newLoop.append( _findIdealEdge( surf, seg, targets ) )
+                newLoop.append( _findIdealEdge( surf, seg, segReps ) )
             newLoops.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
@@ -361,7 +361,7 @@ def countIncidentBoundaries(s):
 
 #TODO This needs to track orientation. Probably the easiest way to do this is
 #   is to return tail and head vertex numbers (instead of an edge number).
-def _findIdealEdge( surf, start, targets=None ):
+def _findIdealEdge( surf, start, segReps=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
     segment after crushing surf.
@@ -377,25 +377,27 @@ def _findIdealEdge( surf, start, targets=None ):
     Here, "tail" and "head" are with respect to the orientation of the ideal
     edge, which will be consistent with the given start segment.
 
-    If the dictionary of surviving segments has been precomputed using the
-    _survivingSegments() routine, then this can be supplied using the
-    optional targets argument. Otherwise, this routine will compute the
-    surviving segments for itself.
+    If the dictionary of segment representatives has been precomputed using
+    the _segmentRepresentatives() routine, then this can be supplied using
+    the optional segReps argument. Otherwise, this routine will compute the
+    segment representatives for itself.
     """
-    #TODO WORKING HERE.
-    #TODO Can no longer use targets directly since we now have orientations.
-    #   We might even need to completely overhaul the algorithms used for
-    #   _survivingSegments() and/or this routine.
     tri = surf.triangulation()
-    if targets is None:
-        targets = _survivingSegments(surf)
+    if segReps is None:
+        segReps = _segmentRepresentatives()(surf)
 
-    # If the start segment is one of the targets, then we are already done.
-    output = targets.get( start, None )
+    # If the start segment survives, then we are already done.
+    #TODO Need to convert start into a suitable key for segReps.
+    output = segReps.get( start, None )
     if output is not None:
         return output
 
     # Otherwise, we find the ideal edge using depth-first search.
+    #
+    # In theory, this could be done in polynomial time using the
+    # Agol-Hass-Thurston weighted orbit-counting algorithm. However,
+    # depth-first search is much easier to implement, and works very well in
+    # practice.
     stack = [start]
     visited = set()
     while stack:
@@ -405,7 +407,8 @@ def _findIdealEdge( surf, start, targets=None ):
 
         # We haven't visited the current segment yet, so we need to find all
         # segments that are adjacent to it along parallel cells or faces.
-        ei, seg = current
+        ei, seg, orient = current
+        #TODO WORKING HERE.
         e = tri.edge(ei)
         wt = surf.edgeWeight(ei).safeLongValue()
         visited.add(current)    # Record as visited now, so we don't forget.
@@ -450,9 +453,10 @@ def _findIdealEdge( surf, start, targets=None ):
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - seg )
 
+                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
+                    output = segReps.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -475,9 +479,10 @@ def _findIdealEdge( surf, start, targets=None ):
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
                         adjacent = ( eiOther, wtOther - wt + seg )
 
+                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
+                    output = segReps.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -519,9 +524,10 @@ def _findIdealEdge( surf, start, targets=None ):
                     else:
                         adjacent = ( eiAdj, triangles + q - qDepth )
 
+                    #TODO Replace targets.
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
+                    output = segReps.get( adjacent, None )
                     if output is not None:
                         return output
                     else:
@@ -532,6 +538,22 @@ def _findIdealEdge( surf, start, targets=None ):
     # If the search terminates without finding the ideal edge, then the ideal
     # edge must belong to a component that gets destroyed.
     return None
+
+
+#TODO WORKING HERE.
+#TODO Completely overhaul _survivingSegments(), probably even with a
+#   renaming, and then update every usage.
+#TODO Values for the returned dictionary might need to include a boolean
+#   indicating whether the representative survives (either that, or we simply
+#   compute this as needed).
+def _segmentRepresentatives(surf):
+    """
+    Uses the given normal surface to divide the edges of the ambient
+    triangulation into segments, and returns a dictionary mapping all the
+    oriented embeddings of each segment to a single oriented representative.
+    """
+    #TODO
+    raise NotImplementedError()
 
 
 def _survivingSegments(surf):
