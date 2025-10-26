@@ -425,6 +425,7 @@ def _findIdealEdge( surf, start, targets=None ):
             qType = None
             for qt in range(3):
                 if qt in { en, 5-en }:
+                    # This is the quad type that is disjoint from e.
                     continue
                 quads = surf.quads( teti, qt ).safeLongValue()
                 if quads > 0:
@@ -447,7 +448,7 @@ def _findIdealEdge( surf, start, targets=None ):
                     #           ver[0]
                     #              •
                     #             / \
-                    #            /   \
+                    #      edge e/   \
                     #           /     \
                     #    ver[1]•       •otherEnd
                     #
@@ -482,7 +483,7 @@ def _findIdealEdge( surf, start, targets=None ):
                     #           ver[0]
                     #              •
                     #             /
-                    #            /
+                    #      edge e/
                     #           /
                     #    ver[1]•-------•otherEnd
                     #
@@ -509,6 +510,21 @@ def _findIdealEdge( surf, start, targets=None ):
                 # The quadrilaterals divide tet into two "sides". The edge
                 # opposite this segment has endpoints lying on different
                 # sides, so we label these endpoints accordingly.
+                #
+                #               ver[0]
+                #                  •
+                #                 /|\
+                #          edge e/ | \
+                #               /__|__\
+                #              /|  |  |\
+                #       ver[1]•-|--|--|-•opp[1]
+                #              \|__|__|/
+                #               \  |  /
+                #                \ | /opposite edge
+                #                 \|/
+                #                  •
+                #               opp[0]
+                #
                 side = [ { 0, qType + 1 } ]
                 side.append( {0,1,2,3} - side[0] )
                 if ver[0] not in side[0]:
