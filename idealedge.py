@@ -72,6 +72,8 @@ def decomposeAlong( surf, oldLoops ):
         compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
         for seq in loopInfo:
             shiftedSeq = []
+            #TODO This unpacking won't work anymore now that we're tracking
+            #   orientations.
             for t, e in seq:
                 compi = crushed.tetrahedron(t).component().index()
                 shiftedSeq.append( ( shiftedIndex[t], e ) )
@@ -85,6 +87,8 @@ def decomposeAlong( surf, oldLoops ):
         loops = []
         for seq in loopInfo:
             edgeList = []
+            #TODO This unpacking won't work anymore now that we're tracking
+            #   orientations.
             for t, e in seq:
                 edgeList.append( tri.tetrahedron(t).edge(e) )
 
@@ -181,6 +185,7 @@ def idealLoops( surf, oldLoops=[] ):
                 "for the input surface." )
         raise ValueError(msg)
 
+    #TODO WORKING HERE.
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
     newLoops = []
@@ -359,9 +364,6 @@ def countIncidentBoundaries(s):
     return len(incident)
 
 
-#TODO This needs to track orientation. Probably the easiest way to do this is
-#   is to return tail and head vertex numbers (instead of an edge number).
-#TODO Can rely on tet.edgeMapping() on keep track of orientations.
 def _findIdealEdge( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
@@ -492,11 +494,11 @@ def _findIdealEdge( surf, start, targets=None ):
                     verOther = tet.edgeMapping(enOther)
                     if verOther[0] == ver[1]:
                         # Opposite orientation.
-                        adjacent = ( eiOther, wt - seg, -1 )
+                        adjacent = ( eiOther, wt - seg, -orient )
                     else:
                         # Same orientation.
                         wtOther = surf.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - wt + seg, 1 )
+                        adjacent = ( eiOther, wtOther - wt + seg, orient )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
@@ -506,10 +508,13 @@ def _findIdealEdge( surf, start, targets=None ):
                     else:
                         stack.append(adjacent)
             elif q > 0:
-    #TODO WORKING HERE.
+                # At this point, we have f[0] <= seg <= f[0] + q.
+                #
                 # The quadrilaterals divide tet into two "sides". The edge
                 # opposite this segment has endpoints lying on different
-                # sides, so we label these endpoints accordingly.
+                # sides, and we can label these opposite endpoints opp[i],
+                # i in {0,1}, so that ver[i] and opp[i] lie on the same side
+                # of the quadrilaterals, as shown in the diagram below.
                 #
                 #               ver[0]
                 #                  •
@@ -535,6 +540,10 @@ def _findIdealEdge( surf, start, targets=None ):
 
                 # Find all edges containing segments that are adjacent to the
                 # current segment.
+                #
+                # It is crucial that for each pair in adjEndpoints, the first
+                # vertex is on the "0" side of the quadrilateral, and the
+                # second vertex is on the "1" side of the quadrilateral.
                 qDepth = seg - f[0]     # 0 <= qDepth <= q
                 if qDepth == 0:
                     adjEndpoints = [ [ ver[0], opp[1] ] ]
@@ -554,9 +563,11 @@ def _findIdealEdge( surf, start, targets=None ):
                     triangles = surf.triangles(
                             teti, verAdj[0] ).safeLongValue()
                     if verAdj[0] == start:
-                        adjacent = ( eiAdj, triangles + qDepth )
+                        # Same orientation.
+                        adjacent = ( eiAdj, triangles + qDepth, orient )
                     else:
-                        adjacent = ( eiAdj, triangles + q - qDepth )
+                        # Opposite orientation.
+                        adjacent = ( eiAdj, triangles + q - qDepth, -orient )
 
                     # If the adjacent segment is one of the targets, then we
                     # are done; otherwise, we add it to the stack.
@@ -579,18 +590,23 @@ def _survivingSegments(surf):
     triangulation into segments, and returns a dictionary describing the
     segments that would survive after crushing surf.
 
-    In detail, the keys of the returned dictionary will be surviving segments
-    encoded as pairs of the form (ei, s), where:
-    --> ei is an edge index; and
+    In detail, the keys of the returned dictionary will be oriented surviving
+    segments, encoded as triples of the form (ei, s, o), where:
+    --> ei is an edge index;
     --> s is a segment number from 0 to w, inclusive, where w is the weight
-        of surf on edge ei.
+        of surf on edge ei; and
+    --> o is +1 if edge ei is oriented from vertex 0 to vertex 1, and -1 if
+        edge ei is oriented from vertex 1 to vertex 0.
     The segments for each edge e are numbered in ascending order from the one
     incident to e.vertex(0) to the one incident to e.vertex(1). The returned
-    dictionary will map each such segment to a pair (t, en), where:
-    --> t is the index after crushing of a tetrahedron that will be incident
-        to the segment in question; and
-    --> en is an edge number (from 0 to 5, inclusive) of this tetrahedron
-        that corresponds to the segment in question.
+    dictionary will map each such segment to a triple (ia, t, h), where:
+    --> ia is the index after crushing of a tetrahedron that will be incident
+        to the segment in question;
+    --> t is the vertex number (from 0 to 3, inclusive) of tetrahedron ia
+        that is at the tail of the edge that corresponds to the segment in
+        question; and
+    --> h is the vertex number of tetrahedron ia that is at the head of the
+        edge.
     """
     tri = surf.triangulation()
     survivors = dict()
