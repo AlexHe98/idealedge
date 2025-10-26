@@ -81,6 +81,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # Or just print if we're not using packets.
                 print(adorn)
         components = []
+        #TODO Might need to update this once idealLoops() has been reimplemented.
         idEdgeDetails = idealLoops(surf)
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
