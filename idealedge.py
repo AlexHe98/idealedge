@@ -46,9 +46,7 @@ def decomposeAlong( surf, oldLoops ):
     --> The given surf and each ideal loop in oldLoops must all lie in the
         same triangulation.
     """
-    #TODO WORKING HERE.
     # Find where the new ideal loops will be after crushing.
-    #TODO Might need to update this once idealLoops() has been reimplemented.
     loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
 
@@ -73,11 +71,11 @@ def decomposeAlong( surf, oldLoops ):
         compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
         for seq in loopInfo:
             shiftedSeq = []
-            #TODO This unpacking won't work anymore now that we're tracking
-            #   orientations.
-            for t, e in seq:
-                compi = crushed.tetrahedron(t).component().index()
-                shiftedSeq.append( ( shiftedIndex[t], e ) )
+            for teti, tail, head in seq:
+                shiftedSeq.append( ( shiftedIndex[teti], tail, head ) )
+
+            # Abuse the fact that teti persists beyond the scope of the loop.
+            compi = crushed.tetrahedron(teti).component().index()
             compLoopInfo[compi].append(shiftedSeq)
 
     # Use compLoopInfo to find the ideal loops in each component.
@@ -87,15 +85,26 @@ def decomposeAlong( surf, oldLoops ):
         loopInfo = compLoopInfo[compi]
         loops = []
         for seq in loopInfo:
+            # To construct an IdealLoop, we need:
+            #   --> a list of edges, in order as we traverse the loop; and
+            #   --> an orientation, which is either +1 if the first edge of
+            #       the loop is oriented from vertex 0 to vertex 1, and -1 if
+            #       the first edge is oriented from vertex 1 to vertex 0.
             edgeList = []
-            #TODO This unpacking won't work anymore now that we're tracking
-            #   orientations.
-            for t, e in seq:
-                edgeList.append( tri.tetrahedron(t).edge(e) )
+            for teti, tail, head in seq:
+                edgeList.append(
+                        tri.tetrahedron(teti).edge( tail, head ) )
+            firstTet = tri.tetrahedron( seq[0][0] )
+            firstTail, firstHead = seq[0][1], seq[0][2]
+            edgeNum = Edge3.edgeNumber[firstTail][firstHead]
+            if firstTail == firstTet.edgeMapping(edgeNum)[0]:
+                orientation = 1
+            else:
+                orientation = -1
 
             # Note that we could have a degenerate loop.
             try:
-                loop = IdealLoop(edgeList)
+                loop = IdealLoop( edgeList, orientation )
             except NotLoop:
                 # Ignore degenerate loop.
                 continue

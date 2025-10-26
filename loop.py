@@ -99,6 +99,8 @@ class BoundsDisc(EmbeddedLoopException):
 #   be modified to track orientations.
 #TODO Find all uses of the "setFrom" routines, and see how the usage needs to
 #   be modified to track orientations.
+#TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
+#   make sure that they track orientations (if necessary).
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -1122,6 +1124,7 @@ class EmbeddedLoop:
         return simplified
 
 
+#TODO Document new constructor.
 class IdealLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded ideal loop in the interior
@@ -1142,7 +1145,7 @@ class IdealLoop(EmbeddedLoop):
         index of the ith edge in the loop
     --> iterating through the loop yields all the edge indices in order
     """
-    def __init__( self, edges=None ):
+    def __init__( self, edges=None, orientation=None ):
         """
         Creates an ideal loop from the given list of edges.
 
@@ -1166,7 +1169,7 @@ class IdealLoop(EmbeddedLoop):
             triangulation T, and moreover all of these edges must lie
             entirely in the interior of T.
         """
-        super().__init__(edges)
+        super().__init__( edges, orientation )
         return
 
     def clone(self):
@@ -1509,6 +1512,7 @@ class IdealLoop(EmbeddedLoop):
         return
 
 
+#TODO Document new constructor.
 class BoundaryLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded loop on the boundary of a
@@ -1529,7 +1533,7 @@ class BoundaryLoop(EmbeddedLoop):
         index of the ith edge in the loop
     --> iterating through the loop yields all the edge indices in order
     """
-    def __init__( self, edges=None ):
+    def __init__( self, edges=None, orientation=None ):
         """
         Creates a boundary loop from the given list of edges.
 
@@ -1553,7 +1557,7 @@ class BoundaryLoop(EmbeddedLoop):
             triangulation T, and moreover all of these edges must lie
             entirely on the boundary of T.
         """
-        super().__init__(edges)
+        super().__init__( edges, orientation )
         return
 
     def clone(self):
