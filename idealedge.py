@@ -46,6 +46,7 @@ def decomposeAlong( surf, oldLoops ):
     --> The given surf and each ideal loop in oldLoops must all lie in the
         same triangulation.
     """
+    #TODO WORKING HERE.
     # Find where the new ideal loops will be after crushing.
     #TODO Might need to update this once idealLoops() has been reimplemented.
     loopInfo = idealLoops( surf, oldLoops )
@@ -111,8 +112,6 @@ def decomposeAlong( surf, oldLoops ):
     return output
 
 
-#TODO This needs to track orientation. Probably the easiest way to do this is
-#   is to replace edge numbers with tail and head vertex numbers.
 def idealLoops( surf, oldLoops=[] ):
     """
     Returns information about the ideal loops after crushing the given normal
@@ -139,11 +138,13 @@ def idealLoops( surf, oldLoops=[] ):
     after crushing the given surface (see below for a more detailed
     description of how the ideal loops before crushing are related to the
     ideal loops after crushing). Each such ideal loop is encoded as a list of
-    pairs of the form (t,e), where:
-    --> t is the index after crushing of a tetrahedron that will be incident
-        to one of the ideal edges; and
-    --> e is an edge number (from 0 to 5, inclusive) of this tetrahedron that
-        corresponds to the ideal edge in question.
+    pairs of the form (ia, t, h), where:
+    --> ia is the index after crushing of a tetrahedron that will be incident
+        to one of the ideal edges;
+    --> t is the vertex number (from 0 to 3, inclusive) of tetrahedron ia at
+        the tail of the ideal edge in question; and
+    --> h is the vertex number of tetrahedron ia at the head of the ideal
+        edge.
     A caveat to this is that when the given surf is a 2-sphere, there is one
     possible degenerate ideal loop: a pair of edges giving an unknotted loop,
     such that the two edges get merged to become a single non-loop edge after
@@ -185,7 +186,6 @@ def idealLoops( surf, oldLoops=[] ):
                 "for the input surface." )
         raise ValueError(msg)
 
-    #TODO WORKING HERE.
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
     newLoops = []
@@ -211,7 +211,6 @@ def idealLoops( surf, oldLoops=[] ):
         # loops after crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
-            #TODO Will need to update usage of _findIdealEdge().
             idEdge = _findIdealEdge( surf, seg, targets )
             if idEdge is None:
                 # This component does not survive after crushing.
@@ -220,7 +219,6 @@ def idealLoops( surf, oldLoops=[] ):
             # This component survives after crushing.
             newLoop = [idEdge]
             for seg in arc[1:]:
-                #TODO Will need to update usage of _findIdealEdge().
                 newLoop.append( _findIdealEdge( surf, seg, targets ) )
             newLoops.append(newLoop)
 
@@ -238,8 +236,7 @@ def idealLoops( surf, oldLoops=[] ):
 
         # If this segment survives after crushing, then it forms a new ideal
         # loop of length one.
-        #TODO Will need to update usage of _findIdealEdge().
-        idEdge = _findIdealEdge( surf, seg )
+        idEdge = _findIdealEdge( surf, seg, targets )
         if idEdge is not None:
             newLoops.append( [idEdge] )
 
