@@ -126,7 +126,7 @@ class EmbeddedLoop:
         loop's orientation
     """
     def __init__( self, edges=None, orientation=None ):
-        r"""
+        """
         Creates an embedded loop from the given list of edges.
 
         If no edges are supplied, then creates an empty object with no data.
@@ -1124,7 +1124,7 @@ class EmbeddedLoop:
         return simplified
 
 
-#TODO Document new constructor.
+#TODO Update class documentation to mention tracking of orientation.
 class IdealLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded ideal loop in the interior
@@ -1152,6 +1152,13 @@ class IdealLoop(EmbeddedLoop):
         If no edges are supplied, then creates an empty object with no data.
         In this case, one of the "set from" routines must be called on the
         ideal loop before performing any computations.
+
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -1512,7 +1519,7 @@ class IdealLoop(EmbeddedLoop):
         return
 
 
-#TODO Document new constructor.
+#TODO Update class documentation to mention tracking of orientation.
 class BoundaryLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded loop on the boundary of a
@@ -1540,6 +1547,13 @@ class BoundaryLoop(EmbeddedLoop):
         If no edges are supplied, then creates an empty object with no data.
         In this case, one of the "set from" routines must be called on the
         boundary loop before performing any computations.
+
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be either +1 or -1; orientation +1
+        means that the first edge e in the given list of edges (that is,
+        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
+        orientation -1 means that e is oriented from vertex 1 to vertex 0.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
