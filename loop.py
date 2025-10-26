@@ -652,10 +652,17 @@ class EmbeddedLoop:
     #TODO WORKING HERE.
 
     def _shortenImpl(self):
-        """
+        r"""
         Shortens this embedded loop by looking for triangles that intersect
         this loop in two edges, and redirecting this loop to use the third
         edge.
+
+                    Before redirect         After redirect
+                           •                       •
+                          / \
+                         /   \
+                        /     \
+                       •       •               •-------•
 
         The default implementation of this routine requires the helper
         routine _redirectCandidates(), which is *not* implemented by default.
@@ -704,20 +711,34 @@ class EmbeddedLoop:
         raise NotImplementedError()
 
     def _attemptRedirect( self, face ):
-        # If the given face intersects this loop in exactly two edges, then
-        # we can redirect this loop along the third edge of the given face.
-        incidentLocations = set()
-        nonIncidentEdgeIndices = set()
+        # If the given face intersects this loop in exactly two *distinct*
+        # edges, then we can redirect this loop along the third edge of the
+        # given face.
+        #
+        #           Before redirect         After redirect
+        #                  •                       •
+        #                 / \
+        #                /   \
+        #               /     \
+        #              •       •               •-------•
+        #
+        incidentLocations = set()       # Location in this loop.
+        tails = set()
+        heads = set()
+        nonIncidentEdgeNums = set()
         for e in range(3):
-            edgeIndex = face.edge(e).index()
             try:
-                location = self._edgeIndices.index(edgeIndex)
+                location = self._edgeIndices.index(
+                        face.edge(e).index() )
             except ValueError:
-                # Edge is not incident to this loop.
-                nonIncidentEdgeIndices.add(edgeIndex)
+                nonIncidentEdgeNums.add(e)
             else:
-                # Edge is incident to this loop.
                 incidentLocations.add(location)
+
+                # Which vertices of this face are at the tail and head?
+                eTail = self._tails[location]
+                tails.add( face.edgeMapping(e)[eTail] )
+                heads.add( face.edgeMapping(e)[1-eTail] )
 
         # Does the given face form an embedded disc bounded by this loop?
         if len(incidentLocations) == 3:
@@ -726,11 +747,30 @@ class EmbeddedLoop:
         # Perform redirect if possible.
         if len(incidentLocations) != 2:
             return False
-        first, second = incidentLocations
-        self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
-        self._edgeIndices.pop(second)
+        swap, delete = incidentLocations
+        newEdgeNum = nonIncidentEdgeNums.pop()
+        if ( swap == 0 ) or ( delete == 0 and swap == 1 ):
+            # New orientation is determined by the new edge.
+            #
+            # After redirecting, the tail of the new edge is given by the old
+            # tail that is not also an old head.
+            newTail = face.edgeMapping(newEdgeNum).inverse()[
+                    (tails - heads).pop() ]
+            if newTail == 0:
+                newOrientation = 1
+            else:
+                newOrientation = -1
+        else:
+            # New orientation is determined by an edge that is already part
+            # of this loop.
+            if delete == 0:
+                newOrientation = self.edgeOrientation(1)
+            else:
+                newOrientation = self.edgeOrientation(0)
+        self._edgeIndices[swap] = face.edge(newEdgeNum).index()
+        self._edgeIndices.pop(delete)
         newEdges = [ self._tri.edge(i) for i in self ]
-        self.setFromEdges(newEdges)
+        self.setFromEdges( newEdges, newOrientation )
         return True
 
     def _minimiseBoundaryImpl(self):
@@ -1206,13 +1246,20 @@ class IdealLoop(EmbeddedLoop):
         return drilled
 
     def shorten(self):
-        """
+        r"""
         Shortens this ideal loop.
 
         In detail, if this ideal loop meets any triangle F in exactly two
         distinct edges, then it can be shortened by replacing these two edges
         with the third edge of F. This routine performs such shortenings
         until no further shortening is possible.
+
+                    Before shortening         After shortening
+                             •                        •
+                            / \
+                           /   \
+                          /     \
+                         •       •                •-------•
 
         This routine might raise BoundsDisc.
 
@@ -1590,13 +1637,20 @@ class BoundaryLoop(EmbeddedLoop):
         return self._tri.edge( self[0] ).boundaryComponent()
 
     def shorten(self):
-        """
+        r"""
         Shortens this boundary loop.
 
         In detail, if this boundary loop meets any *boundary* triangle F in
         exactly two distinct edges, then it can be shortened by replacing
         these two edges with the third edge of F. This routine performs such
         shortenings until no further shortening is possible.
+
+                    Before shortening         After shortening
+                             •                        •
+                            / \
+                           /   \
+                          /     \
+                         •       •                •-------•
 
         This routine might raise BoundsDisc.
 
