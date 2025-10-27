@@ -609,7 +609,8 @@ class EmbeddedLoop:
 
     def orientation(self):
         """
-        Returns the orientation of this embedded loop.
+        Returns the orientation of this embedded loop with respect to the
+        labelling of self.triangulation().
 
         In detail, the returned value will be:
         --> +1 if the first edge e in this embedded loop is oriented from
@@ -837,12 +838,25 @@ class EmbeddedLoop:
 
             # Is there a move we can perform to reduce the number of boundary
             # triangles?
+            #TODO I think _findBoundaryMove() might need to be the one to do
+            #   the work of tracking orientation.
             moveDetails = self._findBoundaryMove()
             if moveDetails is None:
                 # At this point, all boundary components must be minimal.
                 return changed
             changed = True
             edge, doLayer, newEdgeIndices = moveDetails
+
+            # Make sure that after performing the move, we will be able to:
+            #   --> find the edges that form the loop; and
+            #   --> remember the orientation of the loop.
+            edgeLocations = []
+            for ei in newEdgeIndices:
+                #TODO
+                raise NotImplementedError()
+
+            #TODO WORKING HERE.
+            #TODO How do we track orientation through the move?
 
             # Make sure we will be able to find the edges that form the loop
             # after performing the move.
@@ -860,6 +874,7 @@ class EmbeddedLoop:
             self.setFromEdgeLocations(edgeLocations)
         return
 
+    #TODO Modify to return orientation information (probably via a tail).
     def _findBoundaryMove(self):
         """
         Returns details of a boundary move that simplifies the boundary of
@@ -1335,6 +1350,7 @@ class IdealLoop(EmbeddedLoop):
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
+    #TODO Modify to return orientation information (probably via a tail).
     def _findBoundaryMove(self):
         # Precondition:
         #   --> This loop cannot be shortened.
@@ -1726,6 +1742,7 @@ class BoundaryLoop(EmbeddedLoop):
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
+    #TODO Modify to return orientation information (probably via a tail).
     def _findBoundaryMove(self):
         # Exceptions:
         #   --> Might raise BoundsDisc.
@@ -1770,13 +1787,10 @@ class BoundaryLoop(EmbeddedLoop):
             # move that effectively removes one of the edges from this loop.
             # This operation is guaranteed to be legal for any edge belonging
             # to this loop; here we choose to perform it on the last edge.
-            #
-            # It is safe to directly modify self._edgeIndices since this will
-            # need to be updated anyway.
-            lastEdgeIndex = self._edgeIndices.pop()
+            lastEdgeIndex = self._edgeIndices[-1]
             return ( self._tri.edge(lastEdgeIndex),
                     True,   # Layer before performing close book.
-                    self._edgeIndices )
+                    self._edgeIndices[:-1] )
 
         # At this point, if the boundary component containing the loop is not
         # yet minimal, then we at least know that the loop consists only of a
