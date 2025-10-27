@@ -387,8 +387,11 @@ class EmbeddedLoop:
 
         The cloned loop will always be embedded in a copy of the
         triangulation containing this loop.
+
+        The cloned loop will always be assigned the same orientation as this
+        one.
         """
-        return EmbeddedLoop( self._cloneImpl() )
+        return EmbeddedLoop( self._cloneImpl(), self.orientation() )
 
     def _cloneImpl(self):
         newTri = Triangulation3( self._tri )
@@ -647,10 +650,6 @@ class EmbeddedLoop:
         self._tails = [ 1 - i for i in self._tails ]
         return
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
     def _shortenImpl(self):
         r"""
         Shortens this embedded loop by looking for triangles that intersect
@@ -663,6 +662,9 @@ class EmbeddedLoop:
                          /   \
                         /     \
                        •       •               •-------•
+
+        This routine guarantees to preserve the orientation of this loop,
+        regardless of how much the loop gets shortened.
 
         The default implementation of this routine requires the helper
         routine _redirectCandidates(), which is *not* implemented by default.
@@ -772,6 +774,10 @@ class EmbeddedLoop:
         newEdges = [ self._tri.edge(i) for i in self ]
         self.setFromEdges( newEdges, newOrientation )
         return True
+
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
+    #TODO WORKING HERE.
 
     def _minimiseBoundaryImpl(self):
         """
