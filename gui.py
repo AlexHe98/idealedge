@@ -173,6 +173,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     mer.simplify()
                     mer.simplify()
                     drilled = PacketOfTriangulation3( mer.triangulation() )
+                    print( "Oriented? {}".format( drilled.isOriented() ) )
                     if usingPackets:
                         filled.insertChildLast(drilled)
 
@@ -324,6 +325,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         mer.simplify()
                         mer.simplify()
                         drilled = PacketOfTriangulation3( mer.triangulation() )
+                        print( "Oriented? {}".format( drilled.isOriented() ) )
                         if usingPackets:
                             filled.insertChildLast(drilled)
 
@@ -591,6 +593,7 @@ if __name__ == "__main__":
         manifold.insertFibre(p,q)
     tri = manifold.construct()
     tri.removeTetrahedronAt(3)
+    tri.orient()
     tri.intelligentSimplify()
     tri.intelligentSimplify()
 #    p = int( argv[1] )
