@@ -154,14 +154,13 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # Have we isolated a single exceptional fibre?
                 invIdLoop = IdealLoop( [invIdEdge] )
                 try:
-                    # The meridian of the ideal loop is a candidate for an
-                    # exceptional fibre.
+                    # The meridian of the ideal loop is a candidate for a
+                    # regular fibre.
                     mer = drillMeridian(invIdLoop)
                 except BoundsDisc:
                     # The meridian bounds a disc "on the outside", so the
                     # filled triangulation must have been S2 x S1. In
-                    # particular, the meridian cannot be an exceptional
-                    # fibre.
+                    # particular, the meridian cannot be a regular fibre.
                     if usingPackets:
                         filled.setLabel(
                                 filled.label() + ": {}".format(
@@ -222,21 +221,35 @@ def crushAnnuli( surfaces, threshold=30 ):
                         #TODO Sphere. Probably want to crush.
                         name = "Contains nontrivial sphere"
                     else:
-                        #TODO WORKING HERE.
-                        #TODO Use tetrahedron orientations to figure out sign of q.
-
                         # Use boundary edge weights of the disc to calculate
-                        # Seifert parameters (as outlined above).
+                        # Seifert parameters.
+                        #
+                        #NOTE: This won't work without tracking orientations.
                         merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                        for e in drilled.edges():
-                            if e.index() == merEdgeIndex or not e.isBoundary():
-                                continue
-
-                            # Found another boundary edge.
-                            bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
-                            break
+                        merEdge = drilled.edge(merEdgeIndex)
+                        front = merEdge.front()
+                        ver = front.vertices()
+                        tet = front.tetrahedron()
+                        lower = tet.edge( ver[0], ver[2] )
+                        upper = tet.edge( ver[1], ver[2] )
+                        lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
+                        uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+                        if merWt == lowWt + uppWt:
+                            print("M=L+U")
+                            shift = lowWt
+                        elif uppWt == merWt + lowWt:
+                            print("U=M+L")
+                            shift = -lowWt
+                        elif lowWt == merWt + uppWt:
+                            print("L=M+U")
+                            shift = uppWt
+                        else:
+                            raise ValueError( "Weights don't add up." )
+                        q = pow( shift, -1, merWt )
+                        if q > merWt // 2:
+                            q -= merWt
                         name = "Seifert fibre (p,q)=({},{})".format(
-                                merWt, pow( bdyWt, -1, merWt ) )
+                                merWt, q )
                     if usingPackets:
                         drilled.setLabel(
                                 drilled.label() + ": {}".format(name) )
@@ -360,17 +373,34 @@ def crushAnnuli( surfaces, threshold=30 ):
                             name = "Contains nontrivial sphere"
                         else:
                             # Use boundary edge weights of the disc to calculate
-                            # Seifert parameters (as outlined above).
+                            # Seifert parameters.
+                            #
+                            #NOTE: This won't work without tracking orientations.
                             merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                            for e in drilled.edges():
-                                if e.index() == merEdgeIndex or not e.isBoundary():
-                                    continue
-
-                                # Found another boundary edge.
-                                bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
-                                break
+                            merEdge = drilled.edge(merEdgeIndex)
+                            front = merEdge.front()
+                            ver = front.vertices()
+                            tet = front.tetrahedron()
+                            lower = tet.edge( ver[0], ver[2] )
+                            upper = tet.edge( ver[1], ver[2] )
+                            lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
+                            uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+                            if merWt == lowWt + uppWt:
+                                print("M=L+U")
+                                shift = lowWt
+                            elif uppWt == merWt + lowWt:
+                                print("U=M+L")
+                                shift = -lowWt
+                            elif lowWt == merWt + uppWt:
+                                print("L=M+U")
+                                shift = uppWt
+                            else:
+                                raise ValueError( "Weights don't add up." )
+                            q = pow( shift, -1, merWt )
+                            if q > merWt // 2:
+                                q -= merWt
                             name = "Seifert fibre (p,q)=({},{})".format(
-                                    merWt, pow( bdyWt, -1, merWt ) )
+                                    merWt, q )
                         if usingPackets:
                             drilled.setLabel(
                                     drilled.label() + ": {}".format(name) )
