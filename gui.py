@@ -53,15 +53,19 @@ def crushAnnuli( surfaces, threshold=30 ):
     for surfNum, surf in enumerate(surfaces):
         if not isAnnulus(surf):
             continue
+        thin = surf.isThinEdgeLink()
+        if thin[0] is not None:
+            # Don't bother with thin edge links.
+            continue
         annulusCount += 1
         print()
         print( "Time: {:.6f}. Crush #{}.".format(
             default_timer() - start, surfNum) )
 
-        # Is the current annulus a thin edge link?
-        thin = surf.isThinEdgeLink()
-        if thin[0] is None:
-            thinAdorn = ""
+#        # Is the current annulus a thin edge link?
+#        thin = surf.isThinEdgeLink()
+#        if thin[0] is None:
+#            thinAdorn = ""
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
@@ -69,17 +73,17 @@ def crushAnnuli( surfaces, threshold=30 ):
         if usingPackets:
             tri.setLabel( "Crushed #{}".format(surfNum) )
             results.insertChildLast(tri)
-        thin = surf.isThinEdgeLink()
-        if thin[0] is not None:
-            # Adorn label with details of this thin edge link.
-            adorn = "Thin edge {}".format( thin[0].index() )
-            if thin [1] is not None:
-                adorn += " and {}".format( thin[1].index() )
-            if usingPackets:
-                tri.setLabel( tri.adornedLabel(adorn) )
-            else:
-                # Or just print if we're not using packets.
-                print(adorn)
+#        thin = surf.isThinEdgeLink()
+#        if thin[0] is not None:
+#            # Adorn label with details of this thin edge link.
+#            adorn = "Thin edge {}".format( thin[0].index() )
+#            if thin [1] is not None:
+#                adorn += " and {}".format( thin[1].index() )
+#            if usingPackets:
+#                tri.setLabel( tri.adornedLabel(adorn) )
+#            else:
+#                # Or just print if we're not using packets.
+#                print(adorn)
         components = []
         #TODO Might need to update this once idealLoops() has been reimplemented.
         idEdgeDetails = idealLoops(surf)
