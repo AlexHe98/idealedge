@@ -222,6 +222,9 @@ def crushAnnuli( surfaces, threshold=30 ):
                         #TODO Sphere. Probably want to crush.
                         name = "Contains nontrivial sphere"
                     else:
+                        #TODO WORKING HERE.
+                        #TODO Use tetrahedron orientations to figure out sign of q.
+
                         # Use boundary edge weights of the disc to calculate
                         # Seifert parameters (as outlined above).
                         merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
