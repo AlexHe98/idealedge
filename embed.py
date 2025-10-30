@@ -3,6 +3,7 @@ Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
 from loop import IdealLoop, BoundsDisc
+from insert import layerOn
 try:
     import snappy
 except ModuleNotFoundError:
@@ -112,7 +113,7 @@ def reversePinch( knotComplement, packet=None ):
     edgeNum = emb.face()
 
     # Close up the boundary and build the IdealLoop.
-    layer = knotComplement.layerOn(mer)
+    layer = layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     return _edgeToIdealLoop( idealEdge, packet )

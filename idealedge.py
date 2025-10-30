@@ -3,6 +3,7 @@ Find the ideal edges after crushing a normal surface.
 """
 from regina import *
 from loop import NotLoop, IdealLoop
+from insert import layerOn
 
 
 def decomposeAlong( surf, oldLoops ):
@@ -299,7 +300,7 @@ def fillIdealEdge(tri):
             layerEdge = None
             break
     if layerEdge is not None:
-        tri.layerOn(layerEdge)
+        layerOn(layerEdge)
 
     # Find the ideal edge. It suffices to look for a boundary edge whose
     # endpoints are identified.

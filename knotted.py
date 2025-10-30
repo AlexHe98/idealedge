@@ -4,6 +4,7 @@ Tests whether an ideal loop is nontrivially knotted.
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
+from insert import layerOn
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.
@@ -259,7 +260,7 @@ def surgery0(oldLoop):
     # Close up the boundary and build the new IdealLoop.
     #
     # newLoop.simplify() might raise BoundsDisc.
-    layer = tri.layerOn(lon)
+    layer = layerOn(lon)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     newLoop = IdealLoop( [idealEdge] )

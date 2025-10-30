@@ -5,7 +5,7 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 """
 from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from insert import snapEdge
+from insert import snapEdge, layerOn
 
 
 class EmbeddedLoopException(Exception):
@@ -748,7 +748,7 @@ class EmbeddedLoop:
             # assume that the close book move is legal, so no need to check
             # before performing.
             if doLayer:
-                edge = self._tri.layerOn(edge).edge(5)
+                edge = layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
             self.setFromEdgeLocations(edgeLocations)
         return
