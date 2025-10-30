@@ -271,6 +271,9 @@ def fillIdealEdge(tri):
     This routine assumes that the boundary triangles of tri form a
     two-triangle 2-sphere with two of its three vertices pinched to form a
     single invalid vertex.
+
+    If the given triangulation is currently oriented, then the filling
+    operation will preserve the orientation.
     """
     # Check some basic pre-conditions.
     if tri.isValid() or tri.countBoundaryTriangles() != 2:

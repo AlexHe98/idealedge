@@ -69,6 +69,7 @@ def crushAnnuli( surfaces, threshold=30 ):
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
+        #NOTE Crushing preserves orientation.
         tri = PacketOfTriangulation3( surf.crush() )
         if usingPackets:
             tri.setLabel( "Crushed #{}".format(surfNum) )
@@ -109,6 +110,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     tri.setLabel( tri.label() + ": Disconnected" )
                 else:
                     print("Disconnected triangulation")
+                #NOTE Splitting into components naturally preserves orientation.
                 for compNum, c in enumerate( tri.triangulateComponents() ):
                     comp = PacketOfTriangulation3(c)
                     components.append(comp)
@@ -143,6 +145,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                 #NOTE The mess below is to work around layerOn() failing with
                 #   PacketOfTriangulation3.
                 filled = Triangulation3(comp)
+                #NOTE fillIdealEdge() preserves orientation.
                 invIdEdgeIndex = fillIdealEdge(filled).index()
                 filled = PacketOfTriangulation3(filled)
                 invIdEdge = filled.edge(invIdEdgeIndex)
@@ -160,6 +163,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                 try:
                     # The meridian of the ideal loop is a candidate for a
                     # regular fibre.
+                    #NOTE Drilling preserves orientation.
                     mer = drillMeridian(invIdLoop)
                 except BoundsDisc:
                     # The meridian bounds a disc "on the outside", so the
@@ -173,6 +177,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         print( "        S2 x S1, meridian is not a fibre" )
                 else:
                     # Successfully drilled.
+                    #NOTE Simplification preserves orientation.
                     mer.minimiseBoundary()
                     mer.simplify()
                     mer.simplify()

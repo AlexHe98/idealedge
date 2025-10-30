@@ -708,6 +708,9 @@ class EmbeddedLoop:
         creates a non-vertex-linking normal disc or 2-sphere if there was not
         one before.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
@@ -820,6 +823,9 @@ class EmbeddedLoop:
             self.triangulation().
         In particular, this routine never creates new vertices.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseVertices().
 
         Precondition:
@@ -898,6 +904,9 @@ class EmbeddedLoop:
         leaving this embedded loop untouched.
 
         This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
@@ -979,6 +988,9 @@ class EmbeddedLoop:
         for details on the behaviour that must be implemented.
 
         This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
@@ -1205,6 +1217,9 @@ class IdealLoop(EmbeddedLoop):
         creates a non-vertex-linking normal disc or 2-sphere if there was not
         one before.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
@@ -1296,6 +1311,9 @@ class IdealLoop(EmbeddedLoop):
             self.triangulation().
         In particular, this routine never creates new vertices.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseVertices().
 
         Precondition:
@@ -1362,6 +1380,9 @@ class IdealLoop(EmbeddedLoop):
 
         This routine might raise BoundsDisc.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from SnapPea's check_for_cancellation().
 
         Returns:
@@ -1384,6 +1405,9 @@ class IdealLoop(EmbeddedLoop):
         routine.
 
         This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
 
@@ -1410,6 +1434,9 @@ class IdealLoop(EmbeddedLoop):
 
         This routine might raise BoundsDisc.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
         Warning:
@@ -1433,6 +1460,9 @@ class IdealLoop(EmbeddedLoop):
         stuck.
 
         This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
 
         Adapted from SnapPea's randomize_triangulation().
         """
@@ -1589,6 +1619,9 @@ class BoundaryLoop(EmbeddedLoop):
         creates a non-vertex-linking normal disc or 2-sphere if there was not
         one before.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
@@ -1738,6 +1771,9 @@ class BoundaryLoop(EmbeddedLoop):
             self.triangulation().
         In particular, this routine never creates new vertices.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.minimiseVertices().
 
         Precondition:
@@ -1780,6 +1816,9 @@ class BoundaryLoop(EmbeddedLoop):
 
         This routine might raise BoundsDisc.
 
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
 
         Returns:
@@ -1799,6 +1838,9 @@ class BoundaryLoop(EmbeddedLoop):
         combination with random 4-4 moves (which leave this loop untouched).
 
         This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.intelligentSimplify().
 
