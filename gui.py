@@ -130,7 +130,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     for tet in tri.tetrahedra():
                         if tet.component().index() == idComp:
                             if tet.index() == idEdge[0]:
-                                idEdge = ( idTeti, idEdge[1] )
+                                idEdge = ( idTeti, idEdge[1], idEdge[2] )
                                 break
                             else:
                                 idTeti += 1
@@ -315,7 +315,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
                     #TODO Check!
-                    ide = comp.tetrahedron( idEdge[0] ).edge( idEdge[1] )
+                    ide = comp.tetrahedron( idEdge[0] ).edge(
+                            idEdge[1], idEdge[2] )
                     idLoop = IdealLoop( [ide] )
                     if usingPackets:
                         comp.setLabel( comp.adornedLabel(
