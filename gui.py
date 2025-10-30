@@ -323,8 +323,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # particular, the meridian cannot be an exceptional
                         # fibre.
                         if usingPackets:
-                            filled.setLabel(
-                                    filled.label() + ": {}".format(
+                            comp.setLabel(
+                                    comp.label() + ": {}".format(
                                         "S2 x S1, meridian is not a fibre" ) )
                         else:
                             print( "        S2 x S1, meridian is not a fibre" )
@@ -336,7 +336,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         drilled = PacketOfTriangulation3( mer.triangulation() )
                         print( "Oriented? {}".format( drilled.isOriented() ) )
                         if usingPackets:
-                            filled.insertChildLast(drilled)
+                            comp.insertChildLast(drilled)
 
                         # Because we minimised the boundary, the meridian is
                         # guaranteed to be given by a single edge.
