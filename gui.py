@@ -140,8 +140,12 @@ def crushAnnuli( surfaces, threshold=30 ):
                     print( "        INVALID" )
 
                 # Fill in invalid boundary.
-                filled = PacketOfTriangulation3(comp)
-                invIdEdge = fillIdealEdge(filled)
+                #NOTE The mess below is to work around layerOn() failing with
+                #   PacketOfTriangulation3.
+                filled = Triangulation3(comp)
+                invIdEdgeIndex = fillIdealEdge(filled).index()
+                filled = PacketOfTriangulation3(filled)
+                invIdEdge = filled.edge(invIdEdgeIndex)
                 if usingPackets:
                     filled.setLabel( comp.adornedLabel(
                         "Closed, ideal edge {}".format(
