@@ -122,6 +122,7 @@ def decomposeAlong( surf, oldLoops ):
     return output
 
 
+#TODO Likely a bug in here and/or in _findIdealEdge().
 def idealLoops( surf, oldLoops=[] ):
     """
     Returns information about the ideal loops after crushing the given normal
