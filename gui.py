@@ -259,7 +259,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                             shift = uppWt
                         else:
                             raise ValueError( "Weights don't add up." )
-                        q = pow( shift, -1, merWt )
+                        #q = pow( shift, -1, merWt )
+                        q = shift % merWt
                         if q > merWt // 2:
                             q -= merWt
                         name = "Seifert fibre (p,q)=({},{})".format(
@@ -418,7 +419,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                                 shift = uppWt
                             else:
                                 raise ValueError( "Weights don't add up." )
-                            q = pow( shift, -1, merWt )
+                            #q = pow( shift, -1, merWt )
+                            q = shift % merWt
                             if q > merWt // 2:
                                 q -= merWt
                             name = "Seifert fibre (p,q)=({},{})".format(
