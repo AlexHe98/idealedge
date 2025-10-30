@@ -5,7 +5,6 @@ from regina import *
 from loop import BoundaryLoop
 
 
-#TODO Check for bugs.
 def drillMeridian(loop):
     """
     Builds a BoundaryLoop representing the meridian curve obtained by

@@ -53,10 +53,6 @@ def crushAnnuli( surfaces, threshold=30 ):
     for surfNum, surf in enumerate(surfaces):
         if not isAnnulus(surf):
             continue
-        #TODO BEGIN TEST.
-#        if surfNum != 2:
-#            continue
-        #TODO END TEST.
         thin = surf.isThinEdgeLink()
         if thin[0] is not None:
             # Don't bother with thin edge links.
@@ -90,7 +86,6 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                # Or just print if we're not using packets.
 #                print(adorn)
         components = []
-        #TODO Might need to update this once idealLoops() has been reimplemented.
         idEdgeDetails = idealLoops(surf)
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
@@ -237,8 +232,6 @@ def crushAnnuli( surfaces, threshold=30 ):
                     else:
                         # Use boundary edge weights of the disc to calculate
                         # Seifert parameters.
-                        #
-                        #NOTE: This won't work without tracking orientations.
                         merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
                         merEdge = drilled.edge(merEdgeIndex)
                         front = merEdge.front()
@@ -315,7 +308,6 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    #TODO Check!
                     ide = comp.tetrahedron( idEdge[0] ).edge(
                             idEdge[1], idEdge[2] )
                     idLoop = IdealLoop( [ide] )
@@ -397,8 +389,6 @@ def crushAnnuli( surfaces, threshold=30 ):
                         else:
                             # Use boundary edge weights of the disc to calculate
                             # Seifert parameters.
-                            #
-                            #NOTE: This won't work without tracking orientations.
                             merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
                             merEdge = drilled.edge(merEdgeIndex)
                             front = merEdge.front()
@@ -606,41 +596,6 @@ def recogniseSummands( tri, threshold=40 ):
 
 
 if __name__ == "__main__":
-#    #TODO TEST.
-#    # Do it oriented.
-#    params = [ 5, 1, 5, -2 ]
-#    manifold = SFSpace()
-#    manifold.insertFibre(3,1)
-#    while params:
-#        q = params.pop()
-#        p = params.pop()
-#        manifold.insertFibre(p,q)
-#    tri = manifold.construct()
-#    tri.removeTetrahedronAt(3)
-#    tri.orient()
-#    tri.intelligentSimplify()
-#    tri.intelligentSimplify()
-#    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
-#    crushAnnuli(surfaces)
-#
-#    # Do it unoriented.
-#    params = [ 5, 1, 5, -2 ]
-#    manifold = SFSpace()
-#    manifold.insertFibre(3,1)
-#    while params:
-#        q = params.pop()
-#        p = params.pop()
-#        manifold.insertFibre(p,q)
-#    tri = manifold.construct()
-#    tri.removeTetrahedronAt(3)
-#    #tri.orient()
-#    tri.intelligentSimplify()
-#    tri.intelligentSimplify()
-#    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
-#    crushAnnuli(surfaces)
-
-#############################################################################
-
     params = [ int(n) for n in argv[1:] ]
     manifold = SFSpace()
     manifold.insertFibre(3,1)
