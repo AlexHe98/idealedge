@@ -54,8 +54,8 @@ def crushAnnuli( surfaces, threshold=30 ):
         if not isAnnulus(surf):
             continue
         #TODO BEGIN TEST.
-        if surfNum != 2:
-            continue
+#        if surfNum != 2:
+#            continue
         #TODO END TEST.
         thin = surf.isThinEdgeLink()
         if thin[0] is not None:
@@ -604,39 +604,9 @@ def recogniseSummands( tri, threshold=40 ):
 
 
 if __name__ == "__main__":
-    #TODO TEST.
-    # Do it oriented.
-    params = [ 5, 1, 5, -2 ]
-    manifold = SFSpace()
-    manifold.insertFibre(3,1)
-    while params:
-        q = params.pop()
-        p = params.pop()
-        manifold.insertFibre(p,q)
-    tri = manifold.construct()
-    tri.removeTetrahedronAt(3)
-    tri.orient()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
-    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
-    crushAnnuli(surfaces)
-
-    # Do it unoriented.
-    params = [ 5, 1, 5, -2 ]
-    manifold = SFSpace()
-    manifold.insertFibre(3,1)
-    while params:
-        q = params.pop()
-        p = params.pop()
-        manifold.insertFibre(p,q)
-    tri = manifold.construct()
-    tri.removeTetrahedronAt(3)
-    #tri.orient()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
-    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
-    crushAnnuli(surfaces)
-#    params = [ int(n) for n in argv[1:] ]
+#    #TODO TEST.
+#    # Do it oriented.
+#    params = [ 5, 1, 5, -2 ]
 #    manifold = SFSpace()
 #    manifold.insertFibre(3,1)
 #    while params:
@@ -648,13 +618,46 @@ if __name__ == "__main__":
 #    tri.orient()
 #    tri.intelligentSimplify()
 #    tri.intelligentSimplify()
-##    p = int( argv[1] )
-##    q = int( argv[2] )
-##    knot = ExampleLink.torus(p,q)
-##    ext = knot.complement()
-##    ext.idealToFinite()
-##    ext.intelligentSimplify()
-##    ext.intelligentSimplify()
-##    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
 #    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
 #    crushAnnuli(surfaces)
+#
+#    # Do it unoriented.
+#    params = [ 5, 1, 5, -2 ]
+#    manifold = SFSpace()
+#    manifold.insertFibre(3,1)
+#    while params:
+#        q = params.pop()
+#        p = params.pop()
+#        manifold.insertFibre(p,q)
+#    tri = manifold.construct()
+#    tri.removeTetrahedronAt(3)
+#    #tri.orient()
+#    tri.intelligentSimplify()
+#    tri.intelligentSimplify()
+#    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
+#    crushAnnuli(surfaces)
+
+#############################################################################
+
+    params = [ int(n) for n in argv[1:] ]
+    manifold = SFSpace()
+    manifold.insertFibre(3,1)
+    while params:
+        q = params.pop()
+        p = params.pop()
+        manifold.insertFibre(p,q)
+    tri = manifold.construct()
+    tri.removeTetrahedronAt(3)
+    tri.orient()
+    tri.intelligentSimplify()
+    tri.intelligentSimplify()
+#    p = int( argv[1] )
+#    q = int( argv[2] )
+#    knot = ExampleLink.torus(p,q)
+#    ext = knot.complement()
+#    ext.idealToFinite()
+#    ext.intelligentSimplify()
+#    ext.intelligentSimplify()
+#    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
+    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
+    crushAnnuli(surfaces)
