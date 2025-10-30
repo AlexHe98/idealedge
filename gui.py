@@ -310,9 +310,15 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    #TODO
-                    idLoop = IdealLoop( [
-                            comp.tetrahedron( idEdge[0] ).edge( idEdge[1] ) ] )
+                    #TODO Check!
+                    ide = comp.tetrahedron( idEdge[0] ).edge( idEdge[1] )
+                    idLoop = IdealLoop( [ide] )
+                    if usingPackets:
+                        comp.setLabel( comp.adornedLabel(
+                            "Ideal edge {}".format( ide.index() ) ) )
+                    else:
+                        print( "        Ideal edge {}".format(
+                            ide.index() ) )
                     try:
                         # The meridian of the ideal loop is a candidate for an
                         # exceptional fibre.
