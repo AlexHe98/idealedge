@@ -3,6 +3,7 @@ Find the ideal edges after crushing a normal surface.
 """
 from regina import *
 from loop import NotLoop, IdealLoop
+from insert import layerOn
 
 
 def decomposeAlong( surf, oldLoops ):
@@ -270,6 +271,9 @@ def fillIdealEdge(tri):
     This routine assumes that the boundary triangles of tri form a
     two-triangle 2-sphere with two of its three vertices pinched to form a
     single invalid vertex.
+
+    If the given triangulation is currently oriented, then the filling
+    operation will preserve the orientation.
     """
     # Check some basic pre-conditions.
     if tri.isValid() or tri.countBoundaryTriangles() != 2:
@@ -299,7 +303,7 @@ def fillIdealEdge(tri):
             layerEdge = None
             break
     if layerEdge is not None:
-        tri.layerOn(layerEdge)
+        layerOn(layerEdge)
 
     # Find the ideal edge. It suffices to look for a boundary edge whose
     # endpoints are identified.

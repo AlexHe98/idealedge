@@ -12,6 +12,9 @@ def drillMeridian(loop):
 
     This routine might raise BoundsDisc if the meridian curve bounds a disc
     in the complement of the given loop.
+
+    If the triangulation containing the given ideal loop is oriented, then
+    this operation guarantees to preserve the orientation.
     """
     refTri, merTetIndex, merVert, merFace = pinch(loop)
     truncTri = TruncatedTriangulation(
@@ -38,7 +41,7 @@ def pinch(loop):
         to both the meridian and vertex v.
 
     If the triangulation containing the given ideal loop is oriented, then
-    the same is guaranteed to be true for the new ideal triangulation.
+    this operation guarantees to preserve the orientation.
 
     Pre-condition:
     --> The given ideal loop has length one.

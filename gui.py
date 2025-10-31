@@ -53,35 +53,39 @@ def crushAnnuli( surfaces, threshold=30 ):
     for surfNum, surf in enumerate(surfaces):
         if not isAnnulus(surf):
             continue
+        thin = surf.isThinEdgeLink()
+        if thin[0] is not None:
+            # Don't bother with thin edge links.
+            continue
         annulusCount += 1
         print()
         print( "Time: {:.6f}. Crush #{}.".format(
             default_timer() - start, surfNum) )
 
-        # Is the current annulus a thin edge link?
-        thin = surf.isThinEdgeLink()
-        if thin[0] is None:
-            thinAdorn = ""
+#        # Is the current annulus a thin edge link?
+#        thin = surf.isThinEdgeLink()
+#        if thin[0] is None:
+#            thinAdorn = ""
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
+        #NOTE Crushing preserves orientation.
         tri = PacketOfTriangulation3( surf.crush() )
         if usingPackets:
             tri.setLabel( "Crushed #{}".format(surfNum) )
             results.insertChildLast(tri)
-        thin = surf.isThinEdgeLink()
-        if thin[0] is not None:
-            # Adorn label with details of this thin edge link.
-            adorn = "Thin edge {}".format( thin[0].index() )
-            if thin [1] is not None:
-                adorn += " and {}".format( thin[1].index() )
-            if usingPackets:
-                tri.setLabel( tri.adornedLabel(adorn) )
-            else:
-                # Or just print if we're not using packets.
-                print(adorn)
+#        thin = surf.isThinEdgeLink()
+#        if thin[0] is not None:
+#            # Adorn label with details of this thin edge link.
+#            adorn = "Thin edge {}".format( thin[0].index() )
+#            if thin [1] is not None:
+#                adorn += " and {}".format( thin[1].index() )
+#            if usingPackets:
+#                tri.setLabel( tri.adornedLabel(adorn) )
+#            else:
+#                # Or just print if we're not using packets.
+#                print(adorn)
         components = []
-        #TODO Might need to update this once idealLoops() has been reimplemented.
         idEdgeDetails = idealLoops(surf)
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
@@ -105,6 +109,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     tri.setLabel( tri.label() + ": Disconnected" )
                 else:
                     print("Disconnected triangulation")
+                #NOTE Splitting into components naturally preserves orientation.
                 for compNum, c in enumerate( tri.triangulateComponents() ):
                     comp = PacketOfTriangulation3(c)
                     components.append(comp)
@@ -120,7 +125,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     for tet in tri.tetrahedra():
                         if tet.component().index() == idComp:
                             if tet.index() == idEdge[0]:
-                                idEdge = ( idTeti, idEdge[1] )
+                                idEdge = ( idTeti, idEdge[1], idEdge[2] )
                                 break
                             else:
                                 idTeti += 1
@@ -136,8 +141,13 @@ def crushAnnuli( surfaces, threshold=30 ):
                     print( "        INVALID" )
 
                 # Fill in invalid boundary.
-                filled = PacketOfTriangulation3(comp)
-                invIdEdge = fillIdealEdge(filled)
+                #NOTE The mess below is to work around layerOn() failing with
+                #   PacketOfTriangulation3.
+                filled = Triangulation3(comp)
+                #NOTE fillIdealEdge() preserves orientation.
+                invIdEdgeIndex = fillIdealEdge(filled).index()
+                filled = PacketOfTriangulation3(filled)
+                invIdEdge = filled.edge(invIdEdgeIndex)
                 if usingPackets:
                     filled.setLabel( comp.adornedLabel(
                         "Closed, ideal edge {}".format(
@@ -150,14 +160,14 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # Have we isolated a single exceptional fibre?
                 invIdLoop = IdealLoop( [invIdEdge] )
                 try:
-                    # The meridian of the ideal loop is a candidate for an
-                    # exceptional fibre.
+                    # The meridian of the ideal loop is a candidate for a
+                    # regular fibre.
+                    #NOTE Drilling preserves orientation.
                     mer = drillMeridian(invIdLoop)
                 except BoundsDisc:
                     # The meridian bounds a disc "on the outside", so the
                     # filled triangulation must have been S2 x S1. In
-                    # particular, the meridian cannot be an exceptional
-                    # fibre.
+                    # particular, the meridian cannot be a regular fibre.
                     if usingPackets:
                         filled.setLabel(
                                 filled.label() + ": {}".format(
@@ -166,10 +176,12 @@ def crushAnnuli( surfaces, threshold=30 ):
                         print( "        S2 x S1, meridian is not a fibre" )
                 else:
                     # Successfully drilled.
+                    #NOTE Simplification preserves orientation.
                     mer.minimiseBoundary()
                     mer.simplify()
                     mer.simplify()
                     drilled = PacketOfTriangulation3( mer.triangulation() )
+                    print( "Oriented? {}".format( drilled.isOriented() ) )
                     if usingPackets:
                         filled.insertChildLast(drilled)
 
@@ -219,17 +231,33 @@ def crushAnnuli( surfaces, threshold=30 ):
                         name = "Contains nontrivial sphere"
                     else:
                         # Use boundary edge weights of the disc to calculate
-                        # Seifert parameters (as outlined above).
+                        # Seifert parameters.
                         merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                        for e in drilled.edges():
-                            if e.index() == merEdgeIndex or not e.isBoundary():
-                                continue
-
-                            # Found another boundary edge.
-                            bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
-                            break
+                        merEdge = drilled.edge(merEdgeIndex)
+                        front = merEdge.front()
+                        ver = front.vertices()
+                        tet = front.tetrahedron()
+                        lower = tet.edge( ver[0], ver[2] )
+                        upper = tet.edge( ver[1], ver[2] )
+                        lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
+                        uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+                        if merWt == lowWt + uppWt:
+                            print("M=L+U")
+                            shift = lowWt
+                        elif uppWt == merWt + lowWt:
+                            print("U=M+L")
+                            shift = -lowWt
+                        elif lowWt == merWt + uppWt:
+                            print("L=M+U")
+                            shift = uppWt
+                        else:
+                            raise ValueError( "Weights don't add up." )
+                        #q = pow( shift, -1, merWt )
+                        q = shift % merWt
+                        if q > merWt // 2:
+                            q -= merWt
                         name = "Seifert fibre (p,q)=({},{})".format(
-                                merWt, pow( bdyWt, -1, merWt ) )
+                                merWt, q )
                     if usingPackets:
                         drilled.setLabel(
                                 drilled.label() + ": {}".format(name) )
@@ -280,9 +308,15 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    #TODO
-                    idLoop = IdealLoop( [
-                            comp.tetrahedron( idEdge[0] ).edge( idEdge[1] ) ] )
+                    ide = comp.tetrahedron( idEdge[0] ).edge(
+                            idEdge[1], idEdge[2] )
+                    idLoop = IdealLoop( [ide] )
+                    if usingPackets:
+                        comp.setLabel( comp.adornedLabel(
+                            "Ideal edge {}".format( ide.index() ) ) )
+                    else:
+                        print( "        Ideal edge {}".format(
+                            ide.index() ) )
                     try:
                         # The meridian of the ideal loop is a candidate for an
                         # exceptional fibre.
@@ -293,8 +327,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # particular, the meridian cannot be an exceptional
                         # fibre.
                         if usingPackets:
-                            filled.setLabel(
-                                    filled.label() + ": {}".format(
+                            comp.setLabel(
+                                    comp.label() + ": {}".format(
                                         "S2 x S1, meridian is not a fibre" ) )
                         else:
                             print( "        S2 x S1, meridian is not a fibre" )
@@ -304,8 +338,9 @@ def crushAnnuli( surfaces, threshold=30 ):
                         mer.simplify()
                         mer.simplify()
                         drilled = PacketOfTriangulation3( mer.triangulation() )
+                        print( "Oriented? {}".format( drilled.isOriented() ) )
                         if usingPackets:
-                            filled.insertChildLast(drilled)
+                            comp.insertChildLast(drilled)
 
                         # Because we minimised the boundary, the meridian is
                         # guaranteed to be given by a single edge.
@@ -353,17 +388,33 @@ def crushAnnuli( surfaces, threshold=30 ):
                             name = "Contains nontrivial sphere"
                         else:
                             # Use boundary edge weights of the disc to calculate
-                            # Seifert parameters (as outlined above).
+                            # Seifert parameters.
                             merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                            for e in drilled.edges():
-                                if e.index() == merEdgeIndex or not e.isBoundary():
-                                    continue
-
-                                # Found another boundary edge.
-                                bdyWt = surf.edgeWeight( e.index() ).safeLongValue()
-                                break
+                            merEdge = drilled.edge(merEdgeIndex)
+                            front = merEdge.front()
+                            ver = front.vertices()
+                            tet = front.tetrahedron()
+                            lower = tet.edge( ver[0], ver[2] )
+                            upper = tet.edge( ver[1], ver[2] )
+                            lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
+                            uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+                            if merWt == lowWt + uppWt:
+                                print("M=L+U")
+                                shift = lowWt
+                            elif uppWt == merWt + lowWt:
+                                print("U=M+L")
+                                shift = -lowWt
+                            elif lowWt == merWt + uppWt:
+                                print("L=M+U")
+                                shift = uppWt
+                            else:
+                                raise ValueError( "Weights don't add up." )
+                            #q = pow( shift, -1, merWt )
+                            q = shift % merWt
+                            if q > merWt // 2:
+                                q -= merWt
                             name = "Seifert fibre (p,q)=({},{})".format(
-                                    merWt, pow( bdyWt, -1, merWt ) )
+                                    merWt, q )
                         if usingPackets:
                             drilled.setLabel(
                                     drilled.label() + ": {}".format(name) )
@@ -554,6 +605,7 @@ if __name__ == "__main__":
         manifold.insertFibre(p,q)
     tri = manifold.construct()
     tri.removeTetrahedronAt(3)
+    tri.orient()
     tri.intelligentSimplify()
     tri.intelligentSimplify()
 #    p = int( argv[1] )
