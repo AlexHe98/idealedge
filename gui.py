@@ -225,45 +225,28 @@ def crushAnnuli( surfaces, threshold=30 ):
                     if surf is None:
                         # No compression disc means we have not yet cut out a
                         # single fibre.
-                        name = "Not a fibred solid torus"
+                        # Continue by decomposing along spheres.
+                        name = "Decomposed into: "
+
+                        #TODO WORKING HERE.
+                        raise NotImplementedError()
                     elif surf.eulerChar() == 2:
                         #TODO Sphere. Probably want to crush.
                         name = "Contains nontrivial sphere"
                     else:
                         # Use boundary edge weights of the disc to calculate
                         # Seifert parameters.
-                        merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                        merEdge = drilled.edge(merEdgeIndex)
-                        front = merEdge.front()
-                        ver = front.vertices()
-                        tet = front.tetrahedron()
-                        lower = tet.edge( ver[0], ver[2] )
-                        upper = tet.edge( ver[1], ver[2] )
-                        lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
-                        uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
-                        if merWt == lowWt + uppWt:
-                            print("M=L+U")
-                            shift = lowWt
-                        elif uppWt == merWt + lowWt:
-                            print("U=M+L")
-                            shift = -lowWt
-                        elif lowWt == merWt + uppWt:
-                            print("L=M+U")
-                            shift = uppWt
-                        else:
-                            raise ValueError( "Weights don't add up." )
-                        #q = pow( shift, -1, merWt )
-                        q = shift % merWt
-                        if q > merWt // 2:
-                            q -= merWt
                         name = "Seifert fibre (p,q)=({},{})".format(
-                                merWt, q )
+                                *fibreParams( surf, merEdgeIndex ) )
                     if usingPackets:
                         drilled.setLabel(
                                 drilled.label() + ": {}".format(name) )
                     else:
                         print( "        " + name )
-                #TODO
+
+                #TODO If we didn't get down to a single fibre, then we should
+                #   continue by decomposing along spheres that intersect the
+                #   ideal loop twice.
 
 #                # Just in case, let's see if we can simplify and identify the
 #                # manifold given by drilling out the ideal edge.
@@ -320,6 +303,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     try:
                         # The meridian of the ideal loop is a candidate for an
                         # exceptional fibre.
+                        #NOTE Drilling preserves orientation.
                         mer = drillMeridian(idLoop)
                     except BoundsDisc:
                         # The meridian bounds a disc "on the outside", so the
@@ -334,6 +318,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                             print( "        S2 x S1, meridian is not a fibre" )
                     else:
                         # Successfully drilled.
+                        #NOTE Simplification preserves orientation.
                         mer.minimiseBoundary()
                         mer.simplify()
                         mer.simplify()
@@ -382,44 +367,29 @@ def crushAnnuli( surfaces, threshold=30 ):
                         if surf is None:
                             # No compression disc means we have not yet cut out a
                             # single fibre.
-                            name = "Not a fibred solid torus"
+                            # Continue by decomposing along spheres.
+                            name = "Decomposed into: "
+
+                            #TODO WORKING HERE.
+                            raise NotImplementedError()
                         elif surf.eulerChar() == 2:
                             #TODO Sphere. Probably want to crush.
                             name = "Contains nontrivial sphere"
                         else:
                             # Use boundary edge weights of the disc to calculate
                             # Seifert parameters.
-                            merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
-                            merEdge = drilled.edge(merEdgeIndex)
-                            front = merEdge.front()
-                            ver = front.vertices()
-                            tet = front.tetrahedron()
-                            lower = tet.edge( ver[0], ver[2] )
-                            upper = tet.edge( ver[1], ver[2] )
-                            lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
-                            uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
-                            if merWt == lowWt + uppWt:
-                                print("M=L+U")
-                                shift = lowWt
-                            elif uppWt == merWt + lowWt:
-                                print("U=M+L")
-                                shift = -lowWt
-                            elif lowWt == merWt + uppWt:
-                                print("L=M+U")
-                                shift = uppWt
-                            else:
-                                raise ValueError( "Weights don't add up." )
-                            #q = pow( shift, -1, merWt )
-                            q = shift % merWt
-                            if q > merWt // 2:
-                                q -= merWt
                             name = "Seifert fibre (p,q)=({},{})".format(
-                                    merWt, q )
+                                    *fibreParams( surf, merEdgeIndex ) )
                         if usingPackets:
                             drilled.setLabel(
                                     drilled.label() + ": {}".format(name) )
                         else:
                             print( "        " + name )
+
+                    #TODO If we didn't get down to a single fibre, then we should
+                    #   continue by decomposing along spheres that intersect the
+                    #   ideal loop twice.
+
 #                    drilled = PacketOfTriangulation3(comp)
 #                    if usingPackets:
 #                        comp.insertChildLast(drilled)
@@ -479,7 +449,38 @@ def crushAnnuli( surfaces, threshold=30 ):
             "Total {}".format(annulusCount) ) )
 
 
-def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
+def fibreParams( surf, merEdgeIndex ):
+    # Use boundary edge weights of the disc to calculate
+    # Seifert parameters.
+    drilled = surf.triangulation()
+    merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
+    merEdge = drilled.edge(merEdgeIndex)
+    front = merEdge.front()
+    ver = front.vertices()
+    tet = front.tetrahedron()
+    lower = tet.edge( ver[0], ver[2] )
+    upper = tet.edge( ver[1], ver[2] )
+    lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
+    uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+    if merWt == lowWt + uppWt:
+        print("M=L+U")
+        shift = lowWt
+    elif uppWt == merWt + lowWt:
+        print("U=M+L")
+        shift = -lowWt
+    elif lowWt == merWt + uppWt:
+        print("L=M+U")
+        shift = uppWt
+    else:
+        raise ValueError( "Weights don't add up." )
+    #q = pow( shift, -1, merWt )
+    q = shift % merWt
+    if q > merWt // 2:
+        q -= merWt
+    return ( merWt, q )
+
+
+def crushSpheres( surfaces, idealEdgeIndex, threshold=30 ):
     """
     """
     results = Container( "Decompose along 2-spheres" )
@@ -538,6 +539,57 @@ def decomposeAlongSpheres( surfaces, idealEdgeIndex, threshold=30 ):
         pass
     #TODO
     return
+
+
+def decomposeAlongSpheres(idealLoop):
+    """
+    Returns a list of ideal loops given by repeatedly decomposing the given
+    ideal loop along spheres that intersect the ideal loop twice.
+    """
+    # Repeatedly crush along spheres that intersect the ideal loop at most
+    # twice.
+    toProcess = [idealLoop]
+    decomposedLoops = []
+    while toProcess:
+        oldLoop = toProcess.pop()
+        tri = oldLoop.triangulation()
+
+        # Search for a suitable sphere to crush.
+        enumeration = TreeEnumeration( tri, NS_QUAD )
+        while True:
+            # Get the next 2-sphere.
+            if enumeration.next():
+                sphere = enumeration.buildSurface()
+                if not isSphere(sphere):
+                    continue
+            else:
+                # No suitable 2-sphere means that we're done with the current
+                # oldLoop.
+                decomposedLoops.append(oldLoop)
+                break
+
+            # Does the sphere intersect the ideal loop at most twice?
+            wt = oldLoop.weight(sphere)
+            if wt != 2:
+                #TODO Actually do something with the following cases.
+                if wt == 0:
+                    print( "Found sphere disjoint from ideal loop!" )
+                if wt == 1:
+                    print( "Found sphere intersecting ideal loop once!" )
+
+                # Continue searching for suitable spheres.
+                continue
+
+            # See what happens if we crush.
+            decomposed = decomposeAlong( sphere, [oldLoop] )
+            for newLoops in decomposed:
+                if newLoops:
+                    # We are guaranteed to have len(newLoops) == 1.
+                    toProcess.append( newLoops[0] )
+
+    # If we reach this point, then we have decomposed as far as possible, and
+    # everything remaining has no suitable spheres.
+    return decomposedLoops
 
 
 def recogniseSummands( tri, threshold=40 ):
