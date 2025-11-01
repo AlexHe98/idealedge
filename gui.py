@@ -226,10 +226,36 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # No compression disc means we have not yet cut out a
                         # single fibre.
                         # Continue by decomposing along spheres.
-                        name = "Decomposed into: "
+                        name = "Decomposed into fibres: "
+                        decomposedLoops = decomposeAlongSpheres(invIdLoop)
+                        for newLoop in decomposedLoops:
+                            # We should be able to drill and get Seifert
+                            # fibre parameters.
+                            try:
+                                newMer = drillMeridian(newLoop)
+                            except BoundsDisc:
+                                name += "N/A (S2 x S1); "
+                            else:
+                                newMer.minimiseBoundary()
+                                newMer.simplify()
+                                newMer.simplify()
+                                newDrilled = PacketOfTriangulation3(
+                                        newMer.triangulation() )
 
-                        #TODO WORKING HERE.
-                        raise NotImplementedError()
+                                # Because we minimised the boundary, the meridian is
+                                # guaranteed to be given by a single edge.
+                                newMerEdgeIndex = newMer[0]
+                                newSurf = newDrilled.nonTrivialSphereOrDisc()
+                                if newSurf is None:
+                                    name += "N/A (no disc); "
+                                elif newSurf.eulerChar() == 2:
+                                    name += "unknown (found sphere); "
+                                else:
+                                    name += "({},{}); ".format(
+                                            *fibreParams( newSurf, newMerEdgeIndex ) )
+
+                        # Format name correctly.
+                        name = name[:-2]
                     elif surf.eulerChar() == 2:
                         #TODO Sphere. Probably want to crush.
                         name = "Contains nontrivial sphere"
@@ -368,10 +394,36 @@ def crushAnnuli( surfaces, threshold=30 ):
                             # No compression disc means we have not yet cut out a
                             # single fibre.
                             # Continue by decomposing along spheres.
-                            name = "Decomposed into: "
+                            name = "Decomposed into fibres: "
+                            decomposedLoops = decomposeAlongSpheres(idLoop)
+                            for newLoop in decomposedLoops:
+                                # We should be able to drill and get Seifert
+                                # fibre parameters.
+                                try:
+                                    newMer = drillMeridian(newLoop)
+                                except BoundsDisc:
+                                    name += "N/A (S2 x S1); "
+                                else:
+                                    newMer.minimiseBoundary()
+                                    newMer.simplify()
+                                    newMer.simplify()
+                                    newDrilled = PacketOfTriangulation3(
+                                            newMer.triangulation() )
 
-                            #TODO WORKING HERE.
-                            raise NotImplementedError()
+                                    # Because we minimised the boundary, the meridian is
+                                    # guaranteed to be given by a single edge.
+                                    newMerEdgeIndex = newMer[0]
+                                    newSurf = newDrilled.nonTrivialSphereOrDisc()
+                                    if newSurf is None:
+                                        name += "N/A (no disc); "
+                                    elif newSurf.eulerChar() == 2:
+                                        name += "unknown (found sphere); "
+                                    else:
+                                        name += "({},{}); ".format(
+                                                *fibreParams( newSurf, newMerEdgeIndex ) )
+
+                            # Format name correctly.
+                            name = name[:-2]
                         elif surf.eulerChar() == 2:
                             #TODO Sphere. Probably want to crush.
                             name = "Contains nontrivial sphere"
@@ -586,6 +638,9 @@ def decomposeAlongSpheres(idealLoop):
                 if newLoops:
                     # We are guaranteed to have len(newLoops) == 1.
                     toProcess.append( newLoops[0] )
+
+            # Found and crushed a suitable sphere, so stop enumerating.
+            break
 
     # If we reach this point, then we have decomposed as far as possible, and
     # everything remaining has no suitable spheres.
