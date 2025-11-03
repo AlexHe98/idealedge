@@ -79,8 +79,8 @@ def wedgeLoops(surf):
             # reference vertex gets mapped to.
             twistSign[wedge] = {
                     eOrder[i][1]: 0,
-                    eOrder[1-i][0]: 1,
-                    eOrder[1-i][1]: -1 }
+                    eOrder[i][3]: 1,
+                    eOrder[i][2]: -1 }
 
             # Record adjacency of faces across wedge cells; we need this
             # information to traverse across wedge cells.
@@ -106,6 +106,10 @@ def wedgeLoops(surf):
         while True:
             # Traverse across face gluing.
             adjTet = currentTet.adjacentTetrahedron(currentFace)
+            if adjTet is None:
+                # No adjacent tet, so definitely not traversing a loop of
+                # wedge cells.
+                break
             adjTeti = adjTet.index()
             adjFace = currentTet.adjacentFace(currentFace)
             adjGluing = currentTet.adjacentGluing(currentFace)
