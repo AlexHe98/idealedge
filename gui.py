@@ -8,6 +8,7 @@ from idealedge import decomposeAlong, idealLoops
 from idealedge import isAnnulus, isSphere, fillIdealEdge
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
+from wedge import wedgeLoops
 
 
 def meridian( tri, edgeIndex ):
@@ -69,11 +70,17 @@ def crushAnnuli( surfaces, threshold=30 ):
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
+        crushedName = "Crushed #{}".format(surfNum)
+        for _, twist in wedgeLoops(surf):
+            if twist != 0:
+                crushedName += " (Lost (3,{}))".format(twist)
         #NOTE Crushing preserves orientation.
         tri = PacketOfTriangulation3( surf.crush() )
         if usingPackets:
-            tri.setLabel( "Crushed #{}".format(surfNum) )
+            tri.setLabel(crushedName)
             results.insertChildLast(tri)
+        else:
+            print(crushedName)
 #        thin = surf.isThinEdgeLink()
 #        if thin[0] is not None:
 #            # Adorn label with details of this thin edge link.
@@ -633,6 +640,12 @@ def decomposeAlongSpheres(idealLoop):
                 continue
 
             # See what happens if we crush.
+            lostFibres = ""
+            for _, twist in wedgeLoops(sphere):
+                if twist != 0:
+                    lostFibres += " Lost (3,{}).".format(twist)
+            if lostFibres:
+                print( lostFibres[1:] )
             decomposed = decomposeAlong( sphere, [oldLoop] )
             for newLoops in decomposed:
                 if newLoops:
