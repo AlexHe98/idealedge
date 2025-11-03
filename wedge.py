@@ -1,21 +1,46 @@
 """
 Traverse wedge cells to detect lost L(3,1) components.
+
+In the context of a Seifert fibre space with (some component of the) boundary
+given by an ideal loop, such lost components correspond to a lost fibre of
+multiplicity 3.
 """
-from sys import argv
 from regina import *
-from parallel import tetQuadType
+from quadtype import tetQuadType
 
 
 def wedgeLoops(surf):
     """
     Detects loops of wedge cells induced by the given normal surface.
+
+    This routine returns a list of such loops, each of which is encoded as a
+    pair (R,T), where:
+    --> R is a single wedge cell in the loop, chosen as a representative for
+        the entire loop.
+    --> T is 0 if the loop has no twist, and either +1 or -1 if the loop has
+        a twist.
+
+    We have exactly two wedge cells per tetrahedron intersecting surf in a
+    positive number of quads. Each wedge cell is encoded as a pair (i,s),
+    where:
+    --> i is the index of the tetrahedron containing the wedge cell; and
+    --> s is 0 if the wedge cell is incident to edge q of tetrahedron i,
+        where q is the quad type, and 1 if the wedge cell is incident to edge
+        5-q of tetrahedron i.
+
+    The sign of the twist is determined relative to the vertex labelling of
+    the tetrahedron containing the representative wedge cell. Thus, in an
+    oriented triangulation, wedge loops with the same sign will twist in the
+    same direction.
     """
     tri = surf.triangulation()
 
     # Find all wedge cells.
     wedgePerms = dict()         # Map wedge cells to vertex permutations.
     wedgeAdjacencies = dict()
-    for teti in range( tri.size() ):
+    twistSign = dict()
+    for tet in tri.tetrahedra():
+        teti = tet.index()
         quadType = tetQuadType( surf, teti )
         if quadType is None:
             continue
@@ -26,42 +51,48 @@ def wedgeLoops(surf):
         # at the front in the figure below, then the vertex numbers of tet
         # will be as shown in the figure.
         #
-        #               eOrder[1-i][0]
-        #                      *
+        #               eOrder[1-i][1]
+        #                      •
         #                     /|\
         #                    / | \
         #                   /__|__\
         #                  /|  |  |\
-        #                 / |  |  | \
-        #   eOrder[i][0] *--|--|--|--* eOrder[i][1]
-        #                 \ |  |  | /
+        #                 / |  ↑  | \
+        #   eOrder[i][0] •--|-→|→-|--• eOrder[i][1]
+        #                 \ |  ↑  | /
         #                  \|__|__|/
         #                   \  |  /
         #                    \ | /
         #                     \|/
-        #                      *
-        #               eOrder[1-i][1]
+        #                      •
+        #               eOrder[1-i][0]
         #
-        eOrder = [ Edge3.ordering(quadType), Edge3.ordering(5-quadType) ]
+        eOrder = [ tet.edgeMapping(quadType), tet.edgeMapping(5-quadType) ]
         wedgeAdjacencies[teti] = dict()
         for i in range(2):
             wedge = ( teti, eOrder[i][0], eOrder[i][1] )
             wedgePerms[wedge] = eOrder[i] * Perm4(0,1) * eOrder[i].inverse()
+
+            # Later on, we might need to compute the sign of a twist at this
+            # wedge cell. For this, we will use eOrder[i][1] as a reference
+            # vertex, and determine the sign by examining where this
+            # reference vertex gets mapped to.
+            twistSign[wedge] = {
+                    eOrder[i][1]: 0,
+                    eOrder[1-i][0]: 1,
+                    eOrder[1-i][1]: -1 }
+
+            # Record adjacency of faces across wedge cells; we need this
+            # information to traverse across wedge cells.
             for ii in range(2):
-                # Record adjacency of faces across wedge cells; we need this
-                # information to traverse across wedge cells.
                 wedgeAdjacencies[teti][eOrder[i][ii]] =\
                         ( eOrder[i][1-ii], wedge )
 
     # Traverse all wedge cells.
-    #TODO Decide on returned data structure.
-    #   Currently using a set of pairs of the form (r,t), where r is a
-    #   representative wedge cell, and t is True if and only if the loop has
-    #   a twist.
     loops = set()
     while wedgePerms:
         startWedge, endPerm = wedgePerms.popitem()
-        startTeti, currentFace, endFace = startWedge
+        startTeti, currentFace, referenceVertex = startWedge
         currentTet = tri.tetrahedron(startTeti)
         vertPerm = Perm4()
 
@@ -93,11 +124,14 @@ def wedgeLoops(surf):
             #       or
             #   --> we are not traversing a loop of wedge cells.
             if adjWedge not in wedgePerms:
-                # If we are back to the start of a loop, then make a note of
-                # whether or not this loop has a twist.
+                # If we are back to the start of a loop, then use the
+                # twistSign dictionary to determine which direction this loop
+                # twists.
                 if adjWedge == startWedge:
                     vertPerm = endPerm * vertPerm
-                    loops.add( ( startWedge, not vertPerm.isIdentity() ) )
+                    loopSign = twistSign[startWedge][
+                            vertPerm[referenceVertex] ]
+                    loops.add( ( startWedge, loopSign ) )
 
                 # Regardless of whether or not we had a loop, there is no
                 # further traversal we can do.
@@ -105,19 +139,8 @@ def wedgeLoops(surf):
 
             # Traverse across the new wedge cell.
             # No need to set currentFace since that was done earlier.
-            vertPerm = wedgePerms[adjWedge] * vertPerm
+            vertPerm = wedgePerms.pop(adjWedge) * vertPerm
             currentTet = adjTet
 
     # All done!
     return loops
-
-
-if __name__ == "__main__":
-    sig = argv[1]
-    num = int( argv[2] )
-    tri = Triangulation3.fromIsoSig(sig)
-    qvsurfs = NormalSurfaces( tri, NormalCoords.NS_QUAD )
-    surf = qvsurfs[num]
-
-    #TODO TEST
-    print( wedgeLoops(surf) )
