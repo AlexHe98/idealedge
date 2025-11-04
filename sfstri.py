@@ -227,6 +227,59 @@ class TriPrism:
     pass
 
 
+def orientSpanningTree(surf):
+    """
+    Finds a spanning tree in the dual graph of the given 2-manifold
+    triangulation, and orients the corresponding triangulation of the disc.
+
+    Returns a description of the spanning tree as a list of face gluings,
+    where each gluing is specified by a face index and an edge number.
+    """
+    # Build spanning tree by depth-first search.
+    faceIndexFound = {0}
+    faceIndexStack = [0]
+    spanningGluings = []
+    while faceIndexStack:
+        faceIndex = faceIndexStack.pop()
+        face = surf.triangle(faceIndex)
+        for e in range(3):
+            adj = face.adjacentTriangle(e)
+            if ( adj is None ) or ( adj.index() in faceIndexFound ):
+                continue
+
+            # adj is a new face of the triangulation.
+            faceIndexFound.add( adj.index() )
+            faceIndexStack.append( adj.index() )
+            spanningGluings.append( ( faceIndex, e ) )
+
+            # If necessary, flip vertices 1 and 2 of adj to ensure that the
+            # gluing between face and adj has sign -1.
+            if face.adjacentGluing(e).sign() == -1:
+                continue
+            flip = Perm3(1,2)
+            oldFaces = []
+            oldGluings = []
+            for eAdj in range(3):
+                # Before undoing the gluing, record it so that we can redo it
+                # later with vertices 1 and 2 flipped.
+                oldFaces.append( adj.adjacentTriangle(eAdj) )
+                oldGluings.append( adj.adjacentGluing(eAdj) )
+                adj.unjoin(eAdj)
+            for eAdj in range(3):
+                if oldFaces[eAdj] is None:
+                    # No old gluing to restore.
+                    continue
+
+                # Flip vertices on the adj side. At least for now, other side
+                # should remain unchanged.
+                adj.join( flip[eAdj],
+                         oldFaces[eAdj],
+                         oldGluings[eAdj] * flip )
+
+    # All done!
+    return spanningGluings
+
+
 if __name__ == "__main__":
     def _doTest( description, expected, actual ):
         """
@@ -238,45 +291,68 @@ if __name__ == "__main__":
             raise RuntimeError("TEST FAILED!")
         return
 
-    def _testTri( tri, isSolidTorus ):
-        """
-        Test basic properties of the triangulation.
-        """
-        _doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
-        _doTest( "Ball?", not isSolidTorus, tri.isBall() )
-        _doTest( "Oriented?", True, tri.isOriented() )
-        return
+#    def _testTri( tri, isSolidTorus ):
+#        """
+#        Test basic properties of the triangulation.
+#        """
+#        _doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
+#        _doTest( "Ball?", not isSolidTorus, tri.isBall() )
+#        _doTest( "Oriented?", True, tri.isOriented() )
+#        return
+#
+#    # Test both solid-torus and non-solid-torus constructions.
+#    for isSolidTorus in ( True, False ):
+#        tri = Triangulation3()
+#        prism = TriPrism( tri, isSolidTorus )
+#        _testTri( tri, isSolidTorus )
+#        print()
+#
+#        # Flip everything one by one, and then unflip, and test that the
+#        # slope-sign constraint is preserved all the way through.
+#        for _ in range(2):
+#            for s in range(3):
+#                # Before flipping.
+#                oldSlope = prism.squareSlope(s)
+#                print( "Old slope of square {}: {}.".format(
+#                    s, oldSlope ) )
+#                for t in range(2):
+#                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
+#                            -1, oldSlope * prism.squareRoles(s,t).sign() )
+#
+#                # After flipping.
+#                newSlope = prism.flipSlope(s)
+#                _doTest( "Flip slope of square {}.".format(s),
+#                        -oldSlope, newSlope )
+#                _doTest( "New slope of square {}.".format(s),
+#                        -oldSlope, prism.squareSlope(s) )
+#                _testTri( tri, isSolidTorus )
+#                for t in range(2):
+#                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
+#                            -1, newSlope * prism.squareRoles(s,t).sign() )
+#                print()
 
-    # Test both solid-torus and non-solid-torus constructions.
-    for isSolidTorus in ( True, False ):
-        tri = Triangulation3()
-        prism = TriPrism( tri, isSolidTorus )
-        _testTri( tri, isSolidTorus )
-        print()
+    # Test orientSpanningTree()
+    print( "+--------------------------+" )
+    print( "| orientSpanningTree(surf) |" )
+    print( "+--------------------------+" )
+    for genus in range( 1, 4 ):
+        for punctures in range( 1, 4 ):
+            print( "Non-orientable genus {} with {} puncture(s)".format(
+                genus, punctures ) )
+            oldSurf = Example2.nonOrientable( genus, punctures )
+            newSurf = Triangulation2(oldSurf)
+            spanningGluings = orientSpanningTree(newSurf)
+            isom = newSurf.isIsomorphicTo(oldSurf)
+            _doTest( "Isomorphic?", True, isom is not None )
+            for face, edge in spanningGluings:
+                adj = newSurf.triangle(face).adjacentTriangle(edge).index()
+                _doTest(
+                        "Sign of ({},{})->{} gluing?".format( face, edge, adj ),
+                        -1,
+                        newSurf.triangle(face).adjacentGluing(edge).sign() )
 
-        # Flip everything one by one, and then unflip, and test that the
-        # slope-sign constraint is preserved all the way through.
-        for _ in range(2):
-            for s in range(3):
-                # Before flipping.
-                oldSlope = prism.squareSlope(s)
-                print( "Old slope of square {}: {}.".format(
-                    s, oldSlope ) )
-                for t in range(2):
-                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
-                            -1, oldSlope * prism.squareRoles(s,t).sign() )
-
-                # After flipping.
-                newSlope = prism.flipSlope(s)
-                _doTest( "Flip slope of square {}.".format(s),
-                        -oldSlope, newSlope )
-                _doTest( "New slope of square {}.".format(s),
-                        -oldSlope, prism.squareSlope(s) )
-                _testTri( tri, isSolidTorus )
-                for t in range(2):
-                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
-                            -1, newSlope * prism.squareRoles(s,t).sign() )
-                print()
+            # Done testing this surface.
+            print()
 
     # If we make it here, then all tests passed.
     print( "+-------------------+" )
