@@ -254,29 +254,29 @@ if __name__ == "__main__":
         _testTri( tri, isSolidTorus )
         print()
 
-        # Test slope and sign both before and after flipping.
-        for s in range(3):
-            # Before flipping.
-            slope = prism.squareSlope(s)
-            print( "Original slope of square {}: {}.".format(
-                s, slope ) )
-            for t in range(2):
-                _doTest( "Slope-sign constraint for triangle {}.".format(t),
-                        -1, slope * prism.squareRoles(s,t).sign() )
+        # Flip everything one by one, and then unflip, and test that the
+        # slope-sign constraint is preserved all the way through.
+        for _ in range(2):
+            for s in range(3):
+                # Before flipping.
+                oldSlope = prism.squareSlope(s)
+                print( "Old slope of square {}: {}.".format(
+                    s, oldSlope ) )
+                for t in range(2):
+                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
+                            -1, oldSlope * prism.squareRoles(s,t).sign() )
 
-            # Flip and then unflip.
-            for _ in range(2):
-                slope *= -1
+                # After flipping.
                 newSlope = prism.flipSlope(s)
                 _doTest( "Flip slope of square {}.".format(s),
-                        slope, newSlope )
+                        -oldSlope, newSlope )
                 _doTest( "New slope of square {}.".format(s),
-                        slope, prism.squareSlope(s) )
+                        -oldSlope, prism.squareSlope(s) )
                 _testTri( tri, isSolidTorus )
                 for t in range(2):
                     _doTest( "Slope-sign constraint for triangle {}.".format(t),
                             -1, newSlope * prism.squareRoles(s,t).sign() )
-            print()
+                print()
 
     # If we make it here, then all tests passed.
     print( "+-------------------+" )
