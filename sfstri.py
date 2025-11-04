@@ -1,6 +1,7 @@
 """
 Construct triangulations of orientable Seifert fibre spaces.
 """
+from sys import argv
 from regina import *
 
 
@@ -281,6 +282,36 @@ def orientSpanningTree(surf):
 
 
 if __name__ == "__main__":
+    availableTests = [ "all",
+                      "prism",
+                      "span" ]
+    if len(argv) == 0:
+        print( "Need to supply at least one of the available test names:" )
+        for name in availableTests:
+            print( "    {}".format(name) )
+        print()
+        testNames = set()
+    else:
+        testNames = set( argv[1:] )
+
+        # Check that all test names are known.
+        unknown = testNames - set(availableTests)
+        if unknown:
+            print( "Unknown test name(s):" )
+            for u in unknown:
+                print( "    {}".format(u) )
+            print( "Here are all the available test names:" )
+            for name in availableTests:
+                print( "    {}".format(name) )
+            testNames = set()
+        else:
+            if "all" in testNames:
+                testNames = set( availableTests[1:] )
+            print( "Running the following tests:" )
+            for name in testNames:
+                print( "    {}".format(name) )
+        print()
+
     def _doTest( description, expected, actual ):
         """
         Run basic test.
@@ -291,70 +322,112 @@ if __name__ == "__main__":
             raise RuntimeError("TEST FAILED!")
         return
 
-#    def _testTri( tri, isSolidTorus ):
-#        """
-#        Test basic properties of the triangulation.
-#        """
-#        _doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
-#        _doTest( "Ball?", not isSolidTorus, tri.isBall() )
-#        _doTest( "Oriented?", True, tri.isOriented() )
-#        return
-#
-#    # Test both solid-torus and non-solid-torus constructions.
-#    for isSolidTorus in ( True, False ):
-#        tri = Triangulation3()
-#        prism = TriPrism( tri, isSolidTorus )
-#        _testTri( tri, isSolidTorus )
-#        print()
-#
-#        # Flip everything one by one, and then unflip, and test that the
-#        # slope-sign constraint is preserved all the way through.
-#        for _ in range(2):
-#            for s in range(3):
-#                # Before flipping.
-#                oldSlope = prism.squareSlope(s)
-#                print( "Old slope of square {}: {}.".format(
-#                    s, oldSlope ) )
-#                for t in range(2):
-#                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
-#                            -1, oldSlope * prism.squareRoles(s,t).sign() )
-#
-#                # After flipping.
-#                newSlope = prism.flipSlope(s)
-#                _doTest( "Flip slope of square {}.".format(s),
-#                        -oldSlope, newSlope )
-#                _doTest( "New slope of square {}.".format(s),
-#                        -oldSlope, prism.squareSlope(s) )
-#                _testTri( tri, isSolidTorus )
-#                for t in range(2):
-#                    _doTest( "Slope-sign constraint for triangle {}.".format(t),
-#                            -1, newSlope * prism.squareRoles(s,t).sign() )
-#                print()
+    # Test TriPrism class.
+    if testNames & { "all", "prism" }:
+        print( "+----------------+" )
+        print( "| TriPrism class |" )
+        print( "+----------------+" )
 
-    # Test orientSpanningTree()
-    print( "+--------------------------+" )
-    print( "| orientSpanningTree(surf) |" )
-    print( "+--------------------------+" )
-    for genus in range( 1, 4 ):
-        for punctures in range( 1, 4 ):
-            print( "Non-orientable genus {} with {} puncture(s)".format(
-                genus, punctures ) )
-            oldSurf = Example2.nonOrientable( genus, punctures )
-            newSurf = Triangulation2(oldSurf)
-            spanningGluings = orientSpanningTree(newSurf)
-            isom = newSurf.isIsomorphicTo(oldSurf)
-            _doTest( "Isomorphic?", True, isom is not None )
-            for face, edge in spanningGluings:
-                adj = newSurf.triangle(face).adjacentTriangle(edge).index()
+        def _testTri( tri, isSolidTorus ):
+            """
+            Test basic properties of the triangulation.
+            """
+            _doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
+            _doTest( "Ball?", not isSolidTorus, tri.isBall() )
+            _doTest( "Oriented?", True, tri.isOriented() )
+            return
+
+        def _testSlopeSign( prism, s, tri, isSolidTorus ):
+            """
+            Test that the slope-sign constraint holds both before and after
+            flipping square s of the given prism.
+            """
+            # Before flipping.
+            oldSlope = prism.squareSlope(s)
+            print( "Old slope of square {}: {}.".format(
+                s, oldSlope ) )
+            for t in range(2):
                 _doTest(
-                        "Sign of ({},{})->{} gluing?".format( face, edge, adj ),
-                        -1,
-                        newSurf.triangle(face).adjacentGluing(edge).sign() )
+                        "Slope-sign constraint for triangle {}.".format(t),
+                        -1, oldSlope * prism.squareRoles(s,t).sign() )
 
-            # Done testing this surface.
+            # After flipping.
+            newSlope = prism.flipSlope(s)
+            _doTest( "Flip slope of square {}.".format(s),
+                    -oldSlope, newSlope )
+            _doTest( "New slope of square {}.".format(s),
+                    -oldSlope, prism.squareSlope(s) )
+            _testTri( tri, isSolidTorus )
+            for t in range(2):
+                _doTest( "Slope-sign constraint for triangle {}.".format(t),
+                        -1, newSlope * prism.squareRoles(s,t).sign() )
+            print()
+            return
+
+        # Test both solid-torus and non-solid-torus constructions.
+        for isSolidTorus in ( True, False ):
+            tri = Triangulation3()
+            prism = TriPrism( tri, isSolidTorus )
+            _testTri( tri, isSolidTorus )
             print()
 
+            # Flip everything one by one, and then unflip, and test that the
+            # slope-sign constraint is preserved all the way through.
+            for _ in range(2):
+                for s in range(3):
+                    _testSlopeSign( prism, s, tri, isSolidTorus )
+
+    # Test orientSpanningTree() routine.
+    if testNames & { "all", "span" }:
+        print( "+--------------------------+" )
+        print( "| orientSpanningTree(surf) |" )
+        print( "+--------------------------+" )
+        for genus in range( 1, 4 ):
+            for punctures in range( 1, 4 ):
+                print( "Non-orientable genus {} with {} puncture(s)".format(
+                    genus, punctures ) )
+
+                # Up to isomorphism, the triangulation should remain the same
+                # after relabelling.
+                oldSurf = Example2.nonOrientable( genus, punctures )
+                newSurf = Triangulation2(oldSurf)
+                spanningGluings = orientSpanningTree(newSurf)
+                isom = newSurf.isIsomorphicTo(oldSurf)
+                _doTest( "Isomorphic?", True, isom is not None )
+
+                # At the very least, the gluings in the spanning tree should
+                # all have sign -1.
+                print( "Signs of spanning gluings" )
+                for face, e in spanningGluings:
+                    adj = newSurf.triangle(face).adjacentTriangle(e)
+                    _doTest(
+                            "    Sign of ({},{})->{} gluing?".format(
+                                face, e, adj.index() ),
+                            -1,
+                            newSurf.triangle(face).adjacentGluing(e).sign() )
+
+                # Deleting all gluings with sign +1 should leave something
+                # that is both connected and oriented.
+                print( "Cut along gluings with sign +1." )
+                cutSurf = Triangulation2(newSurf)
+                for face in cutSurf.triangles():
+                    for edge in range(3):
+                        adj = face.adjacentTriangle(edge)
+                        if adj is None:
+                            continue
+                        gluing = face.adjacentGluing(edge)
+                        if gluing.sign() == 1:
+                            face.unjoin(edge)
+                _doTest( "    Cut surface connected?",
+                        True, cutSurf.isConnected() )
+                _doTest( "    Cut surface oriented?",
+                        True, cutSurf.isOriented() )
+
+                # Done testing this surface.
+                print()
+
     # If we make it here, then all tests passed.
-    print( "+-------------------+" )
-    print( "| ALL TESTS PASSED! |" )
-    print( "+-------------------+" )
+    if testNames:
+        print( "+-------------------+" )
+        print( "| ALL TESTS PASSED! |" )
+        print( "+-------------------+" )
