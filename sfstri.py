@@ -5,6 +5,68 @@ from sys import argv
 from regina import *
 
 
+def orientableCircleBundle( genus, boundaries ):
+    """
+    Constructs an oriented triangulation of the (orientable) circle bundle
+    over the surface with the given genus and given number of boundary
+    components.
+
+    The sign of the given genus parameter will be taken to indicate whether
+    or not the base surface is orientable. That is:
+    --> for genus >= 0, the base surface will be orientable; and
+    --> for genus < 0, the base surface will be nonorientable.
+    In either case, the absolute value of the given genus parameter will be
+    the genus of the base surface.
+    """
+    return orientableBundle( genus, boundaries, True )
+
+
+def orientableIBundle( genus, boundaries ):
+    """
+    Constructs an oriented triangulation of the (orientable) I-bundle over
+    the surface with the given genus and given number of boundary components.
+
+    The sign of the given genus parameter will be taken to indicate whether
+    or not the base surface is orientable. That is:
+    --> for genus >= 0, the base surface will be orientable; and
+    --> for genus < 0, the base surface will be nonorientable.
+    In either case, the absolute value of the given genus parameter will be
+    the genus of the base surface.
+    """
+    return orientableBundle( genus, boundaries, False )
+
+
+def orientableBundle( genus, boundaries, circleBundle ):
+    """
+    Constructs an oriented triangulation of an (orientable) bundle over the
+    surface with the given genus and given number of boundary components.
+
+    If circleBundle is True, then this routine will construct a circle bundle
+    over the requested surface. Otherwise, this routine will construct an
+    I-bundle over the requested surface.
+
+    The sign of the given genus parameter will be taken to indicate whether
+    or not the base surface is orientable. That is:
+    --> for genus >= 0, the base surface will be orientable; and
+    --> for genus < 0, the base surface will be nonorientable.
+    In either case, the absolute value of the given genus parameter will be
+    the genus of the base surface.
+    """
+    if genus >= 0:
+        base = Example2.orientable( genus, boundaries )
+    else:
+        base = Example2.nonOrientable( -genus, boundaries )
+
+    # Create triangular prisms that give bundles over each triangle in base,
+    # and translate the gluings of base into gluings of these prisms.
+    tri = Triangulation3()
+    prism = [ TriPrism( tri, circleBundle ) for _ in range( base.size() ) ]
+    for edge in base.edges():
+        #TODO
+        raise NotImplementedError()
+    return tri
+
+
 class TriPrism:
     r"""
     An oriented triangular prism within a triangulation.
