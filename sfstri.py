@@ -5,66 +5,102 @@ from sys import argv
 from regina import *
 
 
-def orientableCircleBundle( genus, boundaries ):
+def surface( genus, boundaries ):
     """
-    Constructs an oriented triangulation of the (orientable) circle bundle
-    over the surface with the given genus and given number of boundary
-    components.
+    Constructs a triangulation of the surface with the given genus and given
+    number of boundary components.
 
     The sign of the given genus parameter will be taken to indicate whether
-    or not the base surface is orientable. That is:
-    --> for genus >= 0, the base surface will be orientable; and
-    --> for genus < 0, the base surface will be nonorientable.
+    or not the surface is orientable. That is:
+    --> for genus >= 0, the surface will be orientable; and
+    --> for genus < 0, the surface will be nonorientable.
     In either case, the absolute value of the given genus parameter will be
-    the genus of the base surface.
+    the genus of the surface.
     """
-    return orientableBundle( genus, boundaries, True )
-
-
-def orientableIBundle( genus, boundaries ):
-    """
-    Constructs an oriented triangulation of the (orientable) I-bundle over
-    the surface with the given genus and given number of boundary components.
-
-    The sign of the given genus parameter will be taken to indicate whether
-    or not the base surface is orientable. That is:
-    --> for genus >= 0, the base surface will be orientable; and
-    --> for genus < 0, the base surface will be nonorientable.
-    In either case, the absolute value of the given genus parameter will be
-    the genus of the base surface.
-    """
-    return orientableBundle( genus, boundaries, False )
-
-
-def orientableBundle( genus, boundaries, circleBundle ):
-    """
-    Constructs an oriented triangulation of an (orientable) bundle over the
-    surface with the given genus and given number of boundary components.
-
-    If circleBundle is True, then this routine will construct a circle bundle
-    over the requested surface. Otherwise, this routine will construct an
-    I-bundle over the requested surface.
-
-    The sign of the given genus parameter will be taken to indicate whether
-    or not the base surface is orientable. That is:
-    --> for genus >= 0, the base surface will be orientable; and
-    --> for genus < 0, the base surface will be nonorientable.
-    In either case, the absolute value of the given genus parameter will be
-    the genus of the base surface.
-    """
+    #TODO Build custom surface triangulations.
     if genus >= 0:
-        base = Example2.orientable( genus, boundaries )
+        return Example2.orientable( genus, boundaries )
     else:
-        base = Example2.nonOrientable( -genus, boundaries )
+        return Example2.nonOrientable( -genus, boundaries )
+    raise AssertionError( "This should be unreachable." )
 
-    # Create triangular prisms that give bundles over each triangle in base,
-    # and translate the gluings of base into gluings of these prisms.
-    tri = Triangulation3()
-    prism = [ TriPrism( tri, circleBundle ) for _ in range( base.size() ) ]
-    for edge in base.edges():
-        #TODO
-        raise NotImplementedError()
-    return tri
+
+class OrientableBundle:
+    """
+    An oriented triangulation of an (orientable) bundle over a surface.
+
+    The bundle can either be a circle bundle or an I-bundle.
+
+    The 3-manifold triangulation T of the bundle is constructed from a
+    2-manifold triangulation S by assigning a triangular prism (see the
+    TriPrism class) to each triangle of S, and gluing the prisms together
+    accordingly. For triangle i of S, the associated triangular prism can
+    be accessed using OrientableBundle.triPrism(i); moreover, edge e of
+    triangle i corresponds to boundary square number e of the associated
+    prism.
+    """
+    def __init__( self, surf, circleBundle ):
+        """
+        Constructs an oriented triangulation of an (orientable) bundle over
+        the given base surface.
+
+        If circleBundle is True, then this will be a circle bundle.
+        Otherwise, it will be an I-bundle.
+        """
+        self._base = surf
+        self._circleBundle = circleBundle
+
+        # Create triangular prisms that give bundles over each triangle in base,
+        # and translate the gluings of base into gluings of these prisms.
+        self._tri = Triangulation3()
+        self._prism = [ TriPrism( tri, circleBundle )
+                       for _ in range( surf.size() ) ]
+        for edge in surf.edges():
+            #TODO
+            raise NotImplementedError()
+
+    def triangulation(self):
+        """
+        Returns the underlying 3-manifold triangulation of this bundle.
+        """
+        return self._tri
+
+    def base(self):
+        """
+        Returns the triangulation of the base surface of this bundle.
+        """
+        return self._base
+
+    def triPrism( self, i ):
+        """
+        Returns the triangular prism corresponding to triangle i of the base
+        surface.
+        """
+        return self._prism[i]
+
+    def isCircleBundle(self):
+        """
+        Is this a circle bundle?
+        """
+        return self._circleBundle
+
+    def isIBundle(self):
+        """
+        Is this an I-bundle?
+        """
+        return not self._circleBundle
+
+    def toggle(self):
+        """
+        Toggles whether this is a circle bundle or an I-bundle.
+        """
+        for prism in self._prism:
+            prism.toggleSolidTorus()
+        self._circleBundle = not self._circleBundle
+        return
+
+    #TODO
+    pass
 
 
 class TriPrism:
@@ -109,6 +145,9 @@ class TriPrism:
     --> If the endpoints play roles 0 and 1, then the edge is vertical.
     --> If the endpoints play roles 0 and 2, then the edge is horizontal.
     --> If the endpoints play roles 1 and 2, then the edge is diagonal.
+    We number the vertical edges by 0, 1 or 2 depending on which tetrahedron
+    they are incident to. Thus, for each i in {0,1,2}, vertical edge i is
+    opposite boundary square i.
 
     This class provides the flipSlope(s) method, which flips the slope of
     boundary square s by either adding a tetrahedron (via layering) or
@@ -153,6 +192,11 @@ class TriPrism:
         # original boundary square data recorded above.
         self._layerTet = [ None, None, None ]
         self._layerRoles = [ None, None, None ]
+
+        # We will need to keep track of which boundary squares of this prism
+        # are glued to other prisms.
+        #TODO Do we need to track more details?
+        self._isGlued = [ False, False, False ]
         return
 
     def _glueTopBot(self):
@@ -186,8 +230,7 @@ class TriPrism:
         else:
             self._glueTopBot()
             return True
-        # Should never reach this point.
-        raise RuntimeError()
+        raise AssertionError( "This should be unreachable." )
 
     def squareSlope( self, s ):
         """
@@ -219,12 +262,21 @@ class TriPrism:
             return self._squareOrigRoles[s][t]
         return self._layerRoles[s][t]
 
+    def isGlued( self, s ):
+        """
+        Is boundary square s of this prism glued to another prism?
+        """
+        return self._isGlued[s]
+
     def flipSlope( self, square ):
         """
         Flips the sign of the slope of the given square's diagonal edge.
 
         This routine returns the new slope that results from performing the
         flip.
+
+        Pre-condition:
+        --> self.isGlued(square) is False.
         """
         doomed = self._layerTet[square]
         if doomed is not None:
@@ -285,6 +337,49 @@ class TriPrism:
             gluing = relativeGluing[t] * origRoles.inverse()
             coreTet.join( coreFace, layerTet, gluing )
         return -self._squareOrigSlope[square]
+
+    def orientedJoin( s, otherPrism, gluing ):
+        """
+        Joins boundary square s of this prism to some boundary square of
+        another prism in the same triangulation.
+
+        You may join a boundary square of this prism to some different
+        boundary square of the same prism (i.e., otherPrism is allowed to be
+        this prism), though you cannot join a boundary square to itself.
+
+        If the triangulation is currently oriented, then the requested gluing
+        will preserve this orientation.
+
+        The rationale for this routine is that if we associate a collection
+        of prisms to the triangles of a 2-manifold triangulation S, then
+        joining all the prisms together using the same gluing permutations as
+        in S will produce an oriented 3-manifold triangulation T such that:
+        --> if isSolidTorus() is True for every prism, then T will be the
+            orientable circle bundle over S; and
+        --> if isSolidTorus() is False for every prism, then T will be the
+            orientable I-bundle over S.
+
+        Pre-condition:
+        --> This prism and otherPrism belong to the same triangulation.
+        --> Boundary square s of this prism is not currently glued to
+            anything.
+        --> The corresponding boundary square of otherPrism (i.e., boundary
+            square gluing[s] of otherPrism) is likewise not currently glued
+            to anything.
+        --> We are not attempting to glue a boundary square to itself (i.e.,
+            we do not have both self == otherPrism and gluing[s] == s).
+
+        Parameters:
+        --> s           The boundary square of this prism that will be glued
+                        to otherPrism; s must be in {0,1,2}.
+        --> otherPrism  The other prism that will be glued to boundary square
+                        s of this prism.
+        --> gluing      A permutation that describes how the vertical edges
+                        of this prism will map to vertical edges otherPrism
+                        across the new gluing.
+        """
+        #TODO
+        raise NotImplementedError()
 
     # End of TriPrism class.
     pass
@@ -385,6 +480,7 @@ if __name__ == "__main__":
         return
 
     # Test TriPrism class.
+    #TODO Test updated functionality.
     if testNames & { "all", "prism" }:
         print( "+----------------+" )
         print( "| TriPrism class |" )
