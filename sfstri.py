@@ -5,6 +5,118 @@ from sys import argv
 from regina import *
 
 
+def surface( genus, boundaries ):
+    """
+    Constructs a triangulation of the surface with the given genus and given
+    number of boundary components.
+
+    The sign of the given genus parameter will be taken to indicate whether
+    or not the surface is orientable. That is:
+    --> for genus >= 0, the surface will be orientable; and
+    --> for genus < 0, the surface will be nonorientable.
+    In either case, the absolute value of the given genus parameter will be
+    the genus of the surface.
+    """
+    #TODO Build custom surface triangulations.
+    if genus >= 0:
+        return Example2.orientable( genus, boundaries )
+    else:
+        return Example2.nonOrientable( -genus, boundaries )
+    raise AssertionError( "This should be unreachable." )
+
+
+class OrientableBundle:
+    """
+    An oriented triangulation of an (orientable) bundle over a surface.
+
+    The bundle can either be a circle bundle or an I-bundle.
+
+    The 3-manifold triangulation T of the bundle is constructed from a
+    2-manifold triangulation S by assigning a triangular prism (see the
+    TriPrism class) to each triangle of S, and gluing the prisms together
+    accordingly. For triangle i of S, the associated triangular prism can
+    be accessed using OrientableBundle.triPrism(i); moreover, edge e of
+    triangle i corresponds to boundary square number e of the associated
+    prism.
+    """
+    def __init__( self, surf, circleBundle ):
+        """
+        Constructs an oriented triangulation of an (orientable) bundle over
+        the given base surface.
+
+        If circleBundle is True, then this will be a circle bundle.
+        Otherwise, it will be an I-bundle.
+        """
+        self._base = surf
+        self._circleBundle = circleBundle
+
+        # Create triangular prisms that give bundles over each triangle in base,
+        # and translate the gluings of base into gluings of these prisms.
+        self._tri = Triangulation3()
+        self._prism = [ TriPrism( self._tri, circleBundle )
+                       for _ in range( surf.size() ) ]
+        for edge in surf.edges():
+            if edge.isBoundary():
+                continue
+
+            # Get gluing data from the surface triangulation.
+            myFaceIndex = edge.front().triangle().index()
+            myEdgeNum = edge.front().edge()
+            yourFaceIndex = edge.back().triangle().index()
+            gluing = edge.front().triangle().adjacentGluing(myEdgeNum)
+
+            # Translate this into a gluing of prisms.
+            myPrism = self._prism[myFaceIndex]
+            yourPrism = self._prism[yourFaceIndex]
+            myPrism.orientedJoin( myEdgeNum, yourPrism, gluing )
+
+        # All done!
+        return
+
+    def triangulation(self):
+        """
+        Returns the underlying 3-manifold triangulation of this bundle.
+        """
+        return self._tri
+
+    def base(self):
+        """
+        Returns the triangulation of the base surface of this bundle.
+        """
+        return self._base
+
+    def triPrism( self, i ):
+        """
+        Returns the triangular prism corresponding to triangle i of the base
+        surface.
+        """
+        return self._prism[i]
+
+    def isCircleBundle(self):
+        """
+        Is this a circle bundle?
+        """
+        return self._circleBundle
+
+    def isIBundle(self):
+        """
+        Is this an I-bundle?
+        """
+        return not self._circleBundle
+
+    def toggle(self):
+        """
+        Toggles whether this is a circle bundle or an I-bundle.
+        """
+        for prism in self._prism:
+            prism.toggleSolidTorus()
+        self._circleBundle = not self._circleBundle
+        return
+
+    # End of OrientableBundle class.
+    pass
+
+
 class TriPrism:
     r"""
     An oriented triangular prism within a triangulation.
@@ -47,6 +159,9 @@ class TriPrism:
     --> If the endpoints play roles 0 and 1, then the edge is vertical.
     --> If the endpoints play roles 0 and 2, then the edge is horizontal.
     --> If the endpoints play roles 1 and 2, then the edge is diagonal.
+    We number the vertical edges by 0, 1 or 2 depending on which tetrahedron
+    they are incident to. Thus, for each i in {0,1,2}, vertical edge i is
+    opposite boundary square i.
 
     This class provides the flipSlope(s) method, which flips the slope of
     boundary square s by either adding a tetrahedron (via layering) or
@@ -91,6 +206,10 @@ class TriPrism:
         # original boundary square data recorded above.
         self._layerTet = [ None, None, None ]
         self._layerRoles = [ None, None, None ]
+
+        # We will need to keep track of which boundary squares of this prism
+        # are glued to other prisms.
+        self._isGlued = [ False, False, False ]
         return
 
     def _glueTopBot(self):
@@ -124,8 +243,7 @@ class TriPrism:
         else:
             self._glueTopBot()
             return True
-        # Should never reach this point.
-        raise RuntimeError()
+        raise AssertionError( "This should be unreachable." )
 
     def squareSlope( self, s ):
         """
@@ -157,12 +275,21 @@ class TriPrism:
             return self._squareOrigRoles[s][t]
         return self._layerRoles[s][t]
 
+    def isSquareGlued( self, s ):
+        """
+        Is boundary square s of this prism glued to another prism?
+        """
+        return self._isGlued[s]
+
     def flipSlope( self, square ):
         """
         Flips the sign of the slope of the given square's diagonal edge.
 
         This routine returns the new slope that results from performing the
         flip.
+
+        Pre-condition:
+        --> self.isSquareGlued(square) is False.
         """
         doomed = self._layerTet[square]
         if doomed is not None:
@@ -224,6 +351,94 @@ class TriPrism:
             coreTet.join( coreFace, layerTet, gluing )
         return -self._squareOrigSlope[square]
 
+    def orientedJoin( self, s, otherPrism, gluing ):
+        """
+        Joins boundary square s of this prism to some boundary square of
+        another prism in the same triangulation.
+
+        You may join a boundary square of this prism to some different
+        boundary square of the same prism (i.e., otherPrism is allowed to be
+        this prism), though you cannot join a boundary square to itself.
+
+        If the triangulation is currently oriented, then the requested gluing
+        will preserve this orientation.
+
+        The rationale for this routine is that if we associate a collection
+        of prisms to the triangles of a 2-manifold triangulation S, then
+        joining all the prisms together using the same gluing permutations as
+        in S will produce an oriented 3-manifold triangulation T such that:
+        --> if isSolidTorus() is True for every prism, then T will be the
+            orientable circle bundle over S; and
+        --> if isSolidTorus() is False for every prism, then T will be the
+            orientable I-bundle over S.
+
+        Pre-condition:
+        --> This prism and otherPrism belong to the same triangulation.
+        --> Boundary square s of this prism is not currently glued to
+            anything.
+        --> The corresponding boundary square of otherPrism (i.e., boundary
+            square gluing[s] of otherPrism) is likewise not currently glued
+            to anything.
+        --> We are not attempting to glue a boundary square to itself (i.e.,
+            we do not have both self == otherPrism and gluing[s] == s).
+
+        Parameters:
+        --> s           The boundary square of this prism that will be glued
+                        to otherPrism; s must be in {0,1,2}.
+        --> otherPrism  The other prism that will be glued to boundary square
+                        s of this prism.
+        --> gluing      A permutation that describes how the vertical edges
+                        of this prism will map to vertical edges otherPrism
+                        across the new gluing.
+        """
+        sOther = gluing[s]
+
+        # Check some of the preconditions.
+        if self.isSquareGlued(s) or otherPrism.isSquareGlued(sOther):
+            raise ValueError(
+                    "Can only glue squares that are currently unglued." )
+
+        # We need the two squares on either side of the gluing to have
+        # opposite slopes.
+        if self.squareSlope(s) == otherPrism.squareSlope(sOther):
+            self.flipSlope(s)
+
+        # Recall that the boundary squares are labelled as follows:
+        #
+        #               Slope +1          Slope -1
+        #             Roles sign -1     Roles sign +1
+        #                •----•            •----•
+        #                |0 2/|            |\2 0|
+        #                |  /1|            |1\  |
+        #                |1/  |            |  \1|
+        #                |/2 0|            |0 2\|
+        #                •----•            •----•
+        #
+        for t in range(2):
+            if gluing.sign() == 1:
+                # Gluing swaps top and bottom, not left and right.
+                tOther = t
+            else:
+                # Gluing swaps left and right.
+                tOther = 1-t
+            roles = self.squareRoles( s, t )
+            rolesOther = otherPrism.squareRoles( sOther, tOther )
+
+            # Perform the gluing on triangle t of square s of this prism.
+            # Opposite slopes implies that roles and rolesOther have opposite
+            # signs, so our choice of tetGluing permutation does indeed have
+            # sign -1.
+            myTet = self.squareTet( s, t )
+            myFace = roles[3]
+            yourTet = otherPrism.squareTet( sOther, tOther )
+            tetGluing = rolesOther * roles.inverse()
+            myTet.join( myFace, yourTet, tetGluing )
+
+        # All done!
+        self._isGlued[s] = True
+        otherPrism._isGlued[sOther] = True
+        return
+
     # End of TriPrism class.
     pass
 
@@ -283,9 +498,10 @@ def orientSpanningTree(surf):
 
 if __name__ == "__main__":
     availableTests = [ "all",
+                      "bundle",
                       "prism",
                       "span" ]
-    if len(argv) == 0:
+    if len(argv) == 1:
         print( "Need to supply at least one of the available test names:" )
         for name in availableTests:
             print( "    {}".format(name) )
@@ -321,6 +537,46 @@ if __name__ == "__main__":
         if expected != actual:
             raise RuntimeError("TEST FAILED!")
         return
+
+    # Test OrientableBundle class.
+    if testNames & { "all", "bundle" }:
+        print( "+------------------------+" )
+        print( "| OrientableBundle class |" )
+        print( "+------------------------+" )
+
+        # Check that we get oriented triangulations of the correct
+        # 3-manifolds.
+        expectedNames = [
+                "KB/n2 x~ S1",
+                "Non-or, g=2 + 1 puncture/n2 x~ S1",
+                "SFS [Non-or, g=2 + 2 punctures/n2: (1,1)]",
+                "RP3 # RP3",
+                "M/n2 x~ S1",
+                "SFS [Non-or, g=1 + 2 punctures/n2: (1,1)]",
+                "S2 x S1",
+                "D x S1",
+                "A x S1",
+                "T x S1",
+                "Or, g=1 + 1 puncture x S1",
+                "SFS [Or, g=1 + 2 punctures: (1,1)]",
+                "Or, g=2 x S1",
+                "SFS [Or, g=2 + 1 puncture: (1,1)]",
+                "SFS [Or, g=2 + 2 punctures: (1,1)]" ]
+        nameIndex = -1
+        for genus in range( -2, 3 ):
+            for boundaries in range(3):
+                print( "g={}, b={}.".format( genus, boundaries ) )
+                nameIndex += 1
+                expected = expectedNames[nameIndex]
+                base = surface( genus, boundaries )
+
+                # Circle bundle.
+                bundle = OrientableBundle( base, True )
+                tri = bundle.triangulation()
+                _doTest( "Oriented?", True, tri.isOriented() )
+                actual = BlockedSFS.recognise(tri).manifold().name()
+                _doTest( "Manifold?", expected, actual )
+                print()
 
     # Test TriPrism class.
     if testNames & { "all", "prism" }:
@@ -368,7 +624,9 @@ if __name__ == "__main__":
         for isSolidTorus in ( True, False ):
             tri = Triangulation3()
             prism = TriPrism( tri, isSolidTorus )
+            print( "------------------------------------------------" )
             _testTri( tri, isSolidTorus )
+            print( "------------------------------------------------" )
             print()
 
             # Flip everything one by one, and then unflip, and test that the
@@ -407,7 +665,7 @@ if __name__ == "__main__":
                             newSurf.triangle(face).adjacentGluing(e).sign() )
 
                 # Deleting all gluings with sign +1 should leave something
-                # that is both connected and oriented.
+                # connected.
                 print( "Cut along gluings with sign +1." )
                 cutSurf = Triangulation2(newSurf)
                 for face in cutSurf.triangles():
@@ -420,8 +678,6 @@ if __name__ == "__main__":
                             face.unjoin(edge)
                 _doTest( "    Cut surface connected?",
                         True, cutSurf.isConnected() )
-                _doTest( "    Cut surface oriented?",
-                        True, cutSurf.isOriented() )
 
                 # Done testing this surface.
                 print()
