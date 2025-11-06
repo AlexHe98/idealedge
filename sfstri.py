@@ -425,63 +425,9 @@ class TriPrism:
     pass
 
 
-def orientSpanningTree(surf):
-    """
-    Finds a spanning tree in the dual graph of the given 2-manifold
-    triangulation, and orients the corresponding triangulation of the disc.
-
-    Returns a description of the spanning tree as a list of face gluings,
-    where each gluing is specified by a face index and an edge number.
-    """
-    # Build spanning tree by depth-first search.
-    faceIndexFound = {0}
-    faceIndexStack = [0]
-    spanningGluings = []
-    while faceIndexStack:
-        faceIndex = faceIndexStack.pop()
-        face = surf.triangle(faceIndex)
-        for e in range(3):
-            adj = face.adjacentTriangle(e)
-            if ( adj is None ) or ( adj.index() in faceIndexFound ):
-                continue
-
-            # adj is a new face of the triangulation.
-            faceIndexFound.add( adj.index() )
-            faceIndexStack.append( adj.index() )
-            spanningGluings.append( ( faceIndex, e ) )
-
-            # If necessary, flip vertices 1 and 2 of adj to ensure that the
-            # gluing between face and adj has sign -1.
-            if face.adjacentGluing(e).sign() == -1:
-                continue
-            flip = Perm3(1,2)
-            oldFaces = []
-            oldGluings = []
-            for eAdj in range(3):
-                # Before undoing the gluing, record it so that we can redo it
-                # later with vertices 1 and 2 flipped.
-                oldFaces.append( adj.adjacentTriangle(eAdj) )
-                oldGluings.append( adj.adjacentGluing(eAdj) )
-                adj.unjoin(eAdj)
-            for eAdj in range(3):
-                if oldFaces[eAdj] is None:
-                    # No old gluing to restore.
-                    continue
-
-                # Flip vertices on the adj side. At least for now, other side
-                # should remain unchanged.
-                adj.join( flip[eAdj],
-                         oldFaces[eAdj],
-                         oldGluings[eAdj] * flip )
-
-    # All done!
-    return spanningGluings
-
-
 if __name__ == "__main__":
     availableTests = [ "bundle",
-                      "prism",
-                      "span" ]
+                      "prism" ]
     testNames = parseTestNames( argv[1:], availableTests )
 
     # Test OrientableBundle class.
@@ -581,53 +527,6 @@ if __name__ == "__main__":
             for _ in range(2):
                 for s in range(3):
                     _testSlopeSign( prism, s, tri, isSolidTorus )
-
-    # Test orientSpanningTree() routine.
-    if "span" in testNames:
-        print( "+--------------------------+" )
-        print( "| orientSpanningTree(surf) |" )
-        print( "+--------------------------+" )
-        for genus in range( 1, 4 ):
-            for punctures in range( 1, 4 ):
-                print( "Non-orientable genus {} with {} puncture(s)".format(
-                    genus, punctures ) )
-
-                # Up to isomorphism, the triangulation should remain the same
-                # after relabelling.
-                oldSurf = Example2.nonOrientable( genus, punctures )
-                newSurf = Triangulation2(oldSurf)
-                spanningGluings = orientSpanningTree(newSurf)
-                isom = newSurf.isIsomorphicTo(oldSurf)
-                doTest( "Isomorphic?", True, isom is not None )
-
-                # At the very least, the gluings in the spanning tree should
-                # all have sign -1.
-                print( "Signs of spanning gluings" )
-                for face, e in spanningGluings:
-                    adj = newSurf.triangle(face).adjacentTriangle(e)
-                    doTest(
-                            "    Sign of ({},{})->{} gluing?".format(
-                                face, e, adj.index() ),
-                           -1,
-                           newSurf.triangle(face).adjacentGluing(e).sign() )
-
-                # Deleting all gluings with sign +1 should leave something
-                # connected.
-                print( "Cut along gluings with sign +1." )
-                cutSurf = Triangulation2(newSurf)
-                for face in cutSurf.triangles():
-                    for edge in range(3):
-                        adj = face.adjacentTriangle(edge)
-                        if adj is None:
-                            continue
-                        gluing = face.adjacentGluing(edge)
-                        if gluing.sign() == 1:
-                            face.unjoin(edge)
-                doTest( "    Cut surface connected?",
-                        True, cutSurf.isConnected() )
-
-                # Done testing this surface.
-                print()
 
     # If we make it here, then all tests passed.
     allTestsPassedMessage(testNames)
