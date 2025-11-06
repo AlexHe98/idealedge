@@ -3,6 +3,7 @@ Construct triangulations of orientable Seifert fibre spaces.
 """
 from sys import argv
 from regina import *
+from test import parseTestNames, doTest, allTestsPassedMessage
 
 
 def surface( genus, boundaries ):
@@ -497,49 +498,13 @@ def orientSpanningTree(surf):
 
 
 if __name__ == "__main__":
-    availableTests = [ "all",
-                      "bundle",
+    availableTests = [ "bundle",
                       "prism",
                       "span" ]
-    if len(argv) == 1:
-        print( "Need to supply at least one of the available test names:" )
-        for name in availableTests:
-            print( "    {}".format(name) )
-        print()
-        testNames = set()
-    else:
-        testNames = set( argv[1:] )
-
-        # Check that all test names are known.
-        unknown = testNames - set(availableTests)
-        if unknown:
-            print( "Unknown test name(s):" )
-            for u in unknown:
-                print( "    {}".format(u) )
-            print( "Here are all the available test names:" )
-            for name in availableTests:
-                print( "    {}".format(name) )
-            testNames = set()
-        else:
-            if "all" in testNames:
-                testNames = set( availableTests[1:] )
-            print( "Running the following tests:" )
-            for name in testNames:
-                print( "    {}".format(name) )
-        print()
-
-    def _doTest( description, expected, actual ):
-        """
-        Run basic test.
-        """
-        print( "{} Expected: {}. Actual: {}.".format(
-            description, expected, actual ) )
-        if expected != actual:
-            raise RuntimeError("TEST FAILED!")
-        return
+    testNames = parseTestNames( argv[1:], availableTests )
 
     # Test OrientableBundle class.
-    if testNames & { "all", "bundle" }:
+    if "bundle" in testNames:
         print( "+------------------------+" )
         print( "| OrientableBundle class |" )
         print( "+------------------------+" )
@@ -573,13 +538,13 @@ if __name__ == "__main__":
                 # Circle bundle.
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
-                _doTest( "Oriented?", True, tri.isOriented() )
+                doTest( "Oriented?", True, tri.isOriented() )
                 actual = BlockedSFS.recognise(tri).manifold().name()
-                _doTest( "Manifold?", expected, actual )
+                doTest( "Manifold?", expected, actual )
                 print()
 
     # Test TriPrism class.
-    if testNames & { "all", "prism" }:
+    if "prism" in testNames:
         print( "+----------------+" )
         print( "| TriPrism class |" )
         print( "+----------------+" )
@@ -588,9 +553,9 @@ if __name__ == "__main__":
             """
             Test basic properties of the triangulation.
             """
-            _doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
-            _doTest( "Ball?", not isSolidTorus, tri.isBall() )
-            _doTest( "Oriented?", True, tri.isOriented() )
+            doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
+            doTest( "Ball?", not isSolidTorus, tri.isBall() )
+            doTest( "Oriented?", True, tri.isOriented() )
             return
 
         def _testSlopeSign( prism, s, tri, isSolidTorus ):
@@ -603,19 +568,18 @@ if __name__ == "__main__":
             print( "Old slope of square {}: {}.".format(
                 s, oldSlope ) )
             for t in range(2):
-                _doTest(
-                        "Slope-sign constraint for triangle {}.".format(t),
-                        -1, oldSlope * prism.squareRoles(s,t).sign() )
+                doTest( "Slope-sign constraint for triangle {}.".format(t),
+                       -1, oldSlope * prism.squareRoles(s,t).sign() )
 
             # After flipping.
             newSlope = prism.flipSlope(s)
-            _doTest( "Flip slope of square {}.".format(s),
+            doTest( "Flip slope of square {}.".format(s),
                     -oldSlope, newSlope )
-            _doTest( "New slope of square {}.".format(s),
+            doTest( "New slope of square {}.".format(s),
                     -oldSlope, prism.squareSlope(s) )
             _testTri( tri, isSolidTorus )
             for t in range(2):
-                _doTest( "Slope-sign constraint for triangle {}.".format(t),
+                doTest( "Slope-sign constraint for triangle {}.".format(t),
                         -1, newSlope * prism.squareRoles(s,t).sign() )
             print()
             return
@@ -636,7 +600,7 @@ if __name__ == "__main__":
                     _testSlopeSign( prism, s, tri, isSolidTorus )
 
     # Test orientSpanningTree() routine.
-    if testNames & { "all", "span" }:
+    if "span" in testNames:
         print( "+--------------------------+" )
         print( "| orientSpanningTree(surf) |" )
         print( "+--------------------------+" )
@@ -651,18 +615,18 @@ if __name__ == "__main__":
                 newSurf = Triangulation2(oldSurf)
                 spanningGluings = orientSpanningTree(newSurf)
                 isom = newSurf.isIsomorphicTo(oldSurf)
-                _doTest( "Isomorphic?", True, isom is not None )
+                doTest( "Isomorphic?", True, isom is not None )
 
                 # At the very least, the gluings in the spanning tree should
                 # all have sign -1.
                 print( "Signs of spanning gluings" )
                 for face, e in spanningGluings:
                     adj = newSurf.triangle(face).adjacentTriangle(e)
-                    _doTest(
+                    doTest(
                             "    Sign of ({},{})->{} gluing?".format(
                                 face, e, adj.index() ),
-                            -1,
-                            newSurf.triangle(face).adjacentGluing(e).sign() )
+                           -1,
+                           newSurf.triangle(face).adjacentGluing(e).sign() )
 
                 # Deleting all gluings with sign +1 should leave something
                 # connected.
@@ -676,14 +640,11 @@ if __name__ == "__main__":
                         gluing = face.adjacentGluing(edge)
                         if gluing.sign() == 1:
                             face.unjoin(edge)
-                _doTest( "    Cut surface connected?",
+                doTest( "    Cut surface connected?",
                         True, cutSurf.isConnected() )
 
                 # Done testing this surface.
                 print()
 
     # If we make it here, then all tests passed.
-    if testNames:
-        print( "+-------------------+" )
-        print( "| ALL TESTS PASSED! |" )
-        print( "+-------------------+" )
+    allTestsPassedMessage(testNames)
