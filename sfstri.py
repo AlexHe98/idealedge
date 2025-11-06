@@ -3,27 +3,8 @@ Construct triangulations of orientable Seifert fibre spaces.
 """
 from sys import argv
 from regina import *
+from surftri import surface
 from test import parseTestNames, doTest, allTestsPassedMessage
-
-
-def surface( genus, boundaries ):
-    """
-    Constructs a triangulation of the surface with the given genus and given
-    number of boundary components.
-
-    The sign of the given genus parameter will be taken to indicate whether
-    or not the surface is orientable. That is:
-    --> for genus >= 0, the surface will be orientable; and
-    --> for genus < 0, the surface will be nonorientable.
-    In either case, the absolute value of the given genus parameter will be
-    the genus of the surface.
-    """
-    #TODO Build custom surface triangulations.
-    if genus >= 0:
-        return Example2.orientable( genus, boundaries )
-    else:
-        return Example2.nonOrientable( -genus, boundaries )
-    raise AssertionError( "This should be unreachable." )
 
 
 class OrientableBundle:
@@ -444,63 +425,9 @@ class TriPrism:
     pass
 
 
-def orientSpanningTree(surf):
-    """
-    Finds a spanning tree in the dual graph of the given 2-manifold
-    triangulation, and orients the corresponding triangulation of the disc.
-
-    Returns a description of the spanning tree as a list of face gluings,
-    where each gluing is specified by a face index and an edge number.
-    """
-    # Build spanning tree by depth-first search.
-    faceIndexFound = {0}
-    faceIndexStack = [0]
-    spanningGluings = []
-    while faceIndexStack:
-        faceIndex = faceIndexStack.pop()
-        face = surf.triangle(faceIndex)
-        for e in range(3):
-            adj = face.adjacentTriangle(e)
-            if ( adj is None ) or ( adj.index() in faceIndexFound ):
-                continue
-
-            # adj is a new face of the triangulation.
-            faceIndexFound.add( adj.index() )
-            faceIndexStack.append( adj.index() )
-            spanningGluings.append( ( faceIndex, e ) )
-
-            # If necessary, flip vertices 1 and 2 of adj to ensure that the
-            # gluing between face and adj has sign -1.
-            if face.adjacentGluing(e).sign() == -1:
-                continue
-            flip = Perm3(1,2)
-            oldFaces = []
-            oldGluings = []
-            for eAdj in range(3):
-                # Before undoing the gluing, record it so that we can redo it
-                # later with vertices 1 and 2 flipped.
-                oldFaces.append( adj.adjacentTriangle(eAdj) )
-                oldGluings.append( adj.adjacentGluing(eAdj) )
-                adj.unjoin(eAdj)
-            for eAdj in range(3):
-                if oldFaces[eAdj] is None:
-                    # No old gluing to restore.
-                    continue
-
-                # Flip vertices on the adj side. At least for now, other side
-                # should remain unchanged.
-                adj.join( flip[eAdj],
-                         oldFaces[eAdj],
-                         oldGluings[eAdj] * flip )
-
-    # All done!
-    return spanningGluings
-
-
 if __name__ == "__main__":
     availableTests = [ "bundle",
-                      "prism",
-                      "span" ]
+                      "prism" ]
     testNames = parseTestNames( argv[1:], availableTests )
 
     # Test OrientableBundle class.
@@ -511,22 +438,24 @@ if __name__ == "__main__":
 
         # Check that we get oriented triangulations of the correct
         # 3-manifolds.
+        #NOTE Regina is not always consistent with how it chooses from the
+        #   many alternative names that these manifolds have.
         expectedNames = [
                 "KB/n2 x~ S1",
                 "Non-or, g=2 + 1 puncture/n2 x~ S1",
-                "SFS [Non-or, g=2 + 2 punctures/n2: (1,1)]",
+                "Non-or, g=2 + 2 punctures/n2 x~ S1",
                 "RP3 # RP3",
                 "M/n2 x~ S1",
-                "SFS [Non-or, g=1 + 2 punctures/n2: (1,1)]",
+                "Non-or, g=1 + 2 punctures/n2 x~ S1",
                 "S2 x S1",
-                "D x S1",
-                "A x S1",
+                "SFS [D: (1,1)]",
+                "SFS [A: (1,1)]",
                 "T x S1",
                 "Or, g=1 + 1 puncture x S1",
-                "SFS [Or, g=1 + 2 punctures: (1,1)]",
+                "Or, g=1 + 2 punctures x S1",
                 "Or, g=2 x S1",
-                "SFS [Or, g=2 + 1 puncture: (1,1)]",
-                "SFS [Or, g=2 + 2 punctures: (1,1)]" ]
+                "Or, g=2 + 1 puncture x S1",
+                "Or, g=2 + 2 punctures x S1" ]
         nameIndex = -1
         for genus in range( -2, 3 ):
             for boundaries in range(3):
@@ -539,7 +468,7 @@ if __name__ == "__main__":
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
                 doTest( "Oriented?", True, tri.isOriented() )
-                actual = BlockedSFS.recognise(tri).manifold().name()
+                actual = StandardTriangulation.recognise(tri).manifold().name()
                 doTest( "Manifold?", expected, actual )
                 print()
 
@@ -598,53 +527,6 @@ if __name__ == "__main__":
             for _ in range(2):
                 for s in range(3):
                     _testSlopeSign( prism, s, tri, isSolidTorus )
-
-    # Test orientSpanningTree() routine.
-    if "span" in testNames:
-        print( "+--------------------------+" )
-        print( "| orientSpanningTree(surf) |" )
-        print( "+--------------------------+" )
-        for genus in range( 1, 4 ):
-            for punctures in range( 1, 4 ):
-                print( "Non-orientable genus {} with {} puncture(s)".format(
-                    genus, punctures ) )
-
-                # Up to isomorphism, the triangulation should remain the same
-                # after relabelling.
-                oldSurf = Example2.nonOrientable( genus, punctures )
-                newSurf = Triangulation2(oldSurf)
-                spanningGluings = orientSpanningTree(newSurf)
-                isom = newSurf.isIsomorphicTo(oldSurf)
-                doTest( "Isomorphic?", True, isom is not None )
-
-                # At the very least, the gluings in the spanning tree should
-                # all have sign -1.
-                print( "Signs of spanning gluings" )
-                for face, e in spanningGluings:
-                    adj = newSurf.triangle(face).adjacentTriangle(e)
-                    doTest(
-                            "    Sign of ({},{})->{} gluing?".format(
-                                face, e, adj.index() ),
-                           -1,
-                           newSurf.triangle(face).adjacentGluing(e).sign() )
-
-                # Deleting all gluings with sign +1 should leave something
-                # connected.
-                print( "Cut along gluings with sign +1." )
-                cutSurf = Triangulation2(newSurf)
-                for face in cutSurf.triangles():
-                    for edge in range(3):
-                        adj = face.adjacentTriangle(edge)
-                        if adj is None:
-                            continue
-                        gluing = face.adjacentGluing(edge)
-                        if gluing.sign() == 1:
-                            face.unjoin(edge)
-                doTest( "    Cut surface connected?",
-                        True, cutSurf.isConnected() )
-
-                # Done testing this surface.
-                print()
 
     # If we make it here, then all tests passed.
     allTestsPassedMessage(testNames)
