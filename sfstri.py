@@ -383,7 +383,12 @@ class TriPrism:
         # We need the two squares on either side of the gluing to have
         # opposite slopes.
         if self.squareSlope(s) == otherPrism.squareSlope(sOther):
-            self.flipSlope(s)
+            # Flip slope by removing tetrahedra whenever possible.
+            if ( ( self._layerTet[s] is not None ) or
+                ( otherPrism._layerTet[sOther] is None ) ):
+                self.flipSlope(s)
+            else:
+                otherPrism.flipSlope(sOther)
 
         # Recall that the boundary squares are labelled as follows:
         #
@@ -461,15 +466,25 @@ if __name__ == "__main__":
             for boundaries in range(3):
                 print( "g={}, b={}.".format( genus, boundaries ) )
                 nameIndex += 1
-                expected = expectedNames[nameIndex]
+                expectedName = expectedNames[nameIndex]
                 base = surface( genus, boundaries )
 
                 # Circle bundle.
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
                 doTest( "Oriented?", True, tri.isOriented() )
-                actual = StandardTriangulation.recognise(tri).manifold().name()
-                doTest( "Manifold?", expected, actual )
+                actual = StandardTriangulation.recognise(tri).manifold()
+                doTest( "Manifold?", expectedName, actual.name() )
+                for edge in base.edges():
+                    if not edge.isBoundary():
+                        continue
+                    faceIndex = edge.front().triangle().index()
+                    prism = bundle.triPrism(faceIndex)
+                    square = edge.front().edge()
+                    doTest(
+                            "Square {}({}) glued?".format(
+                                faceIndex, square ),
+                            False, prism.isSquareGlued(square) )
                 print()
 
     # Test TriPrism class.
