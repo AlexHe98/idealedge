@@ -101,8 +101,20 @@ def orientable( genus, boundaries ):
         # 4*g + 3*b - 4. We begin with the 1-boundary triangulation with
         # 4*g - 1 triangles, and then use 3*b - 3 additional triangles to
         # create all the extra boundary components.
-        #TODO
-        raise NotImplementedError()
+        ans = orientable( genus, 1 )
+        initSize = 4*genus - 1
+
+        #NOTE The construction below relies on the precise implementation of
+        #   disc().
+        #NOTE We use the exact same construction to create extra boundary
+        #   components in both the orientable and non-orientable cases.
+        ans.insertTriangulation( disc( 3*boundaries - 3 ) )
+        for i in range( boundaries - 1 ):
+            myFace = ans.triangle( initSize + 3*i )
+            yourFace = ans.triangle( initSize + 3*i + 2 )
+            gluing = Perm3(1,2)
+            myFace.join( 0, yourFace, gluing )
+        ans.triangle(0).join( 2, ans.triangle(initSize), Perm3(0,1) )
 
     # All done!
     return ans
@@ -142,10 +154,6 @@ if __name__ == "__main__":
         print( "+---------------------------------+" )
         for genus in range(9):
             for boundaries in range(9):
-                if boundaries >= 2 and genus != 0:
-                    #TODO Skipping this test because this case hasn't been
-                    #   implemented yet.
-                    continue
                 print( "g={}, b={}".format( genus, boundaries ) )
                 surf = orientable( genus, boundaries )
                 if boundaries == 0:
