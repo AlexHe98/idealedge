@@ -188,6 +188,27 @@ def nonOrientable( genus, boundaries ):
     return ans
 
 
+def surface( genus, boundaries ):
+    """
+    Constructs a minimal triangulation of the surface with the given genus
+    and given number of boundary components.
+
+    The sign of the given genus parameter will be taken to indicate whether
+    or not the surface is orientable. That is:
+    --> for genus >= 0, the surface will be orientable; and
+    --> for genus < 0, the surface will be nonorientable.
+    In either case, the absolute value of the given genus parameter will be
+    the genus of the surface.
+
+    In the orientable case, the constructed triangulation will be oriented.
+    """
+    if genus >= 0:
+        return orientable( genus, boundaries )
+    else:
+        return nonOrientable( -genus, boundaries )
+    raise AssertionError( "This should be unreachable." )
+
+
 if __name__ == "__main__":
     availableTests = [ "disc",
                       "orbl",

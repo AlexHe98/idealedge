@@ -3,27 +3,8 @@ Construct triangulations of orientable Seifert fibre spaces.
 """
 from sys import argv
 from regina import *
+from surftri import surface
 from test import parseTestNames, doTest, allTestsPassedMessage
-
-
-def surface( genus, boundaries ):
-    """
-    Constructs a triangulation of the surface with the given genus and given
-    number of boundary components.
-
-    The sign of the given genus parameter will be taken to indicate whether
-    or not the surface is orientable. That is:
-    --> for genus >= 0, the surface will be orientable; and
-    --> for genus < 0, the surface will be nonorientable.
-    In either case, the absolute value of the given genus parameter will be
-    the genus of the surface.
-    """
-    #TODO Build custom surface triangulations.
-    if genus >= 0:
-        return Example2.orientable( genus, boundaries )
-    else:
-        return Example2.nonOrientable( -genus, boundaries )
-    raise AssertionError( "This should be unreachable." )
 
 
 class OrientableBundle:
@@ -511,22 +492,24 @@ if __name__ == "__main__":
 
         # Check that we get oriented triangulations of the correct
         # 3-manifolds.
+        #NOTE Regina is not always consistent with how it chooses from the
+        #   many alternative names that these manifolds have.
         expectedNames = [
                 "KB/n2 x~ S1",
                 "Non-or, g=2 + 1 puncture/n2 x~ S1",
-                "SFS [Non-or, g=2 + 2 punctures/n2: (1,1)]",
+                "Non-or, g=2 + 2 punctures/n2 x~ S1",
                 "RP3 # RP3",
                 "M/n2 x~ S1",
-                "SFS [Non-or, g=1 + 2 punctures/n2: (1,1)]",
+                "Non-or, g=1 + 2 punctures/n2 x~ S1",
                 "S2 x S1",
-                "D x S1",
-                "A x S1",
+                "SFS [D: (1,1)]",
+                "SFS [A: (1,1)]",
                 "T x S1",
                 "Or, g=1 + 1 puncture x S1",
-                "SFS [Or, g=1 + 2 punctures: (1,1)]",
+                "Or, g=1 + 2 punctures x S1",
                 "Or, g=2 x S1",
-                "SFS [Or, g=2 + 1 puncture: (1,1)]",
-                "SFS [Or, g=2 + 2 punctures: (1,1)]" ]
+                "Or, g=2 + 1 puncture x S1",
+                "Or, g=2 + 2 punctures x S1" ]
         nameIndex = -1
         for genus in range( -2, 3 ):
             for boundaries in range(3):
@@ -539,7 +522,7 @@ if __name__ == "__main__":
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
                 doTest( "Oriented?", True, tri.isOriented() )
-                actual = BlockedSFS.recognise(tri).manifold().name()
+                actual = StandardTriangulation.recognise(tri).manifold().name()
                 doTest( "Manifold?", expected, actual )
                 print()
 
