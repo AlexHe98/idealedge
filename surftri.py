@@ -81,8 +81,21 @@ def orientable( genus, boundaries ):
                 myFace.join( 0, yourFace, gluing )
     elif genus == 0:
         # We have b >= 2. The size of a minimal triangulation is 3*b - 4.
-        #TODO
-        raise NotImplementedError()
+        ans = disc( 3*boundaries - 4 )
+
+        #NOTE The construction below relies on the precise implementation of
+        #   disc().
+        for i in range( boundaries - 1 ):
+            myFace = ans.triangle( 3*i )
+            if i == boundaries - 2:
+                # The very last gluing needs to be handled differently from
+                # the others.
+                yourFace = ans.triangle( 3*boundaries - 5 )
+                gluing = Perm3(0,1)
+            else:
+                yourFace = ans.triangle( 3*i + 2 )
+                gluing = Perm3(1,2)
+            myFace.join( 0, yourFace, gluing )
     else:
         # We have g >= 1 and b >= 2. The size of a minimal triangulation is
         # 4*g + 3*b - 4. We begin with the 1-boundary triangulation with
@@ -128,9 +141,11 @@ if __name__ == "__main__":
         print( "| orientable( genus, boundaries ) |" )
         print( "+---------------------------------+" )
         for genus in range(9):
-            #TODO Once implemented, we need to test greater number of
-            #   boundary components.
-            for boundaries in range(2):
+            for boundaries in range(9):
+                if boundaries >= 2 and genus != 0:
+                    #TODO Skipping this test because this case hasn't been
+                    #   implemented yet.
+                    continue
                 print( "g={}, b={}".format( genus, boundaries ) )
                 surf = orientable( genus, boundaries )
                 if boundaries == 0:
