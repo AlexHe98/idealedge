@@ -61,7 +61,9 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
 
     # The bundle's underlying triangulation is no longer the original bundle,
     # but rather the SFS obtained via the fillings we just did.
-    return bundle.triangulation()
+    ans = bundle.triangulation()
+    ans.orient()    #TODO This is needed because of the fillings.
+    return ans
 
 
 class OrientableBundle:
@@ -498,10 +500,51 @@ if __name__ == "__main__":
         print( "+-------------------------------------------------------+" )
         print( "| orientableSFS( baseSignedGenus, boundaries, *fibres ) |" )
         print( "+-------------------------------------------------------+" )
-        #TODO Test this properly.
-        tri = orientableSFS( 1, 0, (2,1), (5,2), (5,-2) )
-        print( StandardTriangulation.recognise(tri).manifold().name() )
-        print()
+        testFibres = [
+                [],
+                [ (3,-1), (4,1) ],
+                [ (2,1), (5,1), (5,-2) ],
+                [ (3,1), (7,-2), (7,2), (7,-3) ] ]
+        #NOTE Regina is not always consistent with how it chooses from the
+        #   many alternative names that these manifolds have.
+        expectedNames = [
+                "RP3 # RP3",
+                "SFS [RP2/n2: (3,1) (4,-1)]",
+                "SFS [RP2/n2: (2,1) (5,1) (5,-2)]",
+                "SFS [RP2/n2: (3,1) (7,2) (7,4) (7,-9)]",
+                "M/n2 x~ S1",
+                "SFS [M/n2: (3,1) (4,-1)]",
+                "SFS [M/n2: (2,1) (5,2) (5,-1)]",
+                "SFS [M/n2: (3,1) (7,2) (7,4) (7,-9)]",
+                "S2 x S1",
+                "S3",
+                "SFS [S2: (2,1) (5,1) (5,-2)]",
+                "SFS [S2: (3,1) (7,2) (7,4) (7,-9)]",
+                "SFS [D: (1,1)]",
+                "SFS [D: (3,1) (4,-1)]",
+                "SFS [D: (2,1) (5,1) (5,3)]",
+                "SFS [D: (3,1) (7,2) (7,4) (7,-9)]",
+                "T x S1",
+                "SFS [T: (3,1) (4,-1)]",
+                "SFS [T: (2,1) (5,1) (5,-2)]",
+                "SFS [T: (3,1) (7,2) (7,4) (7,-9)]",
+                "Or, g=1 + 1 puncture x S1",
+                "SFS [Or, g=1 + 1 puncture: (3,1) (4,-1)]",
+                "SFS [Or, g=1 + 1 puncture: (2,1) (5,2) (5,-1)]",
+                "SFS [Or, g=1 + 1 puncture: (3,1) (7,2) (7,4) (7,-9)]" ]
+        nameIndex = -1
+        for genus in range( -1, 2 ):
+            for boundaries in range(2):
+                for fibres in testFibres:
+                    print( "g={}, b={}, fibres={}.".format(
+                        genus, boundaries, fibres ) )
+                    nameIndex += 1
+                    expectedName = expectedNames[nameIndex]
+                    sfs = orientableSFS( genus, boundaries, *fibres )
+                    doTest( "Oriented?", True, sfs.isOriented() )
+                    actual = StandardTriangulation.recognise(sfs).manifold()
+                    doTest( "Manifold?", expectedName, actual.name() )
+                    print()
 
     # Test OrientableBundle class.
     if "bundle" in testNames:
