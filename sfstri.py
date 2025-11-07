@@ -7,6 +7,63 @@ from surftri import surface
 from test import parseTestNames, doTest, allTestsPassedMessage
 
 
+def orientableSFS( baseSignedGenus, boundaries, *fibres ):
+    """
+    Constructs an oriented triangulation of the given (orientable) Seifert
+    fibre space.
+
+    In detail, the arguments to this routine should specify such a Seifert
+    fibre space as follows:
+    --> baseSignedGenus should be an integer giving the "signed genus" of the
+        base surface. That is:
+        --- if baseSignedGenus >= 0, then the base will be orientable and
+            have genus baseSignedGenus; and
+        --- if baseSignedGenus < 0, then the base will be the surface with
+            nonorientable genus -baseSignedGenus.
+    --> boundaries should be a non-negative integer specifying the number of
+        boundary components of the Seifert fibre space.
+    --> fibres should be a collection of exceptional fibres, where each fibre
+        is specified by a pair (a,b) of integers such that:
+        --- a > 0; and
+        --- a and b are coprime.
+    """
+    numFibres = len(fibres)
+    unfilledBase = surface( baseSignedGenus, boundaries + numFibres )
+
+    # Start with a circle bundle over the unfilled base.
+    bundle = OrientableBundle( unfilledBase, True )
+
+    # We will fill in the exceptional fibres by attaching layered solid tori.
+    # We start by finding the boundary squares that we will be filling in.
+    prism = []
+    square = []
+    for baseEdge in unfilledBase.edges():
+        if not baseEdge.isBoundary():
+            continue
+        prism.append( bundle.triPrism(
+            baseEdge.front().triangle().index() ) )
+        square.append( baseEdge.front().edge() )
+        if len(prism) == numFibres:
+            break
+
+    # Now go through and perform the fillings.
+    for i in range( len(fibres) ):
+        # To get consistent signs on all the fillings, we need the filled
+        # square to have positive slope.
+        if prism[i].squareSlope( square[i] ) == -1:
+            prism[i].flipSlope( square[i] )
+        SatAnnulus.attachLST( prism[i].squareTet( square[i], 0 ),
+                             prism[i].squareRoles( square[i], 0 ),
+                             prism[i].squareTet( square[i], 1 ),
+                             prism[i].squareRoles( square[i], 1 ),
+                             fibres[i][0],
+                             fibres[i][1] )
+
+    # The bundle's underlying triangulation is no longer the original bundle,
+    # but rather the SFS obtained via the fillings we just did.
+    return bundle.triangulation()
+
+
 class OrientableBundle:
     """
     An oriented triangulation of an (orientable) bundle over a surface.
@@ -431,9 +488,20 @@ class TriPrism:
 
 
 if __name__ == "__main__":
-    availableTests = [ "bundle",
+    availableTests = [ "sfs",
+                      "bundle",
                       "prism" ]
     testNames = parseTestNames( argv[1:], availableTests )
+
+    # Test orientableSFS() routine.
+    if "sfs" in testNames:
+        print( "+-------------------------------------------------------+" )
+        print( "| orientableSFS( baseSignedGenus, boundaries, *fibres ) |" )
+        print( "+-------------------------------------------------------+" )
+        #TODO Test this properly.
+        tri = orientableSFS( 1, 0, (2,1), (5,2), (5,-2) )
+        print( StandardTriangulation.recognise(tri).manifold().name() )
+        print()
 
     # Test OrientableBundle class.
     if "bundle" in testNames:
