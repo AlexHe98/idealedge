@@ -16,8 +16,8 @@ def disc(n=1):
     polygon. In particular, this means that the returned triangulation always
     uses the minimum number of edge identifications for an n-triangle disc.
     """
-    #NOTE Both orientable() and nonOrientable() rely on the precise
-    #   implementation of disc().
+    #NOTE The orientable(), nonOrientable() and orientableSFS() routines all
+    #   rely on the precise implementation of disc().
     if n < 1:
         raise ValueError(
                 "Triangulation must have a positive number of triangles." )

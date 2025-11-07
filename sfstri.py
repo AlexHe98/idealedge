@@ -3,7 +3,7 @@ Construct triangulations of orientable Seifert fibre spaces.
 """
 from sys import argv
 from regina import *
-from surftri import surface
+from surftri import disc, surface
 from test import parseTestNames, doTest, allTestsPassedMessage
 
 
@@ -24,30 +24,108 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
         boundary components of the Seifert fibre space.
     --> fibres should be a collection of exceptional fibres, where each fibre
         is specified by a pair (a,b) of integers such that:
-        --- a > 0; and
+        --- a >= 1; and
         --- a and b are coprime.
     """
-    numFibres = len(fibres)
-    unfilledBase = surface( baseSignedGenus, boundaries + numFibres )
+    # Only consider fibres with multiplicity >= 2.
+    exceptionalFibres = []
+    obstruction = 0
+    for a, b in fibres:
+        if a < 1:
+            raise ValueError( "Multiplicity should be positive." )
+        elif a == 1:
+            obstruction += b
+        else:
+            exceptionalFibres.append( (a,b) )
+    if boundaries == 0 and obstruction != 0:
+        # Add the obstruction constant back in.
+        if exceptionalFibres:
+            a, b = exceptionalFibres.pop()
+        else:
+            # We need a "fake" exceptional fibre.
+            a, b = 1, 0
+        exceptionalFibres.append( ( a, b + a*obstruction ) )
+
+    # If we have no exceptional fibres at all, then the requested SFS is just
+    # the orientable circle bundle over the base surface.
+    if not exceptionalFibres:
+        base = surface( baseSignedGenus, boundaries )
+        return OrientableBundle( base, True ).triangulation()
+
+    # Defer to Regina's implementation to determine whether we have a lens
+    # space, and if so to construct the triangulation.
+    numFibres = len(exceptionalFibres)
+    if boundaries == 0:
+        if baseSignedGenus == -1 and numFibres == 1:
+            # We will sometimes have a lens space in this case.
+            sfs = SFSpace( Class.n2, 1 )
+            sfs.insertFibre( SFSFibre( *exceptionalFibres[0] ) )
+            lens = sfs.isLensSpace()
+            if lens is not None:
+                return lens.construct()
+        elif baseSignedGenus == 0 and numFibres <= 2:
+            # Guaranteed to be a lens space in this case.
+            sfs = SFSpace()
+            for a, b in exceptionalFibres:
+                sfs.insertFibre( SFSFibre( a, b ) )
+            return sfs.isLensSpace().construct()
+
+    #TODO Need to deal with some other special cases where the general
+    #   construction doesn't apply.
+
+    # Construct a base surface with one extra boundary component. The extra
+    # boundary is where we will fill in all the fibres, so that boundary will
+    # need to have one edge per fibre.
+    unfilledBase = surface( baseSignedGenus, boundaries + 1 )
+    initSize = unfilledBase.size()
+    for baseEdge in unfilledBase.edges():
+        if baseEdge.isBoundary():
+            # Found a suitable boundary edge at which we can fill in all the
+            # exceptional fibres.
+            bdryFace = baseEdge.front().triangle()
+            bdryVer = baseEdge.front().vertices()
+            break
+    if numFibres >= 2:
+        # Add extra boundary edges by attaching a polygon built from
+        # (numFibres - 1) triangles.
+        #NOTE The construction below relies on the precise implementation of
+        #   disc().
+        unfilledBase.insertTriangulation( disc( numFibres - 1 ) )
+        if bdryVer.sign() == -1:
+            gluing = bdryVer
+        else:
+            gluing = bdryVer * Perm3(0,1)
+        unfilledBase.triangle(initSize).join( 2, bdryFace, gluing )
 
     # Start with a circle bundle over the unfilled base.
     bundle = OrientableBundle( unfilledBase, True )
 
     # We will fill in the exceptional fibres by attaching layered solid tori.
-    # We start by finding the boundary squares that we will be filling in.
+    # We need to find the boundary squares that we will be filling in.
     prism = []
     square = []
-    for baseEdge in unfilledBase.edges():
-        if not baseEdge.isBoundary():
-            continue
-        prism.append( bundle.triPrism(
-            baseEdge.front().triangle().index() ) )
-        square.append( baseEdge.front().edge() )
-        if len(prism) == numFibres:
-            break
+    if numFibres == 1:
+        # Just use the square corresponding to the boundary edge that we
+        # found earlier.
+        prism.append( bundle.triPrism( bdryFace.index() ) )
+        square.append( bdryVer[2] )
+    else:
+        # Use the squares corresponding to the edges of the polygon that we
+        # attached.
+        #NOTE The construction below relies on the precise implementation of
+        #   disc().
+        for i in range(numFibres):
+            if i == numFibres - 1:
+                # The very last edge of the polygon is labelled differently
+                # from the others.
+                prism.append( bundle.triPrism( initSize + numFibres - 2 ) )
+                square.append(1)
+            else:
+                prism.append( bundle.triPrism( initSize + i ) )
+                square.append(0)
 
     # Now go through and perform the fillings.
-    for i in range( len(fibres) ):
+    for i in range(numFibres):
         # To get consistent signs on all the fillings, we need the filled
         # square to have positive slope.
         if prism[i].squareSlope( square[i] ) == -1:
@@ -56,8 +134,8 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
                              prism[i].squareRoles( square[i], 0 ),
                              prism[i].squareTet( square[i], 1 ),
                              prism[i].squareRoles( square[i], 1 ),
-                             fibres[i][0],
-                             fibres[i][1] )
+                             exceptionalFibres[i][0],
+                             exceptionalFibres[i][1] )
 
     # The bundle's underlying triangulation is no longer the original bundle,
     # but rather the SFS obtained via the fillings we just did.
@@ -513,9 +591,9 @@ if __name__ == "__main__":
                 "SFS [RP2/n2: (2,1) (5,1) (5,-2)]",
                 "SFS [RP2/n2: (3,1) (7,2) (7,4) (7,-9)]",
                 "M/n2 x~ S1",
-                "SFS [M/n2: (3,1) (4,-1)]",
+                "SFS [M/n2: (3,1) (4,3)]",
                 "SFS [M/n2: (2,1) (5,2) (5,-1)]",
-                "SFS [M/n2: (3,1) (7,2) (7,4) (7,-9)]",
+                "SFS [M/n2: (3,2) (7,2) (7,3) (7,-2)]",
                 "S2 x S1",
                 "S3",
                 "SFS [S2: (2,1) (5,1) (5,-2)]",
