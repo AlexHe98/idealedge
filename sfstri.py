@@ -49,6 +49,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
     # If we have no exceptional fibres at all, then the requested SFS is just
     # the orientable circle bundle over the base surface.
     if not exceptionalFibres:
+        #TODO Handle very small special cases separately.
         base = surface( baseSignedGenus, boundaries )
         return OrientableBundle( base, True ).triangulation()
 
@@ -70,59 +71,133 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
                 sfs.insertFibre( SFSFibre( a, b ) )
             return sfs.isLensSpace().construct()
 
-    #TODO Need to deal with some other special cases where the general
-    #   construction doesn't apply.
-
-    # Construct a base surface with one extra boundary component. The extra
-    # boundary is where we will fill in all the fibres, so that boundary will
-    # need to have one edge per fibre.
-    unfilledBase = surface( baseSignedGenus, boundaries + 1 )
-    initSize = unfilledBase.size()
-    for baseEdge in unfilledBase.edges():
-        if baseEdge.isBoundary():
-            # Found a suitable boundary edge at which we can fill in all the
-            # exceptional fibres.
-            bdryFace = baseEdge.front().triangle()
-            bdryVer = baseEdge.front().vertices()
-            break
-    if numFibres >= 2:
-        # Add extra boundary edges by attaching a polygon built from
-        # (numFibres - 1) triangles.
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
-        unfilledBase.insertTriangulation( disc( numFibres - 1 ) )
-        if bdryVer.sign() == -1:
-            gluing = bdryVer
-        else:
-            gluing = bdryVer * Perm3(0,1)
-        unfilledBase.triangle(initSize).join( 2, bdryFace, gluing )
-
-    # Start with a circle bundle over the unfilled base.
-    bundle = OrientableBundle( unfilledBase, True )
-
-    # We will fill in the exceptional fibres by attaching layered solid tori.
-    # We need to find the boundary squares that we will be filling in.
+    # For the comments below, let:
+    #   --> k be either
+    #       --- 2*baseSignedGenus if baseSignedGenus >= 0, or
+    #       --- -baseSignedGenus if baseSignedGenus < 0;
+    #   --> b = boundaries; and
+    #   --> n = numFibres.
+    #
+    # For the remaining cases, we construct the requested SFS by finding a
+    # suitable base triangulation, constructing the orientable circle bundle
+    # over this base, and then filling in the exceptional fibres by attaching
+    # layered solid tori to the boundary squares of the bundle.
+    #
+    # An obvious choice of base triangulation would just be the surface of
+    # the requested genus, with (b+n) boundary components. However, the
+    # implementation below does slightly better than this (in terms of number
+    # of tetrahedra) by exploiting the fact that the n boundary squares that
+    # we will fill in need not all belong to disjoint boundary components of
+    # the starting bundle.
     prism = []
     square = []
-    if numFibres == 1:
-        # Just use the square corresponding to the boundary edge that we
-        # found earlier.
-        prism.append( bundle.triPrism( bdryFace.index() ) )
-        square.append( bdryVer[2] )
-    else:
-        # Use the squares corresponding to the edges of the polygon that we
-        # attached.
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
+    if baseSignedGenus == 0 and boundaries == 0:
+        # SFS over the sphere. We already ruled out the lens spaces, so we
+        # must have n >= 3.
+        # Our base surface will be an n-sided polygonal disc, constructed
+        # from n-2 triangles.
+        # We will fill in all n boundary squares of the bundle over this
+        # polygon, and hence obtain a closed 3-manifold.
+        #NOTE The construction below relies on the precise implementation
+        #   of disc().
+        unfilledBase = disc( numFibres - 2 )
+        bundle = OrientableBundle( unfilledBase, True )
+
+        # Find the boundary squares that we will be filling in.
         for i in range(numFibres):
+            # The last two fibres need to be handled differently from the
+            # others.
             if i == numFibres - 1:
-                # The very last edge of the polygon is labelled differently
-                # from the others.
-                prism.append( bundle.triPrism( initSize + numFibres - 2 ) )
+                prism.append( bundle.triPrism(0) )
+                square.append(2)
+            elif i == numFibres - 2:
+                prism.append( bundle.triPrism(i-1) )
                 square.append(1)
             else:
-                prism.append( bundle.triPrism( initSize + i ) )
+                prism.append( bundle.triPrism(i) )
                 square.append(0)
+    elif baseSignedGenus == 0 and boundaries == 1:
+        # SFS over the disc.
+        if numFibres <= 1:
+            #TODO Consider handling at least some of the solid torus cases
+            #   earlier.
+
+            # We have a solid torus.
+            return Example3.ballBundle()
+
+        # For n >= 2, our base triangulation will be an (n+1)-sided
+        # polygonal disc, constructed from n-1 triangles.
+        # We will fill in n boundary squares of the bundle over this
+        # polygon. The remaining square will then form the boundary of
+        # the resulting 3-manifold.
+        #NOTE The construction below relies on the precise implementation
+        #   of disc().
+        unfilledBase = disc( numFibres - 1 )
+        bundle = OrientableBundle( unfilledBase, True )
+
+        # Find the boundary squares that we will be filling in.
+        for i in range(numFibres):
+            if i == numFibres - 1:
+                # The very last fibre needs to be handled differently
+                # from the others.
+                prism.append( bundle.triPrism(i-1) )
+                square.append(1)
+            else:
+                prism.append( bundle.triPrism(i) )
+                square.append(0)
+    else:
+        # SFS over either:
+        #   --> genus-0 surface with at b >= 2; or
+        #   --> surface with k >= 1.
+        # In either case, we will start with a base surface that has one
+        # extra boundary component. The extra boundary is where we will fill
+        # in all the fibres, so if necessary we will adjust that boundary to
+        # have exactly one edge per fibre.
+        unfilledBase = surface( baseSignedGenus, boundaries + 1 )
+        initSize = unfilledBase.size()
+        for baseEdge in unfilledBase.edges():
+            if baseEdge.isBoundary():
+                # Found a suitable boundary edge at which we can fill in all
+                # the exceptional fibres.
+                bdryFace = baseEdge.front().triangle()
+                bdryVer = baseEdge.front().vertices()
+                break
+        if numFibres >= 2:
+            # Add extra boundary edges by attaching an (n+1)-sided polygon,
+            # constructed from n-1 triangles.
+            #NOTE The construction below relies on the precise implementation
+            #   of disc().
+            unfilledBase.insertTriangulation( disc( numFibres - 1 ) )
+            if bdryVer.sign() == -1:
+                gluing = bdryVer
+            else:
+                gluing = bdryVer * Perm3(0,1)
+            unfilledBase.triangle(initSize).join( 2, bdryFace, gluing )
+
+        # Start with a circle bundle over the unfilled base.
+        bundle = OrientableBundle( unfilledBase, True )
+
+        # Find the boundary squares that we will be filling in.
+        if numFibres == 1:
+            # Just use the square corresponding to the boundary edge that we
+            # found earlier.
+            prism.append( bundle.triPrism( bdryFace.index() ) )
+            square.append( bdryVer[2] )
+        else:
+            # Use the squares corresponding to the edges of the polygon that
+            # we attached.
+            #NOTE The construction below relies on the precise implementation
+            #   of disc().
+            for i in range(numFibres):
+                if i == numFibres - 1:
+                    # The very last fibre needs to be handled differently
+                    # from the others.
+                    prism.append(
+                            bundle.triPrism( initSize + numFibres - 2 ) )
+                    square.append(1)
+                else:
+                    prism.append( bundle.triPrism( initSize + i ) )
+                    square.append(0)
 
     # Now go through and perform the fillings.
     for i in range(numFibres):
@@ -578,6 +653,7 @@ if __name__ == "__main__":
         print( "+-------------------------------------------------------+" )
         print( "| orientableSFS( baseSignedGenus, boundaries, *fibres ) |" )
         print( "+-------------------------------------------------------+" )
+        #TODO Probably add a couple more test cases.
         testFibres = [
                 [],
                 [ (3,-1), (4,1) ],
@@ -600,16 +676,16 @@ if __name__ == "__main__":
                 "SFS [S2: (3,1) (7,2) (7,4) (7,-9)]",
                 "SFS [D: (1,1)]",
                 "SFS [D: (3,1) (4,-1)]",
-                "SFS [D: (2,1) (5,1) (5,3)]",
+                "SFS [D: (2,1) (5,1) (5,-2)]",
                 "SFS [D: (3,1) (7,2) (7,4) (7,-9)]",
                 "T x S1",
                 "SFS [T: (3,1) (4,-1)]",
                 "SFS [T: (2,1) (5,1) (5,-2)]",
                 "SFS [T: (3,1) (7,2) (7,4) (7,-9)]",
                 "Or, g=1 + 1 puncture x S1",
-                "SFS [Or, g=1 + 1 puncture: (3,1) (4,-1)]",
+                "SFS [Or, g=1 + 1 puncture: (3,1) (4,3)]",
                 "SFS [Or, g=1 + 1 puncture: (2,1) (5,2) (5,-1)]",
-                "SFS [Or, g=1 + 1 puncture: (3,1) (7,2) (7,4) (7,-9)]" ]
+                "SFS [Or, g=1 + 1 puncture: (3,2) (7,2) (7,3) (7,-2)]" ]
         nameIndex = -1
         for genus in range( -1, 2 ):
             for boundaries in range(2):
