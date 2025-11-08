@@ -251,7 +251,7 @@ def idealLoops( surf, oldLoops=[] ):
             newLoops.append( [idEdge] )
 
     #TODO If we crushed an annulus, it would probably be useful to use
-    #   fillIdealEdge() to include additional ideal loops obtained by filling
+    #   fillIdealEdges() to include additional ideal loops obtained by filling
     #   in pinched 2-sphere boundary components.
     #
     #   If/when we implement this functionality, we will need to document the
@@ -263,7 +263,90 @@ def idealLoops( surf, oldLoops=[] ):
     return newLoops
 
 
-def fillIdealEdge(tri):
+#TODO This needs to account for the possibility of multiple invalid vertices
+#   arising from crushing an annulus that meets two boundary components.
+#TODO Decide on whether to return lists of ideal edges, or just directly
+#   return ideal loop(s).
+def fillIdealEdges(tri):
+    """
+    If tri is an invalid component resulting from crushing an annulus, then
+    fills in the invalid parts of the boundary and returns the resulting
+    ideal loops.
+
+    Specifically, this routine works with two-triangle boundary 2-spheres
+    that are isomorphic to the boundary of a snapped 3-ball, and fills in
+    such boundary 2-spheres by attaching a snapped 3-ball. This routine
+    assumes that there are either one or two of these two-triangle boundary
+    2-spheres in tri.
+    --> If there is only one such 2-sphere, then the north and south poles
+        must be pinched together to form a single (invalid) vertex with
+        annulus link. Thus, after truncating the invalid vertex, the pinched
+        2-sphere becomes a single torus boundary component.
+    --> If there are two such 2-spheres, then the north and south poles must
+        be pinched together in pairs to form two disjoint (invalid) vertices
+        with annulus links. Depending on which pairs are pinched together,
+        after truncating the invalid vertices the pinched 2-spheres become
+        either:
+        --- a single torus boundary component; or
+        --- two disjoint torus boundary components.
+    In either case, after performing the filling operation, the internal edge
+    of each newly-attached snapped 3-ball becomes an ideal edge. Drilling out
+    all of the new ideal edges recovers the same torus boundary components
+    that previously arose from truncating the invalid vertices.
+
+    For some of the above pre-conditions, this routine may raise a ValueError
+    if the condition fails. However, failure of the pre-conditions that are
+    not checked will simply lead to undefined behaviour.
+
+    This routine modifies the given triangulation directly. If the
+    triangulation is currently oriented, then the filling operation will
+    preserve this orientation.
+    """
+    # Check some basic pre-conditions.
+    if tri.isValid():
+        raise ValueError( "Can only fill invalid triangulations." )
+
+    # Find the equators of the snapped 3-ball boundaries.
+    fillableEquators = []
+    for edge in tri.edges():
+        if not edge.isBoundary():
+            continue
+        ver = [ edge.front().vertices(), edge.back().vertices() ]
+        tet = [ edge.front().tetrahedron(), edge.back().tetrahedron() ]
+        if tet[0].triangle[ ver[0][3] ] == tet[1].triangle[ ver[1][2] ]:
+            continue
+
+        # Are the other edges of the front and back triangles identified in
+        # such a way that this edge forms the equator of a snapped 3-ball
+        # boundary?
+        isFillableEquator = True
+        for i in range(2):
+            if ( tet[i].edge( ver[i][0], ver[i][2+i] ) !=
+                tet[i].edge( ver[i][1], ver[i][2+i] ) ):
+                isFillableEquator = False
+                break
+        if isFillableEquator:
+            fillableEquators.append(edge)
+    if len(fillableEquators) not in {1,2}:
+        raise ValueError(
+                "Must have either one or two snapped 3-ball boundaries." )
+
+    # Attach snapped 3-balls by first layering across the equators, and then
+    # snapping shut across the newly-layered edges.
+    idealEdges = []
+    for equator in fillableEquators:
+        idealEdges.append( layerOn(equator) )
+    for idEdge in idealEdges:
+        ver = [ idEdge.front().vertices(), idEdge.back().vertices() ]
+        tet = [ idEdge.front().tetrahedron(), idEdge.back().tetrahedron() ]
+
+        #TODO WORKING HERE.
+        raise NotImplementedError()
+    #TODO
+    raise NotImplementedError()
+
+
+def fillIdealEdgeOld(tri):
     """
     If tri is an invalid component resulting from crushing an annulus, then
     closes this triangulation and returns the resulting ideal edge.

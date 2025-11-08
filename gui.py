@@ -5,7 +5,7 @@ from sys import argv
 from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, idealLoops
-from idealedge import isAnnulus, isSphere, fillIdealEdge
+from idealedge import isAnnulus, isSphere, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
@@ -152,8 +152,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                 #NOTE The mess below is to work around layerOn() failing with
                 #   PacketOfTriangulation3.
                 filled = Triangulation3(comp)
-                #NOTE fillIdealEdge() preserves orientation.
-                invIdEdgeIndex = fillIdealEdge(filled).index()
+                #NOTE fillIdealEdges() preserves orientation.
+                invIdEdgeIndex = fillIdealEdges(filled).index()
                 filled = PacketOfTriangulation3(filled)
                 invIdEdge = filled.edge(invIdEdgeIndex)
                 if usingPackets:
@@ -717,9 +717,9 @@ def recogniseSummands( tri, threshold=40 ):
 
 
 if __name__ == "__main__":
-    genus = 0
-    boundaries = 1
-    params = [ int(n) for n in argv[1:] ]
+    genus = int( argv[1] )
+    boundaries = int( argv[2] )
+    params = [ int(n) for n in argv[3:] ]
     fibres = []
     while params:
         q = params.pop()
