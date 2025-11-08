@@ -726,6 +726,8 @@ if __name__ == "__main__":
         p = params.pop()
         fibres.append( (p,q) )
     tri = orientableSFS( genus, boundaries, *fibres )
+    tri.simplify()
+    tri.simplify()
 #    params = [ int(n) for n in argv[1:] ]
 #    manifold = SFSpace()
 #    manifold.insertFibre(3,1)
