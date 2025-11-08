@@ -49,7 +49,29 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
     # If we have no exceptional fibres at all, then the requested SFS is just
     # the orientable circle bundle over the base surface.
     if not exceptionalFibres:
-        #TODO Handle very small special cases separately.
+        # Defer to Regina for small triangulations of some of the simplest
+        # cases.
+        if baseSignedGenus == 0:
+            if boundaries == 0:
+                #NOTE Regina's labelling is not oriented.
+                ans = Example3.s2xs1()
+                ans.orient()
+                return ans
+            elif boundaries == 1:
+                # One-tetrahedron, so trivially oriented.
+                return Example3.ballBundle()
+        elif baseSignedGenus == 1 and boundaries == 0:
+            #NOTE Regina doesn't guarantee that this is oriented.
+            ans = Example3.threeTorus()
+            ans.orient()
+            return ans
+        elif baseSignedGenus == -1 and boundaries == 0:
+            #NOTE Regina doesn't guarantee that this is oriented.
+            ans = Example3.rp3rp3()
+            ans.orient()
+            return ans
+
+        # For the remaining cases, use our generic bundle construction.
         base = surface( baseSignedGenus, boundaries )
         return OrientableBundle( base, True ).triangulation()
 
@@ -59,7 +81,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
     if boundaries == 0:
         if baseSignedGenus == -1 and numFibres == 1:
             # We will sometimes have a lens space in this case.
-            sfs = SFSpace( Class.n2, 1 )
+            sfs = SFSpace( SFSpace.Class.n2, 1 )
             sfs.insertFibre( SFSFibre( *exceptionalFibres[0] ) )
             lens = sfs.isLensSpace()
             if lens is not None:
@@ -72,11 +94,11 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
             return sfs.isLensSpace().construct()
 
     # For the comments below, let:
-    #   --> k be either
+    #   --> k >= 0 be either
     #       --- 2*baseSignedGenus if baseSignedGenus >= 0, or
     #       --- -baseSignedGenus if baseSignedGenus < 0;
-    #   --> b = boundaries; and
-    #   --> n = numFibres.
+    #   --> b = boundaries >= 0; and
+    #   --> n = numFibres >= 1.
     #
     # For the remaining cases, we construct the requested SFS by finding a
     # suitable base triangulation, constructing the orientable circle bundle
@@ -118,11 +140,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
                 square.append(0)
     elif baseSignedGenus == 0 and boundaries == 1:
         # SFS over the disc.
-        if numFibres <= 1:
-            #TODO Consider handling at least some of the solid torus cases
-            #   earlier.
-
-            # We have a solid torus.
+        if numFibres == 1:
             return Example3.ballBundle()
 
         # For n >= 2, our base triangulation will be an (n+1)-sided
@@ -215,7 +233,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
     # The bundle's underlying triangulation is no longer the original bundle,
     # but rather the SFS obtained via the fillings we just did.
     ans = bundle.triangulation()
-    ans.orient()    #TODO This is needed because of the fillings.
+    ans.orient()    #NOTE This is needed because of the fillings.
     return ans
 
 
@@ -653,9 +671,9 @@ if __name__ == "__main__":
         print( "+-------------------------------------------------------+" )
         print( "| orientableSFS( baseSignedGenus, boundaries, *fibres ) |" )
         print( "+-------------------------------------------------------+" )
-        #TODO Probably add a couple more test cases.
         testFibres = [
                 [],
+                [ (5,2) ],
                 [ (3,-1), (4,1) ],
                 [ (2,1), (5,1), (5,-2) ],
                 [ (3,1), (7,-2), (7,2), (7,-3) ] ]
@@ -663,26 +681,32 @@ if __name__ == "__main__":
         #   many alternative names that these manifolds have.
         expectedNames = [
                 "RP3 # RP3",
+                "SFS [S2: (2,1) (2,1) (2,3)]",
                 "SFS [RP2/n2: (3,1) (4,-1)]",
                 "SFS [RP2/n2: (2,1) (5,1) (5,-2)]",
                 "SFS [RP2/n2: (3,1) (7,2) (7,4) (7,-9)]",
                 "M/n2 x~ S1",
+                "SFS [M/n2: (5,3)]",
                 "SFS [M/n2: (3,1) (4,3)]",
                 "SFS [M/n2: (2,1) (5,2) (5,-1)]",
                 "SFS [M/n2: (3,2) (7,2) (7,3) (7,-2)]",
                 "S2 x S1",
+                "RP3",
                 "S3",
                 "SFS [S2: (2,1) (5,1) (5,-2)]",
                 "SFS [S2: (3,1) (7,2) (7,4) (7,-9)]",
-                "SFS [D: (1,1)]",
+                "B2 x S1",
+                "B2 x S1",
                 "SFS [D: (3,1) (4,-1)]",
                 "SFS [D: (2,1) (5,1) (5,-2)]",
                 "SFS [D: (3,1) (7,2) (7,4) (7,-9)]",
                 "T x S1",
+                "SFS [T: (5,2)]",
                 "SFS [T: (3,1) (4,-1)]",
                 "SFS [T: (2,1) (5,1) (5,-2)]",
                 "SFS [T: (3,1) (7,2) (7,4) (7,-9)]",
                 "Or, g=1 + 1 puncture x S1",
+                "SFS [Or, g=1 + 1 puncture: (5,3)]",
                 "SFS [Or, g=1 + 1 puncture: (3,1) (4,3)]",
                 "SFS [Or, g=1 + 1 puncture: (2,1) (5,2) (5,-1)]",
                 "SFS [Or, g=1 + 1 puncture: (3,2) (7,2) (7,3) (7,-2)]" ]
@@ -696,8 +720,18 @@ if __name__ == "__main__":
                     expectedName = expectedNames[nameIndex]
                     sfs = orientableSFS( genus, boundaries, *fibres )
                     doTest( "Oriented?", True, sfs.isOriented() )
-                    actual = StandardTriangulation.recognise(sfs).manifold()
-                    doTest( "Manifold?", expectedName, actual.name() )
+                    if expectedName == "RP3 # RP3":
+                        #NOTE StandardTriangulation doesn't recognise the
+                        #   minimal triangulation of RP3 # RP3.
+                        print( "Skipped recognition of RP3 # RP3." )
+                    else:
+                        actual = StandardTriangulation.recognise(sfs)
+                        if actual.manifold().structure():
+                            actualName = actual.manifold().structure()
+                        else:
+                            actualName = actual.manifold().name()
+                        doTest( "Manifold?",
+                               expectedName, actualName )
                     print()
 
     # Test OrientableBundle class.
