@@ -40,6 +40,9 @@ class BoundsDisc(EmbeddedLoopException):
 #   be modified to track orientations.
 #TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
 #   make sure that they track orientations (if necessary).
+#
+#TODO Refactor to allow tracking multiple loops at once. For this, it would
+#   probably make sense to inherit from InvariantEdges.
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
