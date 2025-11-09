@@ -6,6 +6,9 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
+from invariantedges import InvariantEdges
+#TODO Check what imports are still needed after we're done refactoring to
+#   inherit from InvariantEdges.
 
 
 class EmbeddedLoopException(Exception):
@@ -43,7 +46,8 @@ class BoundsDisc(EmbeddedLoopException):
 #
 #TODO Refactor to allow tracking multiple loops at once. For this, it would
 #   probably make sense to inherit from InvariantEdges.
-class EmbeddedLoop:
+#TODO Will need to update usage everywhere.
+class EmbeddedLoops(InvariantEdges):
     """
     A sequence of edges representing an embedded loop in a 3-manifold
     triangulation.
@@ -204,6 +208,7 @@ class EmbeddedLoop:
                 return None
         return lastVert
 
+    #TODO Rename to setAsCloneOf(), and update usage accordingly.
     def setFromLoop( self, loop, copyTri=True ):
         """
         Sets this embedded loop to be a clone of the given loop.
