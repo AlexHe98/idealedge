@@ -294,13 +294,17 @@ def fillIdealEdges(tri):
     all of the new ideal edges recovers the same torus boundary components
     that previously arose from truncating the invalid vertices.
 
-    For some of the above pre-conditions, this routine may raise a ValueError
-    if the condition fails. However, failure of the pre-conditions that are
-    not checked will simply lead to undefined behaviour.
-
     This routine modifies the given triangulation directly. If the
     triangulation is currently oriented, then the filling operation will
     preserve this orientation.
+
+    This routine returns a list of ideal loops in the given triangulation.
+    This routine does not attempt to simplify these loops before returning
+    them.
+
+    For some of the above pre-conditions, this routine may raise a ValueError
+    if the condition fails. However, failure of the pre-conditions that are
+    not checked will simply lead to undefined behaviour.
     """
     # Check some basic pre-conditions.
     if tri.isValid():
@@ -326,93 +330,35 @@ def fillIdealEdges(tri):
                 isFillableEquator = False
                 break
         if isFillableEquator:
-            fillableEquators.append(edge)
+            fillableEquators.append( (
+                edge.front().tetrahedron(), edge.front().edge() ) )
     if len(fillableEquators) not in {1,2}:
         raise ValueError(
                 "Must have either one or two snapped 3-ball boundaries." )
 
     # Attach snapped 3-balls by first layering across the equators, and then
     # snapping shut across the newly-layered edges.
-    idealEdges = []
-    for equator in fillableEquators:
-        idealEdges.append( layerOn(equator) )
-    for idEdge in idealEdges:
-        ver = [ idEdge.front().vertices(), idEdge.back().vertices() ]
-        tet = [ idEdge.front().tetrahedron(), idEdge.back().tetrahedron() ]
+    idealEdgeTet = []
+    for equatorTet, equatorEdge in fillableEquators:
+        idealEdgeTet.append( layerOn( equatorTet.edge(equatorEdge) ) )
+    for tet in idealEdgeTet:
+        # The specification of layerOn() guarantees that the ideal edge will
+        # be the one that joins vertices 2 and 3 of tet.
+        tet.join( 0, tet, Perm4(0,1) )
 
-        #TODO WORKING HERE.
-        raise NotImplementedError()
-    #TODO
-    raise NotImplementedError()
-
-
-def fillIdealEdgeOld(tri):
-    """
-    If tri is an invalid component resulting from crushing an annulus, then
-    closes this triangulation and returns the resulting ideal edge.
-
-    This routine assumes that the boundary triangles of tri form a
-    two-triangle 2-sphere with two of its three vertices pinched to form a
-    single invalid vertex.
-
-    If the given triangulation is currently oriented, then the filling
-    operation will preserve the orientation.
-    """
-    # Check some basic pre-conditions.
-    if tri.isValid() or tri.countBoundaryTriangles() != 2:
-        return
-
-    # Might need to layer one tetrahedron to achieve the generic case.
-    layerEdge = None
-    for edge in tri.edges():
-        if not edge.isBoundary():
-            continue
-
-        # Does this edge meet two distinct boundary triangles? If so, and if
-        # it is also the *only* boundary edge with this property, then we
-        # need to layer on this edge.
-        emb = [ edge.embedding(0),
-                edge.embedding( edge.degree() - 1 ) ]
-        face = []
-        for i in range(2):
-            tet = emb[i].tetrahedron()
-            faceNum = emb[i].vertices()[3-i]
-            face.append( tet.triangle(faceNum) )
-        if face[0] == face[1]:
-            continue
-        if layerEdge is None:
-            layerEdge = edge
-        else:
-            layerEdge = None
-            break
-    if layerEdge is not None:
-        layerOn(layerEdge)
-
-    # Find the ideal edge. It suffices to look for a boundary edge whose
-    # endpoints are identified.
-    for idEdge in tri.edges():
-        if not idEdge.isBoundary():
-            continue
-        if idEdge.vertex(0) == idEdge.vertex(1):
-            break
-
-    # Finish by closing up the boundary.
-    emb = [ idEdge.embedding(0),
-            idEdge.embedding( idEdge.degree() - 1 ) ]
-    ver = [ emb[i].vertices() for i in range(2) ]
-    me = emb[0].tetrahedron()
-    you = emb[1].tetrahedron()
-    myFace = ver[0][3]
-    gluing = Perm4(
-            ver[0][0], ver[1][0],
-            ver[0][1], ver[1][1],
-            ver[0][2], ver[1][3],
-            ver[0][3], ver[1][2] )
-    me.join( myFace, you, gluing )
-
-    # Now that the triangulation has changed, we can only access the ideal
-    # edge through one of the tetrahedra in which it is embedded.
-    return me.edge( ver[0][0], ver[0][1] )
+    # Find the ideal loops.
+    idealEdge = idealEdgeTet[0].edge(5)
+    if len(idealEdgeTet) == 1:
+        return [ IdealLoop( [idealEdge] ) ]
+    elif idealEdge.vertex(0) == idealEdge.vertex(1):
+        # We should have two ideal edges forming two disjoint ideal loops.
+        return [ IdealLoop( [idealEdge] ),
+                IdealLoop( [ idealEdgeTet[1].edge(5) ] ) ]
+    else:
+        # We should have two ideal edges that together form a single ideal
+        # loop (of length 2).
+        return [ IdealLoop( [ idealEdge, idealEdgeTet[1].edge(5) ] ) ]
+    raise AssertionError( "This should be unreachable." )
 
 
 def isAnnulus(s):
