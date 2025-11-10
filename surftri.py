@@ -6,28 +6,6 @@ from regina import *
 from test import parseTestNames, doTest, allTestsPassedMessage
 
 
-def disc(n=1):
-    """
-    Returns an n-triangle disc.
-
-    By default, this returns the minimal triangulation, with n=1.
-
-    This routine always returns an oriented triangulation of an (n+2)-sided
-    polygon. In particular, this means that the returned triangulation always
-    uses the minimum number of edge identifications for an n-triangle disc.
-    """
-    #NOTE The orientable(), nonOrientable() and orientableSFS() routines all
-    #   rely on the precise implementation of disc().
-    if n < 1:
-        raise ValueError(
-                "Triangulation must have a positive number of triangles." )
-    ans = Triangulation2()
-    ans.newTriangles(n)
-    for i in range( 1, n ):
-        ans.triangle(i).join( 2, ans.triangle(i-1), Perm3(1,2) )
-    return ans
-
-
 def orientable( genus, boundaries ):
     """
     Returns a minimal and oriented triangulation of the given orientable
@@ -58,16 +36,14 @@ def orientable( genus, boundaries ):
 
     # The disc is another special case.
     if genus == 0 and boundaries == 1:
-        return disc()
+        return _polygon(1)
 
     # Now construct all the other cases.
     # For the comments below, let b = boundaries and g = genus.
     if boundaries == 1:
         # We have g >= 1. The size of a minimal triangulation is 4*g - 1.
-        ans = disc( 4*genus - 1 )
+        ans = _polygon( 4*genus - 1 )
 
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
         for handle in range(genus):
             for faceIndex in { 4*handle, 4*handle + 1 }:
                 myFace = ans.triangle(faceIndex)
@@ -82,10 +58,8 @@ def orientable( genus, boundaries ):
                 myFace.join( 0, yourFace, gluing )
     elif genus == 0:
         # We have b >= 2. The size of a minimal triangulation is 3*b - 4.
-        ans = disc( 3*boundaries - 4 )
+        ans = _polygon( 3*boundaries - 4 )
 
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
         for i in range( boundaries - 1 ):
             myFace = ans.triangle( 3*i )
             if i == boundaries - 2:
@@ -103,19 +77,7 @@ def orientable( genus, boundaries ):
         # 4*g - 1 triangles, and then use 3*b - 3 additional triangles to
         # create all the extra boundary components.
         ans = orientable( genus, 1 )
-        initSize = 4*genus - 1
-
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
-        #NOTE We use the exact same construction to create extra boundary
-        #   components in both the orientable and non-orientable cases.
-        ans.insertTriangulation( disc( 3*boundaries - 3 ) )
-        for i in range( boundaries - 1 ):
-            myFace = ans.triangle( initSize + 3*i )
-            yourFace = ans.triangle( initSize + 3*i + 2 )
-            gluing = Perm3(1,2)
-            myFace.join( 0, yourFace, gluing )
-        ans.triangle(0).join( 2, ans.triangle(initSize), Perm3(0,1) )
+        _addBoundaries( ans, boundaries )
 
     # All done!
     return ans
@@ -149,10 +111,8 @@ def nonOrientable( genus, boundaries ):
     # For the comments below, let b = boundaries and g = genus.
     if boundaries == 1:
         # We have g >= 1. The size of a minimal triangulation is 2*g - 1.
-        ans = disc( 2*genus - 1 )
+        ans = _polygon( 2*genus - 1 )
 
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
         for crosscap in range(genus):
             myFace = ans.triangle( 2*crosscap )
             if crosscap == genus - 1:
@@ -170,19 +130,7 @@ def nonOrientable( genus, boundaries ):
         # 2*g - 1 triangles, and then use 3*b - 3 additional triangles to
         # create all the extra boundary components.
         ans = nonOrientable( genus, 1 )
-        initSize = 2*genus - 1
-
-        #NOTE The construction below relies on the precise implementation of
-        #   disc().
-        #NOTE We use the exact same construction to create extra boundary
-        #   components in both the orientable and non-orientable cases.
-        ans.insertTriangulation( disc( 3*boundaries - 3 ) )
-        for i in range( boundaries - 1 ):
-            myFace = ans.triangle( initSize + 3*i )
-            yourFace = ans.triangle( initSize + 3*i + 2 )
-            gluing = Perm3(1,2)
-            myFace.join( 0, yourFace, gluing )
-        ans.triangle(0).join( 2, ans.triangle(initSize), Perm3(0,1) )
+        _addBoundaries( ans, boundaries )
 
     # All done!
     return ans
@@ -209,33 +157,50 @@ def surface( genus, boundaries ):
     raise AssertionError( "This should be unreachable." )
 
 
+def _polygon(n):
+    """
+    Returns an oriented n-triangle polygon with (n + 2) boundary edges.
+
+    The triangulation is constructed by gluing edge (01) of triangle i to
+    edge (02) of triangle (i - 1), for each i from 1 to (n - 1) (inclusive).
+    """
+    if n < 1:
+        raise ValueError(
+                "Triangulation must have a positive number of triangles." )
+    ans = Triangulation2()
+    ans.newTriangles(n)
+    for i in range( 1, n ):
+        ans.triangle(i).join( 2, ans.triangle(i-1), Perm3(1,2) )
+    return ans
+
+
+def _addBoundaries( surf, boundaries ):
+    """
+    Adds boundary components to the given one-boundary surface until it has
+    the given number of boundary components.
+
+    This routine modifies surf directly. Adding the boundary components
+    increases the size of surf by (3*boundaries - 3).
+
+    Pre-condition:
+    --> surf has exactly one boundary edge, and this boundary edge is given
+        by edge (01) of triangle 0.
+    """
+    initSize = surf.size()
+    surf.insertTriangulation( _polygon( 3*boundaries - 3 ) )
+    for i in range( boundaries - 1 ):
+        myFace = surf.triangle( initSize + 3*i )
+        yourFace = surf.triangle( initSize + 3*i + 2 )
+        gluing = Perm3(1,2)
+        myFace.join( 0, yourFace, gluing )
+    surf.triangle(0).join( 2, surf.triangle(initSize), Perm3(0,1) )
+    return
+
+
 if __name__ == "__main__":
-    availableTests = [ "disc",
-                      "orbl",
+    availableTests = [ "orbl",
                       "norbl" ]
     testNames = parseTestNames( argv[1:], availableTests )
-
-    # Test disc() routine.
-    if "disc" in testNames:
-        print( "+---------+" )
-        print( "| disc(n) |" )
-        print( "+---------+" )
-
-        # Test a range of sizes.
-        for n in range( 1, 9 ):
-            print( "{}-triangle disc.".format(n) )
-            surf = disc(n)
-            doTest( "Size.", n, surf.size() )
-            doTest( "Euler.", 1, surf.eulerChar() )
-            doTest( "Boundary components.",
-                   1, surf.countBoundaryComponents() )
-            bdryEdges = 0
-            for e in surf.edges():
-                if e.isBoundary():
-                    bdryEdges += 1
-            doTest( "Boundary edges.", n+2, bdryEdges )
-            doTest( "Oriented?", True, surf.isOriented() )
-            print()
 
     # Test orientable() routine.
     if "orbl" in testNames:
