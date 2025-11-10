@@ -3,7 +3,7 @@ Construct triangulations of orientable Seifert fibre spaces.
 """
 from sys import argv
 from regina import *
-from surftri import disc, surface
+from surftri import _polygon, surface
 from test import parseTestNames, doTest, allTestsPassedMessage
 
 
@@ -120,9 +120,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
         # from n-2 triangles.
         # We will fill in all n boundary squares of the bundle over this
         # polygon, and hence obtain a closed 3-manifold.
-        #NOTE The construction below relies on the precise implementation
-        #   of disc().
-        unfilledBase = disc( numFibres - 2 )
+        unfilledBase = _polygon( numFibres - 2 )
         bundle = OrientableBundle( unfilledBase, True )
 
         # Find the boundary squares that we will be filling in.
@@ -148,9 +146,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
         # We will fill in n boundary squares of the bundle over this
         # polygon. The remaining square will then form the boundary of
         # the resulting 3-manifold.
-        #NOTE The construction below relies on the precise implementation
-        #   of disc().
-        unfilledBase = disc( numFibres - 1 )
+        unfilledBase = _polygon( numFibres - 1 )
         bundle = OrientableBundle( unfilledBase, True )
 
         # Find the boundary squares that we will be filling in.
@@ -183,9 +179,7 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
         if numFibres >= 2:
             # Add extra boundary edges by attaching an (n+1)-sided polygon,
             # constructed from n-1 triangles.
-            #NOTE The construction below relies on the precise implementation
-            #   of disc().
-            unfilledBase.insertTriangulation( disc( numFibres - 1 ) )
+            unfilledBase.insertTriangulation( _polygon( numFibres - 1 ) )
             if bdryVer.sign() == -1:
                 gluing = bdryVer
             else:
@@ -204,8 +198,6 @@ def orientableSFS( baseSignedGenus, boundaries, *fibres ):
         else:
             # Use the squares corresponding to the edges of the polygon that
             # we attached.
-            #NOTE The construction below relies on the precise implementation
-            #   of disc().
             for i in range(numFibres):
                 if i == numFibres - 1:
                     # The very last fibre needs to be handled differently
