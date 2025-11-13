@@ -5,7 +5,6 @@ a diagram that is not obviously composite.
 """
 from sys import argv
 import snappy
-from spherogram.links.tangles import BraidTangle, join_strands
 from regina import *
 
 
