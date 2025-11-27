@@ -337,10 +337,20 @@ class EmbeddedLoop:
         The cloned loop will always be embedded in a copy of the
         triangulation containing this loop.
         """
-        return EmbeddedLoop( self._cloneImpl() )
+        return EmbeddedLoop( self._cloneImpl(), self.orientation() )
 
-    def _cloneImpl(self):
-        newTri = Triangulation3( self._tri )
+    def _cloneImpl( self, newTri=None ):
+        """
+        Returns a list of edges which can be used to create a clone of this
+        EmbeddedLoop.
+
+        If newTri is None (the default), then the edges in the returned list
+        will all belong to a newly-constructed copy of self.triangulation().
+        Otherwise, newTri must be a triangulation that is combinatorially
+        identical to self.triangulation().
+        """
+        if newTri is None:
+            newTri = Triangulation3( self._tri )
         return [ newTri.edge(ei) for ei in self ]
 
     def triangulation(self):
