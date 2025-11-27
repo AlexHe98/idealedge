@@ -1,14 +1,14 @@
 """
 Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Ideal loops for representing torus boundary components of a 3-manifold.
---> Boundary loops on triangulation with real boundary.
+--> Boundary loops on triangulations with real boundary.
 """
 from regina import *
+#TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
-from invariantedges import InvariantEdges
-#TODO Check what imports are still needed after we're done refactoring to
-#   inherit from InvariantEdges.
+#TODO Decide whether we really want to inherit from InvariantEdges.
+#from invariantedges import InvariantEdges
 
 
 class EmbeddedLoopException(Exception):
@@ -44,10 +44,12 @@ class BoundsDisc(EmbeddedLoopException):
 #TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
 #   make sure that they track orientations (if necessary).
 #
-#TODO Refactor to allow tracking multiple loops at once. For this, it would
-#   probably make sense to inherit from InvariantEdges.
+#TODO Decide whether we really want to inherit from InvariantEdges.
+#
+#TODO Definitely need to introduce functionality to track multiple ideal
+#   loops, but what about boundary loops?
 #TODO Will need to update usage everywhere.
-class EmbeddedLoops(InvariantEdges):
+class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
     triangulation.
@@ -208,7 +210,7 @@ class EmbeddedLoops(InvariantEdges):
                 return None
         return lastVert
 
-    #TODO Rename to setAsCloneOf(), and update usage accordingly.
+    #TODO If inheriting, then rename to setAsCloneOf(), and update usage.
     def setFromLoop( self, loop, copyTri=True ):
         """
         Sets this embedded loop to be a clone of the given loop.
