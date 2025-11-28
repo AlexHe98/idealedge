@@ -7,6 +7,7 @@ from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
+from blueprint import triangulationBlueprint, reconstructTriangulation
 #TODO Decide whether we really want to inherit from InvariantEdges.
 #from invariantedges import InvariantEdges
 
@@ -283,17 +284,7 @@ class EmbeddedLoop:
         Sets this embedded loop using a picklable blueprint, as constructed
         by EmbeddedLoop.blueprint().
         """
-        # Reconstruct the triangulation with the original labelling (not the
-        # canonical labelling given by fromIsoSig()).
-        tri = Triangulation3.fromIsoSig(sig)
-        isom = Isomorphism3( tri.size() )
-        for i in range( tri.size() ):
-            isom.setSimpImage( i, tetImages[i] )
-            isom.setFacePerm( i, Perm4( *facePerms[i] ) )
-
-        # To directly clone the embedded loop, we need to recover the
-        # original labelling.
-        tri = isom.inverse()(tri)
+        tri = reconstructTriangulation( sig, tetImages, facePerms )
         edges = [ tri.edge(ei) for ei in edgeIndices ]
         self.setFromEdges( edges, orientation )
         return
@@ -406,23 +397,17 @@ class EmbeddedLoop:
         --> F is a list such that F[i] is length-4 list with F[i][j] being
             the vertex number of newTri.tetrahedron( T[i] ) that corresponds
             to vertex j of oldTri.tetrahedron(i);
-        --> E is the list of edge indices given by this embedded loop; and
+        --> E is (a copy of) the list of edge indices given by this embedded
+            loop; and
         --> O is the orientation of this embedded loop.
         The returned blueprint can be used, via the setFromBlueprint()
         routine, to build a clone of this embedded loop.
+
+        Note that the first three entries (S,T,F) give the same triangulation
+        blueprint as the one constructed by the following command:
+            triangulationBlueprint( self.triangulation() )
         """
-        sig, isom = self._tri.isoSigDetail()
-
-        # Convert the isomorphism into the lists T and F.
-        tetImages = []
-        facePerms = []
-        for i in range( self._tri.size() ):
-            tetImages.append( isom.simpImage(i) )
-            facePerms.append(
-                    [ isom.facetPerm(i)[j] for j in range(4) ] )
-
-        # For safety, return a copy of this loop's edge index list.
-        return ( sig, tetImages, facePerms,
+        return ( *triangulationBlueprint(self._tri),
                 list(self._edgeIndices), self.orientation() )
 
     def intersects( self, surf ):
