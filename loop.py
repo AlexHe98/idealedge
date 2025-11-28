@@ -1,11 +1,15 @@
 """
 Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Ideal loops for representing torus boundary components of a 3-manifold.
---> Boundary loops on triangulation with real boundary.
+--> Boundary loops on triangulations with real boundary.
 """
 from regina import *
+#TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
+from blueprint import triangulationBlueprint, reconstructTriangulation
+#TODO Decide whether we really want to inherit from InvariantEdges.
+#from invariantedges import InvariantEdges
 
 
 class EmbeddedLoopException(Exception):
@@ -40,6 +44,12 @@ class BoundsDisc(EmbeddedLoopException):
 #   be modified to track orientations.
 #TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
 #   make sure that they track orientations (if necessary).
+#
+#TODO Decide whether we really want to inherit from InvariantEdges.
+#
+#TODO Definitely need to introduce functionality to track multiple ideal
+#   loops, but what about boundary loops?
+#TODO Will need to update usage everywhere.
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -201,6 +211,7 @@ class EmbeddedLoop:
                 return None
         return lastVert
 
+    #TODO If inheriting, then rename to setAsCloneOf(), and update usage.
     def setFromLoop( self, loop, copyTri=True ):
         """
         Sets this embedded loop to be a clone of the given loop.
@@ -273,17 +284,7 @@ class EmbeddedLoop:
         Sets this embedded loop using a picklable blueprint, as constructed
         by EmbeddedLoop.blueprint().
         """
-        # Reconstruct the triangulation with the original labelling (not the
-        # canonical labelling given by fromIsoSig()).
-        tri = Triangulation3.fromIsoSig(sig)
-        isom = Isomorphism3( tri.size() )
-        for i in range( tri.size() ):
-            isom.setSimpImage( i, tetImages[i] )
-            isom.setFacePerm( i, Perm4( *facePerms[i] ) )
-
-        # To directly clone the embedded loop, we need to recover the
-        # original labelling.
-        tri = isom.inverse()(tri)
+        tri = reconstructTriangulation( sig, tetImages, facePerms )
         edges = [ tri.edge(ei) for ei in edgeIndices ]
         self.setFromEdges( edges, orientation )
         return
@@ -327,10 +328,20 @@ class EmbeddedLoop:
         The cloned loop will always be embedded in a copy of the
         triangulation containing this loop.
         """
-        return EmbeddedLoop( self._cloneImpl() )
+        return EmbeddedLoop( self._cloneImpl(), self.orientation() )
 
-    def _cloneImpl(self):
-        newTri = Triangulation3( self._tri )
+    def _cloneImpl( self, newTri=None ):
+        """
+        Returns a list of edges which can be used to create a clone of this
+        EmbeddedLoop.
+
+        If newTri is None (the default), then the edges in the returned list
+        will all belong to a newly-constructed copy of self.triangulation().
+        Otherwise, newTri must be a triangulation that is combinatorially
+        identical to self.triangulation().
+        """
+        if newTri is None:
+            newTri = Triangulation3( self._tri )
         return [ newTri.edge(ei) for ei in self ]
 
     def triangulation(self):
@@ -386,23 +397,17 @@ class EmbeddedLoop:
         --> F is a list such that F[i] is length-4 list with F[i][j] being
             the vertex number of newTri.tetrahedron( T[i] ) that corresponds
             to vertex j of oldTri.tetrahedron(i);
-        --> E is the list of edge indices given by this embedded loop; and
+        --> E is (a copy of) the list of edge indices given by this embedded
+            loop; and
         --> O is the orientation of this embedded loop.
         The returned blueprint can be used, via the setFromBlueprint()
         routine, to build a clone of this embedded loop.
+
+        Note that the first three entries (S,T,F) give the same triangulation
+        blueprint as the one constructed by the following command:
+            triangulationBlueprint( self.triangulation() )
         """
-        sig, isom = self._tri.isoSigDetail()
-
-        # Convert the isomorphism into the lists T and F.
-        tetImages = []
-        facePerms = []
-        for i in range( self._tri.size() ):
-            tetImages.append( isom.simpImage(i) )
-            facePerms.append(
-                    [ isom.facetPerm(i)[j] for j in range(4) ] )
-
-        # For safety, return a copy of this loop's edge index list.
-        return ( sig, tetImages, facePerms,
+        return ( *triangulationBlueprint(self._tri),
                 list(self._edgeIndices), self.orientation() )
 
     def intersects( self, surf ):
