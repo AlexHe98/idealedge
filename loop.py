@@ -278,13 +278,12 @@ class EmbeddedLoop:
         """
         raise NotImplementedError( "Use setFromBlueprint() instead." )
 
-    def setFromBlueprint( self, sig, tetImages, facePerms,
-                         edgeIndices, orientation ):
+    def setFromBlueprint( self, size, gluings, edgeIndices, orientation ):
         """
         Sets this embedded loop using a picklable blueprint, as constructed
         by EmbeddedLoop.blueprint().
         """
-        tri = reconstructTriangulation( sig, tetImages, facePerms )
+        tri = reconstructTriangulation( size, gluings )
         edges = [ tri.edge(ei) for ei in edgeIndices ]
         self.setFromEdges( edges, orientation )
         return
@@ -395,18 +394,21 @@ class EmbeddedLoop:
         """
         Returns a picklable blueprint for this embedded loop.
 
-        In detail, this routine returns a tuple (S,T,F,E,O), where:
-        --> (S,T,F) is the blueprint, as constructed by the
-            triangulationBlueprint() routine, for self.triangulation(). In
-            detail:
-            --> S is the isomorphism signature for
-                oldTri := self.triangulation();
-            --> T is a list such that T[i] gives the index of the tetrahedron in
-                newTri := Triangulation3.fromIsoSig(S) that corresponds to
-                tetrahedron i of oldTri; and
-            --> F is a list such that F[i] is length-4 list with F[i][j] being
-                the vertex number of newTri.tetrahedron( T[i] ) that corresponds
-                to vertex j of oldTri.tetrahedron(i).
+        In detail, this routine returns a tuple (S,G,E,O), where:
+        --> (S,G) is the blueprint, as constructed by the
+            triangulationBlueprint() routine, for tri := self.triangulation().
+            In detail:
+            --- S is the size (i.e., the number of tetrahedra) of tri.
+            --- G is a list such that each entry is of the form [i,f,j,perm],
+                and describes a gluing of tri as follows:
+                --> i is a tetrahedron index of tri;
+                --> f is a face number of tetrahedron i;
+                --> j is the index of the tetrahedron adjacent to tetrahedron
+                    i along face f; and
+                --> perm is a list describing the gluing along face f of
+                    tetrahedron i, with perm[v] giving, for each v in
+                    {0,1,2,3}, the vertex number of tetrahedron j
+                    corresponding to vertex v of tetrahedron i.
         --> E is (a copy of) the list of edge indices given by this embedded
             loop, as returned by self.edgeIndices().
         --> O is the orientation of this embedded loop, as returned by
