@@ -4,6 +4,8 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Boundary loops on triangulations with real boundary.
 """
 from regina import *
+import pickle
+from base64 import b64encode, b64decode
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
@@ -416,6 +418,27 @@ class EmbeddedLoop:
         """
         return ( *triangulationBlueprint(self._tri),
                 self.edgeIndices(), self.orientation() )
+
+    def encode(self):
+        """
+        Returns a string encoding this embedded loop.
+
+        If enc is the returned encoding, then EmbeddedLoop.decode(enc) will
+        construct and return a clone of this embedded loop.
+        """
+        pickledBlueprint = pickle.dumps(
+                self.blueprint(), pickle.HIGHEST_PROTOCOL )
+        return b64encode(pickledBlueprint)
+
+    @staticmethod
+    def decode(enc):
+        """
+        Constructs a clone of the embedded loop encoded by enc.
+        """
+        ans = EmbeddedLoop()
+        ans.setFromBlueprint(
+                *pickle.loads( b64decode(enc) ) )
+        return ans
 
     def intersects( self, surf ):
         """

@@ -822,9 +822,8 @@ class DecompositionTracker:
         self._numTri += 1
         size = loop.triangulation().size()
         beforeReport = "Processing new {}-tetrahedron".format(size)
-        beforeReport += " edge-ideal triangulation.\n    Blueprint:"
-        for data in loop.blueprint():
-            beforeReport += "\n        {}".format(data)
+        beforeReport += " edge-ideal triangulation.\n"
+        beforeReport += "    Encoding: {}".format( loop.encode() )
 
         # This counts as a new event.
         self._newEvent(beforeReport)
