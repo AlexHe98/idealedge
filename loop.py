@@ -321,6 +321,13 @@ class EmbeddedLoop:
         """
         return iter( self._vertIndices )
 
+    def edgeIndices(self):
+        """
+        Returns (a copy of) the underlying list of edge indices in this
+        embedded loop.
+        """
+        return list( self._edgeIndices )
+
     def clone(self):
         """
         Returns a clone of this embedded loop.
@@ -389,26 +396,26 @@ class EmbeddedLoop:
         Returns a picklable blueprint for this embedded loop.
 
         In detail, this routine returns a tuple (S,T,F,E,O), where:
-        --> S is the isomorphism signature for
-            oldTri := self.triangulation();
-        --> T is a list such that T[i] gives the index of the tetrahedron in
-            newTri := Triangulation3.fromIsoSig(S) that corresponds to
-            tetrahedron i of oldTri;
-        --> F is a list such that F[i] is length-4 list with F[i][j] being
-            the vertex number of newTri.tetrahedron( T[i] ) that corresponds
-            to vertex j of oldTri.tetrahedron(i);
+        --> (S,T,F) is the blueprint, as constructed by the
+            triangulationBlueprint() routine, for self.triangulation(). In
+            detail:
+            --> S is the isomorphism signature for
+                oldTri := self.triangulation();
+            --> T is a list such that T[i] gives the index of the tetrahedron in
+                newTri := Triangulation3.fromIsoSig(S) that corresponds to
+                tetrahedron i of oldTri; and
+            --> F is a list such that F[i] is length-4 list with F[i][j] being
+                the vertex number of newTri.tetrahedron( T[i] ) that corresponds
+                to vertex j of oldTri.tetrahedron(i).
         --> E is (a copy of) the list of edge indices given by this embedded
-            loop; and
-        --> O is the orientation of this embedded loop.
+            loop, as returned by self.edgeIndices().
+        --> O is the orientation of this embedded loop, as returned by
+            self.orientation()
         The returned blueprint can be used, via the setFromBlueprint()
         routine, to build a clone of this embedded loop.
-
-        Note that the first three entries (S,T,F) give the same triangulation
-        blueprint as the one constructed by the following command:
-            triangulationBlueprint( self.triangulation() )
         """
         return ( *triangulationBlueprint(self._tri),
-                list(self._edgeIndices), self.orientation() )
+                self.edgeIndices(), self.orientation() )
 
     def intersects( self, surf ):
         """
