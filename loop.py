@@ -397,18 +397,16 @@ class EmbeddedLoop:
         In detail, this routine returns a tuple (S,G,E,O), where:
         --> (S,G) is the blueprint, as constructed by the
             triangulationBlueprint() routine, for tri := self.triangulation().
-            In detail:
+            Specifically:
             --- S is the size (i.e., the number of tetrahedra) of tri.
-            --- G is a list such that each entry is of the form [i,f,j,perm],
-                and describes a gluing of tri as follows:
+            --- G is a list such that each entry is of the form [i,f,j,p], and
+                describes a gluing of tri as follows:
                 --> i is a tetrahedron index of tri;
                 --> f is a face number of tetrahedron i;
                 --> j is the index of the tetrahedron adjacent to tetrahedron
                     i along face f; and
-                --> perm is a list describing the gluing along face f of
-                    tetrahedron i, with perm[v] giving, for each v in
-                    {0,1,2,3}, the vertex number of tetrahedron j
-                    corresponding to vertex v of tetrahedron i.
+                --> p specifies that the gluing along face f of tetrahedron i
+                    is given by the permutation Perm4.S4[p].
         --> E is (a copy of) the list of edge indices given by this embedded
             loop, as returned by self.edgeIndices().
         --> O is the orientation of this embedded loop, as returned by

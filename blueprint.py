@@ -18,18 +18,18 @@ def triangulationBlueprint(tri):
 
     In detail, this routine returns a pair (S,G), where:
     --> S is the size (i.e., the number of tetrahedra) of tri.
-    --> G is a list such that each entry is of the form [i,f,j,perm],
-        and describes a gluing of tri as follows:
+    --> G is a list such that each entry is of the form [i,f,j,p], and
+        describes a gluing of tri as follows:
         --- i is a tetrahedron index of tri;
         --- f is a face number of tetrahedron i;
         --- j is the index of the tetrahedron adjacent to tetrahedron i along
             face f; and
-        --- perm is a list describing the gluing along face f of tetrahedron
-            i, with perm[v] giving, for each v in {0,1,2,3}, the vertex number
-            of tetrahedron j corresponding to vertex v of tetrahedron i.
+        --- p specifies that the gluing along face f of tetrahedron i is given
+            by the permutation Perm4.S4[p].
     This is essentially the data required to construct a triangulation using
-    the Triangulation3.fromGluings() routine, except that the gluing
-    permutations are given in a picklable format.
+    the Triangulation3.fromGluings() routine, except that we use integer
+    indices (denoted p above) to specify the gluing permutations using a
+    picklable data type.
 
     The returned blueprint can be used, via the reconstructionTriangulation()
     routine, to build a clone of the given triangulation. Specifically, the
@@ -53,7 +53,7 @@ def reconstructTriangulation( size, gluings ):
     # Triangulation3.fromGluings().
     use = []
     for g in gluings:
-        use.append( [ g[0], g[1], g[2], Perm4(*g[3]) ] )
+        use.append( [ g[0], g[1], g[2], Perm4.S4[g[3]] ] )
     return Triangulation3.fromGluings( size, use )
 
 
@@ -74,5 +74,5 @@ def _gluings(tri):
             continue
         gluing = myTet.adjacentGluing(myFace)
         ans.append( [ myTet.index(), myFace, yourTet.index(),
-                     [ gluing[i] for i in range(4) ] ] )
+                     gluing.S4Index() ] )
     return ans
