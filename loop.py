@@ -285,10 +285,15 @@ class EmbeddedLoop:
         Sets this embedded loop using a picklable blueprint, as constructed
         by EmbeddedLoop.blueprint().
         """
-        tri = reconstructTriangulation( size, gluings )
-        edges = [ tri.edge(ei) for ei in edgeIndices ]
-        self.setFromEdges( edges, orientation )
+        self.setFromEdges(
+                self._edgesFromBlueprint( size, gluings, edgeIndices ),
+                orientation )
         return
+
+    @staticmethod
+    def _edgesFromBlueprint( size, gluings, edgeIndices ):
+        tri = reconstructTriangulation( size, gluings )
+        return [ tri.edge(ei) for ei in edgeIndices ]
 
     #TODO What do we need to change to track orientations?
     def _setFromRenum( self, renum ):
@@ -302,6 +307,17 @@ class EmbeddedLoop:
             edges.append( self._tri.edge( renum[ei] ) )
         self.setFromEdges(edges)
         return
+
+    @staticmethod
+    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+        """
+        Constructs an embedded loop using a picklable blueprint, as
+        constructed by EmbeddedLoop.blueprint().
+        """
+        return EmbeddedLoop(
+                EmbeddedLoop._edgesFromBlueprint(
+                    size, gluings, edgeIndices ),
+                orientation )
 
     def __len__(self):
         return len( self._edgeIndices )
@@ -1174,6 +1190,17 @@ class IdealLoop(EmbeddedLoop):
         """
         return IdealLoop( self._cloneImpl() )
 
+    @staticmethod
+    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+        """
+        Constructs an ideal loop using a picklable blueprint, as constructed
+        by IdealLoop.blueprint().
+        """
+        return IdealLoop(
+                EmbeddedLoop._edgesFromBlueprint(
+                    size, gluings, edgeIndices ),
+                orientation )
+
     def drill(self):
         """
         Returns an ideal triangulation of the 3-manifold given by drilling
@@ -1586,6 +1613,17 @@ class BoundaryLoop(EmbeddedLoop):
         triangulation containing this boundary loop.
         """
         return BoundaryLoop( self._cloneImpl() )
+
+    @staticmethod
+    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+        """
+        Constructs a boundary loop using a picklable blueprint, as constructed
+        by BoundaryLoop.blueprint().
+        """
+        return BoundaryLoop(
+                EmbeddedLoop._edgesFromBlueprint(
+                    size, gluings, edgeIndices ),
+                orientation )
 
     def boundaryComponent(self):
         """

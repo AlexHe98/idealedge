@@ -227,8 +227,7 @@ def _embedParallel( knot, tracker ):
             fillingProcess.join()
             diagramProcess.join()
             if fillingReceiver.poll():
-                loop = IdealLoop()
-                loop.setFromBlueprint( *fillingReceiver.recv() )
+                loop = IdealLoop.fromBlueprint( *fillingReceiver.recv() )
             else:
                 # If fillingProcess terminated without sending information,
                 # then the given knot must be unknotted.
@@ -242,8 +241,7 @@ def _embedParallel( knot, tracker ):
             diagramProcess.join()
             fillingProcess.join()
             if diagramReceiver.poll():
-                loop = IdealLoop()
-                loop.setFromBlueprint( *diagramReceiver.recv() )
+                loop = IdealLoop.fromBlueprint( *diagramReceiver.recv() )
             else:
                 # If diagramProcess terminated without sending information,
                 # then the given knot must be unknotted.
@@ -333,8 +331,7 @@ def _enumerateParallel( oldLoop, tracker ):
                 # Build new loops and return them.
                 newLoops = []
                 for blueprint in newBlueprints:
-                    newLoop = IdealLoop()
-                    newLoop.setFromBlueprint( *blueprint )
+                    newLoop = IdealLoop.fromBlueprint( *blueprint )
                     newLoops.append(newLoop)
                 return ( newLoops, msg )
 
@@ -390,8 +387,7 @@ def _enumerateParallel( oldLoop, tracker ):
 
 def _perpetualRandomise( blueprint, size, sender ):
     RandomEngine.reseedWithHardware()
-    loop = IdealLoop()
-    loop.setFromBlueprint( *blueprint )
+    loop = IdealLoop.fromBlueprint( *blueprint )
     attempts = 0
     while True:
         attempts += 1
@@ -407,12 +403,11 @@ def _perpetualRandomise( blueprint, size, sender ):
 
 
 def _indefiniteEnumerate( receiver, sender ):
-    loop = IdealLoop()
     searches = 0
     while not receiver.poll():
         sleep(0.01)
     blueprint, attempts = receiver.recv()
-    loop.setFromBlueprint( *blueprint )
+    loop = IdealLoop.fromBlueprint( *blueprint )
     tri = loop.triangulation()
     enumeration = TreeEnumeration( tri, NS_QUAD )
     while True:
