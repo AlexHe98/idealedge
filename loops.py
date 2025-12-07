@@ -8,6 +8,7 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
+from blueprint import triangulationBlueprint, reconstructTriangulation
 #TODO Reimplement all the simplification methods so that they can handle
 #   unions of more than one embedded loop.
 
@@ -67,6 +68,26 @@ class EmbeddedLoops:
                 loop._cloneImpl(cloneTri), loop.orientation() ) )
         return EmbeddedLoops(cloneLoops)
 
+    @staticmethod
+    def fromBlueprint( size, gluings, *loops ):
+        """
+        Constructs a collection of embedded loops using a picklable blueprint,
+        as constructed by either EmbeddedLoop.blueprint() or
+        EmbeddedLoops.blueprint().
+        """
+        tri = reconstructTriangulation( size, gluings )
+        embLoops = []
+        i = 0
+        if len(loops) % 2 == 1:
+            raise ValueError("Invalid blueprint")
+        while i < len(loops):
+            edgeIndices = loops[i]
+            orientation = loops[i+1]
+            i += 2
+            edges = [ tri.edge(ei) for ei in edgeIndices ]
+            embLoops.append( EmbeddedLoop( edges, orientation ) )
+        return EmbeddedLoops(embLoops)
+
     def __len__(self):
         return len(self._loops)
 
@@ -107,9 +128,36 @@ class EmbeddedLoops:
 
     def blueprint(self):
         """
+        Returns a picklable blueprint for this collection of embedded loops.
+
+        In detail, this routine returns a tuple
+            (S, G, E<0>, O<0>, ..., E<L-1>, O<L-1>),
+        where:
+        --> L = len(self).
+        --> (S,G) is the blueprint, as constructed by the
+            triangulationBlueprint() routine, for tri := self.triangulation().
+            Specifically:
+            --- S is the size (i.e., the number of tetrahedra) of tri.
+            --- G is a list such that each entry is of the form [i,f,j,p], and
+                describes a gluing of tri as follows:
+                --> i is a tetrahedron index of tri;
+                --> f is a face number of tetrahedron i;
+                --> j is the index of the tetrahedron adjacent to tetrahedron
+                    i along face f; and
+                --> p specifies that the gluing along face f of tetrahedron i
+                    is given by the permutation Perm4.S4[p].
+        --> E<i> is (a copy of) the list of edge indices given by the embedded
+            loop at index i in this collection.
+        --> O<i> is the orientation of the embedded loop at index i of this
+            collection.
+        The returned blueprint can be used, via the static fromBlueprint()
+        routine, to build a clone of this collection of embedded loops.
         """
-        #TODO
-        raise NotImplementedError()
+        ans = [ *triangulationBlueprint(self._tri) ]
+        for loop in self:
+            ans.append( loop.edgeIndices() )
+            ans.append( loop.orientation() )
+        return tuple(ans)
 
     #TODO Do we need intersects() and weight()?
 
