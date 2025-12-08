@@ -9,7 +9,6 @@ from base64 import b64encode, b64decode
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
-from blueprint import triangulationBlueprint, reconstructTriangulation
 #TODO Decide whether we really want to inherit from InvariantEdges.
 #from invariantedges import InvariantEdges
 
@@ -280,19 +279,19 @@ class EmbeddedLoop:
         """
         raise NotImplementedError( "Use setFromBlueprint() instead." )
 
-    def setFromBlueprint( self, size, gluings, edgeIndices, orientation ):
+    def setFromBlueprint( self, triEncoding, edgeIndices, orientation ):
         """
         Sets this embedded loop using a picklable blueprint, as constructed
         by EmbeddedLoop.blueprint().
         """
         self.setFromEdges(
-                self._edgesFromBlueprint( size, gluings, edgeIndices ),
+                self._edgesFromBlueprint( triEncoding, edgeIndices ),
                 orientation )
         return
 
     @staticmethod
-    def _edgesFromBlueprint( size, gluings, edgeIndices ):
-        tri = reconstructTriangulation( size, gluings )
+    def _edgesFromBlueprint( triEncoding, edgeIndices ):
+        tri = Triangulation3.tightDecoding(triEncoding)
         return [ tri.edge(ei) for ei in edgeIndices ]
 
     #TODO What do we need to change to track orientations?
@@ -309,14 +308,14 @@ class EmbeddedLoop:
         return
 
     @staticmethod
-    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+    def fromBlueprint( triEncoding, edgeIndices, orientation ):
         """
         Constructs an embedded loop using a picklable blueprint, as
         constructed by EmbeddedLoop.blueprint().
         """
         return EmbeddedLoop(
                 EmbeddedLoop._edgesFromBlueprint(
-                    size, gluings, edgeIndices ),
+                    triEncoding, edgeIndices ),
                 orientation )
 
     def __len__(self):
@@ -412,19 +411,8 @@ class EmbeddedLoop:
         """
         Returns a picklable blueprint for this embedded loop.
 
-        In detail, this routine returns a tuple (S,G,E,O), where:
-        --> (S,G) is the blueprint, as constructed by the
-            triangulationBlueprint() routine, for tri := self.triangulation().
-            Specifically:
-            --- S is the size (i.e., the number of tetrahedra) of tri.
-            --- G is a list such that each entry is of the form [i,f,j,p], and
-                describes a gluing of tri as follows:
-                --> i is a tetrahedron index of tri;
-                --> f is a face number of tetrahedron i;
-                --> j is the index of the tetrahedron adjacent to tetrahedron
-                    i along face f; and
-                --> p specifies that the gluing along face f of tetrahedron i
-                    is given by the permutation Perm4.S4[p].
+        In detail, this routine returns a triple (T,E,O), where:
+        --> T is Regina's tight encoding of self.triangulation().
         --> E is (a copy of) the list of edge indices given by this embedded
             loop, as returned by self.edgeIndices().
         --> O is the orientation of this embedded loop, as returned by
@@ -432,29 +420,8 @@ class EmbeddedLoop:
         The returned blueprint can be used, via the setFromBlueprint()
         routine, to build a clone of this embedded loop.
         """
-        return ( *triangulationBlueprint(self._tri),
-                self.edgeIndices(), self.orientation() )
-
-    def encode(self):
-        """
-        Returns a string encoding this embedded loop.
-
-        If enc is the returned encoding, then EmbeddedLoop.decode(enc) will
-        construct and return a clone of this embedded loop.
-        """
-        pickledBlueprint = pickle.dumps(
-                self.blueprint(), pickle.HIGHEST_PROTOCOL )
-        return b64encode(pickledBlueprint)
-
-    @staticmethod
-    def decode(enc):
-        """
-        Constructs a clone of the embedded loop encoded by enc.
-        """
-        ans = EmbeddedLoop()
-        ans.setFromBlueprint(
-                *pickle.loads( b64decode(enc) ) )
-        return ans
+        return ( self._tri.tightEncoding(), self.edgeIndices(),
+                self.orientation() )
 
     def intersects( self, surf ):
         """
@@ -1191,14 +1158,14 @@ class IdealLoop(EmbeddedLoop):
         return IdealLoop( self._cloneImpl() )
 
     @staticmethod
-    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+    def fromBlueprint( triEncoding, edgeIndices, orientation ):
         """
         Constructs an ideal loop using a picklable blueprint, as constructed
         by IdealLoop.blueprint().
         """
         return IdealLoop(
                 EmbeddedLoop._edgesFromBlueprint(
-                    size, gluings, edgeIndices ),
+                    triEncoding, edgeIndices ),
                 orientation )
 
     def drill(self):
@@ -1615,14 +1582,14 @@ class BoundaryLoop(EmbeddedLoop):
         return BoundaryLoop( self._cloneImpl() )
 
     @staticmethod
-    def fromBlueprint( size, gluings, edgeIndices, orientation ):
+    def fromBlueprint( triEncoding, edgeIndices, orientation ):
         """
         Constructs a boundary loop using a picklable blueprint, as constructed
         by BoundaryLoop.blueprint().
         """
         return BoundaryLoop(
                 EmbeddedLoop._edgesFromBlueprint(
-                    size, gluings, edgeIndices ),
+                    triEncoding, edgeIndices ),
                 orientation )
 
     def boundaryComponent(self):
