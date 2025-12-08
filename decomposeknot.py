@@ -818,7 +818,11 @@ class DecompositionTracker:
         size = loop.triangulation().size()
         beforeReport = "Processing new {}-tetrahedron".format(size)
         beforeReport += " edge-ideal triangulation.\n"
-        beforeReport += "    Encoding: {}".format( loop.encode() )
+        triEncoding, edgeIndices, orientation = loop.blueprint()
+        beforeReport += "    Encoding:    {}\n".format(triEncoding)
+        beforeReport += "    Edges:       {}\n".format(
+                ", ".join( [ str(i) for i in edgeIndices ] ) )
+        beforeReport += "    Orientation: {}".format(orientation)
 
         # This counts as a new event.
         self._newEvent(beforeReport)
