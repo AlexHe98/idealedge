@@ -125,6 +125,15 @@ class EmbeddedLoops:
                 return False
         return True
 
+    def countLoopEdges(self):
+        """
+        Counts the number of edges in this collection of embedded loops.
+        """
+        total = 0
+        for embLoop in self:
+            total += len(embLoop)
+        return total
+
     def blueprint(self):
         """
         Returns a picklable blueprint for this collection of embedded loops.
@@ -174,6 +183,102 @@ class EmbeddedLoops:
         for embLoop in self:
             wt += embLoop.weight()
         return wt
+
+    #TODO Need a version of splitArcs() that returns enough information to
+    #   track all of the effects of crushing that we care about.
+
+    #TODO Implement simplification, and remove the old simplification code
+    #   from EmbeddedLoop.
+
+    def _shortenImpl(self):
+        """
+        Shortens this collection of embedded loops by looking for triangles
+        that intersect a loop in two edges, and redirecting this loop to use
+        the third edge.
+
+        If no shortening is possible, then this collection of embedded loops
+        will remain entirely untouched.
+
+        The default implementation of this routine requires the helper
+        routine _redirectCandidates(), which is *not* implemented by default.
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> supply an implementation for _redirectCandidates().
+        In the latter case, see the documentation for _redirectCandidates()
+        for details on the behaviour that must be implemented.
+
+        If one of the loops bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+        Returns:
+            True if and only if this collection of embedded loops was
+            successfully shortened.
+        """
+        if self.countLoopEdges() == len(self):
+            # Every loop already uses just a single edge.
+            return False
+        changed = False
+        redirected = True
+        while redirected:
+            redirected = False
+
+            # Search for a triangle along which we can redirect.
+            # Subclasses must implement the _redirectCandidates() helper to
+            # find appropriate candidate triangles.
+            for face in self._redirectCandidates():
+                if self._attemptRedirect(face):     # Might raise BoundsDisc.
+                    changed = True
+                    redirected = True
+
+                    # Back to the top.
+                    break
+
+        # No further shortening is possible.
+        return changed
+
+    def _redirectCandidates(self):
+        """
+        Yields candidate triangles of self.triangulation() across which the
+        _shortenImpl() routine should attempt to redirect this loop.
+
+        The EmbeddedLoops base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
+        raise NotImplementedError()
+
+    def _attemptRedirect( self, face ):
+        r"""
+        Attempts to redirect some loop in this collection across the given
+        face.
+
+        If the given face intersects a loop in exactly two *distinct* edges,
+        then we can redirect this loop along the third edge of the given face.
+
+                    Before redirect         After redirect
+                           •                       •
+                          / \
+                         /   \
+                        /     \
+                       •       •               •-------•
+
+        If such a redirect is possible, then this routine performs the
+        redirect and returns True. Otherwise, this routine leaves this
+        collection of embedded loops entirely untouched and returns False.
+
+        Parameters
+        --> face    the triangular face across which to attempt a redirect of
+                    some loop
+
+        Returns:
+            True if and only if this routine successfully performs the
+            requested redirect
+        """
+        # Because all the loops are disjointly embedded, we can independently
+        # run each individual loop's own implementation of _attemptRedirect().
+        for embLoop in self:
+            if embLoop._attemptRedirect(face):
+                return True
+        return False
 
     #TODO
     pass
