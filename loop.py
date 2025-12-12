@@ -305,13 +305,13 @@ class EmbeddedLoop:
         self.setFromEdges(edges)
         return
 
-    @staticmethod
-    def fromBlueprint( triEncoding, edgeIndices, orientation ):
+    @classmethod
+    def fromBlueprint( cls, triEncoding, edgeIndices, orientation ):
         """
         Constructs an embedded loop using a picklable blueprint, as
         constructed by EmbeddedLoop.blueprint().
         """
-        return EmbeddedLoop(
+        return cls(
                 EmbeddedLoop._edgesFromBlueprint(
                     triEncoding, edgeIndices ),
                 orientation )
@@ -349,7 +349,9 @@ class EmbeddedLoop:
         The cloned loop will always be embedded in a copy of the
         triangulation containing this loop.
         """
-        return EmbeddedLoop( self._cloneImpl(), self.orientation() )
+        # We use the built-in type() function to make sure that subclasses
+        # will construct clones of the correct type.
+        return type(self)( self._cloneImpl(), self.orientation() )
 
     def _cloneImpl( self, newTri=None ):
         """
@@ -1202,26 +1204,6 @@ class IdealLoop(EmbeddedLoop):
         super().__init__( edges, orientation )
         return
 
-    def clone(self):
-        """
-        Returns a clone of this ideal loop.
-
-        The cloned ideal loop will always be embedded in a copy of the
-        triangulation containing this ideal loop.
-        """
-        return IdealLoop( self._cloneImpl() )
-
-    @staticmethod
-    def fromBlueprint( triEncoding, edgeIndices, orientation ):
-        """
-        Constructs an ideal loop using a picklable blueprint, as constructed
-        by IdealLoop.blueprint().
-        """
-        return IdealLoop(
-                EmbeddedLoop._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
-
     def drill(self):
         """
         Returns an ideal triangulation of the 3-manifold given by drilling
@@ -1625,26 +1607,6 @@ class BoundaryLoop(EmbeddedLoop):
         """
         super().__init__( edges, orientation )
         return
-
-    def clone(self):
-        """
-        Returns a clone of this boundary loop.
-
-        The cloned boundary loop will always be embedded in a copy of the
-        triangulation containing this boundary loop.
-        """
-        return BoundaryLoop( self._cloneImpl() )
-
-    @staticmethod
-    def fromBlueprint( triEncoding, edgeIndices, orientation ):
-        """
-        Constructs a boundary loop using a picklable blueprint, as constructed
-        by BoundaryLoop.blueprint().
-        """
-        return BoundaryLoop(
-                EmbeddedLoop._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
 
     def boundaryComponent(self):
         """
