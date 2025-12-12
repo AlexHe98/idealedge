@@ -46,8 +46,8 @@ class EmbeddedLoops:
 
         Precondition:
         --> loops is nonempty.
-        --> The elements of loops are all EmbeddedLoop objects lying inside
-            the same ambient 3-manifold triangulation.
+        --> The elements of loops are all EmbeddedLoop objects lying
+            disjointly inside the same ambient 3-manifold triangulation.
         """
         self._loops = list(loops)
         self._tri = self._loops[0].triangulation()
@@ -60,12 +60,14 @@ class EmbeddedLoops:
         The cloned union will always be embedded in a copy of
         self.triangulation()
         """
+        # We use the built-in type() function to make sure that subclasses
+        # will construct clones of the correct type.
         cloneTri = Triangulation3(self._tri)
         cloneLoops = []
         for loop in self._loops:
-            cloneLoops.append( EmbeddedLoop(
+            cloneLoops.append( type(loop)(
                 loop._cloneImpl(cloneTri), loop.orientation() ) )
-        return EmbeddedLoops(cloneLoops)
+        return type(self)(cloneLoops)
 
     @staticmethod
     def fromBlueprint( triEncoding, *loops ):
@@ -285,6 +287,45 @@ class EmbeddedLoops:
 
 
 class IdealLoops(EmbeddedLoops):
+    """
+    A disjoint union of IdealLoop objects in the interior of a single
+    3-manifold triangulation.
+
+    Some of the routines provided by this class might fail if one of the ideal
+    loops bounds an embedded disc in the ambient triangulation (though these
+    routines might nevertheless succeed in spite of the existence of such a
+    disc). This class raises BoundsDisc whenever such a failure occurs.
+
+    This class has two core features:
+    (1) It provides methods to simplify the ambient 3-manifold triangulation,
+        while ensuring that the topological embedding of the union of ideal
+        loops is always preserved.
+    (2) It acts as a container of IdealLoop objects, which are indexed in an
+        arbitrary order (but the order is kept consistent no matter how much
+        the ambient triangulation is simplified). In detail, for any instance
+        loops of this class:
+        --> (e in loops) is True if and only if e is an IdealLoop belonging to
+            this union of IdealLoop objects (note that equality of IdealLoop
+            objects is determined by their location in memory, and so for
+            instance clones will not be considered equal).
+        --> len(loop) is the number of IdealLoop objects in this union
+        --> iterating through loops yields all the IdealLoop objects in this
+            union, in the order in which they are indexed
+        --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
+            the IdealLoop at index i in this union
+    """
+    def __init__( self, loops ):
+        """
+        Creates a disjoint union of the given collection of ideal loops.
+
+        Precondition:
+        --> loops is nonempty.
+        --> The elements of loops are all IdealLoop objects lying disjointly
+            in the interior of the same ambient 3-manifold triangulation.
+        """
+        super().__init__(loops)
+        return
+
     #TODO
     pass
 

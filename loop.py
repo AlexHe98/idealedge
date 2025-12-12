@@ -610,8 +610,9 @@ class EmbeddedLoop:
     #   this point.
     #TODO WORKING HERE.
 
-    #TODO Old routines to remove later.
-    #   --> _shortenImpl()
+    #TODO Old routines to remove later. (Lots of usage and documentation will
+    #   probably need to be updated after these are all removed.)
+    #       --> _shortenImpl()
 
     def _shortenImpl(self):
         """
