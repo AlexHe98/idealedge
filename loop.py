@@ -4,8 +4,6 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Boundary loops on triangulations with real boundary.
 """
 from regina import *
-import pickle
-from base64 import b64encode, b64decode
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
@@ -449,6 +447,10 @@ class EmbeddedLoop:
             wt += surf.edgeWeight(i).safeLongValue()
         return wt
 
+    #TODO Want a way to test disjointness of pairs of loops. A generalisable
+    #   solution would be a commonVertices(otherLoop) routine, but do we want
+    #   something whose name more obviously corresponds to this use case?
+
     #TODO Delete this entirely at a later date.
     def components( self, surf ):
         """
@@ -608,6 +610,9 @@ class EmbeddedLoop:
     #   this point.
     #TODO WORKING HERE.
 
+    #TODO Old routines to remove later.
+    #   --> _shortenImpl()
+
     def _shortenImpl(self):
         """
         Shortens this embedded loop by looking for triangles that intersect
@@ -661,20 +666,49 @@ class EmbeddedLoop:
         raise NotImplementedError()
 
     def _attemptRedirect( self, face ):
-        # If the given face intersects this loop in exactly two edges, then
-        # we can redirect this loop along the third edge of the given face.
-        incidentLocations = set()
-        nonIncidentEdgeIndices = set()
+        r"""
+        Attempts to redirect this loop across the given face.
+
+        If the given face intersects this loop in exactly two *distinct*
+        edges, then we can redirect this loop along the third edge of the
+        given face.
+
+                    Before redirect         After redirect
+                           •                       •
+                          / \
+                         /   \
+                        /     \
+                       •       •               •-------•
+
+        If such a redirect is possible, then this routine performs the
+        redirect and returns True. Otherwise, this routine leaves this loop
+        entirely untouched and returns False.
+
+        Parameters
+        --> face    the triangular face across which to attempt a redirect of
+                    this loop
+
+        Returns:
+            True if and only if this routine successfully performs the
+            requested redirect
+        """
+        incidentLocations = set()       # Location in this loop.
+        tails = set()
+        heads = set()
+        nonIncidentEdgeNums = set()
         for e in range(3):
-            edgeIndex = face.edge(e).index()
             try:
-                location = self._edgeIndices.index(edgeIndex)
+                location = self._edgeIndices.index(
+                        face.edge(e).index() )
             except ValueError:
-                # Edge is not incident to this loop.
-                nonIncidentEdgeIndices.add(edgeIndex)
+                nonIncidentEdgeNums.add(e)
             else:
-                # Edge is incident to this loop.
                 incidentLocations.add(location)
+
+                # Which vertices of this face are at the tail and head?
+                eTail = self._tails[location]
+                tails.add( face.edgeMapping(e)[eTail] )
+                heads.add( face.edgeMapping(e)[1-eTail] )
 
         # Does the given face form an embedded disc bounded by this loop?
         if len(incidentLocations) == 3:
@@ -683,11 +717,30 @@ class EmbeddedLoop:
         # Perform redirect if possible.
         if len(incidentLocations) != 2:
             return False
-        first, second = incidentLocations
-        self._edgeIndices[first] = nonIncidentEdgeIndices.pop()
-        self._edgeIndices.pop(second)
+        swap, delete = incidentLocations
+        newEdgeNum = nonIncidentEdgeNums.pop()
+        if ( swap == 0 ) or ( delete == 0 and swap == 1 ):
+            # New orientation is determined by the new edge.
+            #
+            # After redirecting, the tail of the new edge is given by the old
+            # tail that is not also an old head.
+            newTail = face.edgeMapping(newEdgeNum).inverse()[
+                    (tails - heads).pop() ]
+            if newTail == 0:
+                newOrientation = 1
+            else:
+                newOrientation = -1
+        else:
+            # New orientation is determined by an edge that is already part
+            # of this loop.
+            if delete == 0:
+                newOrientation = self.edgeOrientation(1)
+            else:
+                newOrientation = self.edgeOrientation(0)
+        self._edgeIndices[swap] = face.edge(newEdgeNum).index()
+        self._edgeIndices.pop(delete)
         newEdges = [ self._tri.edge(i) for i in self ]
-        self.setFromEdges(newEdges)
+        self.setFromEdges( newEdges, newOrientation )
         return True
 
     def _minimiseBoundaryImpl(self):
