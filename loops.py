@@ -331,5 +331,46 @@ class IdealLoops(EmbeddedLoops):
 
 
 class BoundaryLoops(EmbeddedLoops):
+    """
+    A disjoint union of BoundaryLoop objects on the boundary of a single
+    3-manifold triangulation.
+
+    Some of the routines provided by this class might fail if one of the
+    boundary loops bounds an embedded disc in the ambient triangulation
+    (though these routines might nevertheless succeed in spite of the
+    existence of such a disc). This class raises BoundsDisc whenever such a
+    failure occurs.
+
+    This class has two core features:
+    (1) It provides methods to simplify the ambient 3-manifold triangulation,
+        while ensuring that the topological embedding of the union of boundary
+        loops is always preserved.
+    (2) It acts as a container of BoundaryLoop objects, which are indexed in
+        an arbitrary order (but the order is kept consistent no matter how
+        much the ambient triangulation is simplified). In detail, for any
+        instance loops of this class:
+        --> (e in loops) is True if and only if e is a BoundaryLoop belonging
+            to this union of BoundaryLoop objects (note that equality of
+            BoundaryLoop objects is determined by their location in memory,
+            and so for instance clones will not be considered equal).
+        --> len(loop) is the number of BoundaryLoop objects in this union
+        --> iterating through loops yields all the BoundaryLoop objects in
+            this union, in the order in which they are indexed
+        --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
+            the BoundaryLoop at index i in this union
+    """
+    def __init__( self, loops ):
+        """
+        Creates a disjoint union of the given collection of boundary loops.
+
+        Precondition:
+        --> loops is nonempty.
+        --> The elements of loops are all BoundaryLoop objects lying
+            disjointly on the boundary of the same ambient 3-manifold
+            triangulation.
+        """
+        super().__init__(loops)
+        return
+
     #TODO
     pass

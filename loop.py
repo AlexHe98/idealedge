@@ -49,6 +49,8 @@ class BoundsDisc(EmbeddedLoopException):
 #TODO Definitely need to introduce functionality to track multiple ideal
 #   loops, but what about boundary loops?
 #TODO Will need to update usage everywhere.
+#
+#TODO Is it still useful to have IdealLoop and BoundaryLoop subclasses?
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
