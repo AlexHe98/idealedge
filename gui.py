@@ -153,8 +153,12 @@ def crushAnnuli( surfaces, threshold=30 ):
                 #   PacketOfTriangulation3.
                 filled = Triangulation3(comp)
                 #NOTE fillIdealEdges() preserves orientation.
-                #TODO Update usage of fillIdealEdges().
-                invIdEdgeIndex = fillIdealEdges(filled).index()
+                endpoints = set()
+                for v in filled.vertices():
+                    if not v.isValid():
+                        endpoints.add( v.index() )
+                invIdEdgeIndex = fillIdealEdges(
+                        filled, endpoints )[0].index()
                 filled = PacketOfTriangulation3(filled)
                 invIdEdge = filled.edge(invIdEdgeIndex)
                 if usingPackets:

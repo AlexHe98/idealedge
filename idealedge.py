@@ -387,7 +387,7 @@ def fillIdealEdges( tri, endpoints ):
         front = idealEdge.front()
         back = idealEdge.back()
         front.tetrahedron().join(
-                front.triangle(),
+                front.vertices()[3],
                 back.tetrahedron(),
                 back.vertices() * Perm4(2,3) * front.vertices().inverse() )
 
