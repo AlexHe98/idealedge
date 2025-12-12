@@ -201,13 +201,10 @@ class EmbeddedLoops:
         If no shortening is possible, then this collection of embedded loops
         will remain entirely untouched.
 
-        The default implementation of this routine requires the helper
-        routine _redirectCandidates(), which is *not* implemented by default.
-        Thus, subclasses that require this routine must either:
-        --> override this routine; or
-        --> supply an implementation for _redirectCandidates().
-        In the latter case, see the documentation for _redirectCandidates()
-        for details on the behaviour that must be implemented.
+        The default implementation of this routine requires the helper routine
+        self._redirectCandidates(), which has the following pre-condition:
+        --> For every loop in self, loop must be a subclass of EmbeddedLoop
+            that implements the loop._redirectCandidates() routine.
 
         If one of the loops bounds a disc, then this routine might (but is not
         guaranteed to) raise BoundsDisc.
@@ -241,12 +238,18 @@ class EmbeddedLoops:
     def _redirectCandidates(self):
         """
         Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect this loop.
+        _shortenImpl() routine should attempt to redirect this collection of
+        embedded loops.
 
-        The EmbeddedLoops base class does not implement this routine, so
-        subclasses that require this routine must provide an implementation.
+        The default implementation of this routine has the following
+        pre-condition:
+        --> For every loop in self, loop must be a subclass of EmbeddedLoop
+            that implements the loop._redirectCandidates() routine.
         """
-        raise NotImplementedError()
+        for embLoop in self:
+            for candidate in embLoop._redirectCandidates():
+                yield candidate
+        return
 
     def _attemptRedirect( self, face ):
         r"""
@@ -326,6 +329,31 @@ class IdealLoops(EmbeddedLoops):
         super().__init__(loops)
         return
 
+    def shorten(self):
+        """
+        Shortens this collection of ideal loops.
+
+        In detail, if some ideal loop meets any triangle F in exactly two
+        distinct edges, then it can be shortened by replacing these two edges
+        with the third edge of F.
+
+        This routine performs such shortenings until no further shortening is
+        possible. If at least one such shortening occurred, then this routine
+        will return True. Otherwise, this routine will leave this collection
+        of ideal loops entirely untouched, and will return False.
+
+        If some ideal loop in this collection bounds a disc, then this routine
+        might (but is not guaranteed to) raise BoundsDisc.
+
+        Returns:
+            True if and only if this collection of ideal loops was
+            successfully shortened.
+        """
+        # IdealLoop provides an appropriate implementation of
+        # _redirectCandidates(), so we can just use the default implementation
+        # of shortening
+        return self._shortenImpl()  # Might raise BoundsDisc.
+
     #TODO
     pass
 
@@ -371,6 +399,31 @@ class BoundaryLoops(EmbeddedLoops):
         """
         super().__init__(loops)
         return
+
+    def shorten(self):
+        """
+        Shortens this collection of boundary loops.
+
+        In detail, if some boundary loop meets any boundary triangle F in
+        exactly two distinct edges, then it can be shortened by replacing
+        these two edges with the third edge of F.
+
+        This routine performs such shortenings until no further shortening is
+        possible. If at least one such shortening occurred, then this routine
+        will return True. Otherwise, this routine will leave this collection
+        of boundary loops entirely untouched, and will return False.
+
+        If some boundary loop in this collection bounds a disc, then this routine
+        might (but is not guaranteed to) raise BoundsDisc.
+
+        Returns:
+            True if and only if this collection of ideal loops was
+            successfully shortened.
+        """
+        # BoundaryLoop provides an appropriate implementation of
+        # _redirectCandidates(), so we can just use the default implementation
+        # of shortening
+        return self._shortenImpl()  # Might raise BoundsDisc.
 
     #TODO
     pass

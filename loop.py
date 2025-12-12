@@ -610,10 +610,6 @@ class EmbeddedLoop:
         self._tails = [ 1 - i for i in self._tails ]
         return
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
     #TODO Old routines to remove later. (Lots of usage and documentation will
     #   probably need to be updated after these are all removed.)
     #       --> _shortenImpl()
@@ -747,6 +743,10 @@ class EmbeddedLoop:
         newEdges = [ self._tri.edge(i) for i in self ]
         self.setFromEdges( newEdges, newOrientation )
         return True
+
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
+    #TODO WORKING HERE.
 
     def _minimiseBoundaryImpl(self):
         """
@@ -1246,16 +1246,19 @@ class IdealLoop(EmbeddedLoop):
         return self._shortenImpl()  # Might raise BoundsDisc.
 
     def _redirectCandidates(self):
-        # Any triangle that is incident to this ideal loop is a candidate to
-        # use for redirecting.
+        """
+        Yields candidate triangles of self.triangulation() across which the
+        _shortenImpl() routine should attempt to redirect this loop.
+
+        For an IdealLoop, every triangle incident to the loop is a candidate.
+        """
         for ei in self:
             edge = self._tri.edge(ei)
 
             # Yield *all* triangles incident to current edge.
+            # Note that as a precondition, the edge is assumed to be internal.
             for emb in edge.embeddings():
                 yield emb.tetrahedron().triangle( emb.vertices()[3] )
-            if edge.isBoundary():
-                yield emb.tetrahedron().triangle( emb.vertices()[2] )
         return
 
     def minimiseBoundary(self):
@@ -1637,8 +1640,14 @@ class BoundaryLoop(EmbeddedLoop):
         return self._shortenImpl()  # Might raise BoundsDisc.
 
     def _redirectCandidates(self):
-        # For boundary loops, we only want to redirect along *boundary*
-        # triangles (to ensure that the loop stays in the boundary).
+        """
+        Yields candidate triangles of self.triangulation() across which the
+        _shortenImpl() routine should attempt to redirect this loop.
+
+        For a BoundaryLoop, every boundary triangle incident to the loop is a
+        candidate. (We can only redirect along boundary triangles if we wish
+        to ensure that the loop stays in the boundary.)
+        """
         for ei in self:
             edge = self._tri.edge(ei)
 
@@ -1646,9 +1655,12 @@ class BoundaryLoop(EmbeddedLoop):
             # a boundary edge. Thus, the incident boundary faces are at the
             # front and back of the current edge.
             front = edge.front()
-            yield front.tetrahedron().triangle( front.vertices()[3] )
+            fFace = front.tetrahedron().triangle( front.vertices()[3] )
+            yield fFace
             back = edge.back()
-            yield back.tetrahedron().triangle( back.vertices()[2] )
+            bFace = back.tetrahedron().triangle( back.vertices()[2] )
+            if bFace != fFace:
+                yield bFace
         return
 
     def minimiseBoundary(self):
