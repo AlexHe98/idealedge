@@ -403,28 +403,42 @@ class EmbeddedLoops:
             if moveDetails is None:
                 # At this point, all boundary components must be minimal.
                 return changed
-            changed = True
-            edge, doLayer, newEdgeIndices = moveDetails
-
-            # Make sure we will be able to find all the edges that form the
-            # loops after performing the move.
-            loopLocations = []
-            for indexList in newEdgeIndices:
-                loopLocations.append([])
-                for ei in indexList:
-                    emb = self._tri.edge(ei).embedding(0)
-                    loopLocations[-1].append(
-                            ( emb.tetrahedron(), emb.edge() ) )
 
             # Perform the move, and then update this loop.
             #
             # The _findBoundaryMove() routine should already ensure legality
             # of the close book move, so no need to check before performing.
+            changed = True
+            edge, doLayer, newLoopData = moveDetails
             if doLayer:
                 edge = layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self.setFromEdgeLocations(loopLocations)
+            self.setFromEdgeLocations(newLoopData)
         return
+
+    def _findBoundaryMove(self):
+        """
+        Returns details of a boundary move that simplifies the boundary of
+        self.triangulation(), or None if the boundary is already minimal.
+
+        In detail, in the case where the boundary is not yet minimal, this
+        routine guarantees to find a move that reduces the number of boundary
+        triangles by two (without changing the topology of this collection of
+        embedded loops). The return value will be a tuple that describes this
+        move using the following data:
+        (0) A boundary edge e on which to perform the move.
+        (1) A boolean indicating whether we need to layer across e. If this
+            is True, then the move we perform will be to first layer across
+            e, and then perform a close book move on the newly layered edge.
+            Otherwise, the move will simply be a close book move on e.
+        (2) Data for reconstructing this collection of loops in the new
+            triangulation that results from this move, as required by the
+            setFromEdgeLocations() routine.
+
+        The EmbeddedLoops base class does not implement this routine, so
+        subclasses that require this routine must provide an implementation.
+        """
+        raise NotImplementedError()
 
     #TODO
     pass
@@ -498,14 +512,112 @@ class IdealLoops(EmbeddedLoops):
         # of shortening
         return self._shortenImpl()  # Might raise BoundsDisc.
 
+    def minimiseBoundary(self):
+        """
+        Ensures that the triangulation containing this collection of ideal
+        loops has the smallest possible number of boundary triangles,
+        potentially adding tetrahedra to do this.
+
+        A side-effect of calling this routine is that it will shorten the
+        ideal loops if possible.
+
+        If some ideal loop in this collection bounds a disc, then this routine
+        might (but is not guaranteed to) raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> Every 2-sphere boundary component will have exactly two triangles
+            and three vertices.
+        --> Every projective plane boundary component will have exactly two
+            triangles and two vertices.
+        --> Every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening a loop by redirecting it across triangular faces.
+        --> Close book moves and/or layerings on self.triangulation().
+        In particular, this routine never creates new vertices, and it never
+        creates a non-vertex-linking normal disc or 2-sphere if there was not
+        one before.
+
+        If the triangulation containing this collection of loops is currently
+        oriented, then this routine guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.minimiseBoundary().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this collection of loops or the ambient
+            triangulation were changed. In other words, a return value of
+            False indicates that:
+            (1) this collection of loops could not be shortened; and
+            (2) every boundary component of the ambient triangulation was
+                already minimal to begin with.
+        """
+        # Can use the default implementation provided we supply an
+        # implementation for _findBoundaryMove().
+        return self._minimiseBoundaryImpl()
+
+    #TODO Update the implementation to:
+    #       --> handle multiple loops; and
+    #       --> track orientation.
+    def _findBoundaryMove(self):
+        # Precondition:
+        #   --> This loop cannot be shortened.
+
+        # Find a boundary component that is not yet minimal.
+        for bc in self._tri.boundaryComponents():
+            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+                # Current boundary component is already minimal.
+                continue
+
+            # First try to find a close book move, which does not increase
+            # the number of tetrahedra.
+            for edge in bc.edges():
+                if self._tri.closeBook( edge, True, False ):
+                    #TODO Replace edgeIndices with edgeLocations data.
+                    return ( edge,
+                            False,  # Close book without layering.
+                            self._edgeIndices )
+
+            # We could not find a close book move.
+            # In this case, because bc is non-minimal, there must be a
+            # boundary edge e that joins two distinct vertices, and we can
+            # simplify bc by layering across e and then performing a close
+            # book move on the newly layered edge.
+            for edge in bc.edges():
+                if edge.vertex(0) == edge.vertex(1):
+                    continue
+
+                # The layering is illegal if this edge is incident to the
+                # same boundary triangle F on both sides (rather than two
+                # distinct triangles). But in that scenario, F forms a disc,
+                # and there must be a close book move available on the edge b
+                # that forms the boundary of this disc. Thus, when we reach
+                # this point in the code, we can guarantee that the layering
+                # is legal.
+                #TODO Replace edgeIndices with edgeLocations data.
+                return ( edge,
+                        True,   # Layer before performing close book.
+                        self._edgeIndices )
+
+            # We should never reach this point.
+            raise RuntimeError(
+                    "_findBoundaryMove() failed unexpectedly." )
+
+        # If we fell out of the boundary component loop, then all boundary
+        # components are minimal.
+        return None
+
     #TODO
     pass
 
 
 class BoundaryLoops(EmbeddedLoops):
     """
-    A disjoint union of BoundaryLoop objects on the boundary of a single
-    3-manifold triangulation.
+    A disjoint union of BoundaryLoop objects, each lying on a distinct
+    boundary component of a single 3-manifold triangulation.
 
     Some of the routines provided by this class might fail if one of the
     boundary loops bounds an embedded disc in the ambient triangulation
@@ -574,3 +686,6 @@ class BoundaryLoops(EmbeddedLoops):
 
     #TODO
     pass
+
+
+#TODO Test suite.
