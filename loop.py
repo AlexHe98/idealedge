@@ -75,7 +75,7 @@ class EmbeddedLoop:
         index of the ith edge in the loop, and again the order matches the
         loop's orientation
     """
-    def __init__( self, edges=None, orientation=None ):
+    def __init__( self, edges=None, orientation=0 ):
         """
         Creates an embedded loop from the given list of edges.
 
@@ -85,10 +85,13 @@ class EmbeddedLoop:
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge in the given list of edges should be oriented
+            oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -126,16 +129,19 @@ class EmbeddedLoop:
             self.setFromEdges( edges, orientation )
         return
 
-    def setFromEdges( self, edges, orientation=None ):
+    def setFromEdges( self, edges, orientation=0 ):
         """
         Sets this embedded loop using the given list of edges.
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge in the given list of edges should be oriented
+            oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -145,10 +151,9 @@ class EmbeddedLoop:
         --> The given list of edges is nonempty, and consists of edges that
             all belong to the same 3-manifold triangulation.
         """
-        if ( ( orientation is not None ) and ( orientation != 1 ) and
-            ( orientation != -1 ) ):
+        if orientation not in {1,-1,0}:
             raise ValueError(
-                    "If supplied, orientation must be either +1 or -1." )
+                    "If supplied, orientation must be either +1, -1 or 0." )
         edge = edges[0]
         self._tri = edge.triangulation()
         self._reset()
@@ -235,7 +240,7 @@ class EmbeddedLoop:
         self.setFromEdges( edges, loop.orientation() )
         return
 
-    def setFromEdgeLocations( self, edgeLocations, orientation=None ):
+    def setFromEdgeLocations( self, edgeLocations, orientation=0 ):
         """
         Sets this embedded loop using the given list of edge locations.
 
@@ -245,10 +250,13 @@ class EmbeddedLoop:
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge described by the given list of edge locations
+            should be oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -259,11 +267,49 @@ class EmbeddedLoop:
         --> The tetrahedra given by the first entries of each edge location
             must all belong to the same 3-manifold triangulation.
         """
+        self.setFromEdges(
+                self._edgesFromLocations(edgeLocations),
+                orientation )
+        return
+
+    @classmethod
+    def fromEdgeLocations( cls, edgeLocations, orientation=0 ):
+        """
+        Constructs an embedded loop using the given list of edge locations.
+
+        In detail, each edge location must be a pair (t, e), where t is a
+        tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
+        tetrahedron must belong to the same triangulation.
+
+        If the optional orientation argument is not supplied, then the
+        embedded loop will be assigned an arbitrary orientation. Otherwise,
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge described by the given list of edge locations
+            should be oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
+
+        Raises NotLoop if the given list of edges does not form an embedded
+        closed loop, or if the order of the edges in the given list does not
+        match the order in which the edges appear in the loop.
+
+        Precondition:
+        --> The given list of edge locations is nonempty.
+        --> The tetrahedra given by the first entries of each edge location
+            must all belong to the same 3-manifold triangulation.
+        """
+        return cls.setFromEdges(
+                cls._edgesFromLocations(edgeLocations),
+                orientation )
+
+    @staticmethod
+    def _edgesFromLocations(edgeLocations):
         edges = []
         for tet, edgeNum in edgeLocations:
             edges.append( tet.edge(edgeNum) )
-        self.setFromEdges( edges, orientation )
-        return
+        return edges
 
     #TODO Delete this entirely at a later date.
     def setFromLightweight( self, sig, edgeLocations ):
@@ -285,9 +331,21 @@ class EmbeddedLoop:
         by EmbeddedLoop.blueprint().
         """
         self.setFromEdges(
-                self._edgesFromBlueprint( triEncoding, edgeIndices ),
+                self._edgesFromBlueprint(
+                    triEncoding, edgeIndices ),
                 orientation )
         return
+
+    @classmethod
+    def fromBlueprint( cls, triEncoding, edgeIndices, orientation ):
+        """
+        Constructs an embedded loop using a picklable blueprint, as
+        constructed by EmbeddedLoop.blueprint().
+        """
+        return cls(
+                cls._edgesFromBlueprint(
+                    triEncoding, edgeIndices ),
+                orientation )
 
     @staticmethod
     def _edgesFromBlueprint( triEncoding, edgeIndices ):
@@ -306,17 +364,6 @@ class EmbeddedLoop:
             edges.append( self._tri.edge( renum[ei] ) )
         self.setFromEdges(edges)
         return
-
-    @classmethod
-    def fromBlueprint( cls, triEncoding, edgeIndices, orientation ):
-        """
-        Constructs an embedded loop using a picklable blueprint, as
-        constructed by EmbeddedLoop.blueprint().
-        """
-        return cls(
-                EmbeddedLoop._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
 
     def __len__(self):
         return len( self._edgeIndices )
@@ -1172,7 +1219,7 @@ class IdealLoop(EmbeddedLoop):
         index of the ith edge in the loop
     --> iterating through the loop yields all the edge indices in order
     """
-    def __init__( self, edges=None, orientation=None ):
+    def __init__( self, edges=None, orientation=0 ):
         """
         Creates an ideal loop from the given list of edges.
 
@@ -1182,10 +1229,13 @@ class IdealLoop(EmbeddedLoop):
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge described by the given list of edge locations
+            should be oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
@@ -1579,7 +1629,7 @@ class BoundaryLoop(EmbeddedLoop):
         index of the ith edge in the loop
     --> iterating through the loop yields all the edge indices in order
     """
-    def __init__( self, edges=None, orientation=None ):
+    def __init__( self, edges=None, orientation=0 ):
         """
         Creates a boundary loop from the given list of edges.
 
@@ -1589,10 +1639,13 @@ class BoundaryLoop(EmbeddedLoop):
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be either +1 or -1; orientation +1
-        means that the first edge e in the given list of edges (that is,
-        e = edges[0]) is oriented from vertex 0 to vertex 1, whilst
-        orientation -1 means that e is oriented from vertex 1 to vertex 0.
+        the supplied orientation must be one of the following:
+        --> +1 if the first edge described by the given list of edge locations
+            should be oriented from vertex 0 to vertex 1;
+        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
+            or
+        --> 0 if this routine should be allowed to choose an arbitrary
+            orientation.
 
         Raises NotLoop if the given list of edges does not form an embedded
         closed loop, or if the order of the edges in the given list does not
