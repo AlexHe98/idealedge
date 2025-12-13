@@ -89,6 +89,12 @@ class EmbeddedLoops:
             embLoops.append( EmbeddedLoop( edges, orientation ) )
         return EmbeddedLoops(embLoops)
 
+    def setFromEdgeLocations( self, edgeLocations ):
+        """
+        """
+        #TODO
+        raise NotImplementedError()
+
     def __len__(self):
         return len(self._loops)
 
@@ -284,6 +290,96 @@ class EmbeddedLoops:
             if embLoop._attemptRedirect(face):
                 return True
         return False
+
+    #TODO WORKING HERE
+
+    #TODO Make sure that the documentation matches the new implementation.
+    def _minimiseBoundaryImpl(self):
+        """
+        Ensures that the triangulation containing this collection of embedded
+        loops has the smallest possible number of boundary triangles,
+        potentially adding tetrahedra to do this.
+
+        The default implementation of this routine requires the following
+        helper routines:
+        --> _shortenImpl()
+        --> _findBoundaryMove()
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> ensure that the aforementioned helper routines are suitably
+            implemented.
+
+        A side-effect of calling this routine is that it will shorten this
+        collection of embedded loops if possible.
+
+        If one of the loops in this collection bounds a disc, then this
+        routine might (but is not guaranteed to) raise BoundsDisc.
+
+        The following are guaranteed to hold once this routine is finished:
+        --> Every 2-sphere boundary component will have exactly two triangles
+            and three vertices.
+        --> Every projective plane boundary component will have exactly two
+            triangles and two vertices.
+        --> Every other boundary component will have exactly one vertex.
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening some loop by redirecting it across triangular faces.
+        --> Close book moves and/or layerings on self.triangulation().
+        In particular, this routine never creates new vertices, and it never
+        creates a non-vertex-linking normal disc or 2-sphere if there was not
+        one before.
+
+        If the triangulation containing this collection of loops is currently
+        oriented, then this routine guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.minimiseBoundary().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this collection of loops or the ambient
+            triangulation were changed. In other words, a return value of
+            False indicates that:
+            (1) this collection of loops could not be shortened; and
+            (2) every boundary component of the ambient triangulation was
+                already minimal to begin with.
+        """
+        changed = False
+        while True:
+            # Shorten the loops to minimise the number of special cases.
+            if self._shortenImpl():     # Might raise BoundsDisc.
+                changed = True
+
+            # Is there a move we can perform to reduce the number of boundary
+            # triangles?
+            moveDetails = self._findBoundaryMove()
+            if moveDetails is None:
+                # At this point, all boundary components must be minimal.
+                return changed
+            changed = True
+            edge, doLayer, newEdgeIndices = moveDetails
+
+            # Make sure we will be able to find all the edges that form the
+            # loops after performing the move.
+            loopLocations = []
+            for indexList in newEdgeIndices:
+                loopLocations.append([])
+                for ei in indexList:
+                    emb = self._tri.edge(ei).embedding(0)
+                    loopLocations[-1].append(
+                            ( emb.tetrahedron(), emb.edge() ) )
+
+            # Perform the move, and then update this loop.
+            #
+            # The _findBoundaryMove() routine should already ensure legality
+            # of the close book move, so no need to check before performing.
+            if doLayer:
+                edge = layerOn(edge).edge(5)
+            self._tri.closeBook( edge, False, True )
+            self.setFromEdgeLocations(loopLocations)
+        return
 
     #TODO
     pass
