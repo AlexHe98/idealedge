@@ -40,9 +40,24 @@ class EmbeddedLoops:
         --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
             the EmbeddedLoop at index i in this union
     """
+    # Base class for loops contained in this disjoint union.
+    _LOOP_CLASS = EmbeddedLoop
+
     def __init__( self, loops ):
         """
         Creates a disjoint union of the given collection of loops.
+
+        Precondition:
+        --> loops is nonempty.
+        --> The elements of loops are all EmbeddedLoop objects lying
+            disjointly inside the same ambient 3-manifold triangulation.
+        """
+        self.setFromLoops(loops)
+        return
+
+    def setFromLoops( self, loops ):
+        """
+        Sets this to be a disjoint union of the given loops.
 
         Precondition:
         --> loops is nonempty.
@@ -89,11 +104,41 @@ class EmbeddedLoops:
             embLoops.append( EmbeddedLoop( edges, orientation ) )
         return EmbeddedLoops(embLoops)
 
-    def setFromEdgeLocations( self, edgeLocations ):
+    def setFromEdgeLocations( self, data ):
         """
+        Sets this collection of embedded loops using the given data.
+
+        In detail, each item in data is a pair (E, D) that specifies an
+        EmbeddedLoop in a triangulation T as follows:
+        --> E is a list of "edge locations". That is, each item in E is a pair
+            (s, n), where s is a tetrahedron of T and n is an edge number
+            (from 0 to 5, inclusive) of this tetrahedron.
+        --> D specifies the orientation of the EmbeddedLoop: 
+            --- It is +1 if the first edge of the loop should be oriented from
+                vertex 0 to vertex 1.
+            --- It is -1 if the first edge of the loop should be oriented from
+                vertex 1 to vertex 0.
+            --- It is 0 if this routine is allowed to choose an arbitrary
+                orientation on the loop.
+        All of the edges described by the edge locations must lie in the same
+        triangulation.
+
+        Raises NotLoop if any of the given lists of edge locations does not
+        describe an embedded closed loop, or if the order of the edges in the
+        list does not match the order in which the edges appear in the loop.
+
+        Precondition:
+        --> Each given list of edge locations is nonempty.
+        --> The tetrahedra given by the first entries of each edge location
+            must all belong to the same 3-manifold triangulation.
         """
-        #TODO
-        raise NotImplementedError()
+        embLoops = []
+        for edgeLocations, orientation in data:
+            embLoops.append(
+                    self._LOOP_CLASS.setFromEdgeLocations(
+                        edgeLocations, orientation ) )
+        self.setFromLoops(embLoops)
+        return
 
     def __len__(self):
         return len(self._loops)
@@ -413,6 +458,9 @@ class IdealLoops(EmbeddedLoops):
         --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
             the IdealLoop at index i in this union
     """
+    # Base class for loops contained in this disjoint union.
+    _LOOP_CLASS = IdealLoop
+
     def __init__( self, loops ):
         """
         Creates a disjoint union of the given collection of ideal loops.
@@ -483,6 +531,9 @@ class BoundaryLoops(EmbeddedLoops):
         --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
             the BoundaryLoop at index i in this union
     """
+    # Base class for loops contained in this disjoint union.
+    _LOOP_CLASS = BoundaryLoop
+
     def __init__( self, loops ):
         """
         Creates a disjoint union of the given collection of boundary loops.
