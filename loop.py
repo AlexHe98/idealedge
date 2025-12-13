@@ -1101,7 +1101,7 @@ class IdealLoop(EmbeddedLoop):
 
             # First try to find a close book move, which does not increase
             # the number of tetrahedra.
-            for e in bc.edges():
+            for edge in bc.edges():
                 if self._tri.closeBook( edge, True, False ):
                     return ( edge,
                             False,  # Close book without layering.
@@ -1112,7 +1112,7 @@ class IdealLoop(EmbeddedLoop):
             # boundary edge e that joins two distinct vertices, and we can
             # simplify bc by layering across e and then performing a close
             # book move on the newly layered edge.
-            for e in bc.edges():
+            for edge in bc.edges():
                 if edge.vertex(0) == edge.vertex(1):
                     continue
 
