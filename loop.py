@@ -8,7 +8,8 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loopaux import NotLoop, BoundsDisc
-from loopaux import edgesFromEmbeddings, embeddingsFromEdgeIndices
+from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
+from loopaux import embeddingsFromEdgeIndices
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -223,7 +224,11 @@ class EmbeddedLoop:
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
         --> +1 if the first edge described by the given list of edge
-            embeddings should be oriented from vertex 0 to vertex 1;
+            embeddings should be oriented from vertex 0 to vertex 1 (here,
+            vertex numbers are with respect to the edge embedding, which might
+            differ from the vertex numbers of the underlying edge if the
+            ambient triangulation has been modified since the edge embedding
+            was constructed);
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
@@ -240,7 +245,8 @@ class EmbeddedLoop:
         """
         self.setFromEdges(
                 edgesFromEmbeddings(edgeEmbeddings),
-                orientation )
+                edgeOrientationFromEmbedding(
+                    edgeEmbeddings[0], orientation ) )
         return
 
     @classmethod
@@ -255,7 +261,11 @@ class EmbeddedLoop:
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
         --> +1 if the first edge described by the given list of edge
-            embeddings should be oriented from vertex 0 to vertex 1;
+            embeddings should be oriented from vertex 0 to vertex 1 (here,
+            vertex numbers are with respect to the edge embedding, which might
+            differ from the vertex numbers of the underlying edge if the
+            ambient triangulation has been modified since the edge embedding
+            was constructed);
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
@@ -272,7 +282,8 @@ class EmbeddedLoop:
         """
         return cls.setFromEdges(
                 edgesFromEmbeddings(edgeEmbeddings),
-                orientation )
+                edgeOrientationFromEmbedding(
+                    edgeEmbeddings[0], orientation ) )
 
     #TODO Delete this entirely at a later date.
     def setFromLightweight( self, sig, edgeLocations ):

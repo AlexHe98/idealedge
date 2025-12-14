@@ -116,7 +116,10 @@ class TriangulationWithEmbeddedLoops:
         --> E is a list of edge embeddings.
         --> D specifies the orientation of the EmbeddedLoop: 
             --- It is +1 if the first edge of the loop should be oriented from
-                vertex 0 to vertex 1.
+                vertex 0 to vertex 1 (here, vertex numbers are with respect to
+                the edge embedding, which might differ from the vertex numbers
+                of the underlying edge if the ambient triangulation has been
+                modified since the edge embedding was constructed).
             --- It is -1 if the first edge of the loop should be oriented from
                 vertex 1 to vertex 0.
             --- It is 0 if this routine is allowed to choose an arbitrary
@@ -136,7 +139,7 @@ class TriangulationWithEmbeddedLoops:
         embLoops = []
         for edgeEmbeddings, orientation in data:
             embLoops.append(
-                    self._LOOP_CLASS.setFromEdgeEmbeddings(
+                    self._LOOP_CLASS.fromEdgeEmbeddings(
                         edgeEmbeddings, orientation ) )
         self.setFromLoops(embLoops)
         return
