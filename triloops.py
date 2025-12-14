@@ -1,5 +1,5 @@
 """
-Unions of embedded loops in a 3-manifold triangulation.
+3-manifold triangulations containing disjoint unions embedded loops.
 
 The classes here provide methods for simplifying the ambient 3-manifold
 triangulation, while preserving the topological embedding of the loops.
@@ -12,15 +12,15 @@ from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
 #   unions of more than one embedded loop.
 
 
-class EmbeddedLoops:
+class TriangulationWithEmbeddedLoops:
     """
-    A disjoint union of EmbeddedLoop objects inside a single 3-manifold
-    triangulation.
+    A 3-manifold triangulation containing a disjoint union of EmbeddedLoop
+    objects.
 
     This is a base class that implements common functionality for the
-    IdealLoops and BoundaryLoops classes. Although this base class can be
-    instantiated, the functionality it offers is much less complete than its
-    aforementioned subclasses.
+    EdgeIdealTriangulation and TriangulationWithBoundaryLoops classes.
+    Although this base class can be instantiated, the functionality it offers
+    is much less complete than its aforementioned subclasses.
 
     This class has two core features:
     (1) It provides methods to simplify the ambient 3-manifold triangulation,
@@ -29,18 +29,21 @@ class EmbeddedLoops:
     (2) It acts as a container of EmbeddedLoop objects, which are indexed in
         an arbitrary order (but the order is kept consistent no matter how
         much the ambient triangulation is simplified). In detail, for any
-        instance loops of this class:
-        --> (e in loops) is True if and only if e is an EmbeddedLoop belonging
-            to this union of EmbeddedLoop objects (note that equality of
-            EmbeddedLoop objects is determined by their location in memory,
-            and so for instance clones will not be considered equal).
-        --> len(loop) is the number of EmbeddedLoop objects in this union
-        --> iterating through loops yields all the EmbeddedLoop objects in
-            this union, in the order in which they are indexed
-        --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
-            the EmbeddedLoop at index i in this union
+        instance triLoops of this class:
+        --> (el in triLoops) is True if and only if el is one of the
+            EmbeddedLoop objects that is embedded in the ambient triangulation
+            (note that equality of EmbeddedLoop objects is determined by their
+            location in memory, and so for instance clones will not be
+            considered equal)
+        --> len(triLoops) is the number of EmbeddedLoop objects that are
+            embedded in the ambient triangulation
+        --> iterating through triLoops yields all the EmbeddedLoop objects
+            that are embedded in the ambient triangulation, in the order in
+            which they are indexed
+        --> for i between 0 and (len(triLoops) - 1), inclusive, triLoops[i]
+            returns the EmbeddedLoop at index i
     """
-    # Base class for loops contained in this disjoint union.
+    # Base class for loops embedded in the ambient triangulation.
     _LOOP_CLASS = EmbeddedLoop
 
     def __init__( self, loops ):
@@ -57,7 +60,8 @@ class EmbeddedLoops:
 
     def setFromLoops( self, loops ):
         """
-        Sets this to be a disjoint union of the given loops.
+        Sets this to be a triangulation containing a disjoint union of the
+        given loops.
 
         Precondition:
         --> loops is nonempty.
@@ -70,10 +74,9 @@ class EmbeddedLoops:
 
     def clone(self):
         """
-        Returns a clone of this union of embedded loops.
+        Returns a clone of this triangulation with embedded loops.
 
-        The cloned union will always be embedded in a copy of
-        self.triangulation()
+        The clone will always use a copy of self.triangulation()
         """
         # We use the built-in type() function to make sure that subclasses
         # will construct clones of the correct type.
@@ -84,12 +87,12 @@ class EmbeddedLoops:
                 loop._cloneImpl(cloneTri), loop.orientation() ) )
         return type(self)(cloneLoops)
 
-    @staticmethod
-    def fromBlueprint( triEncoding, *loops ):
+    @classmethod
+    def fromBlueprint( cls, triEncoding, *loops ):
         """
-        Constructs a collection of embedded loops using a picklable blueprint,
-        as constructed by either EmbeddedLoop.blueprint() or
-        EmbeddedLoops.blueprint().
+        Constructs a triangulation with embedded loops using a picklable
+        blueprint, as constructed by either EmbeddedLoop.blueprint() or
+        TriangulationWithEmbeddedLoops.blueprint().
         """
         tri = Triangulation3.tightDecoding(triEncoding)
         embLoops = []
@@ -101,12 +104,12 @@ class EmbeddedLoops:
             orientation = loops[i+1]
             i += 2
             edges = [ tri.edge(ei) for ei in edgeIndices ]
-            embLoops.append( EmbeddedLoop( edges, orientation ) )
-        return EmbeddedLoops(embLoops)
+            embLoops.append( cls._LOOP_CLASS( edges, orientation ) )
+        return cls(embLoops)
 
     def setFromEdgeEmbeddings( self, data ):
         """
-        Sets this collection of embedded loops using the given data.
+        Sets this triangulation with embedded loops using the given data.
 
         In detail, each item in data is a pair (E, D) that specifies an
         EmbeddedLoop in a triangulation T as follows:
@@ -152,13 +155,13 @@ class EmbeddedLoops:
 
     def triangulation(self):
         """
-        Returns the triangulation that contains this union of embedded loops.
+        Returns the ambient triangulation.
         """
         return self._tri
 
     def isBoundary(self):
         """
-        Does this union of embedded loops lie entirely in the boundary of the
+        Does the union of embedded loops lie entirely in the boundary of the
         ambient triangulation?
         """
         for embLoop in self:
@@ -168,7 +171,7 @@ class EmbeddedLoops:
 
     def isInternal(self):
         """
-        Does this union of embedded loops lie entirely in the interior of the
+        Does the union of embedded loops lie entirely in the interior of the
         ambient triangulation?
         """
         for embLoop in self:
@@ -178,7 +181,7 @@ class EmbeddedLoops:
 
     def countLoopEdges(self):
         """
-        Counts the number of edges in this collection of embedded loops.
+        Counts the number of edges in the union of embedded loops.
         """
         total = 0
         for embLoop in self:
@@ -187,19 +190,20 @@ class EmbeddedLoops:
 
     def blueprint(self):
         """
-        Returns a picklable blueprint for this collection of embedded loops.
+        Returns a picklable blueprint for this triangulation with embedded
+        loops.
 
         In detail, this routine returns a tuple
-            (T, E<0>, O<0>, ..., E<L-1>, O<L-1>),
+            (T, E<0>, D<0>, ..., E<L-1>, D<L-1>),
         where:
         --> L = len(self).
         --> T is Regina's tight encoding of self.triangulation().
         --> E<i> is (a copy of) the list of edge indices given by the embedded
-            loop at index i in this collection.
-        --> O<i> is the orientation of the embedded loop at index i of this
-            collection.
-        The returned blueprint can be used, via the static fromBlueprint()
-        routine, to build a clone of this collection of embedded loops.
+            loop at index i.
+        --> D<i> is the orientation of the embedded loop at index i.
+        The returned blueprint can be used, via the class method
+        fromBlueprint(), to build a clone of this triangulation with embedded
+        loops.
         """
         ans = [ self._tri.tightEncoding() ]
         for loop in self:
@@ -211,7 +215,7 @@ class EmbeddedLoops:
 
     def intersects( self, surf ):
         """
-        Returns True if and only if this union of embedded loops has nonempty
+        Returns True if and only if the union of embedded loops has nonempty
         intersection with the given normal surface surf.
 
         Precondition:
@@ -224,7 +228,7 @@ class EmbeddedLoops:
 
     def weight( self, surf ):
         """
-        Returns the number of times this union of embedded loops intersects
+        Returns the number of times the union of embedded loops intersects
         the given normal surface surf.
 
         Precondition:
@@ -243,12 +247,12 @@ class EmbeddedLoops:
 
     def _shortenImpl(self):
         """
-        Shortens this collection of embedded loops by looking for triangles
-        that intersect a loop in two edges, and redirecting this loop to use
-        the third edge.
+        Shortens the union of embedded loops by looking for triangles that
+        intersect a loop in two edges, and redirecting this loop to use the
+        third edge.
 
-        If no shortening is possible, then this collection of embedded loops
-        will remain entirely untouched.
+        If no shortening is possible, then this triangulation with embedded
+        loops will remain entirely untouched.
 
         The default implementation of this routine requires the helper routine
         self._redirectCandidates(), which has the following pre-condition:
@@ -259,8 +263,8 @@ class EmbeddedLoops:
         guaranteed to) raise BoundsDisc.
 
         Returns:
-            True if and only if this collection of embedded loops was
-            successfully shortened.
+            True if and only if the union of embedded loops was successfully
+            shortened.
         """
         if self.countLoopEdges() == len(self):
             # Every loop already uses just a single edge.
@@ -287,7 +291,7 @@ class EmbeddedLoops:
     def _redirectCandidates(self):
         """
         Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect this collection of
+        _shortenImpl() routine should attempt to redirect the union of
         embedded loops.
 
         The default implementation of this routine has the following
@@ -302,8 +306,7 @@ class EmbeddedLoops:
 
     def _attemptRedirect( self, face ):
         r"""
-        Attempts to redirect some loop in this collection across the given
-        face.
+        Attempts to redirect one of the embedded loops across the given face.
 
         If the given face intersects a loop in exactly two *distinct* edges,
         then we can redirect this loop along the third edge of the given face.
@@ -317,7 +320,8 @@ class EmbeddedLoops:
 
         If such a redirect is possible, then this routine performs the
         redirect and returns True. Otherwise, this routine leaves this
-        collection of embedded loops entirely untouched and returns False.
+        triangulation with embedded loops entirely untouched and returns
+        False.
 
         Parameters
         --> face    the triangular face across which to attempt a redirect of
@@ -339,9 +343,9 @@ class EmbeddedLoops:
     #TODO Make sure that the documentation matches the new implementation.
     def _minimiseBoundaryImpl(self):
         """
-        Ensures that the triangulation containing this collection of embedded
-        loops has the smallest possible number of boundary triangles,
-        potentially adding tetrahedra to do this.
+        Ensures that the ambient triangulation has the smallest possible
+        number of boundary triangles, potentially adding tetrahedra to do
+        this.
 
         The default implementation of this routine requires the following
         helper routines:
@@ -352,11 +356,11 @@ class EmbeddedLoops:
         --> ensure that the aforementioned helper routines are suitably
             implemented.
 
-        A side-effect of calling this routine is that it will shorten this
-        collection of embedded loops if possible.
+        A side-effect of calling this routine is that it will shorten the
+        union of embedded loops if possible.
 
-        If one of the loops in this collection bounds a disc, then this
-        routine might (but is not guaranteed to) raise BoundsDisc.
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> Every 2-sphere boundary component will have exactly two triangles
@@ -373,8 +377,8 @@ class EmbeddedLoops:
         creates a non-vertex-linking normal disc or 2-sphere if there was not
         one before.
 
-        If the triangulation containing this collection of loops is currently
-        oriented, then this routine guarantees to preserve the orientation.
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -382,10 +386,9 @@ class EmbeddedLoops:
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if and only if this collection of loops or the ambient
-            triangulation were changed. In other words, a return value of
-            False indicates that:
-            (1) this collection of loops could not be shortened; and
+            True if and only if this triangulation with embedded loops was
+            changed. In other words, a return value of False indicates that:
+            (1) the union of loops could not be shortened; and
             (2) every boundary component of the ambient triangulation was
                 already minimal to begin with.
         """
@@ -421,7 +424,7 @@ class EmbeddedLoops:
 
         In detail, in the case where the boundary is not yet minimal, this
         routine guarantees to find a move that reduces the number of boundary
-        triangles by two (without changing the topology of this collection of
+        triangles by two (without changing the topology of the union of
         embedded loops). The return value will be a tuple that describes this
         move using the following data:
         (0) A boundary edge e on which to perform the move.
@@ -429,12 +432,13 @@ class EmbeddedLoops:
             is True, then the move we perform will be to first layer across
             e, and then perform a close book move on the newly layered edge.
             Otherwise, the move will simply be a close book move on e.
-        (2) Data for reconstructing this collection of loops in the new
+        (2) Data for reconstructing the union of embedded loops in the new
             triangulation that results from this move, as required by the
             setFromEdgeEmbeddings() routine.
 
-        The EmbeddedLoops base class does not implement this routine, so
-        subclasses that require this routine must provide an implementation.
+        The TriangulationWithEmbeddedLoops base class does not implement this
+        routine, so subclasses that require this routine must provide an
+        implementation.
         """
         raise NotImplementedError()
 
@@ -442,10 +446,10 @@ class EmbeddedLoops:
     pass
 
 
-class IdealLoops(EmbeddedLoops):
+class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
     """
-    A disjoint union of IdealLoop objects in the interior of a single
-    3-manifold triangulation.
+    An edge-ideal triangulation; that is, a 3-manifold triangulation
+    containing a disjoint union of IdealLoop objects in its interior.
 
     Some of the routines provided by this class might fail if one of the ideal
     loops bounds an embedded disc in the ambient triangulation (though these
@@ -459,23 +463,26 @@ class IdealLoops(EmbeddedLoops):
     (2) It acts as a container of IdealLoop objects, which are indexed in an
         arbitrary order (but the order is kept consistent no matter how much
         the ambient triangulation is simplified). In detail, for any instance
-        loops of this class:
-        --> (e in loops) is True if and only if e is an IdealLoop belonging to
-            this union of IdealLoop objects (note that equality of IdealLoop
-            objects is determined by their location in memory, and so for
-            instance clones will not be considered equal).
-        --> len(loop) is the number of IdealLoop objects in this union
-        --> iterating through loops yields all the IdealLoop objects in this
-            union, in the order in which they are indexed
-        --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
-            the IdealLoop at index i in this union
+        triLoops of this class:
+        --> (el in triLoops) is True if and only if el is one of the IdealLoop
+            objects that is embedded in the ambient triangulation (note that
+            equality of IdealLoop objects is determined by their location in
+            memory, and so for instance clones will not be considered equal).
+        --> len(triLoops) is the number of IdealLoop objects that are embedded
+            in the ambient triangulation
+        --> iterating through triLoops yields all the IdealLoop objects that
+            are embedded in the ambient triangulation, in the order in which
+            they are indexed
+        --> for i between 0 and (len(triLoops) - 1), inclusive, triLoops[i]
+            returns the IdealLoop at index i
     """
-    # Base class for loops contained in this disjoint union.
+    # Base class for loops embedded in the ambient triangulation.
     _LOOP_CLASS = IdealLoop
 
     def __init__( self, loops ):
         """
-        Creates a disjoint union of the given collection of ideal loops.
+        Creates an edge-ideal triangulation containing the disjoint union of
+        the given collection of ideal loops.
 
         Precondition:
         --> loops is nonempty.
@@ -487,7 +494,7 @@ class IdealLoops(EmbeddedLoops):
 
     def shorten(self):
         """
-        Shortens this collection of ideal loops.
+        Shortens the union of ideal loops.
 
         In detail, if some ideal loop meets any triangle F in exactly two
         distinct edges, then it can be shortened by replacing these two edges
@@ -495,15 +502,15 @@ class IdealLoops(EmbeddedLoops):
 
         This routine performs such shortenings until no further shortening is
         possible. If at least one such shortening occurred, then this routine
-        will return True. Otherwise, this routine will leave this collection
-        of ideal loops entirely untouched, and will return False.
+        will return True. Otherwise, this routine will leave the union of
+        ideal loops entirely untouched, and will return False.
 
-        If some ideal loop in this collection bounds a disc, then this routine
-        might (but is not guaranteed to) raise BoundsDisc.
+        If some ideal loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
 
         Returns:
-            True if and only if this collection of ideal loops was
-            successfully shortened.
+            True if and only if the union of ideal loops was successfully
+            shortened.
         """
         # IdealLoop provides an appropriate implementation of
         # _redirectCandidates(), so we can just use the default implementation
@@ -512,15 +519,15 @@ class IdealLoops(EmbeddedLoops):
 
     def minimiseBoundary(self):
         """
-        Ensures that the triangulation containing this collection of ideal
-        loops has the smallest possible number of boundary triangles,
-        potentially adding tetrahedra to do this.
+        Ensures that the ambient triangulation has the smallest possible
+        number of boundary triangles, potentially adding tetrahedra to do
+        this.
 
         A side-effect of calling this routine is that it will shorten the
         ideal loops if possible.
 
-        If some ideal loop in this collection bounds a disc, then this routine
-        might (but is not guaranteed to) raise BoundsDisc.
+        If some ideal loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> Every 2-sphere boundary component will have exactly two triangles
@@ -537,8 +544,8 @@ class IdealLoops(EmbeddedLoops):
         creates a non-vertex-linking normal disc or 2-sphere if there was not
         one before.
 
-        If the triangulation containing this collection of loops is currently
-        oriented, then this routine guarantees to preserve the orientation.
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
 
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
@@ -546,10 +553,9 @@ class IdealLoops(EmbeddedLoops):
         --> The ambient triangulation (i.e., self.triangulation()) is valid.
 
         Returns:
-            True if and only if this collection of loops or the ambient
-            triangulation were changed. In other words, a return value of
-            False indicates that:
-            (1) this collection of loops could not be shortened; and
+            True if and only if this edge-ideal triangulation was changed. In
+            other words, a return value of False indicates that:
+            (1) the union of loops could not be shortened; and
             (2) every boundary component of the ambient triangulation was
                 already minimal to begin with.
         """
@@ -612,10 +618,10 @@ class IdealLoops(EmbeddedLoops):
     pass
 
 
-class BoundaryLoops(EmbeddedLoops):
+class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
     """
-    A disjoint union of BoundaryLoop objects, each lying on a distinct
-    boundary component of a single 3-manifold triangulation.
+    A 3-manifold triangulation containing up to one BoundaryLoop per boundary
+    component.
 
     Some of the routines provided by this class might fail if one of the
     boundary loops bounds an embedded disc in the ambient triangulation
@@ -630,28 +636,31 @@ class BoundaryLoops(EmbeddedLoops):
     (2) It acts as a container of BoundaryLoop objects, which are indexed in
         an arbitrary order (but the order is kept consistent no matter how
         much the ambient triangulation is simplified). In detail, for any
-        instance loops of this class:
-        --> (e in loops) is True if and only if e is a BoundaryLoop belonging
-            to this union of BoundaryLoop objects (note that equality of
-            BoundaryLoop objects is determined by their location in memory,
-            and so for instance clones will not be considered equal).
-        --> len(loop) is the number of BoundaryLoop objects in this union
-        --> iterating through loops yields all the BoundaryLoop objects in
-            this union, in the order in which they are indexed
-        --> for i between 0 and (len(loops) - 1), inclusive, loops[i] returns
-            the BoundaryLoop at index i in this union
+        instance triLoops of this class:
+        --> (el in triLoops) is True if and only if el is one of the
+            BoundaryLoop objects that is embedded in the ambient triangulation
+            (note that equality of BoundaryLoop objects is determined by their
+            location in memory, and so for instance clones will not be
+            considered equal).
+        --> len(triLoops) is the number of BoundaryLoop objects that are
+            embedded in the ambient triangulation
+        --> iterating through triLoops yields all the BoundaryLoop objects
+            that are embedded in the ambient triangulation, in the order in
+            which they are indexed
+        --> for i between 0 and (len(triLoops) - 1), inclusive, triLoops[i]
+            returns the BoundaryLoop at index i
     """
-    # Base class for loops contained in this disjoint union.
+    # Base class for loops embedded in the ambient triangulation.
     _LOOP_CLASS = BoundaryLoop
 
     def __init__( self, loops ):
         """
-        Creates a disjoint union of the given collection of boundary loops.
+        Creates a triangulation containing the given union of boundary loops.
 
         Precondition:
         --> loops is nonempty.
-        --> The elements of loops are all BoundaryLoop objects lying
-            disjointly on the boundary of the same ambient 3-manifold
+        --> The elements of loops are all BoundaryLoop objects lying on
+            distinct boundary components of the same ambient 3-manifold
             triangulation.
         """
         super().__init__(loops)
@@ -659,7 +668,7 @@ class BoundaryLoops(EmbeddedLoops):
 
     def shorten(self):
         """
-        Shortens this collection of boundary loops.
+        Shortens the union of boundary loops.
 
         In detail, if some boundary loop meets any boundary triangle F in
         exactly two distinct edges, then it can be shortened by replacing
@@ -667,15 +676,16 @@ class BoundaryLoops(EmbeddedLoops):
 
         This routine performs such shortenings until no further shortening is
         possible. If at least one such shortening occurred, then this routine
-        will return True. Otherwise, this routine will leave this collection
-        of boundary loops entirely untouched, and will return False.
+        will return True. Otherwise, this routine will leave this
+        triangulation with boundary loops entirely untouched, and will return
+        False.
 
-        If some boundary loop in this collection bounds a disc, then this routine
-        might (but is not guaranteed to) raise BoundsDisc.
+        If some boundary loop bounds a disc, then this routine might (but is
+        guaranteed to) raise BoundsDisc.
 
         Returns:
-            True if and only if this collection of ideal loops was
-            successfully shortened.
+            True if and only if the union of boundary loops was successfully
+            shortened.
         """
         # BoundaryLoop provides an appropriate implementation of
         # _redirectCandidates(), so we can just use the default implementation
