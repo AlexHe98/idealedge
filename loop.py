@@ -7,34 +7,9 @@ from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
+from loopaux import NotLoop, BoundsDisc, EdgeLocation
 #TODO Decide whether we really want to inherit from InvariantEdges.
 #from invariantedges import InvariantEdges
-
-
-class EmbeddedLoopException(Exception):
-    pass
-
-
-class NotLoop(EmbeddedLoopException):
-    """
-    Raised when attempting to build an embedded loop from a list of edges
-    that does not describe a closed loop.
-    """
-    def __init__( self, edges ):
-        indices = [ e.index() for e in edges ]
-        msg = ( "The edge sequence {} does not describe ".format(indices) +
-                "an embedded closed loop." )
-        super().__init__(msg)
-        return
-
-
-class BoundsDisc(EmbeddedLoopException):
-    """
-    Raised when an embedded loop detects that it bounds an embedded disc.
-    """
-    def __init__(self):
-        super().__init__( "Embedded loop bounds an embedded disc." )
-        return
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -51,6 +26,8 @@ class BoundsDisc(EmbeddedLoopException):
 #TODO Will need to update usage everywhere.
 #
 #TODO Is it still useful to have IdealLoop and BoundaryLoop subclasses?
+#
+#TODO Use the new EdgeLocation class.
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
