@@ -9,8 +9,6 @@ from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loopaux import NotLoop, BoundsDisc
 from loopaux import edgesFromEmbeddings, embeddingsFromEdgeIndices
-#TODO Decide whether we really want to inherit from InvariantEdges.
-#from invariantedges import InvariantEdges
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -19,8 +17,6 @@ from loopaux import edgesFromEmbeddings, embeddingsFromEdgeIndices
 #   be modified to track orientations.
 #TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
 #   make sure that they track orientations (if necessary).
-#
-#TODO Decide whether we really want to inherit from InvariantEdges.
 #
 #TODO Definitely need to introduce functionality to track multiple ideal
 #   loops, but what about boundary loops?
