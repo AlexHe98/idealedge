@@ -251,7 +251,7 @@ def idealLoops( surf, oldLoops=[] ):
             newLoops.append( [idEdge] )
 
     #TODO If we crushed an annulus, it would probably be useful to use
-    #   fillIdealEdge() to include additional ideal loops obtained by filling
+    #   fillIdealEdges() to include additional ideal loops obtained by filling
     #   in pinched 2-sphere boundary components.
     #
     #   If/when we implement this functionality, we will need to document the
@@ -263,73 +263,136 @@ def idealLoops( surf, oldLoops=[] ):
     return newLoops
 
 
-def fillIdealEdge(tri):
+def fillIdealEdges( tri, endpoints ):
     """
-    If tri is an invalid component resulting from crushing an annulus, then
-    closes this triangulation and returns the resulting ideal edge.
+    Fills in two-triangle boundary 2-spheres of tri that have a symmetric pair
+    of vertices in the given set of endpoints, and returns a list of the
+    resulting ideal edges.
 
-    This routine assumes that the boundary triangles of tri form a
-    two-triangle 2-sphere with two of its three vertices pinched to form a
-    single invalid vertex.
+    The endpoints set should be specified as a set of integers corresponding
+    to vertex indices in the given triangulation tri.
 
-    If the given triangulation is currently oriented, then the filling
-    operation will preserve the orientation.
+    In detail, each two-triangle boundary 2-sphere B that we fill in falls
+    under one of the following two cases:
+    --> If B is isomorphic to the boundary of a triangular pillow, then any
+        two out of the three vertices of B form a symmetric pair. Let e denote
+        the edge of B that has both vertices in the given endpoints set. We
+        fill in B by gluing the two faces of B together in the obvious way.
+        The edge e becomes one of the ideal edges in the returned list.
+    --> If B is isomorphic to the boundary of a snapped 3-ball, then the only
+        symmetric pair of vertices is given by the two "poles" (that is, the
+        two vertices not incident to the equator edge). We fill in B by
+        attaching a snapped 3-ball. This introduces a new edge connecting the
+        two poles, which becomes one of the ideal edges in the returned list.
+
+    This routine modifies the given triangulation directly. If the
+    triangulation is currently oriented, then the filling operation will
+    preserve this orientation.
     """
-    # Check some basic pre-conditions.
-    if tri.isValid() or tri.countBoundaryTriangles() != 2:
-        return
-
-    # Might need to layer one tetrahedron to achieve the generic case.
-    layerEdge = None
-    for edge in tri.edges():
-        if not edge.isBoundary():
+    fillEdges = []  # Items will be triples ( tet, edgeNum, doLayer ).
+    for bc in tri.boundaryComponents():
+        # Is bc a real two-triangle 2-sphere boundary component?
+        #
+        # Note that bc might have vertices pinched together (tri is not
+        # assumed to be valid), so we must build the Triangulation2 to be sure
+        # of computing the Euler characteristic correctly.
+        built = bc.build()
+        if built.eulerChar() != 2:
+            continue
+        if not bc.isReal():
+            continue
+        if bc.size() != 2:
             continue
 
-        # Does this edge meet two distinct boundary triangles? If so, and if
-        # it is also the *only* boundary edge with this property, then we
-        # need to layer on this edge.
-        emb = [ edge.embedding(0),
-                edge.embedding( edge.degree() - 1 ) ]
-        face = []
-        for i in range(2):
-            tet = emb[i].tetrahedron()
-            faceNum = emb[i].vertices()[3-i]
-            face.append( tet.triangle(faceNum) )
-        if face[0] == face[1]:
-            continue
-        if layerEdge is None:
-            layerEdge = edge
+        # Do we have a pillow-boundary or a snapped-ball-boundary?
+        equatorEdgeNum = None
+        for e in range(3):
+            if built.triangle(0).adjacentTriangle(e) == built.triangle(1):
+                if equatorEdgeNum is None:
+                    equatorEdgeNum = e
+                else:
+                    # For snapped-ball-boundary, the equator edge is the
+                    # unique edge that the two boundary triangles have in
+                    # common. Since we have now found two common edges, we
+                    # cannot have snapped-ball-boundary.
+                    equatorEdgeNum = None
+                    break
+
+        # Do we have a symmetric pair of vertices in the endpoints set?
+        if equatorEdgeNum is None:
+            # We have pillow-boundary, so the answer is "yes" if and only if
+            # exactly two out of the three vertices are in the endpoints set.
+            idealEdgeNum = None
+            for e in range(3):
+                # In bc.triangle(0), the ideal edge should be opposite the
+                # unique vertex that is *not* in the endpoints set.
+                if bc.triangle(0).vertex(e).index() not in endpoints:
+                    if idealEdgeNum is None:
+                        idealEdgeNum = e
+                    else:
+                        idealEdgeNum = None
+                        break
+            if idealEdgeNum is not None:
+                # We already have the ideal edge, so doLayer should be False.
+                emb = bc.triangle(0).edge(e).front()
+                fillEdges.append(
+                        ( emb.tetrahedron(), emb.face(), False ) )
         else:
-            layerEdge = None
-            break
-    if layerEdge is not None:
-        layerOn(layerEdge)
+            # We have snapped-ball-boundary, so the answer is "yes" if and
+            # only if the "poles" (ie, the vertices not incident to the
+            # equator edge) both lie in the endpoints set, and the vertex on
+            # the equator edge does not lie in the endpoints set.
+            if ( bc.triangle(0).edge(
+                equatorEdgeNum ).vertex(0).index() in endpoints ):
+                # Equator vertex is in the endpoints set.
+                # Move on to the next boundary component.
+                continue
+            if bc.triangle(0).vertex(equatorEdgeNum).index() not in endpoints:
+                # Pole vertex is not in the endpoints set.
+                # Move on to the next boundary component.
+                continue
 
-    # Find the ideal edge. It suffices to look for a boundary edge whose
-    # endpoints are identified.
-    for idEdge in tri.edges():
-        if not idEdge.isBoundary():
-            continue
-        if idEdge.vertex(0) == idEdge.vertex(1):
-            break
+            # We just need to check the pole incident to bc.triangle(1) now.
+            otherPole = built.triangle(0).adjacentEdge(equatorEdgeNum)
+            if bc.triangle(1).vertex(otherPole).index() in endpoints:
+                # Later, we will need to layer across the equator edge to
+                # obtain the ideal edge (ie, we need doLayer to be True).
+                emb = bc.triangle(0).edge(equatorEdgeNum).front()
+                fillEdges.append(
+                        ( emb.tetrahedron(), emb.edge(), True ) )
 
-    # Finish by closing up the boundary.
-    emb = [ idEdge.embedding(0),
-            idEdge.embedding( idEdge.degree() - 1 ) ]
-    ver = [ emb[i].vertices() for i in range(2) ]
-    me = emb[0].tetrahedron()
-    you = emb[1].tetrahedron()
-    myFace = ver[0][3]
-    gluing = Perm4(
-            ver[0][0], ver[1][0],
-            ver[0][1], ver[1][1],
-            ver[0][2], ver[1][3],
-            ver[0][3], ver[1][2] )
-    me.join( myFace, you, gluing )
+    # Perform all the fillings.
+    idealEdgeLocations = []
+    for tet, edgeNum, doLayer in fillEdges:
+        if doLayer:
+            # Make sure to use oriented layering.
+            tet = layerOn( tet.edge(edgeNum) )
+            edgeNum = 5
+        idealEdgeLocations.append( ( tet, edgeNum ) )
+        idealEdge = tet.edge(edgeNum)
 
-    # Now that the triangulation has changed, we can only access the ideal
-    # edge through one of the tetrahedra in which it is embedded.
-    return me.edge( ver[0][0], ver[0][1] )
+        # Close up the pillow boundary.
+        #
+        #       back    front
+        #          0    0
+        #          •    •
+        #         /|    |\
+        #        / |    | \
+        #      3•  |    |  •2
+        #        \ |    | /
+        #         \|    |/
+        #          •    •
+        #          1    1
+        #
+        front = idealEdge.front()
+        back = idealEdge.back()
+        front.tetrahedron().join(
+                front.vertices()[3],
+                back.tetrahedron(),
+                back.vertices() * Perm4(2,3) * front.vertices().inverse() )
+
+    # All done!
+    return [ tet.edge(edgeNum) for tet, edgeNum in idealEdgeLocations ]
 
 
 def isAnnulus(s):
