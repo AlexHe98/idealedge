@@ -104,15 +104,13 @@ class EmbeddedLoops:
             embLoops.append( EmbeddedLoop( edges, orientation ) )
         return EmbeddedLoops(embLoops)
 
-    def setFromEdgeLocations( self, data ):
+    def setFromEdgeEmbeddings( self, data ):
         """
         Sets this collection of embedded loops using the given data.
 
         In detail, each item in data is a pair (E, D) that specifies an
         EmbeddedLoop in a triangulation T as follows:
-        --> E is a list of "edge locations". That is, each item in E is a pair
-            (s, n), where s is a tetrahedron of T and n is an edge number
-            (from 0 to 5, inclusive) of this tetrahedron.
+        --> E is a list of edge embeddings.
         --> D specifies the orientation of the EmbeddedLoop: 
             --- It is +1 if the first edge of the loop should be oriented from
                 vertex 0 to vertex 1.
@@ -120,23 +118,23 @@ class EmbeddedLoops:
                 vertex 1 to vertex 0.
             --- It is 0 if this routine is allowed to choose an arbitrary
                 orientation on the loop.
-        All of the edges described by the edge locations must lie in the same
-        triangulation.
+        All of the edge embeddings must reference tetrahedra in the same
+        3-manifold triangulation.
 
-        Raises NotLoop if any of the given lists of edge locations does not
+        Raises NotLoop if any of the given lists of edge embeddings does not
         describe an embedded closed loop, or if the order of the edges in the
         list does not match the order in which the edges appear in the loop.
 
         Precondition:
-        --> Each given list of edge locations is nonempty.
-        --> The tetrahedra given by the first entries of each edge location
-            must all belong to the same 3-manifold triangulation.
+        --> Each given list of edge embeddings is nonempty.
+        --> All the edge embeddings must reference tetrahedra belonging to the
+            same 3-manifold triangulation.
         """
         embLoops = []
-        for edgeLocations, orientation in data:
+        for edgeEmbeddings, orientation in data:
             embLoops.append(
-                    self._LOOP_CLASS.setFromEdgeLocations(
-                        edgeLocations, orientation ) )
+                    self._LOOP_CLASS.setFromEdgeEmbeddings(
+                        edgeEmbeddings, orientation ) )
         self.setFromLoops(embLoops)
         return
 
@@ -413,7 +411,7 @@ class EmbeddedLoops:
             if doLayer:
                 edge = layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self.setFromEdgeLocations(newLoopData)
+            self.setFromEdgeEmbeddings(newLoopData)
         return
 
     def _findBoundaryMove(self):
@@ -433,7 +431,7 @@ class EmbeddedLoops:
             Otherwise, the move will simply be a close book move on e.
         (2) Data for reconstructing this collection of loops in the new
             triangulation that results from this move, as required by the
-            setFromEdgeLocations() routine.
+            setFromEdgeEmbeddings() routine.
 
         The EmbeddedLoops base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
@@ -576,7 +574,7 @@ class IdealLoops(EmbeddedLoops):
             # the number of tetrahedra.
             for edge in bc.edges():
                 if self._tri.closeBook( edge, True, False ):
-                    #TODO Replace edgeIndices with edgeLocations data.
+                    #TODO Replace edgeIndices with edgeEmbeddings data.
                     return ( edge,
                             False,  # Close book without layering.
                             self._edgeIndices )
@@ -597,7 +595,7 @@ class IdealLoops(EmbeddedLoops):
                 # that forms the boundary of this disc. Thus, when we reach
                 # this point in the code, we can guarantee that the layering
                 # is legal.
-                #TODO Replace edgeIndices with edgeLocations data.
+                #TODO Replace edgeIndices with edgeEmbeddings data.
                 return ( edge,
                         True,   # Layer before performing close book.
                         self._edgeIndices )
