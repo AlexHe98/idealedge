@@ -38,6 +38,28 @@ def edgesFromEmbeddings(edgeEmbeddings):
     return [ emb.tetrahedron().edge( emb.edge() ) for emb in edgeEmbeddings ]
 
 
+def edgeOrientationFromEmbedding( edgeEmbedding, orientation ):
+    """
+    Converts the given orientation on the given edge embedding into the
+    corresponding orientation on the underlying edge.
+
+    In detail, an orientation is specified by:
+    --> +1 if the edge is oriented from vertex 0 to vertex 1, or
+    --> -1 if the edge is oriented from vertex 1 to vertex 0.
+    A conversion is necessary because the two objects (the edge embedding and
+    the underlying edge) might make different choices for which endpoints are
+    labelled vertex 0 and vertex 1.
+    """
+    verPerm = edgeEmbedding.vertices()
+    mapping = edgeEmbedding.tetrahedron().edgeMapping(
+            edgeEmbedding.edge() )
+    if verPerm[0] == mapping[0]:
+        return orientation
+    else:
+        return -orientation
+    return
+
+
 def embeddingsFromEdgeIndices( tri, edgeIndices ):
     """
     Converts the given container of edge indices into a list of EdgeEmbedding3
