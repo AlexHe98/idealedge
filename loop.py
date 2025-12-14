@@ -7,7 +7,8 @@ from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
-from loopaux import NotLoop, BoundsDisc, EdgeLocation
+from loopaux import NotLoop, BoundsDisc
+from loopaux import edgesFromEmbeddings, embeddingsFromEdgeIndices
 #TODO Decide whether we really want to inherit from InvariantEdges.
 #from invariantedges import InvariantEdges
 
@@ -26,8 +27,6 @@ from loopaux import NotLoop, BoundsDisc, EdgeLocation
 #TODO Will need to update usage everywhere.
 #
 #TODO Is it still useful to have IdealLoop and BoundaryLoop subclasses?
-#
-#TODO Use the new EdgeLocation class.
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -217,19 +216,18 @@ class EmbeddedLoop:
         self.setFromEdges( edges, loop.orientation() )
         return
 
-    def setFromEdgeLocations( self, edgeLocations, orientation=0 ):
+    def setFromEdgeEmbeddings( self, edgeEmbeddings, orientation=0 ):
         """
-        Sets this embedded loop using the given list of edge locations.
+        Sets this embedded loop using the given list of edge embeddings.
 
-        In detail, each edge location must be a pair (t, e), where t is a
-        tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
-        tetrahedron must belong to the same triangulation.
+        The elements in edgeEmbeddings must all be EdgeEmbedding3 objects
+        referencing tetrahedra in the same Triangulation3 object.
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge locations
-            should be oriented from vertex 0 to vertex 1;
+        --> +1 if the first edge described by the given list of edge
+            embeddings should be oriented from vertex 0 to vertex 1;
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
@@ -240,29 +238,28 @@ class EmbeddedLoop:
         match the order in which the edges appear in the loop.
 
         Precondition:
-        --> The given list of edge locations is nonempty.
-        --> The tetrahedra given by the first entries of each edge location
-            must all belong to the same 3-manifold triangulation.
+        --> The given list of edge embeddings is nonempty.
+        --> The given edge embeddings must all reference tetrahedra belonging
+            to the same 3-manifold triangulation.
         """
         self.setFromEdges(
-                self._edgesFromLocations(edgeLocations),
+                edgesFromEmbeddings(edgeEmbeddings),
                 orientation )
         return
 
     @classmethod
-    def fromEdgeLocations( cls, edgeLocations, orientation=0 ):
+    def fromEdgeEmbeddings( cls, edgeEmbeddings, orientation=0 ):
         """
-        Constructs an embedded loop using the given list of edge locations.
+        Constructs an embedded loop using the given list of edge embeddings.
 
-        In detail, each edge location must be a pair (t, e), where t is a
-        tetrahedron and e is an edge number from 0 to 5 (inclusive). Each
-        tetrahedron must belong to the same triangulation.
+        The elements in edgeEmbeddings must all be EdgeEmbedding3 objects
+        referencing tetrahedra in the same Triangulation3 object.
 
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge locations
-            should be oriented from vertex 0 to vertex 1;
+        --> +1 if the first edge described by the given list of edge
+            embeddings should be oriented from vertex 0 to vertex 1;
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
@@ -273,20 +270,13 @@ class EmbeddedLoop:
         match the order in which the edges appear in the loop.
 
         Precondition:
-        --> The given list of edge locations is nonempty.
-        --> The tetrahedra given by the first entries of each edge location
-            must all belong to the same 3-manifold triangulation.
+        --> The given list of edge embeddings is nonempty.
+        --> The given edge embeddings must all reference tetrahedra belonging
+            to the same 3-manifold triangulation.
         """
         return cls.setFromEdges(
-                cls._edgesFromLocations(edgeLocations),
+                edgesFromEmbeddings(edgeEmbeddings),
                 orientation )
-
-    @staticmethod
-    def _edgesFromLocations(edgeLocations):
-        edges = []
-        for tet, edgeNum in edgeLocations:
-            edges.append( tet.edge(edgeNum) )
-        return edges
 
     #TODO Delete this entirely at a later date.
     def setFromLightweight( self, sig, edgeLocations ):
@@ -842,10 +832,8 @@ class EmbeddedLoop:
 
             # Make sure we will be able to find the edges that form the loop
             # after performing the move.
-            edgeLocations = []
-            for ei in newEdgeIndices:
-                emb = self._tri.edge(ei).embedding(0)
-                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+            edgeEmbeddings = embeddingsFromEdgeIndices(
+                    self._tri, newEdgeIndices )
 
             # Perform the move, and then update this loop. We can safely
             # assume that the close book move is legal, so no need to check
@@ -853,7 +841,7 @@ class EmbeddedLoop:
             if doLayer:
                 edge = layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self.setFromEdgeLocations(edgeLocations)
+            self.setFromEdgeEmbeddings(edgeEmbeddings)
         return
 
     def _findBoundaryMove(self):
@@ -962,15 +950,13 @@ class EmbeddedLoop:
 
             # Make sure we will be able to find the edges that form the loop
             # after performing the move.
-            edgeLocations = []
-            for ei in newEdgeIndices:
-                emb = self._tri.edge(ei).embedding(0)
-                edgeLocations.append( ( emb.tetrahedron(), emb.edge() ) )
+            edgeEmbeddings = embeddingsFromEdgeIndices(
+                    self._tri, newEdgeIndices )
 
             # Perform the snap, and then update this ideal loop. We can
             # assume that the snap is legal, so can perform without checking.
             snapEdge( edge, False, True )
-            self.setFromEdgeLocations(edgeLocations)
+            self.setFromEdgeEmbeddings(edgeEmbeddings)
         return
 
     def _findSnapEdge(self):
@@ -1207,8 +1193,8 @@ class IdealLoop(EmbeddedLoop):
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge locations
-            should be oriented from vertex 0 to vertex 1;
+        --> +1 if the first edge in the given list should be oriented from
+            vertex 0 to vertex 1;
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
@@ -1239,12 +1225,10 @@ class IdealLoop(EmbeddedLoop):
         out this loop.
         """
         drilled = Triangulation3( self._tri )
-        drillLocations = []
-        for ei in self:
-            emb = drilled.edge(ei).embedding(0)
-            drillLocations.append( ( emb.tetrahedron(), emb.edge() ) )
-        for tet, edgeNum in drillLocations:
-            drilled.pinchEdge( tet.edge(edgeNum) )
+        drillEmbeddings = embeddingsFromEdgeIndices( drilled, self )
+        for emb in drillEmbeddings:
+            drilled.pinchEdge(
+                    emb.tetrahedron().edge( emb.edge() ) )
         drilled.intelligentSimplify()
         drilled.minimiseVertices()
         drilled.intelligentSimplify()
@@ -1617,8 +1601,8 @@ class BoundaryLoop(EmbeddedLoop):
         If the optional orientation argument is not supplied, then the
         embedded loop will be assigned an arbitrary orientation. Otherwise,
         the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge locations
-            should be oriented from vertex 0 to vertex 1;
+        --> +1 if the first edge in the given list should be oriented from
+            vertex 0 to vertex 1;
         --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
             or
         --> 0 if this routine should be allowed to choose an arbitrary
