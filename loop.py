@@ -1736,7 +1736,7 @@ class BoundaryLoop(EmbeddedLoop):
         # Precondition:
         #   --> This loop cannot be shortened.
 
-        # Prioritise moves that reduce the length of this ideal loop. If
+        # Prioritise moves that reduce the length of this boundary loop. If
         # possible, use close book moves so that we do not introduce too many
         # new tetrahedra.
         if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
