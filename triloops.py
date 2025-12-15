@@ -8,6 +8,7 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
+from loopaux import embeddingsFromEdgeIndices
 #TODO Reimplement all the simplification methods so that they can handle
 #   unions of more than one embedded loop.
 
@@ -143,6 +144,23 @@ class TriangulationWithEmbeddedLoops:
                         edgeEmbeddings, orientation ) )
         self.setFromLoops(embLoops)
         return
+
+    def edgeEmbeddingsData(self):
+        """
+        Returns data to reconstruct the embedded loops using the
+        setFromEdgeEmbeddings() routine.
+
+        See setFromEdgeEmbeddings() for more details on the data structure.
+
+        The returned data works even if self.triangulation() has been
+        modified, provided that each edge embedding references a tetrahedron
+        that still exists within self.triangulation().
+        """
+        ans = []
+        for embLoop in self:
+            embeddings = embeddingsFromEdgeIndices( self._tri, embLoop )
+            ans.append( ( embeddings, embLoop.orientation() ) )
+        return ans
 
     def __len__(self):
         return len(self._loops)
@@ -566,9 +584,6 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
-    #TODO Update the implementation to:
-    #       --> handle multiple loops; and
-    #       --> track orientation.
     def _findBoundaryMove(self):
         # Precondition:
         #   --> This loop cannot be shortened.
@@ -583,10 +598,9 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             # the number of tetrahedra.
             for edge in bc.edges():
                 if self._tri.closeBook( edge, True, False ):
-                    #TODO Replace edgeIndices with edgeEmbeddings data.
                     return ( edge,
                             False,  # Close book without layering.
-                            self._edgeIndices )
+                            self.edgeEmbeddingsData() )
 
             # We could not find a close book move.
             # In this case, because bc is non-minimal, there must be a
@@ -604,10 +618,9 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                 # that forms the boundary of this disc. Thus, when we reach
                 # this point in the code, we can guarantee that the layering
                 # is legal.
-                #TODO Replace edgeIndices with edgeEmbeddings data.
                 return ( edge,
                         True,   # Layer before performing close book.
-                        self._edgeIndices )
+                        self.edgeEmbeddingsData() )
 
             # We should never reach this point.
             raise RuntimeError(
