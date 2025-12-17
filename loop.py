@@ -972,8 +972,8 @@ class EmbeddedLoop:
     def _findSnapEdge(self):
         """
         Returns details of a snap edge move that can be used to reduce the
-        number of vertices() in self.triangulation(), or None if the number
-        of vertices is already minimal.
+        number of vertices in self.triangulation(), or None if the number of
+        vertices is already minimal.
 
         In detail, in the case where the number of vertices is not yet
         minimal, this routine returns a tuple consisting of the following:

@@ -453,11 +453,11 @@ class TriangulationWithEmbeddedLoops:
             # The _findBoundaryMove() routine should already ensure legality
             # of the close book move, so no need to check before performing.
             changed = True
-            edge, doLayer, newLoopData = moveDetails
+            edge, doLayer, edgeEmbeddingsData = moveDetails
             if doLayer:
                 edge = layerOn(edge).edge(5)
             self._tri.closeBook( edge, False, True )
-            self.setFromEdgeEmbeddings(newLoopData)
+            self.setFromEdgeEmbeddings(edgeEmbeddingsData)
         return
 
     def _findBoundaryMove(self):
@@ -492,6 +492,125 @@ class TriangulationWithEmbeddedLoops:
         raise NotImplementedError()
 
     #TODO WORKING HERE
+
+    #TODO Document precisely how strongly we can guarantee minimality.
+    def _minimiseVerticesImpl(self):
+        """
+        Ensures that the ambient triangulation has the smallest possible
+        number of vertices for the 3-manifold that it represents, potentially
+        adding tetrahedra to do this.
+
+        The default implementation of this routine requires the following
+        helper routines:
+        --> _shortenImpl()
+        --> _minimiseBoundaryImpl()
+        --> _findSnapEdge()
+        Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> ensure that the aforementioned helper routines are suitably
+            implemented.
+
+        A side-effect of calling this routine is that it will shorten the
+        union of embedded loops if possible.
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+[[[[[[[[
+        The following are guaranteed to hold once this routine is finished:
+        --> If the ambient triangulation is closed, then it will have
+            precisely one vertex.
+        --> If the ambient triangulation has real boundary, then:
+            --- either there will be no internal vertices, or there will be
+                exactly one internal vertex if this embedded loop is required
+                to remain entirely in the interior of the triangulation;
+            --- every 2-sphere boundary component will have exactly two
+                triangles and three vertices;
+            --- every projective plane boundary component will have exactly
+                two triangles and two vertices;
+            --- every other boundary component will have exactly one vertex.
+]]]]]]]]
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening some loop by redirecting it across triangular faces.
+        --> Close book moves, layerings, and/or snap edge moves on
+            self.triangulation().
+        In particular, this routine never creates new vertices.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.minimiseVertices().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this triangulation with embedded loops was
+            changed. In other words, a return value of False indicates that:
+            (1) the union of loops could not be shortened; and
+[[[[[[[[
+            (2) the number of vertices in the ambient triangulation was
+                already minimal to begin with.
+]]]]]]]]
+        """
+        # Start by minimising the boundary.
+        changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
+
+        # All that remains now is to remove unnecessary internal vertices.
+        # We do not currently have an implementation of collapseEdge() that
+        # keeps track of how edges get relabelled after the move, so we rely
+        # entirely on the snapEdge() routine.
+        while True:
+            # Shorten the union of loops to minimise the number of special
+            # cases.
+            if self._shortenImpl():     # Might raise BoundsDisc.
+                changed = True
+
+            # Is there a snap edge move we can perform to reduce the number
+            # of vertices?
+            moveDetails = self._findSnapEdge()
+            if moveDetails is None:
+                # At this point, there are no more unnecessary internal
+                # vertices.
+                return changed
+            changed = True
+            edge, edgeEmbeddingsData = moveDetails
+
+            # Perform the snap, and then update this ideal loop. The
+            # _findSnapEdge() routine should ensure that the snap is legal, so
+            # no need to check this again.
+            snapEdge( edge, False, True )
+            self.setFromEdgeEmbeddings(edgeEmbeddingsData)
+        return
+
+    #TODO Check pre-conditions and exceptions.
+    def _findSnapEdge(self):
+        """
+[[[[[[[[
+        Returns details of a snap edge move that can be used to reduce the
+        number of vertices in self.triangulation(), or None if the number of
+        vertices is already minimal.
+
+        In detail, in the case where the number of vertices is not yet
+        minimal, this routine returns a tuple consisting of the following:
+]]]]]]]]
+        (0) An edge on which a snap edge move can be performed.
+        (1) Data for reconstructing the union of embedded loops in the new
+            triangulation that results from this move, as required by the
+            setFromEdgeEmbeddings() routine.
+
+        The TriangulationWithEmbeddedLoops base class does not implement this
+        routine, so subclasses that require this routine must provide an
+        implementation.
+
+        Pre-condition:
+        --> The union of loops cannot be shortened.
+        --> If the ambient triangulation has real boundary, then this
+            boundary has already been minimised.
+        """
+        raise NotImplementedError()
 
     #TODO
     pass
