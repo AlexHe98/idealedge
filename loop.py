@@ -633,7 +633,10 @@ class EmbeddedLoop:
 
     #TODO Old routines to remove later. (Lots of usage and documentation will
     #   probably need to be updated after these are all removed.)
-    #       --> _shortenImpl()
+    #       --> _minimiseBoundaryImpl()
+    #       --> _findBoundaryMove()
+    #   Could also remove _shortenImpl(), but it seems to make sense to keep
+    #   this routine for loops.
 
     def _shortenImpl(self):
         """
@@ -765,10 +768,6 @@ class EmbeddedLoop:
         self.setFromEdges( newEdges, newOrientation )
         return True
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
     def _minimiseBoundaryImpl(self):
         """
         Ensures that the triangulation containing this embedded loop has the
@@ -875,6 +874,10 @@ class EmbeddedLoop:
         subclasses that require this routine must provide an implementation.
         """
         raise NotImplementedError()
+
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
+    #TODO WORKING HERE.
 
     def _minimiseVerticesImpl(self):
         """

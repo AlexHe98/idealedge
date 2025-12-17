@@ -9,8 +9,6 @@ from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
 from loopaux import embeddingsFromEdgeIndices
-#TODO Reimplement all the simplification methods so that they can handle
-#   unions of more than one embedded loop.
 
 
 class TriangulationWithEmbeddedLoops:
@@ -386,9 +384,6 @@ class TriangulationWithEmbeddedLoops:
                 return True
         return False
 
-    #TODO WORKING HERE
-
-    #TODO Make sure that the documentation matches the new implementation.
     def _minimiseBoundaryImpl(self):
         """
         Ensures that the ambient triangulation has the smallest possible
@@ -465,7 +460,6 @@ class TriangulationWithEmbeddedLoops:
             self.setFromEdgeEmbeddings(newLoopData)
         return
 
-    #TODO Document exceptions and pre-conditions.
     def _findBoundaryMove(self):
         """
         Returns details of a boundary move that simplifies the boundary of
@@ -488,8 +482,16 @@ class TriangulationWithEmbeddedLoops:
         The TriangulationWithEmbeddedLoops base class does not implement this
         routine, so subclasses that require this routine must provide an
         implementation.
+
+        If necessary, an implementation may raise BoundsDisc when it detects
+        an embedded loop that bounds a disc.
+
+        Also, an implementation is allowed to assume, as a pre-condition, that
+        all embedded loops have already been shortened as much as possible.
         """
         raise NotImplementedError()
+
+    #TODO WORKING HERE
 
     #TODO
     pass
@@ -651,7 +653,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                         self._edgeEmbeddingsData() )
 
             # We should never reach this point.
-            raise RuntimeError(
+            raise AssertionError(
                     "_findBoundaryMove() failed unexpectedly." )
 
         # If we fell out of the boundary component loop, then all boundary
@@ -725,7 +727,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         False.
 
         If some boundary loop bounds a disc, then this routine might (but is
-        guaranteed to) raise BoundsDisc.
+        not guaranteed to) raise BoundsDisc.
 
         Returns:
             True if and only if the union of boundary loops was successfully
@@ -767,6 +769,9 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         If the ambient triangulation is currently oriented, then this routine
         guarantees to preserve the orientation.
 
+        If some boundary loop bounds a disc, then this routine might (but is
+        not guaranteed to) raise BoundsDisc.
+
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
@@ -783,9 +788,6 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         # implementation for _findBoundaryMove().
         return self._minimiseBoundaryImpl()
 
-    #TODO Update to:
-    #       --> handle multiple loops, and
-    #       --> track orientations.
     def _findBoundaryMove(self):
         # Exceptions:
         #   --> Might raise BoundsDisc.
@@ -801,8 +803,6 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                 if ( len(bloop) == 1 or
                     bloop.boundaryComponent().countTriangles() == 2 ):
                     continue
-
-                #TODO Maybe outsource some of this to BoundaryLoop.
 
                 # We have a boundary loop in a non-minimal boundary component.
                 # First try to find a close book move.
@@ -857,42 +857,50 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                         True,   # Layer before doing close book.
                         data )
 
-        #TODO Re-implement.
-
-        # At this point, if the boundary component containing the loop is not
-        # yet minimal, then we at least know that the loop consists only of a
-        # single edge e. Our goal now is to minimise boundary components
-        # without touching e. 
+        # At this point, for each boundary loop bloop, it must already be the
+        # case that either:
+        #   --> bloop has length 1; or
+        #   --> if this is impossible, which can only be the case if bloop
+        #       lies in a 2-sphere or projective plane boundary component,
+        #       then we at least have that bloop lies inside a two-triangle
+        #       (hence minimal) boundary component.
+        # Our goal is to minimise any remaining non-minimal boundary
+        # components without touching the (necessarily length-1) loops that
+        # they contain.
+        avoid = self.loopEdgeIndices()
         for bc in self._tri.boundaryComponents():
-            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
+            if bc.countTriangles() == 2 or bc.countVertices() == 1:
+                # Already minimal.
                 continue
 
             # First try to find a close book move.
             for edge in bc.edges():
-                if edge.index() == self[0]:
-                    # Leave the loop untouched.
+                if edge.index() in avoid:
                     continue
                 if self._tri.closeBook( edge, True, False ):
                     return ( edge,
-                            False,  # Close book without layering.
-                            self._edgeIndices )
+                            False,  # Close book w/out layering.
+                            self._edgeEmbeddingsData() )
 
-            # We could not find a suitable close book move, so our plan now
-            # is to find a boundary edge e that joins two distinct vertices.
-            # We can layer over such an edge e, and then simplify the
-            # boundary using a close book move on the newly layered edge.
+            # We could not find a suitable close book move, so our plan now is
+            # to find a boundary edge e that joins two distinct vertices (such
+            # an edge e must exist). We can layer over such an edge e, and
+            # then do a close book move on the newly-layered edge.
             for edge in bc.edges():
                 if edge.vertex(0) == edge.vertex(1):
+                    # Note that this automatically avoids any edges involved
+                    # in the boundary loops, since we know that bc contains at
+                    # most a single such loop, and this loop will have length
+                    # 1 if it exists.
                     continue
 
-                # The layering is illegal if this edge is incident to the
-                # same boundary triangle F on both sides (rather than two
-                # distinct triangles). But in that scenario, F forms a disc,
-                # and there must be a close book move available on the edge b
-                # that forms the boundary of this disc. The only possible
-                # close book that we haven't already ruled out is the one we
-                # were trying to avoid; in other words, b must coincide with
-                # the loop that we are trying to preserve.
+                # The layering is illegal if this edge is incident to the same
+                # boundary triangle F on both sides (rather than two distinct
+                # triangles). But in that scenario, F forms a disc with
+                # boundary given by the third edge b of F. There must be a
+                # close book move available on b, so if we didn't perform this
+                # move already then it must be the case that b forms the loop
+                # embedded in this boundary component.
                 front = edge.front()
                 back = edge.back()
                 if ( front.tetrahedron().triangle( front.vertices()[3] ) ==
@@ -901,10 +909,10 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                 else:
                     return ( edge,
                             True,   # Layer before performing close book.
-                            self._edgeIndices )
+                            self._edgeEmbeddingsData() )
 
             # We should never reach this point.
-            raise RuntimeError(
+            raise AssertionError(
                     "_findBoundaryMove() failed unexpectedly." )
 
         # If we fell out of the boundary component loop, then all boundary
