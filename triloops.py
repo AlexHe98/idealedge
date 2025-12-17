@@ -234,6 +234,15 @@ class TriangulationWithEmbeddedLoops:
             ans = ans.union(embLoop)
         return ans
 
+    def loopVertexIndices(self):
+        """
+        Returns the set of all vertex indices involved in the embedded loops.
+        """
+        ans = set()
+        for embLoop in self:
+            ans = ans.union( embLoop.vertexIndices() )
+        return ans
+
     def blueprint(self):
         """
         Returns a picklable blueprint for this triangulation with embedded
@@ -496,9 +505,8 @@ class TriangulationWithEmbeddedLoops:
     #TODO Document precisely how strongly we can guarantee minimality.
     def _minimiseVerticesImpl(self):
         """
-        Ensures that the ambient triangulation has the smallest possible
-        number of vertices for the 3-manifold that it represents, potentially
-        adding tetrahedra to do this.
+        Ensures that this triangulation with embedded loops has the smallest
+        possible number of vertices, potentially adding tetrahedra to do this.
 
         The default implementation of this routine requires the following
         helper routines:
@@ -779,6 +787,100 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         # components are minimal.
         return None
 
+    def minimiseVertices(self):
+        """
+        Ensures that this edge-ideal triangulation has the smallest possible
+        number of vertices, potentially adding tetrahedra to do this.
+
+        A side-effect of calling this routine is that it will shorten the
+        ideal loops if possible.
+
+        If some ideal loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+[[[[[[[[
+        The following are guaranteed to hold once this routine is finished:
+        --> If the ambient triangulation is closed, then it will have
+            precisely one vertex.
+        --> If the ambient triangulation has real boundary, then:
+            --- there will be exactly one internal vertex;
+            --- every 2-sphere boundary component will have exactly two
+                triangles and three vertices;
+            --- every projective plane boundary component will have exactly
+                two triangles and two vertices;
+            --- every other boundary component will have exactly one vertex.
+]]]]]]]]
+
+        The changes that this routine performs can always be expressed using
+        only the following operations:
+        --> Shortening some loop by redirecting it across triangular faces.
+        --> Close book moves, layerings, and/or snap edge moves on
+            self.triangulation().
+        In particular, this routine never creates new vertices.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.minimiseVertices().
+
+        Precondition:
+        --> The ambient triangulation (i.e., self.triangulation()) is valid.
+
+        Returns:
+            True if and only if this edge-ideal triangulation was changed. In
+            other words, a return value of False indicates that:
+            (1) the union of loops could not be shortened; and
+[[[[[[[[
+            (2) the number of vertices in the ambient triangulation was
+                already minimal to begin with.
+]]]]]]]]
+        """
+        # Can use the default implementation provided we supply an
+        # implementation for _findSnapEdge().
+        return self._minimiseVerticesImpl()
+
+    def _findSnapEdge(self):
+        # Pre-condition:
+        #   --> The union of loops cannot be shortened.
+        #   --> The boundary of self._tri has been minimised.
+
+        # Find a suitable edge on which to perform a snap edge move. We
+        # minimise the number of special cases by prioritising edges that
+        # belong to one of the ideal loops.
+        for iloop in self:
+            if len(iloop) == 1:
+                continue
+
+            # We can shorten iloop by snapping of its edges. Here, we
+            # choose the last edge of iloop.
+            data = self._edgeEmbeddingsData( remove={ iloop[-1] } )
+            return ( self._tri.edge( iloop[-1] ), data )
+
+        # At this point, the boundary has been minimised, and every ideal loop
+        # already has length 1. However, there might still be some other
+        # internal vertices that we can remove.
+        for edge in self._tri.edges():
+            if not snapEdge( edge, True, False ):
+                # Snap edge is not legal.
+                continue
+
+            # The snap edge move is legal, but we only want to perform this
+            # move if it will remove an internal vertex that is not incident
+            # to any of the ideal loops.
+            for i in range(2):
+                v = edge.vertex(i)
+                if ( v.isBoundary() or
+                    ( v.index() in self.loopVertexIndices() ) ):
+                    continue
+
+                # This edge has an endpoint which is both internal and not
+                # incident to any ideal loops. Snapping this edge will
+                # effectively merge this vertex with whatever vertex is at the
+                # opposite endpoint.
+                return ( edge, self._edgeEmbeddingsData() )
+
+        return
+
     #TODO
     pass
 
@@ -917,64 +1019,63 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         # Prioritise moves that reduce the length of the boundary loops. If
         # possible, use close book moves so that we do not introduce too many
         # new tetrahedra.
-        if self.countLoopEdges() > len(self):
-            for bloop in self:
-                if ( len(bloop) == 1 or
-                    bloop.boundaryComponent().countTriangles() == 2 ):
-                    continue
+        for bloop in self:
+            if ( len(bloop) == 1 or
+                bloop.boundaryComponent().countTriangles() == 2 ):
+                continue
 
-                # We have a boundary loop in a non-minimal boundary component.
-                # First try to find a close book move.
-                if len(bloop) > 2:
-                    for edge in bloop.boundaryComponent().edges():
-                        # Check eligibility of close book move, but do *not*
-                        # perform yet.
-                        if not bloop.triangulation.closeBook(
-                                edge, True, False ):
-                            continue
+            # We have a boundary loop in a non-minimal boundary component.
+            # First try to find a close book move.
+            if len(bloop) > 2:
+                for edge in bloop.boundaryComponent().edges():
+                    # Check eligibility of close book move, but do *not*
+                    # perform yet.
+                    if not bloop.triangulation.closeBook(
+                            edge, True, False ):
+                        continue
 
-                        # Because we have assumed that bloop cannot be
-                        # shortened, the only way this close book move can
-                        # reduce the length of bloop is if bloop meets either:
-                        #   --> both left edges in the diagram below, or
-                        #   --> both right edges.
-                        #
-                        #                   2
-                        #                   •
-                        #                  / \ front
-                        #                 /   \
-                        #               0•-----•1
-                        #               0•-----•1
-                        #                 \   /
-                        #                  \ / back
-                        #                   •
-                        #                   3
-                        #
-                        ftet = edge.front().tetrahedron()
-                        fver = edge.front().vertices()
-                        btet = edge.back().tetrahedron()
-                        bver = edge.back().vertices()
-                        for v in range(2):
-                            fei = ftet.edge( fver[v], fver[2] ).index()
-                            bei = btet.edge( bver[v], bver[3] ).index()
-                            if ( fei in bloop ) and ( bei in bloop ):
-                                # After performing the close book move, the
-                                # loop will no longer include edges fei and
-                                # bei.
-                                data = self._edgeEmbeddingsData(
-                                        remove={ fei, bei } )
-                                return ( edge,
-                                        False,  # Close book w/out layering.
-                                        data )
+                    # Because we have assumed that bloop cannot be
+                    # shortened, the only way this close book move can
+                    # reduce the length of bloop is if bloop meets either:
+                    #   --> both left edges in the diagram below, or
+                    #   --> both right edges.
+                    #
+                    #                   2
+                    #                   •
+                    #                  / \ front
+                    #                 /   \
+                    #               0•-----•1
+                    #               0•-----•1
+                    #                 \   /
+                    #                  \ / back
+                    #                   •
+                    #                   3
+                    #
+                    ftet = edge.front().tetrahedron()
+                    fver = edge.front().vertices()
+                    btet = edge.back().tetrahedron()
+                    bver = edge.back().vertices()
+                    for v in range(2):
+                        fei = ftet.edge( fver[v], fver[2] ).index()
+                        bei = btet.edge( bver[v], bver[3] ).index()
+                        if ( fei in bloop ) and ( bei in bloop ):
+                            # After performing the close book move, the
+                            # loop will no longer include edges fei and
+                            # bei.
+                            data = self._edgeEmbeddingsData(
+                                    remove={ fei, bei } )
+                            return ( edge,
+                                    False,  # Close book w/out layering.
+                                    data )
 
-                # Resort to layering a new tetrahedron to facilitate a close
-                # book move that effectively removes one of the edges of
-                # bloop. This operation is guaranteed to be legal for any edge
-                # of bloop; here, we choose to perform it on the last edge.
-                data = self._edgeEmbeddingsData( remove={ bloop[-1] } )
-                return ( self._tri.edge( bloop[-1] ),
-                        True,   # Layer before doing close book.
-                        data )
+            # Resort to layering a new tetrahedron to facilitate a close
+            # book move that effectively removes one of the edges of
+            # bloop. This operation is guaranteed to be legal for any edge
+            # of bloop; here, we choose to perform it on the last edge.
+            data = self._edgeEmbeddingsData( remove={ bloop[-1] } )
+            return ( self._tri.edge( bloop[-1] ),
+                    True,   # Layer before doing close book.
+                    data )
 
         # At this point, for each boundary loop bloop, it must already be the
         # case that either:
