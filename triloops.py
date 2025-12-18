@@ -309,89 +309,24 @@ class TriangulationWithEmbeddedLoops:
         If no shortening is possible, then this triangulation with embedded
         loops will remain entirely untouched.
 
-        The default implementation of this routine requires the helper routine
-        self._redirectCandidates(), which has the following pre-condition:
-        --> For every loop in self, loop must be a subclass of EmbeddedLoop
-            that implements the loop._redirectCandidates() routine.
-
         If one of the loops bounds a disc, then this routine might (but is not
         guaranteed to) raise BoundsDisc.
+
+        This is equivalent to calling loop.shorten() for each loop in self.
+
+        Pre-condition:
+        --> Each loop in self must be an instance of a subclass of
+            EmbeddedLoop that implements the shorten() routine.
 
         Returns:
             True if and only if the union of embedded loops was successfully
             shortened.
         """
-        if self.countLoopEdges() == len(self):
-            # Every loop already uses just a single edge.
-            return False
         changed = False
-        redirected = True
-        while redirected:
-            redirected = False
-
-            # Search for a triangle along which we can redirect.
-            # Subclasses must implement the _redirectCandidates() helper to
-            # find appropriate candidate triangles.
-            for face in self._redirectCandidates():
-                if self._attemptRedirect(face):     # Might raise BoundsDisc.
-                    changed = True
-                    redirected = True
-
-                    # Back to the top.
-                    break
-
-        # No further shortening is possible.
-        return changed
-
-    def _redirectCandidates(self):
-        """
-        Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect the union of
-        embedded loops.
-
-        The default implementation of this routine has the following
-        pre-condition:
-        --> For every loop in self, loop must be a subclass of EmbeddedLoop
-            that implements the loop._redirectCandidates() routine.
-        """
         for embLoop in self:
-            for candidate in embLoop._redirectCandidates():
-                yield candidate
+            if embLoop.shorten():
+                changed = True
         return
-
-    def _attemptRedirect( self, face ):
-        r"""
-        Attempts to redirect one of the embedded loops across the given face.
-
-        If the given face intersects a loop in exactly two *distinct* edges,
-        then we can redirect this loop along the third edge of the given face.
-
-                    Before redirect         After redirect
-                           •                       •
-                          / \
-                         /   \
-                        /     \
-                       •       •               •-------•
-
-        If such a redirect is possible, then this routine performs the
-        redirect and returns True. Otherwise, this routine leaves this
-        triangulation with embedded loops entirely untouched and returns
-        False.
-
-        Parameters
-        --> face    the triangular face across which to attempt a redirect of
-                    some loop
-
-        Returns:
-            True if and only if this routine successfully performs the
-            requested redirect
-        """
-        # Because all the loops are disjointly embedded, we can independently
-        # run each individual loop's own implementation of _attemptRedirect().
-        for embLoop in self:
-            if embLoop._attemptRedirect(face):
-                return True
-        return False
 
     def _minimiseBoundaryImpl(self):
         """
@@ -684,17 +619,17 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         will return True. Otherwise, this routine will leave the union of
         ideal loops entirely untouched, and will return False.
 
-        If some ideal loop bounds a disc, then this routine might (but is not
-        guaranteed to) raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        triangular face F that forms an embedded disc whose boundary is given
+        by one of the ideal loops.
 
         Returns:
             True if and only if the union of ideal loops was successfully
             shortened.
         """
-        # IdealLoop provides an appropriate implementation of
-        # _redirectCandidates(), so we can just use the default implementation
-        # of shortening
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # IdealLoop provides an appropriate implementation of shorten(), so we
+        # can just use the default implementation of self._shortenImpl().
+        return self._shortenImpl()
 
     def minimiseBoundary(self):
         """
@@ -948,17 +883,17 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         triangulation with boundary loops entirely untouched, and will return
         False.
 
-        If some boundary loop bounds a disc, then this routine might (but is
-        not guaranteed to) raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        boundary triangular face F that forms an embedded disc whose boundary
+        is given by one of the boundary loops.
 
         Returns:
             True if and only if the union of boundary loops was successfully
             shortened.
         """
-        # BoundaryLoop provides an appropriate implementation of
-        # _redirectCandidates(), so we can just use the default implementation
-        # of shortening
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # BoundaryLoop provides an appropriate implementation of shorten(), so
+        # we can just use the default implementation of self._shortenImpl().
+        return self._shortenImpl()
 
     def minimiseBoundary(self):
         """
@@ -1023,6 +958,15 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         # possible, use close book moves so that we do not introduce too many
         # new tetrahedra.
         for bloop in self:
+            if len(bloop) == 1:
+                continue
+            if bloop.boundaryComponent().countTriangles() == 2:
+                # We have a minimal boundary component bc with more than one
+                # vertex (because bloop already has more than one vertex).
+                # Thus bc must be either a 2-sphere or a projective plane.
+                # Because bloop cannot be shortened, it is incident to each
+                # triangle of bc in either one edge or three edges.
+            #TODO
             if ( len(bloop) == 1 or
                 bloop.boundaryComponent().countTriangles() == 2 ):
                 continue

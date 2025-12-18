@@ -635,8 +635,6 @@ class EmbeddedLoop:
     #   probably need to be updated after these are all removed.)
     #       --> _minimiseBoundaryImpl()
     #       --> _findBoundaryMove()
-    #   Could also remove _shortenImpl(), but it seems to make sense to keep
-    #   this routine for loops.
 
     def _shortenImpl(self):
         """
@@ -652,7 +650,13 @@ class EmbeddedLoop:
         In the latter case, see the documentation for _redirectCandidates()
         for details on the behaviour that must be implemented.
 
-        This routine might raise BoundsDisc.
+        If this loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+        The default implementation raises BoundsDisc if and only if the
+        _redirectCandidates() routine yields a face that is incident to this
+        loop in three edges (in such a case, the face forms an embedded disc
+        with boundary given by this loop).
 
         Returns:
             True if and only if this embedded loop was successfully
@@ -708,6 +712,10 @@ class EmbeddedLoop:
         If such a redirect is possible, then this routine performs the
         redirect and returns True. Otherwise, this routine leaves this loop
         entirely untouched and returns False.
+
+        If this loop is incident to all three edges of the given face, then
+        the face forms an embedded disc with boundary given by this loop. In
+        such a situation, this routine raises BoundsDisc.
 
         Parameters
         --> face    the triangular face across which to attempt a redirect of
@@ -899,7 +907,8 @@ class EmbeddedLoop:
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
 
-        This routine might raise BoundsDisc.
+        If this loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> If the ambient triangulation is closed, then it will have
@@ -1253,18 +1262,20 @@ class IdealLoop(EmbeddedLoop):
         with the third edge of F. This routine performs such shortenings
         until no further shortening is possible.
 
-        This routine might raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        triangular face F that forms an embedded disc whose boundary is given
+        by this ideal loop.
 
         Returns:
             True if and only if this ideal loop was successfully shortened.
             In the case where no shortening occurred, this ideal loop will
             remain entirely untouched.
-            True if and only if this ideal loop was successfully shortened.
-            Otherwise, this ideal loop will not be modified at all.
         """
         # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # Since _redirectCandidates() yields all triangles incident to this
+        # loop, this will raise BoundsDisc as promised in the documentation.
+        return self._shortenImpl()
 
     def _redirectCandidates(self):
         """
@@ -1652,7 +1663,9 @@ class BoundaryLoop(EmbeddedLoop):
         these two edges with the third edge of F. This routine performs such
         shortenings until no further shortening is possible.
 
-        This routine might raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        boundary triangular face F that forms an embedded disc whose boundary
+        is given by this boundary loop.
 
         Returns:
             True if and only if this boundary loop was successfully
@@ -1661,7 +1674,10 @@ class BoundaryLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # Since _redirectCandidates() yields all boundary triangles incident
+        # to this loop, this will raise BoundsDisc as promised in the
+        # documentation.
+        return self._shortenImpl()
 
     def _redirectCandidates(self):
         """
