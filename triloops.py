@@ -328,7 +328,7 @@ class TriangulationWithEmbeddedLoops:
                 changed = True
         return
 
-    def _minimiseBoundaryImpl(self):
+    def minimiseBoundary(self):
         """
         Ensures that the ambient triangulation has the smallest possible
         number of boundary triangles, potentially adding tetrahedra to do
@@ -354,7 +354,8 @@ class TriangulationWithEmbeddedLoops:
         If one of the embedded loops bounds a disc, then this routine might
         (but is not guaranteed to) raise BoundsDisc.
 
-        The following are guaranteed to hold once this routine is finished:
+        If no exceptions are raised, then the following are guaranteed to hold
+        once this routine terminates:
         --> Every 2-sphere boundary component will have exactly two triangles
             and three vertices.
         --> Every projective plane boundary component will have exactly two
@@ -435,8 +436,8 @@ class TriangulationWithEmbeddedLoops:
         If necessary, an implementation may raise BoundsDisc when it detects
         an embedded loop that bounds a disc.
 
-        Also, an implementation is allowed to assume, as a pre-condition, that
-        all embedded loops have already been shortened as much as possible.
+        Also, an implementation is allowed to assume any post-conditions of
+        the shorten() routine as pre-conditions for this routine.
         """
         raise NotImplementedError()
 
@@ -451,7 +452,7 @@ class TriangulationWithEmbeddedLoops:
         The default implementation of this routine relies on the following
         subroutines, not all of which are implemented by default:
         --> shorten()
-        --> _minimiseBoundaryImpl()
+        --> minimiseBoundary()
         --> _findSnapEdge()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
@@ -504,7 +505,7 @@ class TriangulationWithEmbeddedLoops:
                 already minimal to begin with.
         """
         # Start by minimising the boundary.
-        changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
+        changed = self.minimiseBoundary()   # Might raise BoundsDisc.
 
         # All that remains now is to remove unnecessary internal vertices.
         # We do not currently have an implementation of collapseEdge() that
@@ -648,7 +649,8 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         If some ideal loop bounds a disc, then this routine might (but is not
         guaranteed to) raise BoundsDisc.
 
-        The following are guaranteed to hold once this routine is finished:
+        If no exceptions are raised, then the following are guaranteed to hold
+        once this routine terminates:
         --> Every 2-sphere boundary component will have exactly two triangles
             and three vertices.
         --> Every projective plane boundary component will have exactly two
@@ -680,11 +682,26 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
-        return self._minimiseBoundaryImpl()
+        return super().minimiseBoundary()   # Might raise BoundsDisc.
 
     def _findBoundaryMove(self):
-        # Precondition:
-        #   --> The union of loops cannot be shortened.
+        # Since ideal loops are supposed to be internal, we have the following
+        # pre-condition:
+        #   --> Every boundary triangle is disjoint from the ideal loops.
+        #
+        # Moreover (although we do not need it), since we are using the
+        # default implementation for minimiseBoundary(), we can assume the
+        # following pre-conditions:
+        #   --> The union of loops cannot be shortened. Equivalently, no
+        #       triangular face is incident to an ideal loop in 2 distinct
+        #       edges.
+        #   --> No triangular face forms an embedded disc that is bounded by
+        #       one of the ideal loops. Equivalently, no triangular face is
+        #       incident to an ideal loop in 3 distinct edges.
+        # In other words, we can assume that any triangular face F is incident
+        # to an ideal loop in at most one edge (this includes the case where
+        # multiple edges of F are identified together to form a single edge of
+        # some ideal loop).
 
         # Find a boundary component that is not yet minimal.
         for bc in self._tri.boundaryComponents():
@@ -739,7 +756,8 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         If some ideal loop bounds a disc, then this routine might (but is not
         guaranteed to) raise BoundsDisc.
 
-        The following are guaranteed to hold once this routine is finished:
+        If no exceptions are raised, then the following are guaranteed to hold
+        once this routine terminates:
         --> If the ambient triangulation is closed, then it will have
             precisely one (internal) vertex per ideal loop.
         --> If the ambient triangulation has real boundary, then:
@@ -898,7 +916,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         """
         # BoundaryLoop provides an appropriate implementation of shorten(), so
         # we can just use the default implementation from the base class.
-        return self.shorten()
+        return super().shorten()
 
     def minimiseBoundary(self):
         """
@@ -912,7 +930,9 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         If some boundary loop bounds a disc, then this routine might (but is
         not guaranteed to) raise BoundsDisc.
 
-        The following are guaranteed to hold once this routine is finished:
+        If no exceptions are raised, then the following are guaranteed to hold
+        once this routine terminates:
+        --> Every boundary loop will have length 1.
         --> Every 2-sphere boundary component will have exactly two triangles
             and three vertices.
         --> Every projective plane boundary component will have exactly two
@@ -931,9 +951,6 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         If the ambient triangulation is currently oriented, then this routine
         guarantees to preserve the orientation.
 
-        If some boundary loop bounds a disc, then this routine might (but is
-        not guaranteed to) raise BoundsDisc.
-
         Adapted from Regina's Triangulation3.minimiseBoundary().
 
         Precondition:
@@ -948,7 +965,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
-        return self._minimiseBoundaryImpl()
+        return super().minimiseBoundary()   # Might raise BoundsDisc.
 
     #TODO Is it worthwhile to be more careful with the implementation, and
     #       thereby allow multiple boundary loops per component?
@@ -956,8 +973,22 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         # Exceptions:
         #   --> Might raise BoundsDisc.
         #
-        # Precondition:
-        #   --> The union of loops cannot be shortened.
+        # Since we are using the default implementation for
+        # minimiseBoundary(), we can assume the following pre-conditions:
+        #   --> The union of loops cannot be shortened. Equivalently, no
+        #       boundary triangle is incident to a boundary loop in 2 distinct
+        #       edges.
+        #   --> No boundary triangle forms an embedded disc that is bounded by
+        #       one of the boundary loops. Equivalently, no boundary triangle
+        #       is incident to a boundary loop in 3 distinct edges.
+        # In other words, we can assume that any boundary triangle F is
+        # incident to a boundary loop in at most one edge (this includes the
+        # case where multiple edges of F are identified together to form a
+        # single edge of some boundary loop).
+        #
+        # Post-condition:
+        #   --> If this routine returns None, then every boundary loop has
+        #       length 1, and every boundary component is minimal.
 
         # Prioritise moves that reduce the length of the boundary loops. If
         # possible, use close book moves so that we do not introduce too many
@@ -965,19 +996,20 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         for bloop in self:
             if len(bloop) == 1:
                 continue
-            if bloop.boundaryComponent().countTriangles() == 2:
-                # We have a minimal boundary component bc with more than one
-                # vertex (because bloop already has more than one vertex).
-                # Thus bc must be either a 2-sphere or a projective plane.
-                # Because bloop cannot be shortened, it is incident to each
-                # triangle of bc in either one edge or three edges.
-            #TODO
-            if ( len(bloop) == 1 or
-                bloop.boundaryComponent().countTriangles() == 2 ):
-                continue
 
-            # We have a boundary loop in a non-minimal boundary component.
-            # First try to find a close book move.
+            # At this point, we know that bloop must lie in a boundary
+            # component bc with more than one vertex (after all, bloop itself
+            # has more than one vertex). Thus, bc is non-minimal except
+            # possibly for the cases where bc is either a 2-sphere or a
+            # projective plane. But we also have the pre-condition that bloop
+            # meets each triangle of bc in at most one edge, and it is
+            # straightforward to check that this rules out the minimal
+            # (two-triangle) 2-spheres and projective planes.
+            #
+            # The upshot: bloop lies in a non-minimal boundary component.
+
+            # We first try to find a close book move (that reduces the length
+            # of bloop by 2).
             if len(bloop) > 2:
                 for edge in bloop.boundaryComponent().edges():
                     # Check eligibility of close book move, but do *not*
@@ -1029,17 +1061,10 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                     True,   # Layer before doing close book.
                     data )
 
-        # At this point, for each boundary loop bloop, it must already be the
-        # case that either:
-        #   --> bloop has length 1; or
-        #   --> if this is impossible, which can only be the case if bloop
-        #       lies in a 2-sphere or projective plane boundary component,
-        #       then we at least have that bloop lies inside a two-triangle
-        #       (hence minimal) boundary component.
-        # Our goal is to minimise any remaining non-minimal boundary
-        # components without touching the (necessarily length-1) loops that
-        # they contain.
-        avoid = self.loopEdgeIndices()
+        # At this point, every boundary loop has length 1. Our goal now is to
+        # minimise all the boundary components without touching any of the
+        # boundary loops.
+        avoidEdgeIndices = self.loopEdgeIndices()
         for bc in self._tri.boundaryComponents():
             if bc.countTriangles() == 2 or bc.countVertices() == 1:
                 # Already minimal.
@@ -1047,7 +1072,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
 
             # First try to find a close book move.
             for edge in bc.edges():
-                if edge.index() in avoid:
+                if edge.index() in avoidEdgeIndices:
                     continue
                 if self._tri.closeBook( edge, True, False ):
                     return ( edge,
@@ -1061,9 +1086,8 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
             for edge in bc.edges():
                 if edge.vertex(0) == edge.vertex(1):
                     # Note that this automatically avoids any edges involved
-                    # in the boundary loops, since we know that bc contains at
-                    # most a single such loop, and this loop will have length
-                    # 1 if it exists.
+                    # in the boundary loops, since we know that all the loops
+                    # have length 1.
                     continue
 
                 # The layering is illegal if this edge is incident to the same
@@ -1087,8 +1111,8 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
             raise AssertionError(
                     "_findBoundaryMove() failed unexpectedly." )
 
-        # If we fell out of the boundary component loop, then all boundary
-        # components are minimal.
+        # If we fell out of the boundary component loop, then all loops have
+        # length 1, and all boundary components are minimal.
         return None
 
     def minimiseVertices(self):
@@ -1102,7 +1126,8 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         If some boundary loop bounds a disc, then this routine might (but is
         not guaranteed to) raise BoundsDisc.
 
-        The following are guaranteed to hold once this routine is finished:
+        If no exceptions are raised, then the following are guaranteed to hold
+        once this routine terminates:
         --> There will be no internal vertices.
         --> Every 2-sphere boundary component will have exactly two triangles
             and three vertices.
