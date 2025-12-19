@@ -300,7 +300,7 @@ class TriangulationWithEmbeddedLoops:
     #TODO Implement simplification, and remove the old simplification code
     #   from EmbeddedLoop.
 
-    def _shortenImpl(self):
+    def shorten(self):
         """
         Shortens the union of embedded loops by looking for triangles that
         intersect a loop in two edges, and redirecting this loop to use the
@@ -334,17 +334,22 @@ class TriangulationWithEmbeddedLoops:
         number of boundary triangles, potentially adding tetrahedra to do
         this.
 
-        The default implementation of this routine requires the following
-        helper routines:
-        --> _shortenImpl()
+        A side-effect of calling this routine is that it will shorten the
+        union of embedded loops if possible.
+
+        The default implementation of this routine relies on the following
+        subroutines, not all of which are implemented by default:
+        --> shorten()
         --> _findBoundaryMove()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> ensure that the aforementioned helper routines are suitably
+        --> ensure that all of the aforementioned subroutines are suitably
             implemented.
 
-        A side-effect of calling this routine is that it will shorten the
-        union of embedded loops if possible.
+        In the default implementation, every call to _findBoundaryMove() is
+        immediately preceded by a call to shorten(). Thus, for subclasses that
+        use the default implementation of this routine, any post-conditions of
+        shorten() can be assumed as pre-conditions of _findBoundaryMove().
 
         If one of the embedded loops bounds a disc, then this routine might
         (but is not guaranteed to) raise BoundsDisc.
@@ -382,12 +387,12 @@ class TriangulationWithEmbeddedLoops:
         changed = False
         while True:
             # Shorten the loops to minimise the number of special cases.
-            if self._shortenImpl():     # Might raise BoundsDisc.
+            if self.shorten():  # Might raise BoundsDisc.
                 changed = True
 
             # Is there a move we can perform to reduce the number of boundary
             # triangles?
-            moveDetails = self._findBoundaryMove()
+            moveDetails = self._findBoundaryMove()  # Might raise BoundsDisc.
             if moveDetails is None:
                 # At this point, all boundary components must be minimal.
                 return changed
@@ -443,14 +448,14 @@ class TriangulationWithEmbeddedLoops:
         Ensures that this triangulation with embedded loops has the smallest
         possible number of vertices, potentially adding tetrahedra to do this.
 
-        The default implementation of this routine requires the following
-        helper routines:
-        --> _shortenImpl()
+        The default implementation of this routine relies on the following
+        subroutines, not all of which are implemented by default:
+        --> shorten()
         --> _minimiseBoundaryImpl()
         --> _findSnapEdge()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> ensure that the aforementioned helper routines are suitably
+        --> ensure that all of the aforementioned subroutines are suitably
             implemented.
 
         A side-effect of calling this routine is that it will shorten the
@@ -508,7 +513,7 @@ class TriangulationWithEmbeddedLoops:
         while True:
             # Shorten the union of loops to minimise the number of special
             # cases.
-            if self._shortenImpl():     # Might raise BoundsDisc.
+            if self.shorten():  # Might raise BoundsDisc.
                 changed = True
 
             # Is there a snap edge move we can perform to reduce the number
@@ -628,8 +633,8 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             shortened.
         """
         # IdealLoop provides an appropriate implementation of shorten(), so we
-        # can just use the default implementation of self._shortenImpl().
-        return self._shortenImpl()
+        # can just use the default implementation from the base class.
+        return super().shorten()
 
     def minimiseBoundary(self):
         """
@@ -892,8 +897,8 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
             shortened.
         """
         # BoundaryLoop provides an appropriate implementation of shorten(), so
-        # we can just use the default implementation of self._shortenImpl().
-        return self._shortenImpl()
+        # we can just use the default implementation from the base class.
+        return self.shorten()
 
     def minimiseBoundary(self):
         """
