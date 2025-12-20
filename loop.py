@@ -888,7 +888,7 @@ class EmbeddedLoop:
     #   this point.
     #TODO WORKING HERE.
 
-    def _minimiseVerticesImpl(self):
+    def minimiseVertices(self):
         """
         Ensures that the triangulation containing this embedded loop has the
         smallest possible number of vertices for the 3-manifold that it
@@ -1080,17 +1080,15 @@ class EmbeddedLoop:
         """
         Attempts to simplify this embedded loop.
 
-        This routine uses _minimiseVerticesImpl() and
-        _simplifyMonotonicImpl(), in combination with random 4-4 moves that
-        leave this loop untouched.
+        This routine uses minimiseVertices() and _simplifyMonotonicImpl(), in
+        combination with random 4-4 moves that leave this loop untouched.
 
-        Note that the helper routine _minimiseVerticesImpl() is *not* fully
-        implemented by default. Thus, subclasses that require this
-        _simplifyImpl() routine must either:
+        Note that the subroutine minimiseVertices() is *not* fully implemented
+        by default. Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply an implementation for _minimiseVerticesImpl().
-        In the latter case, see the documentation for _minimiseVerticesImpl()
-        for details on the behaviour that must be implemented.
+        --> supply an implementation for minimiseVertices().
+        In the latter case, see the documentation for minimiseVertices() for
+        details on the behaviour that must be implemented.
 
         This routine might raise BoundsDisc.
 
@@ -1120,7 +1118,7 @@ class EmbeddedLoop:
         # minimal, but hopefully the monotonic simplification saves us.
         #
         # Might raise BoundsDisc.
-        tempLoop._minimiseVerticesImpl()
+        tempLoop.minimiseVertices()
         tempLoop._simplifyMonotonicImpl(True)   # Include 3-2 moves.
 
         # Use random 4-4 moves until it feels like even this is not helping
@@ -1430,7 +1428,7 @@ class IdealLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Precondition:
@@ -1898,7 +1896,7 @@ class BoundaryLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Precondition:

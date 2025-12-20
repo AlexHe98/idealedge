@@ -444,7 +444,7 @@ class TriangulationWithEmbeddedLoops:
     #TODO WORKING HERE
 
     #TODO Document precisely how strongly we can guarantee minimality.
-    def _minimiseVerticesImpl(self):
+    def minimiseVertices(self):
         """
         Ensures that this triangulation with embedded loops has the smallest
         possible number of vertices, potentially adding tetrahedra to do this.
@@ -541,8 +541,8 @@ class TriangulationWithEmbeddedLoops:
         number of vertices in self.triangulation(), or None if the number of
         vertices is already minimal.
 
-        As in the documentation for _minimiseVerticesImpl(), subclasses may
-        decide on precisely what minimal should mean.
+        As in the documentation for minimiseVertices(), subclasses may decide
+        on precisely what minimal should mean.
 
         In detail, in the case where the number of vertices is not yet
         minimal, this routine returns a tuple consisting of the following:
@@ -792,7 +792,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Pre-condition:
@@ -1159,7 +1159,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Pre-condition:
