@@ -633,9 +633,10 @@ class EmbeddedLoop:
 
     #TODO Old routines to remove later. (Lots of usage and documentation will
     #   probably need to be updated after these are all removed.)
-    #       --> _shortenImpl()
+    #       --> minimiseBoundary()
+    #       --> _findBoundaryMove()
 
-    def _shortenImpl(self):
+    def shorten(self):
         """
         Shortens this embedded loop by looking for triangles that intersect
         this loop in two edges, and redirecting this loop to use the third
@@ -649,7 +650,13 @@ class EmbeddedLoop:
         In the latter case, see the documentation for _redirectCandidates()
         for details on the behaviour that must be implemented.
 
-        This routine might raise BoundsDisc.
+        If this loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+        The default implementation raises BoundsDisc if and only if the
+        _redirectCandidates() routine yields a face that is incident to this
+        loop in three edges (in such a case, the face forms an embedded disc
+        with boundary given by this loop).
 
         Returns:
             True if and only if this embedded loop was successfully
@@ -680,7 +687,7 @@ class EmbeddedLoop:
     def _redirectCandidates(self):
         """
         Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect this loop.
+        shorten() routine should attempt to redirect this loop.
 
         The EmbeddedLoop base class does not implement this routine, so
         subclasses that require this routine must provide an implementation.
@@ -705,6 +712,10 @@ class EmbeddedLoop:
         If such a redirect is possible, then this routine performs the
         redirect and returns True. Otherwise, this routine leaves this loop
         entirely untouched and returns False.
+
+        If this loop is incident to all three edges of the given face, then
+        the face forms an embedded disc with boundary given by this loop. In
+        such a situation, this routine raises BoundsDisc.
 
         Parameters
         --> face    the triangular face across which to attempt a redirect of
@@ -733,6 +744,8 @@ class EmbeddedLoop:
                 heads.add( face.edgeMapping(e)[1-eTail] )
 
         # Does the given face form an embedded disc bounded by this loop?
+        # Equivalently, is the given face incident to this loop in 3 distinct
+        # edges?
         if len(incidentLocations) == 3:
             raise BoundsDisc()
 
@@ -765,25 +778,20 @@ class EmbeddedLoop:
         self.setFromEdges( newEdges, newOrientation )
         return True
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
-    def _minimiseBoundaryImpl(self):
+    def minimiseBoundary(self):
         """
         Ensures that the triangulation containing this embedded loop has the
         smallest possible number of boundary triangles, potentially adding
         tetrahedra to do this.
 
         The default implementation of this routine requires the following
-        helper routines, which are *not* fully implemented by default:
-        --> _shortenImpl()
+        subroutines, which are *not* fully implemented by default:
+        --> shorten()
         --> _findBoundaryMove()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply implementations for the aforementioned helper routines.
-        In the latter case, see the documentation for each respective helper
-        routine for details on the behaviour that must be implemented.
+        --> supply suitable implementations for all of the aforementioned
+            subroutines.
 
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
@@ -825,7 +833,7 @@ class EmbeddedLoop:
         changed = False
         while True:
             # Shorten this loop to minimise the number of special cases.
-            if self._shortenImpl():     # Might raise BoundsDisc.
+            if self.shorten():  # Might raise BoundsDisc.
                 changed = True
 
             # Is there a move we can perform to reduce the number of boundary
@@ -876,27 +884,31 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
-    def _minimiseVerticesImpl(self):
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
+    #TODO WORKING HERE.
+
+    def minimiseVertices(self):
         """
         Ensures that the triangulation containing this embedded loop has the
         smallest possible number of vertices for the 3-manifold that it
         represents, potentially adding tetrahedra to do this.
 
         The default implementation of this routine requires the following
-        helper routines, which are *not* fully implemented by default:
-        --> _shortenImpl()
-        --> _minimiseBoundaryImpl()
+        subroutines, which are *not* fully implemented by default:
+        --> shorten()
+        --> minimiseBoundary()
         --> _findSnapEdge()
         Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply implementations for the aforementioned helper routines.
-        In the latter case, see the documentation for each respective helper
-        routine for details on the behaviour that must be implemented.
+        --> supply suitable implementations for the aforementioned
+            subroutines.
 
         A side-effect of calling this routine is that it will shorten this
         embedded loop if possible.
 
-        This routine might raise BoundsDisc.
+        If this loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
 
         The following are guaranteed to hold once this routine is finished:
         --> If the ambient triangulation is closed, then it will have
@@ -934,7 +946,7 @@ class EmbeddedLoop:
                 already minimal to begin with.
         """
         # Start by minimising the boundary.
-        changed = self._minimiseBoundaryImpl()  # Might raise BoundsDisc.
+        changed = self.minimiseBoundary()   # Might raise BoundsDisc.
 
         # All that remains now is to remove internal vertices.
         # We do not currently have an implementation of collapseEdge() that
@@ -942,7 +954,7 @@ class EmbeddedLoop:
         # entirely on the snapEdge() routine.
         while True:
             # Shorten this loop to minimise the number of special cases.
-            if self._shortenImpl():     # Might raise BoundsDisc.
+            if self.shorten():  # Might raise BoundsDisc.
                 changed = True
 
             # Is there a snap edge move we can perform to reduce the number
@@ -969,8 +981,8 @@ class EmbeddedLoop:
     def _findSnapEdge(self):
         """
         Returns details of a snap edge move that can be used to reduce the
-        number of vertices() in self.triangulation(), or None if the number
-        of vertices is already minimal.
+        number of vertices in self.triangulation(), or None if the number of
+        vertices is already minimal.
 
         In detail, in the case where the number of vertices is not yet
         minimal, this routine returns a tuple consisting of the following:
@@ -1064,21 +1076,41 @@ class EmbeddedLoop:
         # Nothing further we can do.
         return changed
 
-    def _simplifyImpl(self):
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        the number of tetrahedra in the ambient triangulation, while leaving
+        this embedded loop untouched.
+
+        This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyMonotonicImpl(True)
+
+    def simplify(self):
         """
         Attempts to simplify this embedded loop.
 
-        This routine uses _minimiseVerticesImpl() and
-        _simplifyMonotonicImpl(), in combination with random 4-4 moves that
-        leave this loop untouched.
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves that leave this loop untouched.
 
-        Note that the helper routine _minimiseVerticesImpl() is *not* fully
-        implemented by default. Thus, subclasses that require this
-        _simplifyImpl() routine must either:
+        Note that the subroutine minimiseVertices() is *not* fully implemented
+        by default. Thus, subclasses that require this routine must either:
         --> override this routine; or
-        --> supply an implementation for _minimiseVerticesImpl().
-        In the latter case, see the documentation for _minimiseVerticesImpl()
-        for details on the behaviour that must be implemented.
+        --> supply an implementation for minimiseVertices().
+        In the latter case, see the documentation for minimiseVertices() for
+        details on the behaviour that must be implemented.
 
         This routine might raise BoundsDisc.
 
@@ -1108,8 +1140,8 @@ class EmbeddedLoop:
         # minimal, but hopefully the monotonic simplification saves us.
         #
         # Might raise BoundsDisc.
-        tempLoop._minimiseVerticesImpl()
-        tempLoop._simplifyMonotonicImpl(True)   # Include 3-2 moves.
+        tempLoop.minimiseVertices()
+        tempLoop.simplifyMonotonic()
 
         # Use random 4-4 moves until it feels like even this is not helping
         # us make any further progress.
@@ -1142,12 +1174,12 @@ class EmbeddedLoop:
             # Perform a random 4-4 move, and see if this is enough to help us
             # simplify the triangulation.
             #
-            # _simplifyMonotonicImpl() might raise BoundsDisc.
+            # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
             renum = fourFour( *fourFourChoice )
             tempLoop._setFromRenum(renum)
-            if tempLoop._simplifyMonotonicImpl(True):   # Include 3-2 moves.
+            if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
                 # Start all over again.
                 fourFourAttempts = 0
@@ -1250,23 +1282,25 @@ class IdealLoop(EmbeddedLoop):
         with the third edge of F. This routine performs such shortenings
         until no further shortening is possible.
 
-        This routine might raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        triangular face F that forms an embedded disc whose boundary is given
+        by this ideal loop.
 
         Returns:
             True if and only if this ideal loop was successfully shortened.
             In the case where no shortening occurred, this ideal loop will
             remain entirely untouched.
-            True if and only if this ideal loop was successfully shortened.
-            Otherwise, this ideal loop will not be modified at all.
         """
         # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # Since _redirectCandidates() yields all triangles incident to this
+        # loop, this will raise BoundsDisc as promised in the documentation.
+        return super().shorten()
 
     def _redirectCandidates(self):
         """
         Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect this loop.
+        shorten() routine should attempt to redirect this loop.
 
         For an IdealLoop, every triangle incident to the loop is a candidate.
         """
@@ -1322,7 +1356,7 @@ class IdealLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
-        return self._minimiseBoundaryImpl()
+        return super().minimiseBoundary()
 
     def _findBoundaryMove(self):
         # Precondition:
@@ -1416,7 +1450,7 @@ class IdealLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Precondition:
@@ -1504,9 +1538,9 @@ class IdealLoop(EmbeddedLoop):
             simplified. Otherwise, the ambient triangulation will not be
             modified at all.
         """
-        # Include 3-2 moves.
+        # Just use the default implementation.
         # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(True)
+        return super().simplifyMonotonic()
 
     def simplify(self):
         """
@@ -1536,7 +1570,9 @@ class IdealLoop(EmbeddedLoop):
             True if and only if this loop was successfully simplified.
             Otherwise, this loop will not be modified at all.
         """
-        return self._simplifyImpl()
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
 
     def randomise(self):
         """
@@ -1649,7 +1685,9 @@ class BoundaryLoop(EmbeddedLoop):
         these two edges with the third edge of F. This routine performs such
         shortenings until no further shortening is possible.
 
-        This routine might raise BoundsDisc.
+        This routine raises BoundsDisc if self.triangulation() includes a
+        boundary triangular face F that forms an embedded disc whose boundary
+        is given by this boundary loop.
 
         Returns:
             True if and only if this boundary loop was successfully
@@ -1658,12 +1696,15 @@ class BoundaryLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _redirectCandidates().
-        return self._shortenImpl()  # Might raise BoundsDisc.
+        # Since _redirectCandidates() yields all boundary triangles incident
+        # to this loop, this will raise BoundsDisc as promised in the
+        # documentation.
+        return super().shorten()
 
     def _redirectCandidates(self):
         """
         Yields candidate triangles of self.triangulation() across which the
-        _shortenImpl() routine should attempt to redirect this loop.
+        shorten() routine should attempt to redirect this loop.
 
         For a BoundaryLoop, every boundary triangle incident to the loop is a
         candidate. (We can only redirect along boundary triangles if we wish
@@ -1727,7 +1768,7 @@ class BoundaryLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findBoundaryMove().
-        return self._minimiseBoundaryImpl()
+        return super().minimiseBoundary()
 
     def _findBoundaryMove(self):
         # Exceptions:
@@ -1736,7 +1777,7 @@ class BoundaryLoop(EmbeddedLoop):
         # Precondition:
         #   --> This loop cannot be shortened.
 
-        # Prioritise moves that reduce the length of this ideal loop. If
+        # Prioritise moves that reduce the length of this boundary loop. If
         # possible, use close book moves so that we do not introduce too many
         # new tetrahedra.
         if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
@@ -1879,7 +1920,7 @@ class BoundaryLoop(EmbeddedLoop):
         """
         # Can use the default implementation provided we supply an
         # implementation for _findSnapEdge().
-        return self._minimiseVerticesImpl()
+        return super().minimiseVertices()
 
     def _findSnapEdge(self):
         # Precondition:
@@ -1917,9 +1958,9 @@ class BoundaryLoop(EmbeddedLoop):
             simplified. Otherwise, the ambient triangulation will not be
             modified at all.
         """
-        # Include 3-2 moves.
+        # Just use the default implementation.
         # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(True)
+        return super().simplifyMonotonic()
 
     def simplify(self):
         """
@@ -1944,7 +1985,9 @@ class BoundaryLoop(EmbeddedLoop):
             True if and only if this loop was successfully simplified.
             Otherwise, this loop will not be modified at all.
         """
-        return self._simplifyImpl()
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
 
 
 #TODO Test suite.
