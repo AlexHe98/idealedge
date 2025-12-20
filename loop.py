@@ -1076,11 +1076,33 @@ class EmbeddedLoop:
         # Nothing further we can do.
         return changed
 
-    def _simplifyImpl(self):
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        the number of tetrahedra in the ambient triangulation, while leaving
+        this embedded loop untouched.
+
+        This routine might raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        # Include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyMonotonicImpl(True)
+
+    def simplify(self):
         """
         Attempts to simplify this embedded loop.
 
-        This routine uses minimiseVertices() and _simplifyMonotonicImpl(), in
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
         combination with random 4-4 moves that leave this loop untouched.
 
         Note that the subroutine minimiseVertices() is *not* fully implemented
@@ -1119,7 +1141,7 @@ class EmbeddedLoop:
         #
         # Might raise BoundsDisc.
         tempLoop.minimiseVertices()
-        tempLoop._simplifyMonotonicImpl(True)   # Include 3-2 moves.
+        tempLoop.simplifyMonotonic()
 
         # Use random 4-4 moves until it feels like even this is not helping
         # us make any further progress.
@@ -1152,12 +1174,12 @@ class EmbeddedLoop:
             # Perform a random 4-4 move, and see if this is enough to help us
             # simplify the triangulation.
             #
-            # _simplifyMonotonicImpl() might raise BoundsDisc.
+            # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
             renum = fourFour( *fourFourChoice )
             tempLoop._setFromRenum(renum)
-            if tempLoop._simplifyMonotonicImpl(True):   # Include 3-2 moves.
+            if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
                 # Start all over again.
                 fourFourAttempts = 0
@@ -1516,9 +1538,9 @@ class IdealLoop(EmbeddedLoop):
             simplified. Otherwise, the ambient triangulation will not be
             modified at all.
         """
-        # Include 3-2 moves.
+        # Just use the default implementation.
         # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(True)
+        return super().simplifyMonotonic()
 
     def simplify(self):
         """
@@ -1548,7 +1570,9 @@ class IdealLoop(EmbeddedLoop):
             True if and only if this loop was successfully simplified.
             Otherwise, this loop will not be modified at all.
         """
-        return self._simplifyImpl()
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
 
     def randomise(self):
         """
@@ -1934,9 +1958,9 @@ class BoundaryLoop(EmbeddedLoop):
             simplified. Otherwise, the ambient triangulation will not be
             modified at all.
         """
-        # Include 3-2 moves.
+        # Just use the default implementation.
         # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(True)
+        return super().simplifyMonotonic()
 
     def simplify(self):
         """
@@ -1961,7 +1985,9 @@ class BoundaryLoop(EmbeddedLoop):
             True if and only if this loop was successfully simplified.
             Otherwise, this loop will not be modified at all.
         """
-        return self._simplifyImpl()
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
 
 
 #TODO Test suite.
