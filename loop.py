@@ -884,10 +884,6 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
     def minimiseVertices(self):
         """
         Ensures that the triangulation containing this embedded loop has the
@@ -1001,6 +997,10 @@ class EmbeddedLoop:
             boundary has already been minimised.
         """
         raise NotImplementedError()
+
+    #TODO Check what needs to be done for orientations for everything below
+    #   this point.
+    #TODO WORKING HERE.
 
     def _simplifyMonotonicImpl( self, include32 ):
         """
