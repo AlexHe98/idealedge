@@ -234,6 +234,16 @@ class TriangulationWithEmbeddedLoops:
             ans = ans.union(embLoop)
         return ans
 
+    def isLoopEdgeIndex( self, edgeIndex ):
+        """
+        Does the given edge index correspond to an edge that belongs to one of
+        the embedded loops?
+        """
+        for embLoop in self:
+            if edgeIndex in embLoop:
+                return True
+        return False
+
     def loopVertexIndices(self):
         """
         Returns the set of all vertex indices involved in the embedded loops.
@@ -571,6 +581,84 @@ class TriangulationWithEmbeddedLoops:
         raise NotImplementedError()
 
     #TODO WORKING HERE
+
+    def _simplifyMonotonicImpl( self, include32 ):
+        """
+        Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
+        reduce the number of tetrahedra in the ambient triangulation, while
+        leaving the embedded loops untouched.
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+        If the triangulation containing this loop is currently oriented, then
+        this routine guarantees to preserve the orientation.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
+        SnapPea's check_for_cancellation().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified. Otherwise, the ambient triangulation will not be
+            modified at all.
+        """
+        changed = False     # Has anything changed ever?    (Return value.)
+        changedNow = True   # Did we just change something? (Loop control.)
+        while True:
+            changedNow = False
+            for edge in self._tri.edges():
+                # Make sure to leave the embedded loops untouched.
+                if self.isLoopEdgeIndex( edge.index() ):
+                    continue
+
+                # If requested, try a 3-2 move.
+                if include32:
+                    renum = threeTwo(edge)
+                    if renum is not None:
+                        changedNow = True
+                        changed = True
+                        break
+
+                # Try a 2-0 edge move.
+                # This move can destroy a loop if it bounds a disc.
+                renum = twoZero(edge)
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+                # Try a 2-1 edge move.
+                # This move can destroy a loop if it bounds a disc.
+                renum = twoOne( edge, 0 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+                renum = twoOne( edge, 1 )
+                if renum is not None:
+                    changedNow = True
+                    changed = True
+                    break
+
+            #TODO Make _setFromRenum() work for multiple loops, and also make
+            #       it track orientations.
+
+            # Did we improve the triangulation? If so, then we need to update
+            # the details of the loop, and then check whether we can make
+            # further improvements.
+            if changedNow:
+                try:
+                    # If we destroyed the loop, then this will raise NotLoop.
+                    self._setFromRenum(renum)
+                except NotLoop:
+                    # As noted above, the loop can only get destroyed if it
+                    # bounds a disc.
+                    raise BoundsDisc()
+            else:
+                break
+
+        # Nothing further we can do.
+        return changed
 
     #TODO
     pass
