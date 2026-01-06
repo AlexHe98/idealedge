@@ -3,20 +3,29 @@ Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from sys import argv, stdout
 from regina import *
+#TODO Make renumbering map send old edge indices to new *edge embeddings*, so
+#       that we can keep track of orientations.
 
 
 def twoThree(triangle):
     """
-    Performs a 2-3 move about the given triangle, and returns a dictionary r
+    Performs a 2-3 move about the given triangle, and returns a dictionary
     that describes how the edges were renumbered.
 
-    This routine directly modifies the triangulation that contains the given
-    triangle. If an edge is currently numbered i in the triangulation, then
-    it will be numbered r[i] in the triangulation after the requested 2-3
-    move has been performed (provided the move is actually legal); also, a
-    2-3 move always creates a new edge, and the index of this new edge will
-    be given by r[-1]. If the move is not legal, the triangulation is left
-    untouched and this routine returns None.
+    Provided the requested move is legal, this routine directly modifies the
+    triangulation T that contains the given triangle. The returned dictionary
+    r is structured as follows:
+    --> For each edge e of T before performing the move, emb := r[ e.index() ]
+        will be an EdgeEmbedding3 object describing an embedding of e in T
+        *after* performing the move. The underlying labelling of the two
+        vertices of e will be the same in both e (before the move) and emb
+        (after the move). However, be aware that this means that emb might
+        label the vertices in the opposite order to the underlying edge after
+        the move.
+    --> A 2-3 moves also always creates a new edge, and r[-1] will give an
+        embedding of this new edge.
+    If the move is not legal, then T is left untouched and this routine
+    returns None.
 
     If the triangulation containing the given triangle is currently oriented,
     then this orientation will be preserved by the requested 2-3 move.
@@ -31,10 +40,23 @@ def twoThree(triangle):
     # any changes.
     doomed = []
     verts = []
+    # Vertex numbering for tetrahedron doomed[i]. The vertex numbered
+    # verts[i][3] forms an apex of the bipyramid.
+    #
+    #                        verts[i][3]
+    #                             •
+    #                            /|\
+    #                           / | \
+    #               verts[i][0]•--|--•verts[i][2]
+    #                           \ | /
+    #                            \|/
+    #                             •
+    #                        verts[i][1]
+    #
     for emb in triangle.embeddings():
         doomed.append( emb.simplex() )
         verts.append( emb.vertices() )
-    newIndex = [] # Value of newIndex[ doomed[i].index() ] is meaningless.
+    newIndex = []   # New tetrahedron indices after performing the move.
     doomedIndices = sorted( [ d.index() for d in doomed ] )
     for k in range( tri.size() ):
         if k < doomedIndices[0]:
@@ -130,20 +152,32 @@ def twoThree(triangle):
         oldInd = e.index()
         emb = e.embedding(0)
         oldTet = emb.simplex()
-        oldNum = emb.face()
         try:
             i = doomed.index(oldTet)
         except ValueError:
             # The tetrahedron oldTet survives.
             edgeLocations.append(
-                    ( oldInd, newIndex[ oldTet.index() ], oldNum ) )
+                    ( oldInd, newIndex[ oldTet.index() ], emb.vertices() ) )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
+            #
+            # We have two permutations of the vertices of oldTet:
+            #   --> verts[i], which comes from the embedding of the input
+            #       triangle in oldTet
+            #   --> emb.vertices(), which comes from the embedding of the edge
+            #       e in oldTet
             p = verts[i].inverse() * emb.vertices()
             # By construction, verts[i][ p[j] ] == emb.vertices()[j].
 
             apex = p.inverse()[3]
+            if apex in {0,1}:
+                #TODO Need to manually construct an EdgeEmbedding3 object.
+                raise NotImplementedError()
+
+        #TODO WORKING HERE
+        #       Replace edge numbers with vertex permutations.
+
             if apex in {0,1}:
                 j = p[ 1 - apex ]
                 # We have e == oldTet.edge( verts[i][j], verts[i][3] ).
