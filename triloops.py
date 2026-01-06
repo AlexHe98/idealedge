@@ -178,6 +178,26 @@ class TriangulationWithEmbeddedLoops:
             ans.append( ( embeddings, orientation ) )
         return ans
 
+    def _setFromRenum( self, renum ):
+        """
+        Sets this triangulation with embedded loops using the given edge
+        renumbering map.
+
+        This routine is for internal use only. The purpose of this routine is
+        to update the embedded loops whenever the ambient triangulation has
+        been modified by a local move. See the twoThree, threeTwo, twoZero,
+        twoOne, and fourFour routines from moves.py for examples of how edge
+        renumbering maps should be specified.
+        """
+        #TODO Reimplement so that this:
+        #       --> works for multiple loops, and
+        #       --> tracks orientation.
+        edges = []
+        for ei in self:
+            edges.append( self._tri.edge( renum[ei] ) )
+        self.setFromEdges(edges)
+        return
+
     def __len__(self):
         return len(self._loops)
 
@@ -640,18 +660,16 @@ class TriangulationWithEmbeddedLoops:
                     changed = True
                     break
 
-            #TODO Make _setFromRenum() work for multiple loops, and also make
-            #       it track orientations.
-
             # Did we improve the triangulation? If so, then we need to update
-            # the details of the loop, and then check whether we can make
-            # further improvements.
+            # the details of the embedded loops, and then check whether we can
+            # make further improvements.
             if changedNow:
                 try:
-                    # If we destroyed the loop, then this will raise NotLoop.
+                    # If we destroyed any of the loops, then this will raise
+                    # NotLoop.
                     self._setFromRenum(renum)
                 except NotLoop:
-                    # As noted above, the loop can only get destroyed if it
+                    # As noted above, a loop can only get destroyed if it
                     # bounds a disc.
                     raise BoundsDisc()
             else:
