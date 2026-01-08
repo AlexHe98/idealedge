@@ -53,6 +53,33 @@ def twoThree(triangle):
     #                             •
     #                        verts[i][1]
     #
+    # The three new tetrahedra will be numbered survive+j, for j in {0,1,2}.
+    # Vertices verts[0][j] and verts[0][3] of tetrahedron survive+j will each
+    # be incident to an apex of the bipyramid. The faces opposite these two
+    # vertices will form exposed faces of the bipyramid:
+    #   --> face verts[0][j] of tetrahedron survive+j will correspond to face
+    #       verts[0][j] of doomed[0]; and
+    #   --> face verts[0][3] of tetrahedron survive+j will correspond to face
+    #       verts[1][j] of doomed[1].
+    #
+    # Letting jj = (j+1)%3 and jm = (j-1)%3, tetrahedra survive+j and
+    # survive+jj appear adjacent to each other in the bipyramid as follows:
+    #
+    #       Tetrahedron survive+jj           Tetrahedron survive+j
+    #                                                         
+    #            verts[0][3]                      verts[0][3]
+    #                 •                                •
+    #                /|\                              /|\
+    #               / | \                            / | \
+    #   verts[0][j]•--|--•verts[0][jm]  verts[0][jm]•--|--•verts[0][jj]
+    #               \ | /                            \ | /
+    #                \|/                              \|/
+    #                 •                                •
+    #            verts[0][jj]                     verts[0][j]
+    #
+    # That is, face verts[0][jj] of tetrahedron survive+j should be glued to
+    # tetrahedron survive+jj by the permutation that swaps verts[0][j] and
+    # verts[0][jj].
     for emb in triangle.embeddings():
         doomed.append( emb.simplex() )
         verts.append( emb.vertices() )
@@ -167,35 +194,64 @@ def twoThree(triangle):
             #       triangle in oldTet
             #   --> emb.vertices(), which comes from the embedding of the edge
             #       e in oldTet
+            #
+            # Also, recall that the new tetrahedra will be indexed by
+            # survive+ii, ii in {0,1,2}, with vertices labelled as follows (in
+            # the diagram, the front vertical edge is the new internal edge
+            # introduced by the requested 2-3 move):
+            #
+            #                    Tetrahedron survive+ii
+            #                                     
+            #                         verts[0][3]
+            #                              •
+            #                             /|\
+            #                            / | \
+            #         verts[0][(ii-1)%3]•--|--•verts[0][(ii+1)%3]
+            #                            \ | /
+            #                             \|/
+            #                              •
+            #                         verts[0][ii]
+            #
             p = verts[i].inverse() * emb.vertices()
             # By construction, verts[i][ p[j] ] == emb.vertices()[j].
 
             apex = p.inverse()[3]
             if apex in {0,1}:
-                #TODO Need to manually construct an EdgeEmbedding3 object.
-                raise NotImplementedError()
+                # One of the endpoints of e is incident to an apex of the
+                # bipyramid.
+                j = p[ 1 - apex ]
+
+                # We have e == oldTet.edge( verts[i][j], verts[i][3] ). In
+                # particular, this means that after the 2-3 move, e will be
+                # incident to the two new tetrahedra at the following indices:
+                #   --> survive + ( (j+1) % 3 )
+                #   --> survive + ( (j-1) % 3 )
+                ii = (j+1) % 3
+
+                # Convert emb.vertices() into a vertex permutation that
+                # describes how e will be embedded in tetrahedron survive+ii
+                # after the requested 2-3 move.
+                if i == 0:
+                    newVertPerm = emb.vertices()
+                else:   # i == 1
+                    newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
+                                   triGlu.inverse() * emb.vertices() )
+            else:   # apex in {2,3}
+                # We have e == oldTet.edge( verts[i][p[0]], verts[i][p[1]] ).
+                ii = p[ 5 - apex ]
+
+                # Convert emb.vertices() into a vertex permutation that
+                # describes how e will be embedded in tetrahedron survive+ii
+                # after the requested 2-3 move.
+                if i == 0:
+                    newVertPerm = emb.vertices()
+                else:   # i == 1
+                    newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
+                                   triGlu.inverse() * emb.vertices() )
 
         #TODO WORKING HERE
         #       Replace edge numbers with vertex permutations.
 
-            if apex in {0,1}:
-                j = p[ 1 - apex ]
-                # We have e == oldTet.edge( verts[i][j], verts[i][3] ).
-                ii = (j+1) % 3
-
-                # Construct a permutation pp so that e will meet tetrahedron
-                # survive+ii in the edge numbered Face3_1.faceNumber(pp).
-                if i == 0:
-                    pp = verts[0] * p
-                else:
-                    pp = verts[0] * Perm4( ii, 3 ) * p
-            else:
-                # We have e == oldTet.edge( verts[i][p[0]], verts[i][p[1]] ).
-                ii = p[ 5 - apex ]
-                
-                # Construct a permutation pp so that e will meet tetrahedron
-                # survive+ii in the edge numbered Face3_1.faceNumber(pp).
-                pp = verts[0] * p
             edgeLocations.append(
                     ( oldInd, survive+ii, Face3_1.faceNumber(pp) ) )
 
