@@ -176,20 +176,21 @@ def twoThree(triangle):
     # have performed the requested 2-3 move.
     edgeLocations = []
     for e in tri.edges():
-        oldInd = e.index()
+        oldEdgeInd = e.index()
         emb = e.embedding(0)
         oldTet = emb.simplex()
         try:
             i = doomed.index(oldTet)
         except ValueError:
             # The tetrahedron oldTet survives.
-            edgeLocations.append(
-                    ( oldInd, newIndex[ oldTet.index() ], emb.vertices() ) )
+            edgeLocations.append( ( oldEdgeInd,
+                                   newIndex[ oldTet.index() ],
+                                   emb.vertices() ) )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
             #
-            # We have two permutations of the vertices of oldTet:
+            # We now have two permutations of the vertices of oldTet:
             #   --> verts[i], which comes from the embedding of the input
             #       triangle in oldTet
             #   --> emb.vertices(), which comes from the embedding of the edge
@@ -215,6 +216,10 @@ def twoThree(triangle):
             p = verts[i].inverse() * emb.vertices()
             # By construction, verts[i][ p[j] ] == emb.vertices()[j].
 
+            # Find suitable ii such that e will be incident to tetrahedron
+            # survive+ii after performing the requested 2-3 move. This will
+            # depend on whether e has one of its endpoints at an apex of the
+            # bipyramid.
             apex = p.inverse()[3]
             if apex in {0,1}:
                 # One of the endpoints of e is incident to an apex of the
@@ -227,33 +232,25 @@ def twoThree(triangle):
                 #   --> survive + ( (j+1) % 3 )
                 #   --> survive + ( (j-1) % 3 )
                 ii = (j+1) % 3
-
-                # Convert emb.vertices() into a vertex permutation that
-                # describes how e will be embedded in tetrahedron survive+ii
-                # after the requested 2-3 move.
-                if i == 0:
-                    newVertPerm = emb.vertices()
-                else:   # i == 1
-                    newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
-                                   triGlu.inverse() * emb.vertices() )
             else:   # apex in {2,3}
                 # We have e == oldTet.edge( verts[i][p[0]], verts[i][p[1]] ).
                 ii = p[ 5 - apex ]
 
-                # Convert emb.vertices() into a vertex permutation that
-                # describes how e will be embedded in tetrahedron survive+ii
-                # after the requested 2-3 move.
-                if i == 0:
-                    newVertPerm = emb.vertices()
-                else:   # i == 1
-                    newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
-                                   triGlu.inverse() * emb.vertices() )
+            # Convert emb.vertices() into a vertex permutation that
+            # describes how e will be embedded in tetrahedron survive+ii
+            # after the requested 2-3 move.
+            #
+            # With ii chosen as above, this is the same regardless of the
+            # value of apex.
+            if i == 0:
+                newVertPerm = emb.vertices()
+            else:   # i == 1
+                newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
+                               triGlu.inverse() * emb.vertices() )
 
-        #TODO WORKING HERE
-        #       Replace edge numbers with vertex permutations.
-
-            edgeLocations.append(
-                    ( oldInd, survive+ii, Face3_1.faceNumber(pp) ) )
+            edgeLocations.append( ( oldEdgeInd,
+                                   survive+ii,
+                                   newVertPerm ) )
 
     # Remove the two doomed tetrahedra, add three new tetrahedra, and then
     # perform the gluings that we just computed.
@@ -265,12 +262,24 @@ def twoThree(triangle):
 
     # How did the edges get renumbered?
     renum = {}
-    for k, m, n in edgeLocations:
-        renum[k] = tri.tetrahedron(m).edge(n).index()
+    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
+        # Now that we have performed the requested 2-3 move, we can use the
+        # edgeLocations computed above to create a new EdgeEmbedding3 object
+        # for the edge e that was previously at index oldEdgeInd. This new
+        # EdgeEmbedding3 object won't satisfy the usual correspondence with
+        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
+        # in such a way that the orientation of e is preserved.
+        newEdgeEmb = EdgeEmbedding3(
+                tri.tetrahedron(newTetInd), newVertPerm )
+        renum[oldEdgeInd] = newEdgeEmb
 
-    # Don't forget that we created a new edge!
-    renum[-1] = tri.tetrahedron(survive).edge(
-            verts[0][0], verts[0][3] ).index()
+    # Don't forget that we created a new edge! For each ii in {0,1,2}, the new
+    # edge is embedded in tetrahedron survive+ii so that its endpoints lie on
+    # the vertices numbered verts[0][3] and verts[0][ii].
+    newRefTet = tri.tetrahedron(survive)
+    newEdgeNum = Edge3.faceNumber( verts[0] * Perm4(1,3) )
+    renum[-1] = EdgeEmbedding3(
+            newRefTet, newRefTet.edgeMapping(newEdgeNum) )
     return renum
 
 
