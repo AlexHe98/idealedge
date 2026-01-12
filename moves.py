@@ -815,8 +815,8 @@ if __name__ == "__main__":
             print(r23)
             break
 
-        # Finally, check that the renumberings are sensible by comparing edge
-        # degrees in the isomorphic triangulations t and tinv.
+        # Check that the renumberings are sensible by comparing edge degrees
+        # in the isomorphic triangulations t and tinv.
         unmatchedDegrees = False
         for i in range( t.countEdges() ):
             deg = t.edge(i).degree()
@@ -824,13 +824,13 @@ if __name__ == "__main__":
             if deg != comDeg:
                 unmatchedDegrees = True
                 break
-        print( "{}: {}, {}; {}".format(
-            f.index(),
-            { k: edgeIndex(v) for k, v in trenum.items() },
-            { k: edgeIndex(v) for k, v in rrenum.items() },
-            tinnum ) )
         if unmatchedDegrees:
             print("Unmatched edge degrees!")
+            print( "{}: {}, {}; {}".format(
+                f.index(),
+                { k: edgeIndex(v) for k, v in trenum.items() },
+                { k: edgeIndex(v) for k, v in rrenum.items() },
+                tinnum ) )
             break
 
         #TODO Add tests to check that we can indeed use the new renumbering
