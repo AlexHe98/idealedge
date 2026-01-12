@@ -6,6 +6,9 @@ from regina import *
 #TODO Make renumbering map send old edge indices to new *edge embeddings*, so
 #       that we can keep track of orientations.
 
+#TODO Make a new function for "composing" renumbering maps. Or maybe it would
+#       make sense to create a new EdgeRenumbering class?
+
 
 def twoThree(triangle):
     """
@@ -731,14 +734,20 @@ if __name__ == "__main__":
     print( "==========================" )
     print()
 
-    t = Triangulation3("gLLPQcdefeffpvauppb")
+    #NOTE These tests use the Isomorphism3 bracket operator, introduced in
+    #       Regina 7.1, to apply an isomorphism in place. In older versions of
+    #       Regina, equivalent functionality was provided by the
+    #       Isomorphism3.applyInPlace() routine.
+
+    smallSig = "gLLPQcdefeffpvauppb"
+    t = Triangulation3(smallSig)
     t.orient()
     RandomEngine.reseedWithHardware()
     iso = Isomorphism3.random(t.size(),True)
-    iso.applyInPlace(t)
+    t = iso(t)
 
     # Test 2-3 and 3-2 moves.
-    print( "2-3 and 3-2 moves on \"gLLPQcdefeffpvauppb\"" )
+    print( "2-3 and 3-2 moves on \"{}\"".format(smallSig) )
     print()
     for f in t.triangles():
         # Test that twoThree gives correct isomorphism type, and that it
@@ -758,14 +767,13 @@ if __name__ == "__main__":
             print(t23)
             break
 
-        #TODO Update tests to use new renumbering format.
-
-        # Test that threeTwo inverts twoThree correctly, and that it
-        # preserves orientation.
-        # This test makes assumptions about the implementation of twoThree.
+        # Test that threeTwo inverts twoThree correctly, and that it preserves
+        # orientation.
         tinv = Triangulation3(t23)
-        tinnum = threeTwo( tinv.tetrahedron( tinv.size()-1 ).edge(
-            f.embedding(0).vertices()[2], f.embedding(0).vertices()[3] ) )
+        tet32 = tinv.tetrahedron(
+                trenum[-1].tetrahedron().index() )
+        tinnum = threeTwo(
+                tet32.edge( trenum[-1].edge() ) )
         if not tinv.isOriented():
             print("{}: Inverse not oriented!".format(f.index()))
             print(tinv)
@@ -780,10 +788,9 @@ if __name__ == "__main__":
 
         # Now check that twoThree gives correct isomorphism type after a
         # random relabelling.
-        RandomEngine.reseedWithHardware()
         r = Triangulation3(t)
         iso = Isomorphism3.random(r.size())
-        iso.applyInPlace(r)
+        r = iso(r)
         source = f.embedding(0).simplex().index()
         num = f.embedding(0).face()
         simpImage = iso.simpImage(source)
@@ -821,23 +828,21 @@ if __name__ == "__main__":
     print()
     print("========================")
     print()
-    print( "0-2 and 2-0 moves on \"gLLPQcdefeffpvauppb\"" )
+    print( "0-2 and 2-0 moves on \"{}\"".format(smallSig) )
     print()
 
     # Test 2-0 moves.
     for e in t.edges():
         deg = e.degree()
         for i in range(deg):
-            RandomEngine.reseedWithHardware()
             ii = i + RandomEngine.rand( deg - i )
             tt = Triangulation3(t)
             if not tt.zeroTwoMove( tt.edge( e.index() ), i, ii ):
                 continue
 
             # Test the inverse 2-0 move using twoZero().
-            RandomEngine.reseedWithHardware()
             iso = Isomorphism3.random(tt.size())
-            iso.applyInPlace(tt)
+            tt = iso(tt)
             simpImage = iso.simpImage( tt.size() - 1 )
             facetPerm = iso.facetPerm( tt.size() - 1 )
             testInd = tt.tetrahedron( simpImage ).edge(
@@ -865,7 +870,7 @@ if __name__ == "__main__":
 #    print()
 #    print("========================")
 #    print()
-#    print( "4-4 moves on \"gLLPQcdefeffpvauppb\"" )
+#    print( "4-4 moves on \"{}\"".format(smallSig) )
 #    print()
 #
 #    # Test 4-4 moves.
