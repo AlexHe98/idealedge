@@ -10,6 +10,14 @@ from regina import *
 #       make sense to create a new EdgeRenumbering class?
 
 
+def edgeIndex(edgeEmbedding):
+    """
+    Returns the index of the underlying edge of the given EdgeEmbedding3
+    object.
+    """
+    return edgeEmbedding.tetrahedron().edge( edgeEmbedding.edge() ).index()
+
+
 def twoThree(triangle):
     """
     Performs a 2-3 move about the given triangle, and returns a dictionary
@@ -747,6 +755,8 @@ if __name__ == "__main__":
     t = iso(t)
 
     # Test 2-3 and 3-2 moves.
+    #NOTE For these tests, we perform moves on copies of triangulations so
+    #       that we don't lose all the labellings of the old triangulations.
     print( "2-3 and 3-2 moves on \"{}\"".format(smallSig) )
     print()
     for f in t.triangles():
@@ -805,23 +815,29 @@ if __name__ == "__main__":
             print(r23)
             break
 
-        #TODO Update tests to use new renumbering format.
+        # Finally, check that the renumberings are sensible by comparing edge
+        # degrees in the isomorphic triangulations t and tinv.
+        unmatchedDegrees = False
+        for i in range( t.countEdges() ):
+            deg = t.edge(i).degree()
+            comDeg = tinv.edge( tinnum[ edgeIndex( trenum[i] ) ] ).degree()
+            if deg != comDeg:
+                unmatchedDegrees = True
+                break
+        print( "{}: {}, {}; {}".format(
+            f.index(),
+            { k: edgeIndex(v) for k, v in trenum.items() },
+            { k: edgeIndex(v) for k, v in rrenum.items() },
+            tinnum ) )
+        if unmatchedDegrees:
+            print("Unmatched edge degrees!")
+            break
 
         #TODO Add tests to check that we can indeed use the new renumbering
         #       format to track orientation.
-
-#        # Finally, check that the renumberings are sensible by comparing edge
-#        # degrees in the isomorphic triangulations t and tinv.
-#        error = ""
-#        for i in range( t.countEdges() ):
-#            deg = t.edge(i).degree()
-#            comDeg = tinv.edge( tinnum[ trenum[i] ] ).degree()
-#            if deg != comDeg:
-#                error = "<--"
-#                break
-#        print( "{}: {}, {}; {} {}".format(
-#            f.index(), trenum, rrenum, tinnum, error ) )
     else:
+        # If we never broke out of the above loop, then all tests must have
+        # passed.
         print()
         print( "2-3 and 3-2 moves: Success!" )
 
