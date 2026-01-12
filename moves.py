@@ -816,6 +816,30 @@ def twoOne( edge, edgeEnd ):
 
 # Tests.
 if __name__ == "__main__":
+    def multiplicities(edge):
+        """
+        Returns a list of the multiplicities of the given edge, sorted from
+        largest to smallest.
+
+        The multiplicity of an edge e with respect to a tetrahedron T is the
+        number of times (max 6) in which e is embedded as an edge of T. The
+        returned list will contain all nonzero multiplicities of the given
+        edge.
+
+        Note that the sum of the multiplicities is precisely the degree.
+        """
+        tri = edge.triangulation()
+        ans = []
+        for tet in tri.tetrahedra():
+            mult = 0
+            for e in range(6):
+                if tet.edge(e) == edge:
+                    mult += 1
+            if mult:
+                ans.append(mult)
+        ans.sort( reverse=True )
+        return ans
+
     print()
     print( "TESTS FOR ELEMENTARY MOVES" )
     print( "==========================" )
@@ -875,8 +899,6 @@ if __name__ == "__main__":
             print(tinv.detail())
             break
 
-        #TODO Add test that twoThree inverts threeTwo correctly.
-
         # Now check that twoThree gives correct isomorphism type after a
         # random relabelling.
         r = Triangulation3(t)
@@ -896,24 +918,29 @@ if __name__ == "__main__":
             print(r23)
             break
 
-        # Check that the renumberings are sensible by comparing edge degrees
-        # in the isomorphic triangulations t and tinv.
-        unmatchedDegrees = False
+        #TODO Also test threeTwo after random relabelling, since currently we
+        #       don't seem to test every case of the implementation.
+
+        # Check that the renumberings are sensible by comparing edge
+        # multiplicities in the isomorphic triangulations t and tinv.
+        unmatchedMults = False
         for i in range( t.countEdges() ):
-            deg = t.edge(i).degree()
-            comDeg = tinv.edge(
-                    edgeIndex( tinnum[
-                        edgeIndex( trenum[i] ) ] ) ).degree()
-            if deg != comDeg:
-                unmatchedDegrees = True
+            mults = multiplicities( t.edge(i) )
+            comMults = multiplicities(
+                    tinv.edge(
+                        edgeIndex( tinnum[
+                            edgeIndex( trenum[i] ) ] ) ) )
+            if mults != comMults:
+                unmatchedMults = True
                 break
-        if unmatchedDegrees:
-            print("Unmatched edge degrees!")
+        if unmatchedMults:
+            print("Unmatched edge multiplicities!")
             print( "{}: {}, {}; {}".format(
                 f.index(),
                 { k: edgeIndex(v) for k, v in trenum.items() },
                 { k: edgeIndex(v) for k, v in rrenum.items() },
-                { k: edgeIndex(v) for k, v in tinnum.items() } ) )
+                { k: edgeIndex(v) for k, v in tinnum.items()
+                 if v is not None } ) )
             break
 
         #TODO Add tests to check that we can indeed use the new renumbering
