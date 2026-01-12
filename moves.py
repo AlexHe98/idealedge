@@ -522,43 +522,74 @@ def threeTwo(edge):
             p = verts[i].inverse() * emb.vertices()
             # By construction, verts[i][ p[j] ] == emb.vertices()[j].
 
+            # Find suitable ii such that e will be incident to tetrahedron
+            # survive+ii after performing the requested 3-2 move. This will
+            # depend on whether e has one of its endpoints at an apex of the
+            # bipyramid.
             top = p.inverse()[0]
             bot = p.inverse()[1]
             # Note that at most one of top or bot is in {0,1} (otherwise we
             # would have e == edge).
             if top in {0,1}:
-                # The edge e is incident to vertex 0 of the input edge.
-
-    #TODO WORKING HERE
-    #TODO Replace edge numbers with vertex permutations.
-
-                j = p[ 1 - top ]
-                # We have e == oldTet.edge( verts[i][j], verts[i][0] ).
+                # The edge e is incident to the apex at vertex 0 of the input
+                # edge.
                 ii = 1
-
-                # Construct a permutation pp so that e will meet tetrahedron
-                # survive+ii in the edge numbered Face3_1.faceNumber(pp).
-                swap = { 2: 1, 0: 2, 1: 3 }
-                pp = verts[1] * Perm4( j, swap[(i+j)%3] ) * p
             elif bot in {0,1}:
-                j = p[ 1 - bot ]
-                # We have e == oldTet.edge( verts[i][j], verts[i][1] ).
+                # The edge e is incident to the apex at vertex 1 of the input
+                # edge.
+                ii = 0
+            else:
+                # The edge e runs along the "equator" of the bipyramid, so
+                # either choice of ii in {0,1} would work.
                 ii = 0
 
-                # Construct a permutation pp so that e will meet tetrahedron
-                # survive+ii in the edge numbered Face3_1.faceNumber(pp).
-                swap = { 2: 0, 0: 2, 1: 3 }
-                pp = verts[1] * Perm4( j, swap[(i+j)%3] ) * p
-            else:
-                # We have e == oldTet.edge( verts[i][2], verts[i][3] ).
-                ii = 1
-
-                # Construct a permutation pp so that e will meet tetrahedron
-                # survive+ii in the edge numbered Face3_1.faceNumber(pp).
-                r = Perm3.rot(i)
-                pp = verts[1] * Perm4( r[0]+1, r[1]+1, r[2]+1, 0 )
-            edgeLocations.append(
-                    ( oldEdgeInd, survive+ii, Face3_1.faceNumber(pp) ) )
+            # Convert emb.vertices() into a vertex permutation that
+            # describes how e will be embedded in tetrahedron survive+ii
+            # after the requested 2-3 move.
+            #
+            # With ii chosen as above, this is the same regardless of the
+            # values of top and bot.
+            #
+            # Recall that triangle verts[1][ii] of tetrahedron survive+ii
+            # corresponds precisely to triangle verts[1][ii] of doomed[1],
+            # with precisely the same vertex numberings.
+            if i == 1:
+                newVertPerm = emb.vertices()
+            elif i == 0:
+                #
+                #     Tetrahedron doomed[1]          Tetrahedron doomed[0]
+                #
+                #          verts[1][ii]                   verts[0][ii]
+                #               •                              •
+                #              /|\                            /|\
+                #             / | \                          / | \
+                # verts[1][3]•--|--•verts[1][2]  verts[0][3]•--|--•verts[0][2]
+                #             \ | /                          \ | /
+                #              \|/                            \|/
+                #               •                              •
+                #          verts[1][1-ii]                 verts[0][1-ii]
+                #
+                newVertPerm = ( Perm4( verts[1][ii], verts[1][3] ) *
+                               triGlu[0].inverse() * emb.vertices() )
+            else:   # i == 2
+                #
+                #     Tetrahedron doomed[2]          Tetrahedron doomed[1]
+                #
+                #          verts[2][ii]                   verts[1][ii]
+                #               •                              •
+                #              /|\                            /|\
+                #             / | \                          / | \
+                # verts[2][3]•--|--•verts[2][2]  verts[1][3]•--|--•verts[1][2]
+                #             \ | /                          \ | /
+                #              \|/                            \|/
+                #               •                              •
+                #          verts[2][1-ii]                 verts[1][1-ii]
+                #
+                newVertPerm = ( Perm4( verts[1][ii], verts[1][2] ) *
+                               triGlu[2].inverse() * emb.vertices() )
+            edgeLocations.append( ( oldEdgeInd,
+                                   survive+ii,
+                                   newVertPerm ) )
 
     # Remove the three doomed tetrahedra, add two new tetrahedra, and then
     # perform the gluings that we just computed.
@@ -571,11 +602,19 @@ def threeTwo(edge):
 
     # How did the edges get renumbered?
     renum = {}
-    for k, m, n in edgeLocations:
-        renum[k] = tri.tetrahedron(m).edge(n).index()
+    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
+        # Now that we have performed the requested 3-2 move, we can use the
+        # edgeLocations computed above to create a new EdgeEmbedding3 object
+        # for the edge e that was previously at index oldEdgeInd. This new
+        # EdgeEmbedding3 object won't satisfy the usual correspondence with
+        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
+        # in such a way that the orientation of e is preserved.
+        newEdgeEmb = EdgeEmbedding3(
+                tri.tetrahedron(newTetInd), newVertPerm )
+        renum[oldEdgeInd] = newEdgeEmb
 
     # Don't forget that we removed the given edge!
-    renum[ removeIndex ] = -1
+    renum[ removeIndex ] = None
     return renum
 
 
@@ -836,6 +875,8 @@ if __name__ == "__main__":
             print(tinv.detail())
             break
 
+        #TODO Add test that twoThree inverts threeTwo correctly.
+
         # Now check that twoThree gives correct isomorphism type after a
         # random relabelling.
         r = Triangulation3(t)
@@ -860,7 +901,9 @@ if __name__ == "__main__":
         unmatchedDegrees = False
         for i in range( t.countEdges() ):
             deg = t.edge(i).degree()
-            comDeg = tinv.edge( tinnum[ edgeIndex( trenum[i] ) ] ).degree()
+            comDeg = tinv.edge(
+                    edgeIndex( tinnum[
+                        edgeIndex( trenum[i] ) ] ) ).degree()
             if deg != comDeg:
                 unmatchedDegrees = True
                 break
@@ -870,7 +913,7 @@ if __name__ == "__main__":
                 f.index(),
                 { k: edgeIndex(v) for k, v in trenum.items() },
                 { k: edgeIndex(v) for k, v in rrenum.items() },
-                tinnum ) )
+                { k: edgeIndex(v) for k, v in tinnum.items() } ) )
             break
 
         #TODO Add tests to check that we can indeed use the new renumbering
@@ -918,6 +961,8 @@ if __name__ == "__main__":
             print( "{}/{}/{}: {} {}".format(
                 e.index(), i, ii, renum, error ) )
     else:
+        # If we never broke out of the above loop, then all tests must have
+        # passed.
         print()
         print( "0-2 and 2-0 moves: Success!" )
 
