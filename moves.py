@@ -26,14 +26,14 @@ def twoThree(triangle):
     Provided the requested move is legal, this routine directly modifies the
     triangulation T that contains the given triangle. The returned dictionary
     r is structured as follows:
-    --> For each edge e of T before performing the move, emb := r[ e.index() ]
-        will be an EdgeEmbedding3 object describing an embedding of e in T
-        *after* performing the move. The underlying labelling of the two
-        vertices of e will be the same in both e (before the move) and emb
-        (after the move). However, be aware that this means that emb might
-        label the vertices in the opposite order to the underlying edge after
-        the move.
-    --> A 2-3 moves also always creates a new edge, and r[-1] will give an
+    --> For each edge e of T, if i is the index of e before performing the
+        move, then r[i] will be an EdgeEmbedding3 object describing an
+        embedding of e in T *after* performing the move. The underlying
+        labelling of the two vertices of e will be the same in both e (before
+        the move) and r[i] (after the move). However, be aware that this means
+        that r[i] might label the vertices in the opposite order to the
+        underlying edge after the move.
+    --> A 2-3 move also always creates a new edge, and r[-1] will give an
         embedding of this new edge.
     If the move is not legal, then T is left untouched and this routine
     returns None.
@@ -299,17 +299,26 @@ def threeTwo(edge):
     Performs a 3-2 move about the given edge, and returns a dictionary r that
     describes how the edges were renumbered.
 
-    This routine directly modifies the triangulation that contains the given
-    edge. If an edge is currently numbered i in the triangulation, then it
-    will be numbered r[i] in the triangulation after the requested 3-2 move
-    has been performed (provided the move is actually legal); also, a 3-2
-    move removes the given edge, and this will be indicated by the fact that
-    r[i] == -1, where i is the index of the given edge. If the move is not
-    legal, the triangulation is left untouched and this routine returns None.
+    Provided the requested move is legal, this routine directly modifies the
+    triangulation T that contains the given edge. The returned dictionary r is
+    structured as follows:
+    --> The requested 3-2 move always destroys the given edge, and so if i is
+        the index of the given edge (before performing the move), then r[i]
+        will be None.
+    --> For every other edge e of T, if i is the index of e before performing
+        the move, then r[i] will be an EdgeEmbedding3 object describing an
+        embedding of e in T *after* performing the move. The underlying
+        labelling of the two vertices of e will be the same in both e (before
+        the move) and r[i] (after the move). However, be aware that this means
+        that r[i] might label the vertices in the opposite order to the
+        underlying edge after the move.
+    If the move is not legal, then T is left untouched and this routine
+    returns None.
 
     If the triangulation containing the given edge is currently oriented,
     then this orientation will be preserved by the requested 3-2 move.
     """
+    #TODO WORKING HERE
     tri = edge.triangulation()
 
     # Is the requested 3-2 move legal?
