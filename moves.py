@@ -492,8 +492,6 @@ def threeTwo(edge):
                         gluings.append(
                                 ( survive, verts[1][3], survive+1, newGlu ) )
 
-    #TODO WORKING HERE
-
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 3-2 move.
     edgeLocations = []
@@ -501,7 +499,7 @@ def threeTwo(edge):
         # The edge about which we perform the 3-2 move gets removed entirely.
         if e == edge:
             continue
-        oldInd = e.index()
+        oldEdgeInd = e.index()
         emb = e.embedding(0)
         oldTet = emb.simplex()
         oldNum = emb.face()
@@ -509,11 +507,18 @@ def threeTwo(edge):
             i = doomed.index(oldTet)
         except ValueError:
             # The tetrahedron oldTet survives.
-            edgeLocations.append(
-                    ( oldInd, newIndex[ oldTet.index() ], oldNum ) )
+            edgeLocations.append( ( oldEdgeInd,
+                                   newIndex[ oldTet.index() ],
+                                   emb.vertices() ) )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
+            #
+            # We now have two permutations of the vertices of oldTet:
+            #   --> verts[i], which comes from the embedding of the input edge
+            #       in oldTet
+            #   --> emb.vertices(), which comes from the embedding of the edge
+            #       e in oldTet
             p = verts[i].inverse() * emb.vertices()
             # By construction, verts[i][ p[j] ] == emb.vertices()[j].
 
@@ -522,6 +527,11 @@ def threeTwo(edge):
             # Note that at most one of top or bot is in {0,1} (otherwise we
             # would have e == edge).
             if top in {0,1}:
+                # The edge e is incident to vertex 0 of the input edge.
+
+    #TODO WORKING HERE
+    #TODO Replace edge numbers with vertex permutations.
+
                 j = p[ 1 - top ]
                 # We have e == oldTet.edge( verts[i][j], verts[i][0] ).
                 ii = 1
@@ -548,7 +558,7 @@ def threeTwo(edge):
                 r = Perm3.rot(i)
                 pp = verts[1] * Perm4( r[0]+1, r[1]+1, r[2]+1, 0 )
             edgeLocations.append(
-                    ( oldInd, survive+ii, Face3_1.faceNumber(pp) ) )
+                    ( oldEdgeInd, survive+ii, Face3_1.faceNumber(pp) ) )
 
     # Remove the three doomed tetrahedra, add two new tetrahedra, and then
     # perform the gluings that we just computed.
