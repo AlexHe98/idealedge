@@ -318,7 +318,6 @@ def threeTwo(edge):
     If the triangulation containing the given edge is currently oriented,
     then this orientation will be preserved by the requested 3-2 move.
     """
-    #TODO WORKING HERE
     tri = edge.triangulation()
 
     # Is the requested 3-2 move legal?
@@ -352,6 +351,26 @@ def threeTwo(edge):
     # of doomed[1], with precisely the same vertex numberings. Since this
     # doesn't tell us how doomed[1] meets the other two doomed tetrahedra,
     # we record this information now in the variable triGlu.
+    #
+    # With the vertices of doomed[1] labelled as in the diagram below, so that
+    # the input edge is the front vertical edge, we will have the following:
+    #   --> The new tetrahedron survive+0 will have triangle verts[1][0] in
+    #       common with doomed[1], and will therefore appear as the lower
+    #       tetrahedron in the bipyramid.
+    #   --> The new tetrahedron survive+1 will have triangle verts[1][1] in
+    #       common with doomed[1], and will therefore appear as the upper
+    #       tetrahedron in the bipyramid.
+    #
+    #                            verts[1][0]
+    #                                 •
+    #                                /|\
+    #                               / | \
+    #                   verts[1][3]•--|--•verts[1][2]
+    #                               \ | /
+    #                                \|/
+    #                                 •
+    #                            verts[1][1]
+    #
     triGlu = [
             doomed[1].adjacentGluing( verts[1][3] ),  # Gluing to doomed[0]
             None,
@@ -472,6 +491,8 @@ def threeTwo(edge):
                                 triGlu[0] )
                         gluings.append(
                                 ( survive, verts[1][3], survive+1, newGlu ) )
+
+    #TODO WORKING HERE
 
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 3-2 move.
