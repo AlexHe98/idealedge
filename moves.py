@@ -903,40 +903,46 @@ if __name__ == "__main__":
                 break
 
             # Now check that twoThree and the inverse threeTwo still give
-            # correct isomorphism type after a random relabelling.
-            r = Triangulation3(t)
-            iso = Isomorphism3.random(r.size())
-            r = iso(r)
-            source = f.embedding(0).simplex().index()
-            num = f.embedding(0).face()
-            simpImage = iso.simpImage(source)
-            faceImage = iso.facetPerm(source)[num]
-            r23 = Triangulation3(r)
-            rrenum = twoThree(
-                    r23.tetrahedron(simpImage).triangle(faceImage) )
-            if not pach.isIsomorphicTo(r23):
-                print( "{}: Not isomorphic after relabelling!".format(
-                    f.index() ) )
-                print(r)
-                print(pach)
-                print(r23)
-                break
-            rinv = Triangulation3(r23)
-            invIso = Isomorphism3.random( rinv.size() )
-            rinv = invIso(rinv)
-            invSource = rrenum[-1].tetrahedron().index()
-            invVerts = rrenum[-1].vertices()
-            invSimpImage = invIso.simpImage(invSource)
-            invVertsImage = invIso.facetPerm(invSource) * invVerts
-            invEdgeNum = Edge3.faceNumber(invVertsImage)
-            rinnum = threeTwo(
-                    rinv.tetrahedron(invSimpImage).edge(invEdgeNum) )
-            if not t.isIsomorphicTo(rinv):
-                print("{}: Inverse not isomorphic after relabelling!".format(
-                    f.index() ))
-                print(t)
-                print(rinv)
-                print(rinv.detail())
+            # correct isomorphism type after random relabellings.
+            repeats = 6
+            failed = False
+            for _ in range(repeats):
+                r = Triangulation3(t)
+                iso = Isomorphism3.random(r.size())
+                r = iso(r)
+                source = f.embedding(0).simplex().index()
+                num = f.embedding(0).face()
+                simpImage = iso.simpImage(source)
+                faceImage = iso.facetPerm(source)[num]
+                r23 = Triangulation3(r)
+                rrenum = twoThree(
+                        r23.tetrahedron(simpImage).triangle(faceImage) )
+                if not pach.isIsomorphicTo(r23):
+                    print( "{}: Not isomorphic after relabelling!".format(
+                        f.index() ) )
+                    print(r)
+                    print(pach)
+                    print(r23)
+                    failed = True
+                    break
+                rinv = Triangulation3(r23)
+                invIso = Isomorphism3.random( rinv.size() )
+                rinv = invIso(rinv)
+                invSource = rrenum[-1].tetrahedron().index()
+                invVerts = rrenum[-1].vertices()
+                invSimpImage = invIso.simpImage(invSource)
+                invVertsImage = invIso.facetPerm(invSource) * invVerts
+                invEdgeNum = Edge3.faceNumber(invVertsImage)
+                rinnum = threeTwo(
+                        rinv.tetrahedron(invSimpImage).edge(invEdgeNum) )
+                if not t.isIsomorphicTo(rinv):
+                    print("{}: Inverse not isomorphic after relabelling!".format(
+                        f.index() ))
+                    print(t)
+                    print(rinv)
+                    print(rinv.detail())
+                    break
+            if failed:
                 break
 
             # Check that the renumberings are sensible by comparing edge
