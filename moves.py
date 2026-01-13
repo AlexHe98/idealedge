@@ -844,126 +844,140 @@ if __name__ == "__main__":
     print( "TESTS FOR ELEMENTARY MOVES" )
     print( "==========================" )
     print()
+    RandomEngine.reseedWithHardware()
 
     #NOTE These tests use the Isomorphism3 bracket operator, introduced in
     #       Regina 7.1, to apply an isomorphism in place. In older versions of
     #       Regina, equivalent functionality was provided by the
     #       Isomorphism3.applyInPlace() routine.
 
-    smallSig = "gLLPQcdefeffpvauppb"
-    t = Triangulation3(smallSig)
-    t.orient()
-    RandomEngine.reseedWithHardware()
-    iso = Isomorphism3.random(t.size(),True)
-    t = iso(t)
+    def test23(testSig):
+        t = Triangulation3.fromIsoSig(testSig)
+        t.orient()
+        iso = Isomorphism3.random(t.size(),True)
+        t = iso(t)
 
-    # Test 2-3 and 3-2 moves.
-    #NOTE For these tests, we perform moves on copies of triangulations so
-    #       that we don't lose all the labellings of the old triangulations.
-    print( "2-3 and 3-2 moves on \"{}\"".format(smallSig) )
-    print()
-    for f in t.triangles():
-        # Test that twoThree gives correct isomorphism type, and that it
-        # preserves orientation.
-        pach = Triangulation3(t)
-        t23 = Triangulation3(t)
-        pach.pachner( pach.triangle( f.index() ) )
-        trenum = twoThree( t23.triangle( f.index() ) )
-        if not t23.isOriented():
-            print("{}: Not oriented!".format(f.index()))
-            print(t23)
-            break
-        if not pach.isIsomorphicTo(t23):
-            print("{}: Oriented, but not isomorphic!".format(f.index()))
-            print(t)
-            print(pach)
-            print(t23)
-            break
-
-        # Test that threeTwo inverts twoThree correctly, and that it preserves
-        # orientation.
-        tinv = Triangulation3(t23)
-        tet32 = tinv.tetrahedron(
-                trenum[-1].tetrahedron().index() )
-        tinnum = threeTwo(
-                tet32.edge( trenum[-1].edge() ) )
-        if not tinv.isOriented():
-            print("{}: Inverse not oriented!".format(f.index()))
-            print(tinv)
-            break
-        if not t.isIsomorphicTo(tinv):
-            print("{}: Inverse oriented, but not isomorphic!".format(
-                f.index() ))
-            print(t)
-            print(tinv)
-            print(tinv.detail())
-            break
-
-        # Now check that twoThree and the inverse threeTwo still give correct
-        # isomorphism type after a random relabelling.
-        r = Triangulation3(t)
-        iso = Isomorphism3.random(r.size())
-        r = iso(r)
-        source = f.embedding(0).simplex().index()
-        num = f.embedding(0).face()
-        simpImage = iso.simpImage(source)
-        faceImage = iso.facetPerm(source)[num]
-        r23 = Triangulation3(r)
-        rrenum = twoThree(
-                r23.tetrahedron(simpImage).triangle(faceImage) )
-        if not pach.isIsomorphicTo(r23):
-            print("{}: Not isomorphic after relabelling!".format(f.index()))
-            print(r)
-            print(pach)
-            print(r23)
-            break
-        rinv = Triangulation3(r23)
-        invIso = Isomorphism3.random( rinv.size() )
-        rinv = invIso(rinv)
-        invSource = rrenum[-1].tetrahedron().index()
-        invVerts = rrenum[-1].vertices()
-        invSimpImage = invIso.simpImage(invSource)
-        invVertsImage = invIso.facetPerm(invSource) * invVerts
-        invEdgeNum = Edge3.faceNumber(invVertsImage)
-        rinnum = threeTwo(
-                rinv.tetrahedron(invSimpImage).edge(invEdgeNum) )
-        if not t.isIsomorphicTo(rinv):
-            print("{}: Inverse not isomorphic after relabelling!".format(
-                f.index() ))
-            print(t)
-            print(rinv)
-            print(rinv.detail())
-            break
-
-        # Check that the renumberings are sensible by comparing edge
-        # multiplicities in the isomorphic triangulations t and tinv.
-        unmatchedMults = False
-        for i in range( t.countEdges() ):
-            mults = multiplicities( t.edge(i) )
-            comMults = multiplicities(
-                    tinv.edge(
-                        edgeIndex( tinnum[
-                            edgeIndex( trenum[i] ) ] ) ) )
-            if mults != comMults:
-                unmatchedMults = True
-                break
-        if unmatchedMults:
-            print("Unmatched edge multiplicities!")
-            print( "{}: {}, {}; {}".format(
-                f.index(),
-                { k: edgeIndex(v) for k, v in trenum.items() },
-                { k: edgeIndex(v) for k, v in rrenum.items() },
-                { k: edgeIndex(v) for k, v in tinnum.items()
-                 if v is not None } ) )
-            break
-
-        #TODO Add tests to check that we can indeed use the new renumbering
-        #       format to track orientation.
-    else:
-        # If we never broke out of the above loop, then all tests must have
-        # passed.
+        # Test 2-3 and 3-2 moves.
+        #NOTE For these tests, we perform moves on copies of triangulations so
+        #       that we don't lose all the labellings of the old
+        #       triangulations.
+        print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
         print()
-        print( "2-3 and 3-2 moves: Success!" )
+        for f in t.triangles():
+            # Test that twoThree gives correct isomorphism type, and that it
+            # preserves orientation.
+            pach = Triangulation3(t)
+            t23 = Triangulation3(t)
+            if not pach.pachner( pach.triangle( f.index() ) ):
+                # Move on to the next triangle if the 2-3 move isn't legal.
+                continue
+            trenum = twoThree( t23.triangle( f.index() ) )
+            if not t23.isOriented():
+                print("{}: Not oriented!".format(f.index()))
+                print(t23)
+                break
+            if not pach.isIsomorphicTo(t23):
+                print("{}: Oriented, but not isomorphic!".format(f.index()))
+                print(t)
+                print(pach)
+                print(t23)
+                break
+
+            # Test that threeTwo inverts twoThree correctly, and that it
+            # preserves orientation.
+            tinv = Triangulation3(t23)
+            tet32 = tinv.tetrahedron(
+                    trenum[-1].tetrahedron().index() )
+            tinnum = threeTwo(
+                    tet32.edge( trenum[-1].edge() ) )
+            if not tinv.isOriented():
+                print("{}: Inverse not oriented!".format(f.index()))
+                print(tinv)
+                break
+            if not t.isIsomorphicTo(tinv):
+                print("{}: Inverse oriented, but not isomorphic!".format(
+                    f.index() ))
+                print(t)
+                print(tinv)
+                print(tinv.detail())
+                break
+
+            # Now check that twoThree and the inverse threeTwo still give
+            # correct isomorphism type after a random relabelling.
+            r = Triangulation3(t)
+            iso = Isomorphism3.random(r.size())
+            r = iso(r)
+            source = f.embedding(0).simplex().index()
+            num = f.embedding(0).face()
+            simpImage = iso.simpImage(source)
+            faceImage = iso.facetPerm(source)[num]
+            r23 = Triangulation3(r)
+            rrenum = twoThree(
+                    r23.tetrahedron(simpImage).triangle(faceImage) )
+            if not pach.isIsomorphicTo(r23):
+                print( "{}: Not isomorphic after relabelling!".format(
+                    f.index() ) )
+                print(r)
+                print(pach)
+                print(r23)
+                break
+            rinv = Triangulation3(r23)
+            invIso = Isomorphism3.random( rinv.size() )
+            rinv = invIso(rinv)
+            invSource = rrenum[-1].tetrahedron().index()
+            invVerts = rrenum[-1].vertices()
+            invSimpImage = invIso.simpImage(invSource)
+            invVertsImage = invIso.facetPerm(invSource) * invVerts
+            invEdgeNum = Edge3.faceNumber(invVertsImage)
+            rinnum = threeTwo(
+                    rinv.tetrahedron(invSimpImage).edge(invEdgeNum) )
+            if not t.isIsomorphicTo(rinv):
+                print("{}: Inverse not isomorphic after relabelling!".format(
+                    f.index() ))
+                print(t)
+                print(rinv)
+                print(rinv.detail())
+                break
+
+            # Check that the renumberings are sensible by comparing edge
+            # multiplicities in the isomorphic triangulations t and tinv.
+            unmatchedMults = False
+            for i in range( t.countEdges() ):
+                mults = multiplicities( t.edge(i) )
+                comMults = multiplicities(
+                        tinv.edge(
+                            edgeIndex( tinnum[
+                                edgeIndex( trenum[i] ) ] ) ) )
+                if mults != comMults:
+                    unmatchedMults = True
+                    break
+            if unmatchedMults:
+                print("Unmatched edge multiplicities!")
+                print( "{}: {}, {}; {}".format(
+                    f.index(),
+                    { k: edgeIndex(v) for k, v in trenum.items() },
+                    { k: edgeIndex(v) for k, v in rrenum.items() },
+                    { k: edgeIndex(v) for k, v in tinnum.items()
+                     if v is not None } ) )
+                break
+
+            #TODO Add tests to check that we can indeed use the new
+            #       renumbering format to track orientation.
+        else:
+            # If we never broke out of the above loop, then all tests must
+            # have passed.
+            print()
+            print( "2-3 and 3-2 moves: Success!" )
+        return
+
+    for testSig in { "cMcabbgqs", "gLLPQcdefeffpvauppb" }:
+        test23(testSig)
+
+    #TODO Replace 0-2 move tests with something similar to what we did for 2-3
+    #       moves.
+    smallSig = "gLLPQcdefeffpvauppb"
+    t = Triangulation3.fromIsoSig(smallSig)
+    t.orient()
 
     print()
     print("========================")
