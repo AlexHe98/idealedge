@@ -816,6 +816,8 @@ def twoOne( edge, edgeEnd ):
 
 # Tests.
 if __name__ == "__main__":
+    from timeit import default_timer
+
     def multiplicities(edge):
         """
         Returns a list of the multiplicities of the given edge, sorted from
@@ -889,11 +891,29 @@ if __name__ == "__main__":
             raise AssertionError(
                     "{}: Inverse failed to preserve orientation!".format(
                         face.index() ) )
+
+        # Check that the renumberings are sensible by comparing edge
+        # multiplicities in origTri and inv.
+        for i in range( origTri.countEdges() ):
+            mults = multiplicities( origTri.edge(i) )
+            comMults = multiplicities(
+                    inv.edge(
+                        edgeIndex( innum[
+                            edgeIndex( renum[i] ) ] ) ) )
+            if mults != comMults:
+                print( { k: edgeIndex(v) for k, v in renum.items() } )
+                print( { k: edgeIndex(v) for k, v in innum.items()
+                        if v is not None } )
+                raise AssertionError(
+                        "{}: Unmatched edge multiplicities!".format(
+                            face.index() ) )
+
+        #TODO Add tests to check that we can indeed use the new
+        #       renumbering format to track orientation.
         return
 
     def test23all( testSig, maxIsos=16 ):
         print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
-        print()
         t = Triangulation3.fromIsoSig(testSig)
         t.orient()
 
@@ -935,39 +955,12 @@ if __name__ == "__main__":
                 for _ in range(count*25):
                     iso.inc()
 
-#            # Check that the renumberings are sensible by comparing edge
-#            # multiplicities in the isomorphic triangulations t and tinv.
-#            unmatchedMults = False
-#            for i in range( t.countEdges() ):
-#                mults = multiplicities( t.edge(i) )
-#                comMults = multiplicities(
-#                        tinv.edge(
-#                            edgeIndex( tinnum[
-#                                edgeIndex( trenum[i] ) ] ) ) )
-#                if mults != comMults:
-#                    unmatchedMults = True
-#                    break
-#            if unmatchedMults:
-#                print("Unmatched edge multiplicities!")
-#                print( "{}: {}, {}; {}".format(
-#                    f.index(),
-#                    { k: edgeIndex(v) for k, v in trenum.items() },
-#                    { k: edgeIndex(v) for k, v in rrenum.items() },
-#                    { k: edgeIndex(v) for k, v in tinnum.items()
-#                     if v is not None } ) )
-#                break
-#
-#            #TODO Add tests to check that we can indeed use the new
-#            #       renumbering format to track orientation.
-#        else:
-#            # If we never broke out of the above loop, then all tests must
-#            # have passed.
-#            print()
-#            print( "2-3 and 3-2 moves: Success!" )
-#        return
-
-    for testSig in { "cMcabbgqs", "gLLPQcdefeffpvauppb" }:
+    start = default_timer()
+    for testSig in [ "cMcabbgqs", "gLLPQcdefeffpvauppb" ]:
         test23all(testSig)
+    print()
+    print( "Time: {:.6f}".format( default_timer() - start ) )
+    print( "2-3 and 3-2 moves: All tests passed!" )
 
     #TODO Replace 0-2 move tests with something similar to what we did for 2-3
     #       moves.
