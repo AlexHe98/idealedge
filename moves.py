@@ -818,6 +818,11 @@ def twoOne( edge, edgeEnd ):
 if __name__ == "__main__":
     from timeit import default_timer
 
+    #NOTE These tests use the Isomorphism3 bracket operator, introduced in
+    #       Regina 7.1, to apply an isomorphism to a Triangulation3 object. In
+    #       older versions of Regina, equivalent functionality was provided by
+    #       the Isomorphism3.apply() routine.
+
     def multiplicities(edge):
         """
         Returns a list of the multiplicities of the given edge, sorted from
@@ -842,16 +847,35 @@ if __name__ == "__main__":
         ans.sort( reverse=True )
         return ans
 
+    def relativeEdgeOrientations( tri, iso ):
+        """
+        Returns the relative edge orientations resulting from applying the given
+        isomorphism to the given triangulation.
+        """
+        newTri = iso(tri)
+        ans = []
+        for e in tri.edges():
+            tetIndex = e.front().tetrahedron().index()
+            oldVerts = e.front().vertices()
+            tetImage = iso.simpImage(tetIndex)
+            newVerts = iso.facetPerm(tetIndex) * oldVerts
+
+            # Compare newVerts with the vertex permutation given by edgeMapping().
+            compareVerts = newTri.tetrahedron(tetImage).edgeMapping(
+                    Edge3.faceNumber(newVerts) )
+            if compareVerts[0] == newVerts[0]:
+                # Same orientation.
+                ans.append(1)
+            else:
+                # Opposite orientation.
+                ans.append(-1)
+        return ans
+
     print()
     print( "TESTS FOR ELEMENTARY MOVES" )
     print( "==========================" )
     print()
     RandomEngine.reseedWithHardware()
-
-    #NOTE These tests use the Isomorphism3 bracket operator, introduced in
-    #       Regina 7.1, to apply an isomorphism to a Triangulation3 object. In
-    #       older versions of Regina, equivalent functionality was provided by
-    #       the Isomorphism3.apply() routine.
 
     # Test 2-3 and 3-2 moves.
     #NOTE For these tests, we mostly perform moves on copies of triangulations
@@ -869,11 +893,11 @@ if __name__ == "__main__":
             print(pach)
             print(tri23)
             raise AssertionError(
-                    "{}: Not isomorphic!".format( face.index() ) )
+                    "Face {}: Not isomorphic!".format( face.index() ) )
         if ( origTri.isOriented() ) and ( not tri23.isOriented() ):
             print(tri23)
             raise AssertionError(
-                    "{}: Failed to preserve orientation!".format(
+                    "Face {}: Failed to preserve orientation!".format(
                         face.index() ) )
 
         # Also make sure that the inverse 3-2 move gives the correct
@@ -882,6 +906,8 @@ if __name__ == "__main__":
         tet32 = inv.tetrahedron( renum[-1].tetrahedron().index() )
         innum = threeTwo( tet32.edge( renum[-1].edge() ) )
         if not origTri.isIsomorphicTo(inv):
+            # This test is subsumed by the more detailed isomorphisms tests
+            # below, but we keep it anyway.
             print(inv)
             print( inv.detail() )
             raise AssertionError(
@@ -889,11 +915,14 @@ if __name__ == "__main__":
         if ( tri23.isOriented() ) and ( not inv.isOriented() ):
             print(inv)
             raise AssertionError(
-                    "{}: Inverse failed to preserve orientation!".format(
+                    "Face {}: Inverse failed to preserve orientation!".format(
                         face.index() ) )
 
         # Check that the renumberings are sensible by comparing edge
         # multiplicities in origTri and inv.
+        #
+        # This test is subsumed by the more detailed isomorphisms tests below,
+        # but we keep it anyway.
         for i in range( origTri.countEdges() ):
             mults = multiplicities( origTri.edge(i) )
             comMults = multiplicities(
@@ -905,11 +934,45 @@ if __name__ == "__main__":
                 print( { k: edgeIndex(v) for k, v in innum.items()
                         if v is not None } )
                 raise AssertionError(
-                        "{}: Unmatched edge multiplicities!".format(
+                        "Face {}: Unmatched edge multiplicities!".format(
                             face.index() ) )
 
-        #TODO Add tests to check that we can indeed use the new
-        #       renumbering format to track orientation.
+        # Check that the renumberings are sensible by searching for the
+        # isomorphism that relates inv back to origTri.
+        moveRelOr = []
+        for i in range( origTri.countEdges() ):
+            # Relative orientation after 2-3 move.
+            tetIndex = renum[i].tetrahedron().index()
+            verts = renum[i].vertices()
+            compareVerts = tri23.tetrahedron(tetIndex).edgeMapping(
+                    Edge3.faceNumber(verts) )
+            if verts[0] == compareVerts[0]:
+                moveRelOr.append(1)
+            else:
+                moveRelOr.append(-1)
+
+            # Relative orientation after inverse 3-2 move.
+            ii = edgeIndex( renum[i] )
+            tetIndex = innum[ii].tetrahedron().index()
+            verts = innum[ii].vertices()
+            compareVerts = inv.tetrahedron(tetIndex).edgeMapping(
+                    Edge3.faceNumber(verts) )
+            if verts[0] != compareVerts[0]:
+                moveRelOr[-1] *= -1
+        found = False
+        for iso in origTri.findAllIsomorphisms(inv):
+            if moveRelOr == relativeEdgeOrientations( origTri, iso ):
+                found = True
+                break
+        if not found:
+            print( { k: edgeIndex(v) for k, v in renum.items() } )
+            print( { k: edgeIndex(v) for k, v in innum.items()
+                    if v is not None } )
+            raise AssertionError(
+                    "Face {}: Relabellings failed!".format(
+                        face.index() ) )
+
+        # All done!
         return
 
     def test23all( testSig, maxIsos=16 ):
