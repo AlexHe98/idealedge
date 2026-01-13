@@ -899,8 +899,8 @@ if __name__ == "__main__":
             print(tinv.detail())
             break
 
-        # Now check that twoThree gives correct isomorphism type after a
-        # random relabelling.
+        # Now check that twoThree and the inverse threeTwo still give correct
+        # isomorphism type after a random relabelling.
         r = Triangulation3(t)
         iso = Isomorphism3.random(r.size())
         r = iso(r)
@@ -912,14 +912,28 @@ if __name__ == "__main__":
         rrenum = twoThree(
                 r23.tetrahedron(simpImage).triangle(faceImage) )
         if not pach.isIsomorphicTo(r23):
-            print("{}: Not isomorphic!".format(f.index()))
+            print("{}: Not isomorphic after relabelling!".format(f.index()))
             print(r)
             print(pach)
             print(r23)
             break
-
-        #TODO Also test threeTwo after random relabelling, since currently we
-        #       don't seem to test every case of the implementation.
+        rinv = Triangulation3(r23)
+        invIso = Isomorphism3.random( rinv.size() )
+        rinv = invIso(rinv)
+        invSource = rrenum[-1].tetrahedron().index()
+        invVerts = rrenum[-1].vertices()
+        invSimpImage = invIso.simpImage(invSource)
+        invVertsImage = invIso.facetPerm(invSource) * invVerts
+        invEdgeNum = Edge3.faceNumber(invVertsImage)
+        rinnum = threeTwo(
+                rinv.tetrahedron(invSimpImage).edge(invEdgeNum) )
+        if not t.isIsomorphicTo(rinv):
+            print("{}: Inverse not isomorphic after relabelling!".format(
+                f.index() ))
+            print(t)
+            print(rinv)
+            print(rinv.detail())
+            break
 
         # Check that the renumberings are sensible by comparing edge
         # multiplicities in the isomorphic triangulations t and tinv.
@@ -985,8 +999,8 @@ if __name__ == "__main__":
                 error = "<--"
             else:
                 error = ""
-            print( "{}/{}/{}: {} {}".format(
-                e.index(), i, ii, renum, error ) )
+            #print( "{}/{}/{}: {} {}".format(
+            #    e.index(), i, ii, renum, error ) )
     else:
         # If we never broke out of the above loop, then all tests must have
         # passed.
