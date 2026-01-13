@@ -1,7 +1,6 @@
 """
 Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
-from sys import argv, stdout
 from regina import *
 #TODO Make renumbering map send old edge indices to new *edge embeddings*, so
 #       that we can keep track of orientations.
@@ -816,7 +815,16 @@ def twoOne( edge, edgeEnd ):
 
 # Tests.
 if __name__ == "__main__":
+    from sys import argv, stdout
     from timeit import default_timer
+    from test import parseTestNames, doTest, allTestsPassedMessage
+
+    RandomEngine.reseedWithHardware()
+    availableTests = [ "23", "20" ]
+    #TODO Reinstate full suite of tests once we have finished updating all the
+    #       implementations.
+#    availableTests = [ "23", "20", "44", "graph" ]
+    testNames = parseTestNames( argv[1:], availableTests )
 
     #NOTE These tests use the Isomorphism3 bracket operator, introduced in
     #       Regina 7.1, to apply an isomorphism to a Triangulation3 object. In
@@ -871,159 +879,156 @@ if __name__ == "__main__":
                 ans.append(-1)
         return ans
 
-    print()
-    print( "TESTS FOR ELEMENTARY MOVES" )
-    print( "==========================" )
-    print()
-    RandomEngine.reseedWithHardware()
-
     # Test 2-3 and 3-2 moves.
     #NOTE For these tests, we mostly perform moves on copies of triangulations
     #       so that we don't lose all the labellings of the old
     #       triangulations.
-    def test23single( face, expectedTri ):
-        """
-        Perform a 2-3 move on the given face, and check (among other things)
-        that the result is isomorphic to expectedTri.
-        """
-        origTri = face.triangulation()
-        tri23 = Triangulation3(origTri)
-        renum = twoThree( tri23.triangle( face.index() ) )
-        if not expectedTri.isIsomorphicTo(tri23):
-            print(pach)
-            print(tri23)
-            raise AssertionError(
-                    "Face {}: Not isomorphic!".format( face.index() ) )
-        if ( origTri.isOriented() ) and ( not tri23.isOriented() ):
-            print(tri23)
-            raise AssertionError(
-                    "Face {}: Failed to preserve orientation!".format(
-                        face.index() ) )
+    if "23" in testNames:
+        print( "+-------------------+" )
+        print( "| 2-3 and 3-2 moves |")
+        print( "+-------------------+" )
 
-        # Also make sure that the inverse 3-2 move gives the correct
-        # triangulation, up to isomorphism.
-        inv = Triangulation3(tri23)
-        tet32 = inv.tetrahedron( renum[-1].tetrahedron().index() )
-        innum = threeTwo( tet32.edge( renum[-1].edge() ) )
-        if not origTri.isIsomorphicTo(inv):
+        def test23single( face, expectedTri ):
+            """
+            Perform a 2-3 move on the given face, and check (among other
+            things) that the result is isomorphic to expectedTri.
+            """
+            origTri = face.triangulation()
+            tri23 = Triangulation3(origTri)
+            renum = twoThree( tri23.triangle( face.index() ) )
+            if not expectedTri.isIsomorphicTo(tri23):
+                print(pach)
+                print(tri23)
+                msg = "Face {}: Not isomorphic!"
+                raise AssertionError( msg.format( face.index() ) )
+            if ( origTri.isOriented() ) and ( not tri23.isOriented() ):
+                print(tri23)
+                msg = "Face {}: Failed to preserve orientation!"
+                raise AssertionError( msg.format( face.index() ) )
+
+            # Also make sure that the inverse 3-2 move gives the correct
+            # triangulation, up to isomorphism.
+            inv = Triangulation3(tri23)
+            tet32 = inv.tetrahedron( renum[-1].tetrahedron().index() )
+            innum = threeTwo( tet32.edge( renum[-1].edge() ) )
+            if not origTri.isIsomorphicTo(inv):
+                # This test is subsumed by the more detailed isomorphisms
+                # tests below, but we keep it anyway.
+                print(inv)
+                print( inv.detail() )
+                msg = "{}: Inverse not isomorphic!"
+                raise AssertionError( msg.format( face.index() ) )
+            if ( tri23.isOriented() ) and ( not inv.isOriented() ):
+                print(inv)
+                msg = "Face {}: Inverse failed to preserve orientation!"
+                raise AssertionError( msg.format( face.index() ) )
+
+            # Check that the renumberings are sensible by comparing edge
+            # multiplicities in origTri and inv.
+            #
             # This test is subsumed by the more detailed isomorphisms tests
             # below, but we keep it anyway.
-            print(inv)
-            print( inv.detail() )
-            raise AssertionError(
-                    "{}: Inverse not isomorphic!".format( face.index() ) )
-        if ( tri23.isOriented() ) and ( not inv.isOriented() ):
-            print(inv)
-            raise AssertionError(
-                    "Face {}: Inverse failed to preserve orientation!".format(
-                        face.index() ) )
+            for i in range( origTri.countEdges() ):
+                mults = multiplicities( origTri.edge(i) )
+                comMults = multiplicities(
+                        inv.edge(
+                            edgeIndex( innum[
+                                edgeIndex( renum[i] ) ] ) ) )
+                if mults != comMults:
+                    print( { k: edgeIndex(v) for k, v in renum.items() } )
+                    print( { k: edgeIndex(v) for k, v in innum.items()
+                            if v is not None } )
+                    msg = "Face {}: Unmatched edge multiplicities!"
+                    raise AssertionError( msg.format( face.index() ) )
 
-        # Check that the renumberings are sensible by comparing edge
-        # multiplicities in origTri and inv.
-        #
-        # This test is subsumed by the more detailed isomorphisms tests below,
-        # but we keep it anyway.
-        for i in range( origTri.countEdges() ):
-            mults = multiplicities( origTri.edge(i) )
-            comMults = multiplicities(
-                    inv.edge(
-                        edgeIndex( innum[
-                            edgeIndex( renum[i] ) ] ) ) )
-            if mults != comMults:
+            # Check that the renumberings are sensible by searching for the
+            # isomorphism that relates inv back to origTri.
+            moveRelOr = []
+            for i in range( origTri.countEdges() ):
+                # Relative orientation after 2-3 move.
+                tetIndex = renum[i].tetrahedron().index()
+                verts = renum[i].vertices()
+                compareVerts = tri23.tetrahedron(tetIndex).edgeMapping(
+                        Edge3.faceNumber(verts) )
+                if verts[0] == compareVerts[0]:
+                    moveRelOr.append(1)
+                else:
+                    moveRelOr.append(-1)
+
+                # Relative orientation after inverse 3-2 move.
+                ii = edgeIndex( renum[i] )
+                tetIndex = innum[ii].tetrahedron().index()
+                verts = innum[ii].vertices()
+                compareVerts = inv.tetrahedron(tetIndex).edgeMapping(
+                        Edge3.faceNumber(verts) )
+                if verts[0] != compareVerts[0]:
+                    moveRelOr[-1] *= -1
+            found = False
+            for iso in origTri.findAllIsomorphisms(inv):
+                if moveRelOr == relativeEdgeOrientations( origTri, iso ):
+                    found = True
+                    break
+            if not found:
                 print( { k: edgeIndex(v) for k, v in renum.items() } )
                 print( { k: edgeIndex(v) for k, v in innum.items()
                         if v is not None } )
-                raise AssertionError(
-                        "Face {}: Unmatched edge multiplicities!".format(
-                            face.index() ) )
+                msg = "Face {}: Relabellings failed!"
+                raise AssertionError( msg.format( face.index() ) )
 
-        # Check that the renumberings are sensible by searching for the
-        # isomorphism that relates inv back to origTri.
-        moveRelOr = []
-        for i in range( origTri.countEdges() ):
-            # Relative orientation after 2-3 move.
-            tetIndex = renum[i].tetrahedron().index()
-            verts = renum[i].vertices()
-            compareVerts = tri23.tetrahedron(tetIndex).edgeMapping(
-                    Edge3.faceNumber(verts) )
-            if verts[0] == compareVerts[0]:
-                moveRelOr.append(1)
-            else:
-                moveRelOr.append(-1)
+            # All done!
+            return
 
-            # Relative orientation after inverse 3-2 move.
-            ii = edgeIndex( renum[i] )
-            tetIndex = innum[ii].tetrahedron().index()
-            verts = innum[ii].vertices()
-            compareVerts = inv.tetrahedron(tetIndex).edgeMapping(
-                    Edge3.faceNumber(verts) )
-            if verts[0] != compareVerts[0]:
-                moveRelOr[-1] *= -1
-        found = False
-        for iso in origTri.findAllIsomorphisms(inv):
-            if moveRelOr == relativeEdgeOrientations( origTri, iso ):
-                found = True
-                break
-        if not found:
-            print( { k: edgeIndex(v) for k, v in renum.items() } )
-            print( { k: edgeIndex(v) for k, v in innum.items()
-                    if v is not None } )
-            raise AssertionError(
-                    "Face {}: Relabellings failed!".format(
-                        face.index() ) )
+        def test23all( testSig, maxIsos=16 ):
+            print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
+            t = Triangulation3.fromIsoSig(testSig)
+            t.orient()
 
-        # All done!
-        return
-
-    def test23all( testSig, maxIsos=16 ):
-        print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
-        t = Triangulation3.fromIsoSig(testSig)
-        t.orient()
-
-        # Test 2-3 moves on all eligible triangles.
-        for f in t.triangles():
-            # Make sure that we get the correct isomorphism type, and that we
-            # preserve orientation.
-            pach = Triangulation3(t)
-            if not pach.pachner( pach.triangle( f.index() ) ):
-                # Not eligible.
-                continue
-            try:
-                test23single( f, pach )
-            except AssertionError as ae:
-                print(t)
-                raise ae
-
-            # To test as many cases of the implementation as possible, test
-            # the same 2-3 move with several relabellings of t.
-            iso = Isomorphism3.identity( t.size() )
-            iso.inc()
-            count = 0
-            while ( count < maxIsos ) and ( not iso.isIdentity() ):
-                count += 1
-                r = iso(t)
-                source = f.embedding(0).tetrahedron().index()
-                fnum = f.embedding(0).face()
-                tetImage = iso.simpImage(source)
-                faceImage = iso.facetPerm(source)[fnum]
+            # Test 2-3 moves on all eligible triangles.
+            for f in t.triangles():
+                # Make sure that we get the correct isomorphism type, and that
+                # we preserve orientation.
+                pach = Triangulation3(t)
+                if not pach.pachner( pach.triangle( f.index() ) ):
+                    # Not eligible.
+                    continue
                 try:
-                    test23single(
-                            r.tetrahedron(tetImage).triangle(faceImage),
-                            pach )
+                    test23single( f, pach )
                 except AssertionError as ae:
-                    print(iso)
+                    print(t)
                     raise ae
 
-                # Done with this isomorphism, so try another one.
-                for _ in range(count*25):
-                    iso.inc()
+                # To test as many cases of the implementation as possible,
+                # test the same 2-3 move with several relabellings of t.
+                iso = Isomorphism3.identity( t.size() )
+                iso.inc()
+                count = 0
+                while ( count < maxIsos ) and ( not iso.isIdentity() ):
+                    count += 1
+                    r = iso(t)
+                    source = f.embedding(0).tetrahedron().index()
+                    fnum = f.embedding(0).face()
+                    tetImage = iso.simpImage(source)
+                    faceImage = iso.facetPerm(source)[fnum]
+                    try:
+                        test23single(
+                                r.tetrahedron(tetImage).triangle(faceImage),
+                                pach )
+                    except AssertionError as ae:
+                        print(iso)
+                        raise ae
 
-    start = default_timer()
-    for testSig in [ "cMcabbgqs", "gLLPQcdefeffpvauppb" ]:
-        test23all(testSig)
-    print()
-    print( "Time: {:.6f}".format( default_timer() - start ) )
-    print( "2-3 and 3-2 moves: All tests passed!" )
+                    # Done with this isomorphism, so try another one.
+                    for _ in range(count*25):
+                        iso.inc()
+
+        # Run 2-3 and 3-2 move tests.
+        start = default_timer()
+        for testSig in [ "cMcabbgqs", "gLLPQcdefeffpvauppb" ]:
+            test23all(testSig)
+        print()
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "2-3 and 3-2 moves: All tests passed!" )
+        print()
 
     #TODO Replace 0-2 move tests with something similar to what we did for 2-3
     #       moves.
@@ -1031,182 +1036,191 @@ if __name__ == "__main__":
     t = Triangulation3.fromIsoSig(smallSig)
     t.orient()
 
-    print()
-    print("========================")
-    print()
-    print( "0-2 and 2-0 moves on \"{}\"".format(smallSig) )
-    print()
-
     # Test 2-0 moves.
-    for e in t.edges():
-        deg = e.degree()
-        for i in range(deg):
-            ii = i + RandomEngine.rand( deg - i )
-            tt = Triangulation3(t)
-            if not tt.zeroTwoMove( tt.edge( e.index() ), i, ii ):
-                continue
+    if "20" in testNames:
+        print( "+-----------+" )
+        print( "| 2-0 moves |")
+        print( "+-----------+" )
 
-            # Test the inverse 2-0 move using twoZero().
-            iso = Isomorphism3.random(tt.size())
-            tt = iso(tt)
-            simpImage = iso.simpImage( tt.size() - 1 )
-            facetPerm = iso.facetPerm( tt.size() - 1 )
-            testInd = tt.tetrahedron( simpImage ).edge(
-                    facetPerm[2], facetPerm[3] ).index()
-            renum = twoZero( tt.edge(testInd) )
-            if not t.isIsomorphicTo(tt):
-                print( "{}/{}/{}".format( e.index(), i, ii ) +
-                        ": 0-2 followed by 2-0 not isomorphic!" )
-
-            # Very basic sanity check for the renumberings.
-            bef = len( set( renum.keys() ) )
-            aft = len( set( renum.values() ) )
-            if ( renum[testInd] != -1 ) or ( bef != 1 + aft ):
-                error = "<--"
-            else:
-                error = ""
-            #print( "{}/{}/{}: {} {}".format(
-            #    e.index(), i, ii, renum, error ) )
-    else:
-        # If we never broke out of the above loop, then all tests must have
-        # passed.
         print()
-        print( "0-2 and 2-0 moves: Success!" )
+        print( "0-2 and 2-0 moves on \"{}\"".format(smallSig) )
+        print()
+
+        for e in t.edges():
+            deg = e.degree()
+            for i in range(deg):
+                ii = i + RandomEngine.rand( deg - i )
+                tt = Triangulation3(t)
+                if not tt.zeroTwoMove( tt.edge( e.index() ), i, ii ):
+                    continue
+
+                # Test the inverse 2-0 move using twoZero().
+                iso = Isomorphism3.random(tt.size())
+                tt = iso(tt)
+                simpImage = iso.simpImage( tt.size() - 1 )
+                facetPerm = iso.facetPerm( tt.size() - 1 )
+                testInd = tt.tetrahedron( simpImage ).edge(
+                        facetPerm[2], facetPerm[3] ).index()
+                renum = twoZero( tt.edge(testInd) )
+                if not t.isIsomorphicTo(tt):
+                    print( "{}/{}/{}".format( e.index(), i, ii ) +
+                            ": 0-2 followed by 2-0 not isomorphic!" )
+
+                # Very basic sanity check for the renumberings.
+                bef = len( set( renum.keys() ) )
+                aft = len( set( renum.values() ) )
+                if ( renum[testInd] != -1 ) or ( bef != 1 + aft ):
+                    error = "<--"
+                else:
+                    error = ""
+                #print( "{}/{}/{}: {} {}".format(
+                #    e.index(), i, ii, renum, error ) )
+        else:
+            # If we never broke out of the above loop, then all tests must
+            # have passed.
+            print()
+            print( "0-2 and 2-0 moves: Success!" )
 
     #TODO Update tests to use new renumbering format.
 
-#    print()
-#    print("========================")
-#    print()
-#    print( "4-4 moves on \"{}\"".format(smallSig) )
-#    print()
-#
-#    # Test 4-4 moves.
-#    for e in t.edges():
-#        for newAxis in range(2):
-#            reg44 = Triangulation3(t)
-#            new44 = Triangulation3(t)
-#            if not reg44.fourFourMove( reg44.edge( e.index() ), newAxis ):
-#                continue
-#            renum = fourFour( new44.edge( e.index() ), newAxis )
-#
-#            # Test that fourFour gives the right isomorphism type, and that
-#            # it outputs sensible renumberings.
-#            if not reg44.isIsomorphicTo(new44):
-#                print("{}/{}: 4-4 not isomorphic!".format(
-#                    e.index(), newAxis ))
-#                print(t)
-#                print(reg44)
-#                print(new44)
-#                break
-#            if set( renum.keys() ) != set( renum.values() ):
-#                error = "<--"
-#            else:
-#                error = ""
-#            print( "{}/{}: {} {}".format(
-#                e.index(), newAxis, renum, error ) )
-#    else:
-#        print()
-#        print( "4-4 moves: Success!" )
-#
-#    # Perform a bunch of moves to check that we don't get any exceptions.
-#    print()
-#    print("========================")
-#    print()
-#    print( "Perform moves on \"cMcabbgqs\" up to height 3." )
-#    print()
-#    initSig = "cMcabbgqs"
-#    stack = [ initSig ]
-#    seen = { initSig }
-#    initSize = 2
-#    maxSize = 5
-#    counts = { "2-1": 0, "2-0": 0, "3-2": 0, "4-4": 0, "2-3": 0 }
-#    while stack:
-#        sig = stack.pop()
-#        tri = Triangulation3.fromIsoSig(sig)
-#        if tri.size() <= initSize:
-#            print(sig)
-#            stdout.flush()
-#
-#        # Moves on edges.
-#        for e in tri.edges():
-#            if e.degree() == 1:
-#                for edgeEnd in {0,1}:
-#                    newTri = Triangulation3(tri)
-#                    renum = twoOne( newTri.edge( e.index() ), edgeEnd )
-#                    if renum is None:
-#                        continue
-#                    counts["2-1"] += 1
-#
-#                    # If we haven't seen the new triangulation before (up to
-#                    # combinatorial isomorphism), then add it to the stack.
-#                    newSig = newTri.isoSig()
-#                    if newSig not in seen:
-#                        seen.add(newSig)
-#                        stack.append(newSig)
-#            elif e.degree() == 2:
-#                newTri = Triangulation3(tri)
-#                renum = twoZero( newTri.edge( e.index() ) )
-#                if renum is None:
-#                    continue
-#                counts["2-0"] += 1
-#
-#                # If we haven't seen the new triangulation before (up to
-#                # combinatorial isomorphism), then add it to the stack.
-#                newSig = newTri.isoSig()
-#                if newSig not in seen:
-#                    seen.add(newSig)
-#                    stack.append(newSig)
-#            elif e.degree() == 3:
-#                newTri = Triangulation3(tri)
-#                renum = threeTwo( newTri.edge( e.index() ) )
-#                if renum is None:
-#                    continue
-#                counts["3-2"] += 1
-#
-#                # If we haven't seen the new triangulation before (up to
-#                # combinatorial isomorphism), then add it to the stack.
-#                newSig = newTri.isoSig()
-#                if newSig not in seen:
-#                    seen.add(newSig)
-#                    stack.append(newSig)
-#            elif e.degree() == 4:
-#                for newAxis in {0,1}:
-#                    newTri = Triangulation3(tri)
-#                    renum = fourFour( newTri.edge( e.index() ), newAxis )
-#                    if renum is None:
-#                        continue
-#                    counts["4-4"] += 1
-#
-#                    # If we haven't seen the new triangulation before (up to
-#                    # combinatorial isomorphism), then add it to the stack.
-#                    newSig = newTri.isoSig()
-#                    if newSig not in seen:
-#                        seen.add(newSig)
-#                        stack.append(newSig)
-#
-#        # 2-3 moves (only if such moves would not exceed the given height).
-#        if tri.size() == maxSize:
-#            continue
-#        for f in tri.triangles():
-#            newTri = Triangulation3(tri)
-#            renum = twoThree( newTri.triangle( f.index() ) )
-#            if renum is None:
-#                continue
-#            counts["2-3"] += 1
-#
-#            # If we haven't seen the new triangulation before (up to
-#            # combinatorial isomorphism), then add it to the stack.
-#            newSig = newTri.isoSig()
-#            if newSig not in seen:
-#                seen.add(newSig)
-#                stack.append(newSig)
-#
-#    # Print move counts.
-#    print()
-#    print( "Tested: {} {}; {} {}; {} {}; {} {}; {} {}.".format(
-#        counts["2-1"], "2-1 moves",
-#        counts["2-0"], "2-0 moves",
-#        counts["3-2"], "3-2 moves",
-#        counts["4-4"], "4-4 moves",
-#        counts["2-3"], "2-3 moves" ) )
+    # Test 4-4 moves.
+    if "44" in testNames:
+        print( "+-----------+" )
+        print( "| 4-4 moves |")
+        print( "+-----------+" )
+
+        print()
+        print( "4-4 moves on \"{}\"".format(smallSig) )
+        print()
+
+        for e in t.edges():
+            for newAxis in range(2):
+                reg44 = Triangulation3(t)
+                new44 = Triangulation3(t)
+                if not reg44.fourFourMove( reg44.edge( e.index() ), newAxis ):
+                    continue
+                renum = fourFour( new44.edge( e.index() ), newAxis )
+
+                # Test that fourFour gives the right isomorphism type, and
+                # that it outputs sensible renumberings.
+                if not reg44.isIsomorphicTo(new44):
+                    print("{}/{}: 4-4 not isomorphic!".format(
+                        e.index(), newAxis ))
+                    print(t)
+                    print(reg44)
+                    print(new44)
+                    break
+                if set( renum.keys() ) != set( renum.values() ):
+                    error = "<--"
+                else:
+                    error = ""
+                print( "{}/{}: {} {}".format(
+                    e.index(), newAxis, renum, error ) )
+        else:
+            print()
+            print( "4-4 moves: Success!" )
+
+    # Perform a bunch of moves to check that we don't get any exceptions.
+    if "graph" in testNames:
+        print( "+---------------------+" )
+        print( "| Triangulation graph |" )
+        print( "+---------------------+" )
+
+        print()
+        print( "Perform moves on \"cMcabbgqs\" up to height 3." )
+        print()
+        initSig = "cMcabbgqs"
+        stack = [ initSig ]
+        seen = { initSig }
+        initSize = 2
+        maxSize = 5
+        counts = { "2-1": 0, "2-0": 0, "3-2": 0, "4-4": 0, "2-3": 0 }
+        while stack:
+            sig = stack.pop()
+            tri = Triangulation3.fromIsoSig(sig)
+            if tri.size() <= initSize:
+                print(sig)
+                stdout.flush()
+
+            # Moves on edges.
+            for e in tri.edges():
+                if e.degree() == 1:
+                    for edgeEnd in {0,1}:
+                        newTri = Triangulation3(tri)
+                        renum = twoOne( newTri.edge( e.index() ), edgeEnd )
+                        if renum is None:
+                            continue
+                        counts["2-1"] += 1
+
+                        # If we haven't seen the new triangulation before (up to
+                        # combinatorial isomorphism), then add it to the stack.
+                        newSig = newTri.isoSig()
+                        if newSig not in seen:
+                            seen.add(newSig)
+                            stack.append(newSig)
+                elif e.degree() == 2:
+                    newTri = Triangulation3(tri)
+                    renum = twoZero( newTri.edge( e.index() ) )
+                    if renum is None:
+                        continue
+                    counts["2-0"] += 1
+
+                    # If we haven't seen the new triangulation before (up to
+                    # combinatorial isomorphism), then add it to the stack.
+                    newSig = newTri.isoSig()
+                    if newSig not in seen:
+                        seen.add(newSig)
+                        stack.append(newSig)
+                elif e.degree() == 3:
+                    newTri = Triangulation3(tri)
+                    renum = threeTwo( newTri.edge( e.index() ) )
+                    if renum is None:
+                        continue
+                    counts["3-2"] += 1
+
+                    # If we haven't seen the new triangulation before (up to
+                    # combinatorial isomorphism), then add it to the stack.
+                    newSig = newTri.isoSig()
+                    if newSig not in seen:
+                        seen.add(newSig)
+                        stack.append(newSig)
+                elif e.degree() == 4:
+                    for newAxis in {0,1}:
+                        newTri = Triangulation3(tri)
+                        renum = fourFour( newTri.edge( e.index() ), newAxis )
+                        if renum is None:
+                            continue
+                        counts["4-4"] += 1
+
+                        # If we haven't seen the new triangulation before (up to
+                        # combinatorial isomorphism), then add it to the stack.
+                        newSig = newTri.isoSig()
+                        if newSig not in seen:
+                            seen.add(newSig)
+                            stack.append(newSig)
+
+            # 2-3 moves (only if such moves would not exceed the given height).
+            if tri.size() == maxSize:
+                continue
+            for f in tri.triangles():
+                newTri = Triangulation3(tri)
+                renum = twoThree( newTri.triangle( f.index() ) )
+                if renum is None:
+                    continue
+                counts["2-3"] += 1
+
+                # If we haven't seen the new triangulation before (up to
+                # combinatorial isomorphism), then add it to the stack.
+                newSig = newTri.isoSig()
+                if newSig not in seen:
+                    seen.add(newSig)
+                    stack.append(newSig)
+
+        # Print move counts.
+        print()
+        print( "Tested: {} {}; {} {}; {} {}; {} {}; {} {}.".format(
+            counts["2-1"], "2-1 moves",
+            counts["2-0"], "2-0 moves",
+            counts["3-2"], "3-2 moves",
+            counts["4-4"], "4-4 moves",
+            counts["2-3"], "2-3 moves" ) )

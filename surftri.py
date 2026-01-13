@@ -1,9 +1,7 @@
 """
 Minimal triangulations of surfaces with nonempty boundary.
 """
-from sys import argv
 from regina import *
-from test import parseTestNames, doTest, allTestsPassedMessage
 
 
 def orientable( genus, boundaries ):
@@ -198,6 +196,9 @@ def _addBoundaries( surf, boundaries ):
 
 
 if __name__ == "__main__":
+    from sys import argv
+    from test import parseTestNames, doTest, allTestsPassedMessage
+
     availableTests = [ "orbl",
                       "norbl" ]
     testNames = parseTestNames( argv[1:], availableTests )
