@@ -646,9 +646,6 @@ def twoZero(edge):
     If the triangulation containing the given edge is currently oriented,
     then this orientation will be preserved by the requested 2-0 move.
     """
-
-    #TODO WORKING HERE.
-
     tri = edge.triangulation()
 
     # Is the requested 2-0 move legal?
@@ -657,74 +654,54 @@ def twoZero(edge):
 
     # How will the tetrahedra in tri get renumbered after we perform the
     # requested 2-0 move?
-    doomed = sorted(
+    doomedIndices = sorted(
             [ emb.simplex().index() for emb in edge.embeddings() ] )
-    newIndex = [] # Value of newIndex[ doomed[i] ] is meaningless.
+    newIndex = [] # Value of newIndex[ doomedIndices[i] ] is meaningless.
     for k in range( tri.size() ):
-        if k < doomed[0]:
+        if k < doomedIndices[0]:
             newIndex.append(k)
-        elif k < doomed[1]:
+        elif k < doomedIndices[1]:
             newIndex.append(k-1)
         else:
             newIndex.append(k-2)
 
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 2-0 move.
-    # Note that the two edges "opposite" e become identified, so we need to
-    # treat these edges a bit differently from the others.
-    opp = { emb.simplex().edge( 5 - emb.face() )
-            for emb in edge.embeddings() }
-    oppDest = None
     edgeLocations = []
     for e in tri.edges():
-        # The edge about which we perform the 3-2 move gets removed entirely.
+        # The edge about which we perform the 2-0 move gets removed entirely,
+        # so there's nothing we can do with it for now.
         if e == edge:
             continue
-        # If e is one of the opposite edges and we have already processed the
-        # other opposite edge, then we already know where e will end up.
-        if ( e in opp ) and ( oppDest is not None ):
-            edgeLocations.append(
-                    ( e.index(), oppDest[0], oppDest[1] ) )
-            continue
+
+        # Go through the embeddings of e. At least one of these will
+        # correspond to a tetrahedron that survives the 2-0 move.
         for emb in e.embeddings():
-            oldTet = emb.simplex().index()
-            if oldTet not in doomed:
-                edgeLocations.append(
-                        ( e.index(), newIndex[oldTet], emb.face() ) )
-                # If e is one of the opposite edges (and we haven't yet
-                # processed the other opposite edge), then remember where e
-                # ends up (because the other opposite edge will end up in the
-                # same place).
-                if e in opp:
-                    oppDest = ( newIndex[oldTet], emb.face() )
-                # Move on to the next edge.
-                break
-        else:
-            # We did not break out of this for loop early. The only way this
-            # can happen is if e is one of the opposite edges, in which case
-            # what we should do is find a tetrahedron that will meet the
-            # *other* opposite edge.
-            for otherOpp in opp:
-                if otherOpp != e:
-                    break
-            for otherEmb in otherOpp.embeddings():
-                otherTet = otherEmb.simplex().index()
-                if otherTet not in doomed:
-                    oppDest = ( newIndex[otherTet], otherEmb.face() )
-                    edgeLocations.append(
-                            ( e.index(), oppDest[0], oppDest[1] ) )
-                    # Move on to the next edge.
-                    break
+            oldTetInd = emb.tetrahedron().index()
+            if oldTetInd in doomedIndices:
+                continue
+
+            # This one survives!
+            edgeLocations.append(
+                    ( e.index(), newIndex[oldTetInd], emb.vertices() ) )
 
     # Perform the 2-0 move, and work out how the edges were renumbered.
-    removeIndex = edge.index() # Need to remember this for later.
-    tri.twoZeroMove( edge, False, True )
+    removeIndex = edge.index()  # Need to remember this for later.
+    tri.twoZeroMove( edge, False, True )    # No need to check again.
     renum = {}
-    for k, m, n in edgeLocations:
-        renum[k] = tri.tetrahedron(m).edge(n).index()
+    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
+        # Now that we have performed the requested 2-0 move, we can use the
+        # edgeLocations computed above to create a new EdgeEmbedding3 object
+        # for the edge e that was previously at index oldEdgeInd. This new
+        # EdgeEmbedding3 object won't satisfy the usual correspondence with
+        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
+        # in such a way that the orientation of e is preserved.
+        newEdgeEmb = EdgeEmbedding3(
+                tri.tetrahedron(newTetInd), newVertPerm )
+        renum[oldEdgeInd] = newEdgeEmb
 
     # Don't forget that we removed the given edge!
-    renum[ removeIndex ] = -1
+    renum[ removeIndex ] = None
     return renum
 
 
