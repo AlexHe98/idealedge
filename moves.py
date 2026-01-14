@@ -8,6 +8,9 @@ from regina import *
 #TODO Make a new function for "composing" renumbering maps. Or maybe it would
 #       make sense to create a new EdgeRenumbering class?
 
+#TODO Consider replacing Regina's deprecated moves routines with the new
+#       routines that were introduced in Regina 7.4.
+
 
 def edgeIndex(edgeEmbedding):
     """
@@ -665,6 +668,8 @@ def twoZero(edge):
         else:
             newIndex.append(k-2)
 
+    #TODO Restore oppEdges logic to handle the case of a degenerate 2-0 move.
+
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 2-0 move.
     edgeLocations = []
@@ -823,6 +828,17 @@ if __name__ == "__main__":
     #       older versions of Regina, equivalent functionality was provided by
     #       the Isomorphism3.apply() routine.
 
+    def generateIsomorphisms( triSize, maxIsos ):
+        iso = Isomorphism3.identity(triSize)
+        iso.inc()
+        count = 0
+        while ( count < maxIsos ) and ( not iso.isIdentity() ):
+            count += 1
+            yield iso
+            for _ in range(count*25):
+                iso.inc()
+        return
+
     def multiplicities(edge):
         """
         Returns a list of the multiplicities of the given edge, sorted from
@@ -889,7 +905,7 @@ if __name__ == "__main__":
             tri23 = Triangulation3(origTri)
             renum = twoThree( tri23.triangle( face.index() ) )
             if not expectedTri.isIsomorphicTo(tri23):
-                print(pach)
+                print(expectedTri)
                 print(tri23)
                 msg = "Face {}: Not isomorphic!"
                 raise AssertionError( msg.format( face.index() ) )
@@ -991,11 +1007,7 @@ if __name__ == "__main__":
 
                 # To test as many cases of the implementation as possible,
                 # test the same 2-3 move with several relabellings of t.
-                iso = Isomorphism3.identity( t.size() )
-                iso.inc()
-                count = 0
-                while ( count < maxIsos ) and ( not iso.isIdentity() ):
-                    count += 1
+                for iso in generateIsomorphisms( t.size(), maxIsos ):
                     r = iso(t)
                     source = f.embedding(0).tetrahedron().index()
                     fnum = f.embedding(0).face()
@@ -1009,9 +1021,8 @@ if __name__ == "__main__":
                         print(iso)
                         raise ae
 
-                    # Done with this isomorphism, so try another one.
-                    for _ in range(count*25):
-                        iso.inc()
+            # All done!
+            return
 
         # Run 2-3 and 3-2 move tests.
         start = default_timer()
@@ -1022,58 +1033,109 @@ if __name__ == "__main__":
         print( "2-3 and 3-2 moves: All tests passed!" )
         print()
 
-    #TODO Replace 0-2 move tests with something similar to what we did for 2-3
-    #       moves.
-    smallSig = "gLLPQcdefeffpvauppb"
-    t = Triangulation3.fromIsoSig(smallSig)
-    t.orient()
-
     # Test 2-0 moves.
     if "20" in testNames:
         print( "+-----------+" )
         print( "| 2-0 moves |")
         print( "+-----------+" )
 
-        print()
-        print( "0-2 and 2-0 moves on \"{}\"".format(smallSig) )
-        print()
+        def zeroTwo( tri, edgeIndex, i, ii ):
+            """
+            Performs a 0-2 move and returns the newly-introduced edge, or None
+            if the requested 0-2 move is not legal.
+            """
+            if not tri.move02( tri.edge(edgeIndex), i, ii ):
+                return None
 
-        for e in t.edges():
-            deg = e.degree()
-            for i in range(deg):
-                ii = i + RandomEngine.rand( deg - i )
-                tt = Triangulation3(t)
-                if not tt.zeroTwoMove( tt.edge( e.index() ), i, ii ):
+            # The requested 0-2 move was performed successfully. Now find the
+            # newly-introduced edge.
+            #
+            #NOTE This implementation assumes that the two new tetrahedra
+            #       introduced by move02() are located at the last 2 indices.
+            tet = tri.tetrahedron( tri.size() - 1 )
+            for edgeNum in range(6):
+                edge = tet.edge(edgeNum)
+                if edge.degree() != 2:
                     continue
 
-                # Test the inverse 2-0 move using twoZero().
-                iso = Isomorphism3.random(tt.size())
-                tt = iso(tt)
-                simpImage = iso.simpImage( tt.size() - 1 )
-                facetPerm = iso.facetPerm( tt.size() - 1 )
-                testInd = tt.tetrahedron( simpImage ).edge(
-                        facetPerm[2], facetPerm[3] ).index()
-                renum = twoZero( tt.edge(testInd) )
-                if not t.isIsomorphicTo(tt):
-                    print( "{}/{}/{}".format( e.index(), i, ii ) +
-                            ": 0-2 followed by 2-0 not isomorphic!" )
+                # Because the last two tetrahedra of tri were introduced by
+                # the 0-2 move that we just performed, the newly-introduced
+                # edge must be the unique degree-2 edge that is incident to
+                # both of the last two tetrahedra (this is easy to check).
+                incidentTetInds = { edge.front().tetrahedron().index(),
+                                   edge.back().tetrahedron().index() }
+                if incidentTetInds == { tri.size() - 1, tri.size() - 2 }:
+                    return edge
+            raise AssertionError(
+                    "zeroTwo() should never reach this point." )
 
-                # Very basic sanity check for the renumberings.
-                bef = len( set( renum.keys() ) )
-                aft = len( set( renum.values() ) )
-                if ( renum[testInd] != -1 ) or ( bef != 1 + aft ):
-                    error = "<--"
-                else:
-                    error = ""
-                #print( "{}/{}/{}: {} {}".format(
-                #    e.index(), i, ii, renum, error ) )
-        else:
-            # If we never broke out of the above loop, then all tests must
-            # have passed.
-            print()
-            print( "0-2 and 2-0 moves: Success!" )
+        def test20single( edge, expectedTri ):
+            """
+            Perform a 2-0 move on the given face, and check (among other
+            things) that the result is isomorphic to expectedTri.
+            """
+            origTri = edge.triangulation()
+            tri20 = Triangulation3(origTri)
+            renum = twoZero( tri20.edge( edge.index() ) )
+            if not expectedTri.isIsomorphicTo(tri20):
+                print(expectedTri)
+                print(tri20)
+                msg = "Edge {}: Not isomorphic!"
+                raise AssertionError( msg.format( edge.index() ) )
+            if ( origTri.isOriented() ) and ( not tri20.isOriented() ):
+                print(tri20)
+                msg = "Edge {}: Failed to preserve orientation!"
+                raise AssertionError( msg.format( edge.index() ) )
+
+            #TODO Check that the renumberings are sensible?
+
+            # All done!
+            return
+
+        def test20all( testSig, maxIsos=8 ):
+            """
+            Test inverse 2-0 moves on the triangulations obtained by
+            performing 0-2 moves on the given iso sig.
+            """
+            print( "0-2 and 2-0 moves on \"{}\"".format(testSig) )
+            t = Triangulation3.fromIsoSig(testSig)
+            t.orient()
+
+            for e in t.edges():
+                deg = e.degree()
+                for i in range(deg):
+                    for ii in range( i, deg ):
+                        tt = Triangulation3(t)
+                        newEdge = zeroTwo( tt, e.index(), i, ii )
+                        if newEdge is None:
+                            # No 0-2 here.
+                            continue
+
+                        # Test that the inverse 2-0 move, performed on tt
+                        # using twoZero(), brings us back to a triangulation
+                        # isomorphic to t.
+                        test20single( newEdge, t )
+
+                        #TODO Perform the same test after relabelling?
+
+            # All done!
+            return
+
+        # Run 2-0 move tests.
+        start = default_timer()
+        test20all( "gLLPQcdefeffpvauppb" )
+        print()
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "2-0 moves: All tests passed!" )
+        print()
 
     #TODO Update tests to use new renumbering format.
+
+    #TODO Replace 4-4 move tests with something similar to what we did for 2-3
+    #       and 2-0 moves.
+    smallSig = "gLLPQcdefeffpvauppb"
+    t = Triangulation3.fromIsoSig(smallSig)
+    t.orient()
 
     # Test 4-4 moves.
     if "44" in testNames:
