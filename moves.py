@@ -668,8 +668,6 @@ def twoZero(edge):
         else:
             newIndex.append(k-2)
 
-    #TODO Restore oppEdges logic to handle the case of a degenerate 2-0 move.
-
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 2-0 move.
     edgeLocations = []
@@ -679,16 +677,90 @@ def twoZero(edge):
         if e == edge:
             continue
 
-        # Go through the embeddings of e. At least one of these will
-        # correspond to a tetrahedron that survives the 2-0 move.
+        # Go through the embeddings of e, and look for a tetrahedron that
+        # survives the 2-0 move.
+        found = False
         for emb in e.embeddings():
-            oldTetInd = emb.tetrahedron().index()
+            oldTetInd  = emb.tetrahedron().index()
             if oldTetInd in doomedIndices:
                 continue
 
             # This one survives!
+            found = True
             edgeLocations.append(
                     ( e.index(), newIndex[oldTetInd], emb.vertices() ) )
+            break
+        if found:
+            continue
+
+        # There is only one way we can fail to find a surviving tetrahedron.
+        # To see this, recall that the two tetrahedra involved in the 2-0 move
+        # form a square pillow, and we have already checked that the move is
+        # legal. Since e is not incident to a surviving tetrahedron, it must
+        # be the case that e is one of the two edges "opposite" the input
+        # edge; moreover, we must have folded the two adjacent faces across e
+        # so that e forms an internal edge of degree one. The 2-0 move will
+        # merge e with the other opposite edge, and so we can simply go
+        # through the tetrahedra incident to this other edge and thereby find
+        # a suitable surviving tetrahedron.
+        #
+        # We first find the other opposite edge by examining the two
+        # tetrahedra that are involved in the 2-0 move.
+        #
+        #            oppTet                           otherTet
+        #
+        #           oppVer[2]                        otherVer[2]
+        #               •                                 •
+        #              /|\                               /|\
+        #             / | \                             / | \
+        #   oppVer[0]•--|--•oppVer[1]       otherVer[1]•--|--•otherVer[0]
+        #             \ | /                             \ | /
+        #              \|/                               \|/
+        #               •                                 •
+        #           oppVer[3]                        otherVer[3]
+        #
+        oppEmb = e.front()
+        oppTet = oppEmb.tetrahedron()
+        oppVer = oppEmb.vertices()
+        oppGlu = oppTet.adjacentGluing( oppVer[0] )
+        otherTet = oppTet.adjacentTetrahedron( oppVer[1] )
+        otherVer = oppGlu * oppVer
+        otherEdgeNum = Edge3.faceNumber(otherVer)
+        otherEdge = otherTet.edge(otherEdgeNum)
+
+        # Find a surviving tetrahedron incident to the otherEdge.
+        fixOrientation = None
+        surviveEmb = None
+        for emb in otherEdge.embeddings():
+            tet = emb.tetrahedron()
+            if tet == otherTet:     # Implies tet.index() in doomedIndices.
+                if emb.edge() != otherEdgeNum:
+                    continue
+
+                # Compare the vertex permutation given by this embedding with
+                # otherVer. This will tell us whether the 2-0 move will merge
+                # e and otherEdge with the same or opposite orientations.
+                if emb.vertices()[0] == otherVer[0]:
+                    fixOrientation = Perm4()
+                else:
+                    fixOrientation = Perm4(1,0,3,2)
+
+                # If we have already determined surviveEmb, then we are ready
+                # to determine the edgeLocations data for e.
+                if surviveEmb is not None:
+                    break
+            elif tet.index() not in doomedIndices:
+                # This one survives!
+                if surviveEmb is None:
+                    surviveEmb = emb
+
+                # If we have already determined fixOrientation, then we are
+                # ready to determine the edgeLocations data for e.
+                if fixOrientation is not None:
+                    break
+        edgeLocations.append( ( e.index(),
+                               newIndex[ surviveEmb.tetrahedron().index() ],
+                               surviveEmb.vertices() * fixOrientation ) )
 
     # Perform the 2-0 move, and work out how the edges were renumbered.
     removeIndex = edge.index()  # Need to remember this for later.
