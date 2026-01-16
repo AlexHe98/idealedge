@@ -73,7 +73,7 @@ class EdgeLabelling:
         edges in tri.
         """
         if labelling is None:
-            labelling = { e.index(): e.front() for e in tri.edge() }
+            labelling = { e.index(): e.front() for e in tri.edges() }
         self._tri = tri
         self._labelling = labelling
         return

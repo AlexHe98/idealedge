@@ -53,15 +53,22 @@ def twoThree( triangle, edgeLab=None ):
         is not already tracked by the reference labelling (typically, this
         will mean that i is -1).
 
+    This routine will never modify edgeLab (if supplied).
+
     If triangle.triangulation() is currently oriented, then this orientation
     will be preserved by the requested 2-3 move.
     """
-    #TODO Update implementation to use EdgeLabelling.
-
     tri = triangle.triangulation()
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 2-3 move legal?
-    if not tri.pachner(triangle, True, False):
+    #
+    #NOTE Triangulation3.hasPachner(f) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.pachner( f, True, False ).
+    if not tri.hasPachner(triangle):
         return None
 
     # We need to work out the gluings that we need to perform before we make
@@ -200,20 +207,22 @@ def twoThree( triangle, edgeLab=None ):
                                 ( survive+j, verts[0][3],
                                     survive+jjj, newGlu ) )
 
-    # For each edge e in tri, find one tetrahedron that will meet e after we
-    # have performed the requested 2-3 move.
-    edgeLocations = []
-    for e in tri.edges():
-        oldEdgeInd = e.index()
-        emb = e.embedding(0)
-        oldTet = emb.simplex()
+    # For each edge e (other than the input edge) that is tracked by the
+    # reference labelling, find one tetrahedron that will meet e after we have
+    # performed the requested 2-3 move.
+    edgeLocations = dict()
+    for edgeInd in edgeLab:
+        emb = edgeLab[edgeInd]
+        oldTet = emb.tetrahedron()
+
+        # For subsequent comments, let
+        #   e := oldTet.edge( emb.edge() ).
         try:
             i = doomed.index(oldTet)
         except ValueError:
-            # The tetrahedron oldTet survives.
-            edgeLocations.append( ( oldEdgeInd,
-                                   newIndex[ oldTet.index() ],
-                                   emb.vertices() ) )
+            # The oldTet survives.
+            edgeLocations[edgeInd] = ( newIndex[ oldTet.index() ],
+                                      emb.vertices() )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
@@ -276,9 +285,7 @@ def twoThree( triangle, edgeLab=None ):
                 newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
                                triGlu.inverse() * emb.vertices() )
 
-            edgeLocations.append( ( oldEdgeInd,
-                                   survive+ii,
-                                   newVertPerm ) )
+            edgeLocations[edgeInd] = ( survive+ii, newVertPerm )
 
     # Remove the two doomed tetrahedra, add three new tetrahedra, and then
     # perform the gluings that we just computed.
@@ -288,27 +295,23 @@ def twoThree( triangle, edgeLab=None ):
     for me, face, you, glu in gluings:
         tri.tetrahedron(me).join( face, tri.tetrahedron(you), glu )
 
-    # How did the edges get renumbered?
-    renum = {}
-    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
-        # Now that we have performed the requested 2-3 move, we can use the
-        # edgeLocations computed above to create a new EdgeEmbedding3 object
-        # for the edge e that was previously at index oldEdgeInd. This new
-        # EdgeEmbedding3 object won't satisfy the usual correspondence with
-        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
-        # in such a way that the orientation of e is preserved.
-        newEdgeEmb = EdgeEmbedding3(
+    # How did the edges get relabelled?
+    newLab = dict()
+    for edgeInd in edgeLab:
+        # Every pre-existing edge should survive a 2-3 move.
+        newTetInd, newVertPerm = edgeLocations[edgeInd]
+        newLab[edgeInd] = EdgeEmbedding3(
                 tri.tetrahedron(newTetInd), newVertPerm )
-        renum[oldEdgeInd] = newEdgeEmb
 
     # Don't forget that we created a new edge! For each ii in {0,1,2}, the new
     # edge is embedded in tetrahedron survive+ii so that its endpoints lie on
     # the vertices numbered verts[0][3] and verts[0][ii].
     newRefTet = tri.tetrahedron(survive)
     newEdgeNum = Edge3.faceNumber( verts[0] * Perm4(1,3) )
-    renum[-1] = EdgeEmbedding3(
+    newEdgeInd = -1 + min( 0, *edgeLab.trackedIndices() )
+    newLab[newEdgeInd] = EdgeEmbedding3(
             newRefTet, newRefTet.edgeMapping(newEdgeNum) )
-    return renum
+    return EdgeLabelling( tri, newLab )
 
 
 def threeTwo( edge, edgeLab=None ):
@@ -341,6 +344,8 @@ def threeTwo( edge, edgeLab=None ):
         will be an EdgeEmbedding3 object describing an embedding of e in T
         *after* performing the move. The embedding of e in r will have the
         same orientation as the embedding of e in the reference labelling.
+
+    This routine will never modify edgeLab (if supplied).
 
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 3-2 move.
@@ -678,6 +683,8 @@ def twoZero( edge, edgeLab=None ):
         *after* performing the move. The embedding of e in r will have the
         same orientation as the embedding of e in the reference labelling.
 
+    This routine will never modify edgeLab (if supplied).
+
     Note also that a 2-0 move merges two edges into a single new edge e. If
     the reference labelling tracks indices, say i and j, for both of the
     merged edges, then in the returned EdgeLabelling r, we will have that r[i]
@@ -865,6 +872,8 @@ def fourFour( edge, newAxis, edgeLab=None ):
         and r[i] will give an embedding of this new edge, where i is the
         largest negative index that is not already tracked by the reference
         labelling (typically, this will mean that i is -1).
+
+    This routine will never modify edgeLab (if supplied).
 
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 4-4 move.
