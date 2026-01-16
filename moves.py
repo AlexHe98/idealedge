@@ -959,6 +959,40 @@ if __name__ == "__main__":
                 ans.append(-1)
         return ans
 
+    def verifyRenum( before, renum, inter, innum, after ):
+        """
+        Checks that renum and innum appropriately track edge renumberings
+        resulting respectively from a move taking before to inter, and
+        then a supposed inverse move taking inter to after.
+        """
+        # The idea is to search for the isomorphism that suitably relates
+        # the before and after triangulations.
+        moveRelOr = []
+        for i in range( before.countEdges() ):
+            # Relative orientation after initial move.
+            tetIndex = renum[i].tetrahedron().index()
+            verts = renum[i].vertices()
+            compareVerts = inter.tetrahedron(tetIndex).edgeMapping(
+                    Edge3.faceNumber(verts) )
+            if verts[0] == compareVerts[0]:
+                moveRelOr.append(1)
+            else:
+                moveRelOr.append(-1)
+
+            # Relative orientation after inverse move.
+            ii = edgeIndFromEmb( renum[i] )
+            tetIndex = innum[ii].tetrahedron().index()
+            verts = innum[ii].vertices()
+            compareVerts = after.tetrahedron(tetIndex).edgeMapping(
+                    Edge3.faceNumber(verts) )
+            if verts[0] != compareVerts[0]:
+                moveRelOr[-1] *= -1
+        for iso in before.findAllIsomorphisms(after):
+            if moveRelOr == relativeEdgeOrientations( before, iso ):
+                # Found the desired isomorphism.
+                return True
+        return False
+
     # Test 2-3 and 3-2 moves.
     #NOTE For these tests, we mostly perform moves on copies of triangulations
     #       so that we don't lose all the labellings of the old
@@ -1022,34 +1056,8 @@ if __name__ == "__main__":
                     msg = "Face {}: Unmatched edge multiplicities!"
                     raise AssertionError( msg.format( face.index() ) )
 
-            # Check that the renumberings are sensible by searching for the
-            # isomorphism that relates inv back to origTri.
-            moveRelOr = []
-            for i in range( origTri.countEdges() ):
-                # Relative orientation after 2-3 move.
-                tetIndex = renum[i].tetrahedron().index()
-                verts = renum[i].vertices()
-                compareVerts = tri23.tetrahedron(tetIndex).edgeMapping(
-                        Edge3.faceNumber(verts) )
-                if verts[0] == compareVerts[0]:
-                    moveRelOr.append(1)
-                else:
-                    moveRelOr.append(-1)
-
-                # Relative orientation after inverse 3-2 move.
-                ii = edgeIndFromEmb( renum[i] )
-                tetIndex = innum[ii].tetrahedron().index()
-                verts = innum[ii].vertices()
-                compareVerts = inv.tetrahedron(tetIndex).edgeMapping(
-                        Edge3.faceNumber(verts) )
-                if verts[0] != compareVerts[0]:
-                    moveRelOr[-1] *= -1
-            found = False
-            for iso in origTri.findAllIsomorphisms(inv):
-                if moveRelOr == relativeEdgeOrientations( origTri, iso ):
-                    found = True
-                    break
-            if not found:
+            # Check that the renumberings are sensible.
+            if not verifyRenum( origTri, renum, tri23, innum, inv ):
                 print( { k: edgeIndFromEmb(v)
                         for k, v in renum.items() } )
                 print( { k: edgeIndFromEmb(v)
@@ -1159,6 +1167,7 @@ if __name__ == "__main__":
             if renum is None:
                 # No 0-2 move here.
                 return
+            msg = "Inverse 2-0 move {}, {}, {}: ".format( edgeIndex, i, ii )
 
             # Test that the inverse 2-0 move, performed on tri02 using
             # twoZero(), brings us back to a triangulation isomorphic to tri.
@@ -1168,17 +1177,19 @@ if __name__ == "__main__":
                 print(tri)
                 print(tri02)
                 print(inv)
-                msg = "Inverse 2-0 move {}, {}, {}: Not isomorphic!".format(
-                        edgeIndex, i, ii )
-                raise AssertionError(msg)
+                raise AssertionError( msg + "Not isomorphic!" )
             if ( tri02.isOriented() ) and ( not inv.isOriented() ):
                 print(tri02)
                 print(inv)
-                msg = "Inverse 2-0 move {}, {}, {}: ".format(
-                        edgeIndex, i, ii )
                 raise AssertionError( msg + "Failed to preserve orientation!" )
 
-            #TODO Check that the renumberings are sensible.
+            # Check that the renumberings are sensible.
+            if not verifyRenum( tri, renum, tri02, innum, inv ):
+                print( { k: edgeIndFromEmb(v)
+                        for k, v in renum.items() } )
+                print( { k: edgeIndFromEmb(v)
+                        for k, v in innum.items() if v is not None } )
+                raise AssertionError( msg + "Relabellings failed!" )
 
             # All done!
             return
