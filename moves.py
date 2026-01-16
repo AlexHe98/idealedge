@@ -796,19 +796,30 @@ def fourFour( edge, newAxis ):
     tetrahedra 0 and 1 from tetrahedra 2 and 3. If newAxis is 1, then the new
     axis will separate tetrahedra 1 and 2 from tetrahedra 3 and 0.
 
-    This routine directly modifies the triangulation that contains the given
-    edge. If an edge is currently numbered i in the triangulation, then it
-    will be numbered r[i] in the triangulation after the requested 4-4 move
-    has been performed (provided the move is actually legal); also, we will
-    have r[i] == -1, where i is the index of the given edge (since this edge
-    gets removed), and we will have r[-1] == j, where j is the index of the
-    newly-created axis edge. If the move is not legal, the triangulation is
-    left untouched and this routine returns None.
+    Provided the requested move is legal, this routine directly modifies the
+    triangulation T that contains the given edge. The returned dictionary r is
+    structured as follows:
+    --> The requested 4-4 move always destroys the given edge, and so if i is
+        the index of the given edge (before performing the move), then r[i]
+        will be None.
+    --> For every other edge e of T, if i is the index of e before performing
+        the move, then r[i] will be an EdgeEmbedding3 object describing an
+        embedding of e in T *after* performing the move. The underlying
+        labelling of the two vertices of e will be the same in both e (before
+        the move) and r[i] (after the move). However, be aware that this means
+        that r[i] might label the vertices in the opposite order to the
+        underlying edge after the move.
+    --> As mentioned above, a 4-4 move also always creates a new axis edge,
+        and r[-1] will give an embedding of this new edge.
+    If the move is not legal, then T is left untouched and this routine
+    returns None.
 
     If the triangulation containing the given edge is currently oriented,
     then this orientation will be preserved by the requested 4-4 move.
     """
     tri = edge.triangulation()
+
+    #TODO WORKING HERE.
 
     # Is the requested 4-4 move legal?
     if not tri.fourFourMove(edge, newAxis, True, False):
