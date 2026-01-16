@@ -819,8 +819,6 @@ def fourFour( edge, newAxis ):
     """
     tri = edge.triangulation()
 
-    #TODO WORKING HERE.
-
     # Is the requested 4-4 move legal?
     if not tri.fourFourMove(edge, newAxis, True, False):
         return None
@@ -832,12 +830,23 @@ def fourFour( edge, newAxis ):
         doomed.append( emb.simplex() )
         verts.append( emb.vertices() )
 
-    # Perform the 4-4 move as a 2-3 move followed by a 3-2 move.
+    # The requested 4-4 move is a composition of the following two moves.
+    #   --> A 2-3 move on a triangle f23 determined by the choice of newAxis:
+    #       --- If newAxis == 0, then we choose f23 to be the triangle between
+    #           doomed[0] and doomed[1].
+    #       --- If newAxis == 1, then we choose f23 to be the triangle between
+    #           doomed[1] and doomed[2].
+    #   --> A 3-2 move on the input edge.
+    # Note that doomed[3] is never involved in the initial 2-3 move, so we can
+    # keep track of the input edge via its embedding in doomed[3].
     if newAxis == 0:
         f23 = doomed[0].triangle( verts[0][2] )
     else:
         f23 = doomed[1].triangle( verts[1][2] )
     e32 = edge.embedding(3).edge()
+
+    #TODO WORKING HERE.
+
     rInc = twoThree(f23)
     rDec = threeTwo( doomed[3].edge(e32) )
 
