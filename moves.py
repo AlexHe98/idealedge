@@ -12,7 +12,7 @@ from regina import *
 #       routines that were introduced in Regina 7.4.
 
 
-def edgeIndex(edgeEmbedding):
+def edgeIndFromEmb(edgeEmbedding):
     """
     Returns the index of the underlying edge of the given EdgeEmbedding3
     object.
@@ -1012,12 +1012,13 @@ if __name__ == "__main__":
                 mults = multiplicities( origTri.edge(i) )
                 comMults = multiplicities(
                         inv.edge(
-                            edgeIndex( innum[
-                                edgeIndex( renum[i] ) ] ) ) )
+                            edgeIndFromEmb( innum[
+                                edgeIndFromEmb( renum[i] ) ] ) ) )
                 if mults != comMults:
-                    print( { k: edgeIndex(v) for k, v in renum.items() } )
-                    print( { k: edgeIndex(v) for k, v in innum.items()
-                            if v is not None } )
+                    print( { k: edgeIndFromEmb(v)
+                            for k, v in renum.items() } )
+                    print( { k: edgeIndFromEmb(v)
+                            for k, v in innum.items() if v is not None } )
                     msg = "Face {}: Unmatched edge multiplicities!"
                     raise AssertionError( msg.format( face.index() ) )
 
@@ -1036,7 +1037,7 @@ if __name__ == "__main__":
                     moveRelOr.append(-1)
 
                 # Relative orientation after inverse 3-2 move.
-                ii = edgeIndex( renum[i] )
+                ii = edgeIndFromEmb( renum[i] )
                 tetIndex = innum[ii].tetrahedron().index()
                 verts = innum[ii].vertices()
                 compareVerts = inv.tetrahedron(tetIndex).edgeMapping(
@@ -1049,9 +1050,10 @@ if __name__ == "__main__":
                     found = True
                     break
             if not found:
-                print( { k: edgeIndex(v) for k, v in renum.items() } )
-                print( { k: edgeIndex(v) for k, v in innum.items()
-                        if v is not None } )
+                print( { k: edgeIndFromEmb(v)
+                        for k, v in renum.items() } )
+                print( { k: edgeIndFromEmb(v)
+                        for k, v in innum.items() if v is not None } )
                 msg = "Face {}: Relabellings failed!"
                 raise AssertionError( msg.format( face.index() ) )
 
@@ -1113,53 +1115,70 @@ if __name__ == "__main__":
 
         def zeroTwo( tri, edgeIndex, i, ii ):
             """
-            Performs a 0-2 move and returns the newly-introduced edge, or None
-            if the requested 0-2 move is not legal.
+            Performs a 0-2 move and returns the corresponding edge-renumbering
+            map, or None if the requested 0-2 move is not legal.
             """
+            #NOTE This implementation assumes that the two new tetrahedra
+            #       introduced by move02() are located at the last 2 indices.
+
+            # Find embeddings of all existing edges (these will all survive
+            # the 0-2 move, so this is easy).
+            renum = { e.index(): e.front() for e in tri.edges() }
+
+            # Now we can attempt the 0-2 move without losing track of the
+            # existing edges.
             if not tri.move02( tri.edge(edgeIndex), i, ii ):
                 return None
 
-            # The requested 0-2 move was performed successfully. Now find the
-            # newly-introduced edge.
-            #
-            #NOTE This implementation assumes that the two new tetrahedra
-            #       introduced by move02() are located at the last 2 indices.
+            # Find the new edge that the 0-2 move just created.
             tet = tri.tetrahedron( tri.size() - 1 )
             for edgeNum in range(6):
-                edge = tet.edge(edgeNum)
-                if edge.degree() != 2:
+                newEdge = tet.edge(edgeNum)
+                if newEdge.degree() != 2:
                     continue
 
                 # Because the last two tetrahedra of tri were introduced by
                 # the 0-2 move that we just performed, the newly-introduced
                 # edge must be the unique degree-2 edge that is incident to
                 # both of the last two tetrahedra (this is easy to check).
-                incidentTetInds = { edge.front().tetrahedron().index(),
-                                   edge.back().tetrahedron().index() }
+                incidentTetInds = { newEdge.front().tetrahedron().index(),
+                                   newEdge.back().tetrahedron().index() }
                 if incidentTetInds == { tri.size() - 1, tri.size() - 2 }:
-                    return edge
+                    renum[-1] = newEdge.front()
+                    return renum
             raise AssertionError(
                     "zeroTwo() should never reach this point." )
 
-        def test20single( edge, expectedTri ):
+        def test20single( tri, edgeIndex, i, ii ):
             """
-            Perform a 2-0 move on the given face, and check (among other
-            things) that the result is isomorphic to expectedTri.
+            Checks that the inverse 2-0 move correctly inverts the given 0-2
+            move.
             """
-            origTri = edge.triangulation()
-            tri20 = Triangulation3(origTri)
-            renum = twoZero( tri20.edge( edge.index() ) )
-            if not expectedTri.isIsomorphicTo(tri20):
-                print(expectedTri)
-                print(tri20)
-                msg = "Edge {}: Not isomorphic!"
-                raise AssertionError( msg.format( edge.index() ) )
-            if ( origTri.isOriented() ) and ( not tri20.isOriented() ):
-                print(tri20)
-                msg = "Edge {}: Failed to preserve orientation!"
-                raise AssertionError( msg.format( edge.index() ) )
+            tri02 = Triangulation3(tri)
+            renum = zeroTwo( tri02, edgeIndex, i, ii )
+            if renum is None:
+                # No 0-2 move here.
+                return
 
-            #TODO Check that the renumberings are sensible?
+            # Test that the inverse 2-0 move, performed on tri02 using
+            # twoZero(), brings us back to a triangulation isomorphic to tri.
+            inv = Triangulation3(tri02)
+            innum = twoZero( inv.edge( edgeIndFromEmb( renum[-1] ) ) )
+            if not inv.isIsomorphicTo(tri):
+                print(tri)
+                print(tri02)
+                print(inv)
+                msg = "Inverse 2-0 move {}, {}, {}: Not isomorphic!".format(
+                        edgeIndex, i, ii )
+                raise AssertionError(msg)
+            if ( tri02.isOriented() ) and ( not inv.isOriented() ):
+                print(tri02)
+                print(inv)
+                msg = "Inverse 2-0 move {}, {}, {}: ".format(
+                        edgeIndex, i, ii )
+                raise AssertionError( msg + "Failed to preserve orientation!" )
+
+            #TODO Check that the renumberings are sensible.
 
             # All done!
             return
@@ -1177,18 +1196,7 @@ if __name__ == "__main__":
                 deg = e.degree()
                 for i in range(deg):
                     for ii in range( i, deg ):
-                        tt = Triangulation3(t)
-                        newEdge = zeroTwo( tt, e.index(), i, ii )
-                        if newEdge is None:
-                            # No 0-2 here.
-                            continue
-
-                        # Test that the inverse 2-0 move, performed on tt
-                        # using twoZero(), brings us back to a triangulation
-                        # isomorphic to t.
-                        test20single( newEdge, t )
-
-                        #TODO Perform the same test after relabelling?
+                        test20single( t, e.index(), i, ii )
 
             # All done!
             return
