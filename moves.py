@@ -2,6 +2,7 @@
 Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from regina import *
+from edgelabel import EdgeLabelling
 #TODO Make renumbering map send old edge indices to new *edge embeddings*, so
 #       that we can keep track of orientations.
 
@@ -20,29 +21,43 @@ def edgeIndFromEmb(edgeEmbedding):
     return edgeEmbedding.tetrahedron().edge( edgeEmbedding.edge() ).index()
 
 
-def twoThree(triangle):
+def twoThree( triangle, edgeLab=None ):
     """
-    Performs a 2-3 move about the given triangle, and returns a dictionary
-    that describes how the edges were renumbered.
+    Performs a 2-3 move about the given triangle, and returns an EdgeLabelling
+    that tracks how edges were relabelled as a result of this move.
 
-    Provided the requested move is legal, this routine directly modifies the
-    triangulation T that contains the given triangle. The returned dictionary
-    r is structured as follows:
-    --> For each edge e of T, if i is the index of e before performing the
-        move, then r[i] will be an EdgeEmbedding3 object describing an
-        embedding of e in T *after* performing the move. The underlying
-        labelling of the two vertices of e will be the same in both e (before
-        the move) and r[i] (after the move). However, be aware that this means
-        that r[i] might label the vertices in the opposite order to the
-        underlying edge after the move.
-    --> A 2-3 move also always creates a new edge, and r[-1] will give an
-        embedding of this new edge.
-    If the move is not legal, then T is left untouched and this routine
-    returns None.
+    More specifically, this routine tracks how edges are relabelled relative
+    to the following "reference labelling" of (some or all of) the edges of
+    triangle.triangulation():
+    --> If the edgeLab parameter is omitted, then the default reference
+        labelling assigns, to each edge e, the index e.index() and the
+        embedding e.front().
+    --> Otherwise, edgeLab must be an instance of EdgeLabelling with
+        edgeLab.triangulation() == triangle.triangulation(), and the reference
+        labelling is given by the (index, embedding) pairs that are specified
+        by edgeLab.
 
-    If the triangulation containing the given triangle is currently oriented,
-    then this orientation will be preserved by the requested 2-3 move.
+    If the requested move is not legal, then triangle.triangulation() is left
+    entirely untouched, and this routine returns None.
+
+    Otherwise, if the move is legal, then this routine directly modifies the
+    triangulation T := triangle.triangulation(). The returned EdgeLabelling r
+    is structured as follows:
+    --> For each index i in the reference labelling, which corresponds to some
+        edge e in T before the move, r[i] will be an EdgeEmbedding3 object
+        describing an embedding of e in T *after* performing the move. The
+        embedding of e in r will have the same orientation as the embedding of
+        e in the reference labelling.
+    --> A 2-3 move also always creates a new edge, and r[i] will give an
+        embedding of this new edge, where i is the largest negative index that
+        is not already tracked by the reference labelling (typically, this
+        will mean that i is -1).
+
+    If triangle.triangulation() is currently oriented, then this orientation
+    will be preserved by the requested 2-3 move.
     """
+    #TODO Update implementation to use EdgeLabelling.
+
     tri = triangle.triangulation()
 
     # Is the requested 2-3 move legal?
@@ -296,30 +311,42 @@ def twoThree(triangle):
     return renum
 
 
-def threeTwo(edge):
+def threeTwo( edge, edgeLab=None ):
     """
-    Performs a 3-2 move about the given edge, and returns a dictionary r that
-    describes how the edges were renumbered.
+    Performs a 3-2 move about the given edge, and returns an EdgeLabelling
+    that tracks how edges were relabelled as a result of this move.
 
-    Provided the requested move is legal, this routine directly modifies the
-    triangulation T that contains the given edge. The returned dictionary r is
+    More specifically, this routine tracks how edges are relabelled relative
+    to the following "reference labelling" of (some or all of) the edges of
+    edge.triangulation():
+    --> If the edgeLab parameter is omitted, then the default reference
+        labelling assigns, to each edge e, the index e.index() and the
+        embedding e.front().
+    --> Otherwise, edgeLab must be an instance of EdgeLabelling with
+        edgeLab.triangulation() == edge.triangulation(), and the reference
+        labelling is given by the (index, embedding) pairs that are specified
+        by edgeLab.
+
+    If the requested move is not legal, then edge.triangulation() is left
+    entirely untouched, and this routine returns None.
+
+    Otherwise, if the move is legal, then this routine directly modifies the
+    triangulation T := edge.triangulation(). The returned EdgeLabelling r is
     structured as follows:
-    --> The requested 3-2 move always destroys the given edge, and so if i is
-        the index of the given edge (before performing the move), then r[i]
-        will be None.
-    --> For every other edge e of T, if i is the index of e before performing
-        the move, then r[i] will be an EdgeEmbedding3 object describing an
-        embedding of e in T *after* performing the move. The underlying
-        labelling of the two vertices of e will be the same in both e (before
-        the move) and r[i] (after the move). However, be aware that this means
-        that r[i] might label the vertices in the opposite order to the
-        underlying edge after the move.
-    If the move is not legal, then T is left untouched and this routine
-    returns None.
+    --> The requested 3-2 move always destroys the given edge, so for any
+        index i in the reference labelling that corresponds to the given edge,
+        r[i] will be None.
+    --> For every other index i in the reference labelling, which corresponds
+        to some edge e in T (other than the given edge) before the move, r[i]
+        will be an EdgeEmbedding3 object describing an embedding of e in T
+        *after* performing the move. The embedding of e in r will have the
+        same orientation as the embedding of e in the reference labelling.
 
-    If the triangulation containing the given edge is currently oriented,
-    then this orientation will be preserved by the requested 3-2 move.
+    If edge.triangulation() is currently oriented, then this orientation will
+    be preserved by the requested 3-2 move.
     """
+    #TODO Update implementation to use EdgeLabelling.
+
     tri = edge.triangulation()
 
     # Is the requested 3-2 move legal?
@@ -620,35 +647,48 @@ def threeTwo(edge):
     return renum
 
 
-def twoZero(edge):
+def twoZero( edge, edgeLab=None ):
     """
-    Performs a 2-0 move about the given edge, and returns a dictionary r that
-    describes how the edges were renumbered.
+    Performs a 2-0 move about the given edge, and returns an EdgeLabelling
+    that tracks how edges were relabelled as a result of this move.
 
-    Provided the requested move is legal, this routine directly modifies the
-    triangulation T that contains the given edge. The returned dictionary r is
+    More specifically, this routine tracks how edges are relabelled relative
+    to the following "reference labelling" of (some or all of) the edges of
+    edge.triangulation():
+    --> If the edgeLab parameter is omitted, then the default reference
+        labelling assigns, to each edge e, the index e.index() and the
+        embedding e.front().
+    --> Otherwise, edgeLab must be an instance of EdgeLabelling with
+        edgeLab.triangulation() == edge.triangulation(), and the reference
+        labelling is given by the (index, embedding) pairs that are specified
+        by edgeLab.
+
+    If the requested move is not legal, then edge.triangulation() is left
+    entirely untouched, and this routine returns None.
+
+    Otherwise, if the move is legal, then this routine directly modifies the
+    triangulation T := edge.triangulation(). The returned EdgeLabelling r is
     structured as follows:
-    --> The requested 2-0 move always destroys the given edge, and so if i is
-        the index of the given edge (before performing the move), then r[i]
-        will be None.
-    --> For every other edge e of T, if i is the index of e before performing
-        the move, then r[i] will be an EdgeEmbedding3 object describing an
-        embedding of e in T *after* performing the move. The underlying
-        labelling of the two vertices of e will be the same in both e (before
-        the move) and r[i] (after the move). However, be aware that this means
-        that r[i] might label the vertices in the opposite order to the
-        underlying edge after the move.
-    If the move is not legal, then T is left untouched and this routine
-    returns None.
+    --> The requested 2-0 move always destroys the given edge, so for any
+        index i in the reference labelling that corresponds to the given edge,
+        r[i] will be None.
+    --> For every other index i in the reference labelling, which corresponds
+        to some edge e in T (other than the given edge) before the move, r[i]
+        will be an EdgeEmbedding3 object describing an embedding of e in T
+        *after* performing the move. The embedding of e in r will have the
+        same orientation as the embedding of e in the reference labelling.
 
-    Note also that a 2-0 move merges two edges into a single new edge e. This
-    means that the values of the returned dictionary will include two separate
-    EdgeEmbedding3 objects corresponding to e, which could possibly give two
-    distinct orientations on e.
+    Note also that a 2-0 move merges two edges into a single new edge e. If
+    the reference labelling tracks indices, say i and j, for both of the
+    merged edges, then in the returned EdgeLabelling r, we will have that r[i]
+    and r[j] give two (possibly equal, possibly distinct) EdgeEmbedding3
+    objects corresponding to the same new edge e.
 
-    If the triangulation containing the given edge is currently oriented,
-    then this orientation will be preserved by the requested 2-0 move.
+    If edge.triangulation() is currently oriented, then this orientation will
+    be preserved by the requested 2-0 move.
     """
+    #TODO Update implementation to use EdgeLabelling.
+
     tri = edge.triangulation()
 
     # Is the requested 2-0 move legal?
@@ -782,10 +822,21 @@ def twoZero(edge):
     return renum
 
 
-def fourFour( edge, newAxis ):
+def fourFour( edge, newAxis, edgeLab=None ):
     """
-    Performs a 4-4 move about the given edge, and returns a dictionary r that
-    describes how the edges were renumbered.
+    Performs a 4-4 move about the given edge, and returns an EdgeLabelling
+    that tracks how edges were relabelled as a result of this move.
+
+    More specifically, this routine tracks how edges are relabelled relative
+    to the following "reference labelling" of (some or all of) the edges of
+    edge.triangulation():
+    --> If the edgeLab parameter is omitted, then the default reference
+        labelling assigns, to each edge e, the index e.index() and the
+        embedding e.front().
+    --> Otherwise, edgeLab must be an instance of EdgeLabelling with
+        edgeLab.triangulation() == edge.triangulation(), and the reference
+        labelling is given by the (index, embedding) pairs that are specified
+        by edgeLab.
 
     If the 4-4 move is legal, then the given edge forms the axis of a
     four-tetrahedron octahedron. There are two other choices of axis for this
@@ -796,27 +847,30 @@ def fourFour( edge, newAxis ):
     tetrahedra 0 and 1 from tetrahedra 2 and 3. If newAxis is 1, then the new
     axis will separate tetrahedra 1 and 2 from tetrahedra 3 and 0.
 
-    Provided the requested move is legal, this routine directly modifies the
-    triangulation T that contains the given edge. The returned dictionary r is
-    structured as follows:
-    --> The requested 4-4 move always destroys the given edge, and so if i is
-        the index of the given edge (before performing the move), then r[i]
-        will be None.
-    --> For every other edge e of T, if i is the index of e before performing
-        the move, then r[i] will be an EdgeEmbedding3 object describing an
-        embedding of e in T *after* performing the move. The underlying
-        labelling of the two vertices of e will be the same in both e (before
-        the move) and r[i] (after the move). However, be aware that this means
-        that r[i] might label the vertices in the opposite order to the
-        underlying edge after the move.
-    --> As mentioned above, a 4-4 move also always creates a new axis edge,
-        and r[-1] will give an embedding of this new edge.
-    If the move is not legal, then T is left untouched and this routine
-    returns None.
+    If the requested move is not legal, then edge.triangulation() is left
+    entirely untouched, and this routine returns None.
 
-    If the triangulation containing the given edge is currently oriented,
-    then this orientation will be preserved by the requested 4-4 move.
+    Otherwise, if the move is legal, then this routine directly modifies the
+    triangulation T := edge.triangulation(). The returned EdgeLabelling r is
+    structured as follows:
+    --> The requested 4-4 move always destroys the given edge, so for any
+        index i in the reference labelling that corresponds to the given edge,
+        r[i] will be None.
+    --> For every other index i in the reference labelling, which corresponds
+        to some edge e in T (other than the given edge) before the move, r[i]
+        will be an EdgeEmbedding3 object describing an embedding of e in T
+        *after* performing the move. The embedding of e in r will have the
+        same orientation as the embedding of e in the reference labelling.
+    --> As mentioned above, a 4-4 move also always creates a new axis edge,
+        and r[i] will give an embedding of this new edge, where i is the
+        largest negative index that is not already tracked by the reference
+        labelling (typically, this will mean that i is -1).
+
+    If edge.triangulation() is currently oriented, then this orientation will
+    be preserved by the requested 4-4 move.
     """
+    #TODO Make sure to use EdgeLabelling.
+
     tri = edge.triangulation()
 
     # Is the requested 4-4 move legal?
