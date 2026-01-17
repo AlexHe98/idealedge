@@ -693,12 +693,17 @@ def twoZero( edge, edgeLab=None ):
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 2-0 move.
     """
-    #TODO Update implementation to use EdgeLabelling.
-
     tri = edge.triangulation()
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 2-0 move legal?
-    if not tri.twoZeroMove(edge, True, False):
+    #
+    #NOTE Triangulation3.has20(e) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.twoZeroMove( e, True, False ).
+    if not tri.has20(edge):
         return None
 
     # How will the tetrahedra in tri get renumbered after we perform the
@@ -714,27 +719,39 @@ def twoZero( edge, edgeLab=None ):
         else:
             newIndex.append(k-2)
 
-    # For each edge e in tri, find one tetrahedron that will meet e after we
-    # have performed the requested 2-0 move.
-    newEdgeLocations = []
-    for e in tri.edges():
-        # The edge about which we perform the 2-0 move gets removed entirely,
-        # so there's nothing we can do with it for now.
-        if e == edge:
+    # For each edge e (other than the input edge) that is tracked by the
+    # reference labelling, find one tetrahedron that will meet e after we have
+    # performed the requested 2-0 move.
+    newEdgeLocations = dict()
+    for edgeInd in edgeLab:
+        emb = edgeLab[edgeInd]
+        tet = emb.tetrahedron()
+        if tet.edge( emb.edge() ) == edge:
+            # This edge is destroyed by the 2-0 move. Ignoring it now will
+            # mean that the returned EdgeLabelling will automatically stop
+            # tracking this edge.
             continue
 
-        # Go through the embeddings of e, and look for a tetrahedron that
-        # survives the 2-0 move.
+        # Go through the embeddings of e := tet.edge( emb.edge() ), and
+        # look for a tetrahedron that survives the 2-0 move.
         found = False
-        for emb in e.embeddings():
-            oldTetInd  = emb.tetrahedron().index()
+        for otherEmb in e.embeddings():
+            oldTetInd  = otherEmb.tetrahedron().index()
             if oldTetInd in doomedIndices:
                 continue
 
             # This one survives!
+            #
+            # If otherEmb.vertices() induces the opposite orientation on e to
+            # the one given by emb.vertices(), then we will need to flip the
+            # orientation.
             found = True
-            newEdgeLocations.append(
-                    ( e.index(), newIndex[oldTetInd], emb.vertices() ) )
+            otherVer = otherEmb.vertices()
+            if otherVer[0] == emb.vertices()[0]:
+                newVertPerm = otherVer
+            else:
+                newVertPerm = otherVer * Perm4(1,0,3,2)
+            newEdgeLocations[edgeInd] = ( newIndex[oldTetInd], newVertPerm )
             break
         if found:
             continue
@@ -750,6 +767,25 @@ def twoZero( edge, edgeLab=None ):
         # through the tetrahedra incident to this other edge and thereby find
         # a suitable surviving tetrahedron.
         #
+        # We first find the other opposite edge by examining the two
+        # tetrahedra that are involved in the 2-0 move.
+        #TODO Relabel diagrams
+        #
+        #            tet                           otherTet
+        #
+        #           oppVer[2]                        otherVer[2]
+        #               •                                 •
+        #              /|\                               /|\
+        #             / | \                             / | \
+        #   oppVer[0]•--|--•oppVer[1]       otherVer[1]•--|--•otherVer[0]
+        #             \ | /                             \ | /
+        #              \|/                               \|/
+        #               •                                 •
+        #           oppVer[3]                        otherVer[3]
+        #
+
+    #TODO Update implementation to use EdgeLabelling.
+
         # We first find the other opposite edge by examining the two
         # tetrahedra that are involved in the 2-0 move.
         #
@@ -777,16 +813,17 @@ def twoZero( edge, edgeLab=None ):
         # Find a surviving tetrahedron incident to the otherEdge.
         fixOrientation = None
         surviveEmb = None
-        for emb in otherEdge.embeddings():
-            tet = emb.tetrahedron()
+        for otherEmb in otherEdge.embeddings():
+            tet = otherEmb.tetrahedron()
             if tet == otherTet:     # Implies tet.index() in doomedIndices.
-                if emb.edge() != otherEdgeNum:
+                if otherEmb.edge() != otherEdgeNum:
                     continue
 
-                # Compare the vertex permutation given by this embedding with
-                # otherVer. This will tell us whether the 2-0 move will merge
-                # e and otherEdge with the same or opposite orientations.
-                if emb.vertices()[0] == otherVer[0]:
+                # Compare the vertex permutation given by otherEmb with the
+                # permutation otherVer. This will tell us whether the 2-0 move
+                # will merge e and otherEdge with the same or opposite
+                # orientations.
+                if otherEmb.vertices()[0] == otherVer[0]:
                     fixOrientation = Perm4()
                 else:
                     fixOrientation = Perm4(1,0,3,2)
@@ -798,7 +835,7 @@ def twoZero( edge, edgeLab=None ):
             elif tet.index() not in doomedIndices:
                 # This one survives!
                 if surviveEmb is None:
-                    surviveEmb = emb
+                    surviveEmb = otherEmb
 
                 # If we have already determined fixOrientation, then we are
                 # ready to determine the newEdgeLocations data for e.
@@ -1214,12 +1251,9 @@ if __name__ == "__main__":
             #NOTE This implementation assumes that the two new tetrahedra
             #       introduced by move02() are located at the last 2 indices.
 
-            # Find embeddings of all existing edges (these will all survive
-            # the 0-2 move, so this is easy).
-            renum = { e.index(): e.front() for e in tri.edges() }
-
-            # Now we can attempt the 0-2 move without losing track of the
-            # existing edges.
+            # Tracking edge embeddings through the requested 0-2 move is easy
+            # because every existing tetrahedron survives the move.
+            relab = EdgeLabelling(tri)
             if not tri.move02( tri.edge(edgeIndex), i, ii ):
                 return None
 
@@ -1237,8 +1271,8 @@ if __name__ == "__main__":
                 incidentTetInds = { newEdge.front().tetrahedron().index(),
                                    newEdge.back().tetrahedron().index() }
                 if incidentTetInds == { tri.size() - 1, tri.size() - 2 }:
-                    renum[-1] = newEdge.front()
-                    return renum
+                    relab[-1] = newEdge.front()
+                    return relab
             raise AssertionError(
                     "zeroTwo() should never reach this point." )
 
