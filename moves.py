@@ -3,14 +3,6 @@ Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from regina import *
 from edgelabel import EdgeLabelling
-#TODO Make renumbering map send old edge indices to new *edge embeddings*, so
-#       that we can keep track of orientations.
-
-#TODO Make a new function for "composing" renumbering maps. Or maybe it would
-#       make sense to create a new EdgeRenumbering class?
-
-#TODO Consider replacing Regina's deprecated moves routines with the new
-#       routines that were introduced in Regina 7.4.
 
 
 def edgeIndFromEmb(edgeEmbedding):
@@ -735,7 +727,7 @@ def twoZero( edge, edgeLab=None ):
         # Go through the embeddings of e := tet.edge( emb.edge() ), and
         # look for a tetrahedron that survives the 2-0 move.
         found = False
-        for otherEmb in e.embeddings():
+        for otherEmb in tet.edge( emb.edge() ).embeddings():
             oldTetInd  = otherEmb.tetrahedron().index()
             if oldTetInd in doomedIndices:
                 continue
@@ -769,61 +761,41 @@ def twoZero( edge, edgeLab=None ):
         #
         # We first find the other opposite edge by examining the two
         # tetrahedra that are involved in the 2-0 move.
-        #TODO Relabel diagrams
         #
-        #            tet                           otherTet
+        #           tet                         otherOppTet
         #
-        #           oppVer[2]                        otherVer[2]
-        #               •                                 •
-        #              /|\                               /|\
-        #             / | \                             / | \
-        #   oppVer[0]•--|--•oppVer[1]       otherVer[1]•--|--•otherVer[0]
-        #             \ | /                             \ | /
-        #              \|/                               \|/
-        #               •                                 •
-        #           oppVer[3]                        otherVer[3]
+        #          ver[2]                      otherOppVer[2]
+        #            •                               •
+        #           /|\                             /|\
+        #          / | \                           / | \
+        #   ver[0]•--|--•ver[1]     otherOppVer[1]•--|--•otherOppVer[0]
+        #          \ | /                           \ | /
+        #           \|/                             \|/
+        #            •                               •
+        #          ver[3]                      otherOppVer[3]
         #
+        ver = emb.vertices()
+        gluing = tet.adjacentGluing( ver[0] )
+        otherOppTet = tet.adjacentTetrahedron( ver[1] )
+        otherOppVer = gluing * ver
+        otherOppEdgeNum = Edge3.faceNumber(otherOppVer)
+        otherOppEdge = otherOppTet.edge(otherOppEdgeNum)
 
-    #TODO Update implementation to use EdgeLabelling.
-
-        # We first find the other opposite edge by examining the two
-        # tetrahedra that are involved in the 2-0 move.
-        #
-        #            oppTet                           otherTet
-        #
-        #           oppVer[2]                        otherVer[2]
-        #               •                                 •
-        #              /|\                               /|\
-        #             / | \                             / | \
-        #   oppVer[0]•--|--•oppVer[1]       otherVer[1]•--|--•otherVer[0]
-        #             \ | /                             \ | /
-        #              \|/                               \|/
-        #               •                                 •
-        #           oppVer[3]                        otherVer[3]
-        #
-        oppEmb = e.front()
-        oppTet = oppEmb.tetrahedron()
-        oppVer = oppEmb.vertices()
-        oppGlu = oppTet.adjacentGluing( oppVer[0] )
-        otherTet = oppTet.adjacentTetrahedron( oppVer[1] )
-        otherVer = oppGlu * oppVer
-        otherEdgeNum = Edge3.faceNumber(otherVer)
-        otherEdge = otherTet.edge(otherEdgeNum)
-
-        # Find a surviving tetrahedron incident to the otherEdge.
+        # Find a surviving tetrahedron incident to the otherOppEdge.
         fixOrientation = None
         surviveEmb = None
-        for otherEmb in otherEdge.embeddings():
-            tet = otherEmb.tetrahedron()
-            if tet == otherTet:     # Implies tet.index() in doomedIndices.
-                if otherEmb.edge() != otherEdgeNum:
+        for candidateEmb in otherOppEdge.embeddings():
+            candidateTet = candidateEmb.tetrahedron()
+            if candidateTet == otherOppTet:
+                # Implies candidateTet.index() in doomedIndices.
+                if candidateEmb.edge() != otherOppEdgeNum:
                     continue
 
-                # Compare the vertex permutation given by otherEmb with the
-                # permutation otherVer. This will tell us whether the 2-0 move
-                # will merge e and otherEdge with the same or opposite
-                # orientations.
-                if otherEmb.vertices()[0] == otherVer[0]:
+                # Compare the vertex permutation given by candidateEmb with
+                # the permutation otherOppVer. This will tell us whether the
+                # 2-0 move will merge e and otherOppEdge with the same or
+                # opposite orientations.
+                if candidateEmb.vertices()[0] == otherOppVer[0]:
                     fixOrientation = Perm4()
                 else:
                     fixOrientation = Perm4(1,0,3,2)
@@ -832,37 +804,34 @@ def twoZero( edge, edgeLab=None ):
                 # to determine the newEdgeLocations data for e.
                 if surviveEmb is not None:
                     break
-            elif tet.index() not in doomedIndices:
+            elif candidateTet.index() not in doomedIndices:
                 # This one survives!
                 if surviveEmb is None:
-                    surviveEmb = otherEmb
+                    surviveEmb = candidateEmb
 
                 # If we have already determined fixOrientation, then we are
                 # ready to determine the newEdgeLocations data for e.
                 if fixOrientation is not None:
                     break
-        newEdgeLocations.append( ( e.index(),
-                               newIndex[ surviveEmb.tetrahedron().index() ],
-                               surviveEmb.vertices() * fixOrientation ) )
 
-    # Perform the 2-0 move, and work out how the edges were renumbered.
-    removeIndex = edge.index()  # Need to remember this for later.
-    tri.twoZeroMove( edge, False, True )    # No need to check again.
-    renum = {}
-    for oldEdgeInd, newTetInd, newVertPerm in newEdgeLocations:
-        # Now that we have performed the requested 2-0 move, we can use the
-        # newEdgeLocations computed above to create a new EdgeEmbedding3 object
-        # for the edge e that was previously at index oldEdgeInd. This new
-        # EdgeEmbedding3 object won't satisfy the usual correspondence with
-        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
-        # in such a way that the orientation of e is preserved.
-        newEdgeEmb = EdgeEmbedding3(
+        newEdgeLocations[edgeInd] = (
+                newIndex[ surviveEmb.tetrahedron().index() ],
+                surviveEmb.vertices() * fixOrientation )
+
+    # Perform the 2-0 move, and work out how the edges were relabelled.
+    #
+    #NOTE Triangulation3.move20(e) was introduced in Regina 7.4. In older
+    #       versions of Regina, 2-0 moves were performed using
+    #       Triangulation3.twoZeroMove(e).
+    tri.move20(edge)
+    newLab = dict()
+    for edgeInd in newEdgeLocations:
+        newTetInd, newVertPerm = newEdgeLocations[edgeInd]
+        newLab[edgeInd] = EdgeEmbedding3(
                 tri.tetrahedron(newTetInd), newVertPerm )
-        renum[oldEdgeInd] = newEdgeEmb
 
-    # Don't forget that we removed the given edge!
-    renum[ removeIndex ] = None
-    return renum
+    # All done!
+    return EdgeLabelling( tri, newLab )
 
 
 def fourFour( edge, newAxis, edgeLab=None ):
@@ -957,6 +926,7 @@ def fourFour( edge, newAxis, edgeLab=None ):
     return renum
 
 
+#TODO Reimplement using EdgeLabelling.
 def twoOne( edge, edgeEnd ):
     """
     Performs a 2-1 move about the given edge, and returns a dictionary r that
@@ -1196,6 +1166,7 @@ if __name__ == "__main__":
             t.orient()
 
             # Test 2-3 moves on all eligible triangles.
+            count = 0
             for f in t.triangles():
                 # Make sure that we get the correct isomorphism type, and that
                 # we preserve orientation.
@@ -1203,6 +1174,7 @@ if __name__ == "__main__":
                 if not pach.pachner( pach.triangle( f.index() ) ):
                     # Not eligible.
                     continue
+                count += 1
                 try:
                     test23single( f, pach )
                 except AssertionError as ae:
@@ -1226,6 +1198,8 @@ if __name__ == "__main__":
                         raise ae
 
             # All done!
+            print( "Tested {} pairs of 2-3 and 3-2 moves.".format(count) )
+            print()
             return
 
         # Run 2-3 and 3-2 move tests.
@@ -1285,7 +1259,7 @@ if __name__ == "__main__":
             renum = zeroTwo( tri02, edgeIndex, i, ii )
             if renum is None:
                 # No 0-2 move here.
-                return
+                return False
             msg = "Inverse 2-0 move {}, {}, {}: ".format( edgeIndex, i, ii )
 
             # Test that the inverse 2-0 move, performed on tri02 using
@@ -1311,7 +1285,7 @@ if __name__ == "__main__":
                 raise AssertionError( msg + "Relabellings failed!" )
 
             # All done!
-            return
+            return True
 
         def test20all( testSig, maxIsos=8 ):
             """
@@ -1322,13 +1296,17 @@ if __name__ == "__main__":
             t = Triangulation3.fromIsoSig(testSig)
             t.orient()
 
+            count = 0
             for e in t.edges():
                 deg = e.degree()
                 for i in range(deg):
                     for ii in range( i, deg ):
-                        test20single( t, e.index(), i, ii )
+                        if test20single( t, e.index(), i, ii ):
+                            count += 1
 
             # All done!
+            print( "Tested {} 2-0 moves.".format(count) )
+            print()
             return
 
         # Run 2-0 move tests.

@@ -1,7 +1,5 @@
 --- Bounded SFS recognition
-    --> Implement EdgeLabelling class
     --> Make moves track orientation
-        ->- Update 2-3, 3-2, 2-0 to use EdgeLabelling class
         ->- Re-implement 4-4 moves
         ->- Update all usage of moves
     --> Implement TriangulationWithEmbeddedLoops class
