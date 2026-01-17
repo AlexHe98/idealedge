@@ -207,10 +207,10 @@ def twoThree( triangle, edgeLab=None ):
                                 ( survive+j, verts[0][3],
                                     survive+jjj, newGlu ) )
 
-    # For each edge e (other than the input edge) that is tracked by the
-    # reference labelling, find one tetrahedron that will meet e after we have
-    # performed the requested 2-3 move.
-    edgeLocations = dict()
+    # For each edge e that is tracked by the reference labelling, find one
+    # tetrahedron that will meet e after we have performed the requested 2-3
+    # move.
+    newEdgeLocations = dict()
     for edgeInd in edgeLab:
         emb = edgeLab[edgeInd]
         oldTet = emb.tetrahedron()
@@ -221,8 +221,8 @@ def twoThree( triangle, edgeLab=None ):
             i = doomed.index(oldTet)
         except ValueError:
             # The oldTet survives.
-            edgeLocations[edgeInd] = ( newIndex[ oldTet.index() ],
-                                      emb.vertices() )
+            newEdgeLocations[edgeInd] = ( newIndex[ oldTet.index() ],
+                                         emb.vertices() )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
@@ -285,7 +285,7 @@ def twoThree( triangle, edgeLab=None ):
                 newVertPerm = ( Perm4( verts[0][3], verts[0][ii] ) *
                                triGlu.inverse() * emb.vertices() )
 
-            edgeLocations[edgeInd] = ( survive+ii, newVertPerm )
+            newEdgeLocations[edgeInd] = ( survive+ii, newVertPerm )
 
     # Remove the two doomed tetrahedra, add three new tetrahedra, and then
     # perform the gluings that we just computed.
@@ -297,9 +297,8 @@ def twoThree( triangle, edgeLab=None ):
 
     # How did the edges get relabelled?
     newLab = dict()
-    for edgeInd in edgeLab:
-        # Every pre-existing edge should survive a 2-3 move.
-        newTetInd, newVertPerm = edgeLocations[edgeInd]
+    for edgeInd in newEdgeLocations:
+        newTetInd, newVertPerm = newEdgeLocations[edgeInd]
         newLab[edgeInd] = EdgeEmbedding3(
                 tri.tetrahedron(newTetInd), newVertPerm )
 
@@ -350,12 +349,17 @@ def threeTwo( edge, edgeLab=None ):
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 3-2 move.
     """
-    #TODO Update implementation to use EdgeLabelling.
-
     tri = edge.triangulation()
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 3-2 move legal?
-    if not tri.pachner(edge, True, False):
+    #
+    #NOTE Triangulation3.hasPachner(e) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.pachner( e, True, False ).
+    if not tri.hasPachner(edge):
         return None
 
     # We need to work out the gluings that we need to perform before we make
@@ -526,24 +530,27 @@ def threeTwo( edge, edgeLab=None ):
                         gluings.append(
                                 ( survive, verts[1][3], survive+1, newGlu ) )
 
-    # For each edge e in tri, find one tetrahedron that will meet e after we
-    # have performed the requested 3-2 move.
-    edgeLocations = []
-    for e in tri.edges():
-        # The edge about which we perform the 3-2 move gets removed entirely.
-        if e == edge:
+    # For each edge e (other than the input edge) that is tracked by the
+    # reference labelling, find one tetrahedron that will meet e after we have
+    # performed the requested 3-2 move.
+    newEdgeLocations = dict()
+    for edgeInd in edgeLab:
+        emb = edgeLab[edgeInd]
+        oldTet = emb.tetrahedron()
+        if oldTet.edge( emb.edge() ) == edge:
+            # This edge is destroyed by the 3-2 move. Ignoring it now will
+            # mean that the returned EdgeLabelling will automatically stop
+            # tracking this edge.
             continue
-        oldEdgeInd = e.index()
-        emb = e.embedding(0)
-        oldTet = emb.simplex()
-        oldNum = emb.face()
+
+        # For subsequent comments, let
+        #   e := oldTet.edge( emb.edge() ).
         try:
             i = doomed.index(oldTet)
         except ValueError:
-            # The tetrahedron oldTet survives.
-            edgeLocations.append( ( oldEdgeInd,
-                                   newIndex[ oldTet.index() ],
-                                   emb.vertices() ) )
+            # The oldTet survives.
+            newEdgeLocations[edgeInd] = ( newIndex[ oldTet.index() ],
+                                         emb.vertices() )
         else:
             # The tetrahedron oldTet is doomed, but this means that e will
             # meet one of the new tetrahedra.
@@ -621,9 +628,8 @@ def threeTwo( edge, edgeLab=None ):
                 #
                 newVertPerm = ( Perm4( verts[1][ii], verts[1][2] ) *
                                triGlu[2].inverse() * emb.vertices() )
-            edgeLocations.append( ( oldEdgeInd,
-                                   survive+ii,
-                                   newVertPerm ) )
+
+            newEdgeLocations[edgeInd] = ( survive+ii, newVertPerm )
 
     # Remove the three doomed tetrahedra, add two new tetrahedra, and then
     # perform the gluings that we just computed.
@@ -634,22 +640,15 @@ def threeTwo( edge, edgeLab=None ):
     for me, face, you, glu in gluings:
         tri.tetrahedron(me).join( face, tri.tetrahedron(you), glu )
 
-    # How did the edges get renumbered?
-    renum = {}
-    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
-        # Now that we have performed the requested 3-2 move, we can use the
-        # edgeLocations computed above to create a new EdgeEmbedding3 object
-        # for the edge e that was previously at index oldEdgeInd. This new
-        # EdgeEmbedding3 object won't satisfy the usual correspondence with
-        # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
-        # in such a way that the orientation of e is preserved.
-        newEdgeEmb = EdgeEmbedding3(
+    # How did the edges get relabelled?
+    newLab = dict()
+    for edgeInd in newEdgeLocations:
+        newTetInd, newVertPerm = newEdgeLocations[edgeInd]
+        newLab[edgeInd] = EdgeEmbedding3(
                 tri.tetrahedron(newTetInd), newVertPerm )
-        renum[oldEdgeInd] = newEdgeEmb
 
-    # Don't forget that we removed the given edge!
-    renum[ removeIndex ] = None
-    return renum
+    # All done!
+    return EdgeLabelling( tri, newLab )
 
 
 def twoZero( edge, edgeLab=None ):
@@ -717,7 +716,7 @@ def twoZero( edge, edgeLab=None ):
 
     # For each edge e in tri, find one tetrahedron that will meet e after we
     # have performed the requested 2-0 move.
-    edgeLocations = []
+    newEdgeLocations = []
     for e in tri.edges():
         # The edge about which we perform the 2-0 move gets removed entirely,
         # so there's nothing we can do with it for now.
@@ -734,7 +733,7 @@ def twoZero( edge, edgeLab=None ):
 
             # This one survives!
             found = True
-            edgeLocations.append(
+            newEdgeLocations.append(
                     ( e.index(), newIndex[oldTetInd], emb.vertices() ) )
             break
         if found:
@@ -793,7 +792,7 @@ def twoZero( edge, edgeLab=None ):
                     fixOrientation = Perm4(1,0,3,2)
 
                 # If we have already determined surviveEmb, then we are ready
-                # to determine the edgeLocations data for e.
+                # to determine the newEdgeLocations data for e.
                 if surviveEmb is not None:
                     break
             elif tet.index() not in doomedIndices:
@@ -802,10 +801,10 @@ def twoZero( edge, edgeLab=None ):
                     surviveEmb = emb
 
                 # If we have already determined fixOrientation, then we are
-                # ready to determine the edgeLocations data for e.
+                # ready to determine the newEdgeLocations data for e.
                 if fixOrientation is not None:
                     break
-        edgeLocations.append( ( e.index(),
+        newEdgeLocations.append( ( e.index(),
                                newIndex[ surviveEmb.tetrahedron().index() ],
                                surviveEmb.vertices() * fixOrientation ) )
 
@@ -813,9 +812,9 @@ def twoZero( edge, edgeLab=None ):
     removeIndex = edge.index()  # Need to remember this for later.
     tri.twoZeroMove( edge, False, True )    # No need to check again.
     renum = {}
-    for oldEdgeInd, newTetInd, newVertPerm in edgeLocations:
+    for oldEdgeInd, newTetInd, newVertPerm in newEdgeLocations:
         # Now that we have performed the requested 2-0 move, we can use the
-        # edgeLocations computed above to create a new EdgeEmbedding3 object
+        # newEdgeLocations computed above to create a new EdgeEmbedding3 object
         # for the edge e that was previously at index oldEdgeInd. This new
         # EdgeEmbedding3 object won't satisfy the usual correspondence with
         # Tetrahedron3.edgeMapping(), but will guarantee to order the vertices
@@ -1106,8 +1105,8 @@ if __name__ == "__main__":
             # Also make sure that the inverse 3-2 move gives the correct
             # triangulation, up to isomorphism.
             inv = Triangulation3(tri23)
-            tet32 = inv.tetrahedron( renum[-1].tetrahedron().index() )
-            innum = threeTwo( tet32.edge( renum[-1].edge() ) )
+            removedEdgeIndex = edgeIndFromEmb( renum[-1] )
+            innum = threeTwo( inv.edge(removedEdgeIndex) )
             if not origTri.isIsomorphicTo(inv):
                 # This test is subsumed by the more detailed isomorphisms
                 # tests below, but we keep it anyway.
@@ -1118,6 +1117,9 @@ if __name__ == "__main__":
             if ( tri23.isOriented() ) and ( not inv.isOriented() ):
                 print(inv)
                 msg = "Face {}: Inverse failed to preserve orientation!"
+                raise AssertionError( msg.format( face.index() ) )
+            if innum[removedEdgeIndex] is not None:
+                msg = "Face {}: Inverse continues to track removed edge!"
                 raise AssertionError( msg.format( face.index() ) )
 
             # Check that the renumberings are sensible by comparing edge
