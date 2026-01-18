@@ -883,12 +883,17 @@ def fourFour( edge, newAxis, edgeLab=None ):
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 4-4 move.
     """
-    #TODO Make sure to use EdgeLabelling.
-
     tri = edge.triangulation()
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 4-4 move legal?
-    if not tri.fourFourMove(edge, newAxis, True, False):
+    #
+    #NOTE Triangulation3.has44( e, ax ) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.fourFourMove( e, ax, True, False ).
+    if not tri.has44( edge, newAxis ):
         return None
 
     # Find the doomed tetrahedra.
@@ -912,18 +917,8 @@ def fourFour( edge, newAxis, edgeLab=None ):
     else:
         f23 = doomed[1].triangle( verts[1][2] )
     e32 = edge.embedding(3).edge()
-
-    #TODO WORKING HERE.
-
-    rInc = twoThree(f23)
-    rDec = threeTwo( doomed[3].edge(e32) )
-
-    # Work out how the edges were renumbered. Don't forget that we have
-    # removed an edge, and also created an edge.
-    renum = {}
-    for e in range( -1, tri.countEdges() ):
-        renum[e] = rDec[ rInc[e] ]
-    return renum
+    relab = twoThree(f23)
+    return threeTwo( doomed[3].edge( e32, relab ) )
 
 
 #TODO Reimplement using EdgeLabelling.
