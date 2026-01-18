@@ -1025,11 +1025,10 @@ if __name__ == "__main__":
     from test import parseTestNames, doTest, allTestsPassedMessage
 
     RandomEngine.reseedWithHardware()
-    #TODO Add 2-1 move tests?
-    availableTests = [ "23", "20", "44" ]
+    availableTests = [ "23", "20", "44", "21" ]
     #TODO Reinstate full suite of tests once we have finished updating all the
     #       implementations.
-#    availableTests = [ "23", "20", "44", "graph" ]
+#    availableTests = [ "23", "20", "44", "21", "graph" ]
     testNames = parseTestNames( argv[1:], availableTests )
 
     #NOTE These tests use the Isomorphism3 bracket operator, introduced in
@@ -1368,7 +1367,11 @@ if __name__ == "__main__":
 
         # Run 2-0 move tests.
         start = default_timer()
-        test20all( "gLLPQcdefeffpvauppb" )
+        for testSig in [ "gLLPQcdefeffpvauppb",
+                        "gLLPQceeffefiiaealx",
+                        "gvLQQcdeffeffffaafa",
+                        "gLLAQcdcdfffpvbbbvo" ]:
+            test20all(testSig)
         print()
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "2-0 moves: All tests passed!" )
@@ -1469,11 +1472,72 @@ if __name__ == "__main__":
                         "gLLPQceeffefiiaealx",
                         "gvLQQcdeffeffffaafa",
                         "gLLAQcdcdfffpvbbbvo",
+                        "hLLzQkcdefgfggaraaavvv",
+                        "hLLzQkcdefgfggasaaasvs",
+                        "hLLzQkcdefgfggasaaavvv",
+                        "hLvAQkbeffgggflalaatwf",
                         "ivLAPQcdefeghghhbbpbuabbv" ]:
             test44all(testSig)
         print()
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "4-4 moves: All tests passed!" )
+        print()
+        stdout.flush()
+
+    # Test 2-1 moves.
+    if "21" in testNames:
+        print( "+-----------+" )
+        print( "| 2-1 moves |")
+        print( "+-----------+" )
+
+        def test21single( edge, edgeEnd ):
+            t = edge.triangulation()
+            #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4.
+            #       In older versions of Regina, equivalent functionality
+            #       (checking eligibility of the move, but not performing it)
+            #       was provided by
+            #           Triangulation3.twoOneMove( e, ed, True, False ).
+            if not t.has21( edge, edgeEnd ):
+                return False
+
+            #TODO Test isomorphism type
+
+            #TODO Sanity checks for relabelling.
+
+            #TODO Test custom relabellings.
+
+            # All done!
+            return True
+
+        def test21all(testSig):
+            print( "2-1 moves on \"{}\"".format(testSig) )
+            stdout.flush()
+            t = Triangulation3.fromIsoSig(testSig)
+            t.orient()
+
+            count = 0
+            for e in t.edges():
+                for edgeEnd in range(2):
+                    if test21single( e, edgeEnd ):
+                        count += 1
+            print( "Tested {} 2-1 moves.".format(count) )
+            print()
+            stdout.flush()
+            return
+
+        # Run 2-1 move tests.
+        start = default_timer()
+        for testSig in [ "dLQabccbcbv",
+                        "dLQabccbcsv",
+                        "fLAPcaccdeebgbgcv",
+                        "eLMkabcddbcodo",
+                        "eLMkabcddbcohg",
+                        "eLMkabcddbcoto",
+                        "eLMkabcddbcvag" ]:
+            test21all(testSig)
+        print()
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "2-1 moves: All tests passed!" )
         print()
         stdout.flush()
 
