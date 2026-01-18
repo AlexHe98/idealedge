@@ -921,30 +921,61 @@ def fourFour( edge, newAxis, edgeLab=None ):
     return threeTwo( doomed[3].edge(e32), relab )
 
 
-#TODO Reimplement using EdgeLabelling.
 def twoOne( edge, edgeEnd ):
     """
-    Performs a 2-1 move about the given edge, and returns a dictionary r that
-    describes how the edges were renumbered.
+    Performs a 2-1 move about the given edge, and returns an EdgeLabelling
+    that tracks how edges were relabelled as a result of this move.
 
-    If the 2-1 move is legal, then the given edge forms the internal edge of
-    a snapped ball B, and the move involves the following two tetrahedra:
-    --> the tetrahedron T that forms B; and
-    --> the tetrahedron that is glued to T along the triangle opposite the
-        vertex number edgeEnd of the given edge.
+    More specifically, this routine tracks how edges are relabelled relative
+    to the following "reference labelling" of (some or all of) the edges of
+    edge.triangulation():
+    --> If the edgeLab parameter is omitted, then the default reference
+        labelling assigns, to each edge e, the index e.index() and the
+        embedding e.front().
+    --> Otherwise, edgeLab must be an instance of EdgeLabelling with
+        edgeLab.triangulation() == edge.triangulation(), and the reference
+        labelling is given by the (index, embedding) pairs that are specified
+        by edgeLab.
 
-    This routine directly modifies the triangulation that contains the given
-    edge. If an edge is currently numbered i in the triangulation, then it
-    will be numbered r[i] in the triangulation after the requested 2-1 move
-    has been performed (provided the move is actually legal); also, we will
-    have r[i] == -1, where i is the index of the given edge (since this edge
-    gets removed), and we will have r[-1] == j, where j is the index of the
-    newly-created edge. If the move is not legal, the triangulation is left
-    untouched and this routine returns None.
+    If the 2-1 move is legal, then the given edge forms the internal edge of a
+    snapped ball B, and the move involves the following two tetrahedra:
+    --> the tetrahedron S that forms B; and
+    --> the tetrahedron that is glued to S along the triangle opposite vertex
+        number edgeEnd of the given edge (hence, note that edgeEnd must be
+        either 0 or 1).
 
-    If the triangulation containing the given edge is currently oriented,
-    then this orientation will be preserved by the requested 2-1 move.
+    If the requested move is not legal, then edge.triangulation() is left
+    entirely untouched, and this routine returns None.
+
+    Otherwise, if the move is legal, then this routine directly modifies the
+    triangulation T := edge.triangulation(). The returned EdgeLabelling r is
+    structured as follows:
+    --> The requested 2-1 move always destroys the given edge, so for any
+        index i in the reference labelling that corresponds to the given edge,
+        r[i] will be None.
+    --> For every other index i in the reference labelling, which corresponds
+        to some edge e in T (other than the given edge) before the move, r[i]
+        will be an EdgeEmbedding3 object describing an embedding of e in T
+        *after* performing the move. The embedding of e in r will have the
+        same orientation as the embedding of e in the reference labelling.
+    --> A 2-1 move also always creates a new edge, and r[i] will give an
+        embedding of this new edge, where i is the largest negative index that
+        is not already tracked by the reference labelling (typically, this
+        will mean that i is -1).
+
+    This routine will never modify edgeLab (if supplied).
+
+    Note also that a 2-1 move merges two edges into a single new edge e. If
+    the reference labelling tracks indices, say i and j, for both of the
+    merged edges, then in the returned EdgeLabelling r, we will have that r[i]
+    and r[j] give two (possibly equal, possibly distinct) EdgeEmbedding3
+    objects corresponding to the same new edge e.
+
+    If edge.triangulation() is currently oriented, then this orientation will
+    be preserved by the requested 2-1 move.
     """
+    #TODO Update implementation using EdgeLabelling.
+
     tri = edge.triangulation()
 
     # Is the requested 2-1 move legal?
