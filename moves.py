@@ -1255,7 +1255,8 @@ if __name__ == "__main__":
         # Run 2-3 and 3-2 move tests.
         start = default_timer()
         total = 0
-        for testSig in [ "cMcabbgqs", "gLLPQcdefeffpvauppb" ]:
+        for testSig in [ "cMcabbgqs",               # 2 2-3 moves
+                        "gLLPQcdefeffpvauppb" ]:    # 12 2-3 moves
             total += test23all(testSig)
         print()
         print( "Tested {} pairs of 2-3 and 3-2 moves.".format(total) )
@@ -1364,10 +1365,10 @@ if __name__ == "__main__":
         # Run 2-0 move tests.
         start = default_timer()
         total = 0
-        for testSig in [ "gLLPQcdefeffpvauppb",
-                        "gLLPQceeffefiiaealx",
-                        "gvLQQcdeffeffffaafa",
-                        "gLLAQcdcdfffpvbbbvo" ]:
+        for testSig in [ "gLLPQcdefeffpvauppb",     # 134 0-2 moves
+                        "gLLPQceeffefiiaealx",      # 138 0-2 moves
+                        "gvLQQcdeffeffffaafa",      # 134 0-2 moves
+                        "gLLAQcdcdfffpvbbbvo" ]:    # 134 0-2 moves
             total += test20all(testSig)
         print()
         print( "Tested {} 2-0 moves.".format(total) )
@@ -1468,15 +1469,15 @@ if __name__ == "__main__":
         # Run 4-4 move tests.
         start = default_timer()
         total = 0
-        for testSig in [ "gLLPQcdefeffpvauppb",
-                        "gLLPQceeffefiiaealx",
-                        "gvLQQcdeffeffffaafa",
-                        "gLLAQcdcdfffpvbbbvo",
-                        "hLLzQkcdefgfggaraaavvv",
-                        "hLLzQkcdefgfggasaaasvs",
-                        "hLLzQkcdefgfggasaaavvv",
-                        "hLvAQkbeffgggflalaatwf",
-                        "ivLAPQcdefeghghhbbpbuabbv" ]:
+        for testSig in [ "gLLPQcdefeffpvauppb",         # 2 4-4 moves
+                        "gLLPQceeffefiiaealx",          # 2 4-4 moves
+                        "gvLQQcdeffeffffaafa",          # 2 4-4 moves
+                        "gLLAQcdcdfffpvbbbvo",          # 2 4-4 moves
+                        "hLLzQkcdefgfggaraaavvv",       # 5 4-4 moves
+                        "hLLzQkcdefgfggasaaasvs",       # 5 4-4 moves
+                        "hLLzQkcdefgfggasaaavvv",       # 5 4-4 moves
+                        "hLvAQkbeffgggflalaatwf",       # 5 4-4 moves
+                        "ivLAPQcdefeghghhbbpbuabbv" ]:  # 5 4-4 moves
             total += test44all(testSig)
         print()
         print( "Tested 4-4 moves on {} edges.".format(total) )
@@ -1543,13 +1544,13 @@ if __name__ == "__main__":
         # Run 2-1 move tests.
         start = default_timer()
         total = 0
-        for testSig in [ "dLQabccbcbv",
-                        "dLQabccbcsv",
-                        "fLAPcaccdeebgbgcv",
-                        "eLMkabcddbcodo",
-                        "eLMkabcddbcohg",
-                        "eLMkabcddbcoto",
-                        "eLMkabcddbcvag" ]:
+        for testSig in [ "dLQabccbcbv",         # 6 4-4 moves
+                        "dLQabccbcsv",          # 6 4-4 moves
+                        "fLAPcaccdeebgbgcv",    # 6 4-4 moves
+                        "eLMkabcddbcodo",       # 8 4-4 moves
+                        "eLMkabcddbcohg",       # 8 4-4 moves
+                        "eLMkabcddbcoto",       # 8 4-4 moves
+                        "eLMkabcddbcvag" ]:     # 8 4-4 moves
             total += test21all(testSig)
         print()
         print( "Tested {} 2-1 moves.".format(total) )
