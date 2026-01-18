@@ -917,11 +917,11 @@ def fourFour( edge, newAxis, edgeLab=None ):
     else:
         f23 = doomed[1].triangle( verts[1][2] )
     e32 = edge.embedding(3).edge()
-    relab = twoThree(f23)
+    relab = twoThree( f23, edgeLab )
     return threeTwo( doomed[3].edge(e32), relab )
 
 
-def twoOne( edge, edgeEnd ):
+def twoOne( edge, edgeEnd, edgeLab=None ):
     """
     Performs a 2-1 move about the given edge, and returns an EdgeLabelling
     that tracks how edges were relabelled as a result of this move.
@@ -974,27 +974,48 @@ def twoOne( edge, edgeEnd ):
     If edge.triangulation() is currently oriented, then this orientation will
     be preserved by the requested 2-1 move.
     """
-    #TODO Update implementation using EdgeLabelling.
-
     tri = edge.triangulation()
+    if edgeLab is None:
+        workingLab = EdgeLabelling(tri)
+        trackInputEdge = True
+        e20 = edge.index()
+    else:
+        # With a custom reference labelling, we will need to work out how the
+        # input edge is labelled (assuming it is even tracked).
+        workingLab = edgeLab.cloneLabelling()
+        trackInputEdge = False
+        for ei in edgeLab:
+            if edge.index() != edgeIndFromEmb( edgeLab[ei] ):
+                continue
+            trackInputEdge = True
+            e20 = ei
+            break
+        if not trackInputEdge:
+            # Temporarily track the input edge on the right (the left is
+            # already reserved for tracking the newly-created edge).
+            e20 = 1 + max( edgeLab.trackedIndices() )
+            workingLab[e20] = edge.front()
 
     # Is the requested 2-1 move legal?
-    if not tri.twoOneMove( edge, edgeEnd, True, False ):
+    #
+    #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.twoOneMove( e, ed, True, False ).
+    if not tri.has21( edge, edgeEnd ):
         return None
 
     # Perform the 2-1 move as a 2-3 move followed by a 2-0 move.
-    emb = edge.embedding(0)
+    emb = edge.front()
     f23 = emb.tetrahedron().triangle( emb.vertices()[edgeEnd] )
-    e20 = edge.index()
-    rInc = twoThree(f23)
-    rDec = twoZero( tri.edge( rInc[e20] ) )
-
-    # Work out how the edges were renumbered. Don't forget that we have
-    # removed an edge, and also created an edge.
-    renum = {}
-    for e in range( -1, tri.countEdges() + 1 ):
-        renum[e] = rDec[ rInc[e] ]
-    return renum
+    relab = twoThree( f23, workingLab )
+    relab = twoZero(
+            tri.edge(
+                edgeIndFromEmb( relab[e20] ) ),
+            relab )
+    if not trackInputEdge:
+        relab.untrack(e20)
+    return relab
 
 
 # Tests.
