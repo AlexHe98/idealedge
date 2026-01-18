@@ -1155,6 +1155,7 @@ if __name__ == "__main__":
 
         def test23all( testSig, maxIsos=16 ):
             print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
+            stdout.flush()
             t = Triangulation3.fromIsoSig(testSig)
             t.orient()
 
@@ -1200,6 +1201,7 @@ if __name__ == "__main__":
             # All done!
             print( "Tested {} pairs of 2-3 and 3-2 moves.".format(count) )
             print()
+            stdout.flush()
             return
 
         # Run 2-3 and 3-2 move tests.
@@ -1210,6 +1212,7 @@ if __name__ == "__main__":
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "2-3 and 3-2 moves: All tests passed!" )
         print()
+        stdout.flush()
 
     # Test 2-0 moves.
     if "20" in testNames:
@@ -1293,6 +1296,7 @@ if __name__ == "__main__":
             performing 0-2 moves on the given iso sig.
             """
             print( "0-2 and 2-0 moves on \"{}\"".format(testSig) )
+            stdout.flush()
             t = Triangulation3.fromIsoSig(testSig)
             t.orient()
 
@@ -1307,6 +1311,7 @@ if __name__ == "__main__":
             # All done!
             print( "Tested {} 2-0 moves.".format(count) )
             print()
+            stdout.flush()
             return
 
         # Run 2-0 move tests.
@@ -1316,6 +1321,7 @@ if __name__ == "__main__":
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "2-0 moves: All tests passed!" )
         print()
+        stdout.flush()
 
     # Test 4-4 moves.
     if "44" in testNames:
@@ -1392,6 +1398,7 @@ if __name__ == "__main__":
 
         def test44all(testSig):
             print( "4-4 moves on \"{}\"".format(testSig) )
+            stdout.flush()
             t = Triangulation3.fromIsoSig(testSig)
             t.orient()
 
@@ -1401,17 +1408,22 @@ if __name__ == "__main__":
                     count += 1
             print( "Tested 4-4 moves on {} edges.".format(count) )
             print()
+            stdout.flush()
             return
 
         # Run 4-4 move tests.
         start = default_timer()
-        #TODO Add more testSigs.
-        for testSig in [ "gLLPQcdefeffpvauppb" ]:
+        for testSig in [ "gLLPQcdefeffpvauppb",
+                        "gLLPQceeffefiiaealx",
+                        "gvLQQcdeffeffffaafa",
+                        "gLLAQcdcdfffpvbbbvo",
+                        "ivLAPQcdefeghghhbbpbuabbv" ]:
             test44all(testSig)
         print()
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "4-4 moves: All tests passed!" )
         print()
+        stdout.flush()
 
     #TODO Update tests to use new EdgeLabelling.
 
