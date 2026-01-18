@@ -1250,18 +1250,17 @@ if __name__ == "__main__":
                         raise ae
 
             # All done!
-            print( "Tested {} pairs of 2-3 and 3-2 moves.".format(count) )
-            print()
-            stdout.flush()
-            return
+            return count
 
         # Run 2-3 and 3-2 move tests.
         start = default_timer()
+        total = 0
         for testSig in [ "cMcabbgqs", "gLLPQcdefeffpvauppb" ]:
-            test23all(testSig)
+            total += test23all(testSig)
         print()
+        print( "Tested {} pairs of 2-3 and 3-2 moves.".format(total) )
         print( "Time: {:.6f}".format( default_timer() - start ) )
-        print( "2-3 and 3-2 moves: All tests passed!" )
+        print( "All tests passed!" )
         print()
         stdout.flush()
 
@@ -1360,21 +1359,20 @@ if __name__ == "__main__":
                             count += 1
 
             # All done!
-            print( "Tested {} 2-0 moves.".format(count) )
-            print()
-            stdout.flush()
-            return
+            return count
 
         # Run 2-0 move tests.
         start = default_timer()
+        total = 0
         for testSig in [ "gLLPQcdefeffpvauppb",
                         "gLLPQceeffefiiaealx",
                         "gvLQQcdeffeffffaafa",
                         "gLLAQcdcdfffpvbbbvo" ]:
-            test20all(testSig)
+            total += test20all(testSig)
         print()
+        print( "Tested {} 2-0 moves.".format(total) )
         print( "Time: {:.6f}".format( default_timer() - start ) )
-        print( "2-0 moves: All tests passed!" )
+        print( "All tests passed!" )
         print()
         stdout.flush()
 
@@ -1461,13 +1459,11 @@ if __name__ == "__main__":
             for e in t.edges():
                 if test44single(e):
                     count += 1
-            print( "Tested 4-4 moves on {} edges.".format(count) )
-            print()
-            stdout.flush()
-            return
+            return count
 
         # Run 4-4 move tests.
         start = default_timer()
+        total = 0
         for testSig in [ "gLLPQcdefeffpvauppb",
                         "gLLPQceeffefiiaealx",
                         "gvLQQcdeffeffffaafa",
@@ -1477,10 +1473,11 @@ if __name__ == "__main__":
                         "hLLzQkcdefgfggasaaavvv",
                         "hLvAQkbeffgggflalaatwf",
                         "ivLAPQcdefeghghhbbpbuabbv" ]:
-            test44all(testSig)
+            total += test44all(testSig)
         print()
+        print( "Tested 4-4 moves on {} edges.".format(total) )
         print( "Time: {:.6f}".format( default_timer() - start ) )
-        print( "4-4 moves: All tests passed!" )
+        print( "All tests passed!" )
         print()
         stdout.flush()
 
@@ -1520,13 +1517,11 @@ if __name__ == "__main__":
                 for edgeEnd in range(2):
                     if test21single( e, edgeEnd ):
                         count += 1
-            print( "Tested {} 2-1 moves.".format(count) )
-            print()
-            stdout.flush()
-            return
+            return count
 
         # Run 2-1 move tests.
         start = default_timer()
+        total = 0
         for testSig in [ "dLQabccbcbv",
                         "dLQabccbcsv",
                         "fLAPcaccdeebgbgcv",
@@ -1534,10 +1529,11 @@ if __name__ == "__main__":
                         "eLMkabcddbcohg",
                         "eLMkabcddbcoto",
                         "eLMkabcddbcvag" ]:
-            test21all(testSig)
+            total += test21all(testSig)
         print()
+        print( "Tested {} 2-1 moves.".format(total) )
         print( "Time: {:.6f}".format( default_timer() - start ) )
-        print( "2-1 moves: All tests passed!" )
+        print( "All tests passed!" )
         print()
         stdout.flush()
 
