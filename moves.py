@@ -1414,13 +1414,17 @@ if __name__ == "__main__":
                 new44 = Triangulation3(t)
                 relab = fourFour( new44.edge( edge.index() ), newAxis )
 
-                # Test that fourFour gives the right isomorphism type.
+                # Test that fourFour gives the right isomorphism type, and
+                # that it preserves orientation.
                 move = "4-4 move {}/{}: ".format( edge.index(), newAxis )
                 if not reg44.isIsomorphicTo(new44):
                     print(t)
                     print(reg44)
                     print(new44)
                     raise AssertionError( move + " Not isomorphic!" )
+                if ( t.isOriented() ) and ( not new44.isOriented() ):
+                    raise AssertionError(
+                            move + "Failed to preserve orientation!" )
                 newSig = new44.isoSig()
                 isoSigSet[2].add(newSig)
                 isoSigSet[newAxis].add(newSig)
@@ -1487,24 +1491,29 @@ if __name__ == "__main__":
         print( "| 2-1 moves |")
         print( "+-----------+" )
 
-        def test21single( edge, edgeEnd ):
+        def test21single( edge, edgeEnd, data=None ):
+            # Test that twoOne gives the right isomorphism type, and that it
+            # preserves orientation.
             t = edge.triangulation()
-            #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4.
-            #       In older versions of Regina, equivalent functionality
-            #       (checking eligibility of the move, but not performing it)
-            #       was provided by
-            #           Triangulation3.twoOneMove( e, ed, True, False ).
-            if not t.has21( edge, edgeEnd ):
-                return False
-
-            #TODO Test isomorphism type
+            if data is None:
+                removeEdgeInd = edge.index()
+                edgeLab = None
+            else:
+                removeEdgeInd, edgeLab = data
+            expect = t.with21( edge, edgeEnd )
+            actual = Triangulation3(t)
+            relab = twoOne( actual.edge( edge.index() ), edgeEnd, edgeLab )
+            move = "2-1 move {}/{}: ".format( edge.index(), edgeEnd )
+            if not actual.isIsomorphicTo(expect):
+                raise AssertionError( move + "Not isomorphic!" )
+            if ( t.isOriented() ) and ( not actual.isOriented() ):
+                raise AssertionError(
+                        move + "Failed to preserve orientation!" )
 
             #TODO Sanity checks for relabelling.
 
-            #TODO Test custom relabellings.
-
             # All done!
-            return True
+            return
 
         def test21all(testSig):
             print( "2-1 moves on \"{}\"".format(testSig) )
@@ -1515,8 +1524,20 @@ if __name__ == "__main__":
             count = 0
             for e in t.edges():
                 for edgeEnd in range(2):
-                    if test21single( e, edgeEnd ):
-                        count += 1
+                    #NOTE Triangulation3.has21( e, ed ) was introduced in
+                    #       Regina 7.4. In older versions of Regina,
+                    #       equivalent functionality (checking eligibility of
+                    #       the move, but not performing it) was provided by
+                    #           Triangulation3.twoOneMove(
+                    #               e, ed, True, False ).
+                    if not t.has21( e, edgeEnd ):
+                        continue
+                    count += 1
+
+                    # Test both with the default reference labelling, and with
+                    # some custom reference labellings.
+                    test21single( e, edgeEnd )
+                    #TODO Test custom reference labellings.
             return count
 
         # Run 2-1 move tests.
