@@ -4,8 +4,5 @@
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Monotonic simplification
 --- Test suites
-    --> Moves
-        ->- Custom reference labellings
-        ->- Exhaustive moves test
     --> Embedded loops?
     --> Standardise layout

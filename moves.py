@@ -1025,10 +1025,7 @@ if __name__ == "__main__":
     from test import parseTestNames, doTest, allTestsPassedMessage
 
     RandomEngine.reseedWithHardware()
-    availableTests = [ "23", "20", "44", "21" ]
-    #TODO Reinstate full suite of tests once we have finished updating all the
-    #       implementations.
-#    availableTests = [ "23", "20", "44", "21", "graph" ]
+    availableTests = [ "23", "20", "44", "21", "graph" ]
     testNames = parseTestNames( argv[1:], availableTests )
 
     #NOTE These tests use the Isomorphism3 bracket operator, introduced in
@@ -1607,17 +1604,16 @@ if __name__ == "__main__":
         print()
         stdout.flush()
 
-    #TODO Update tests to use new EdgeLabelling.
-
     # Perform a bunch of moves to check that we don't get any exceptions.
     if "graph" in testNames:
         print( "+---------------------+" )
         print( "| Triangulation graph |" )
         print( "+---------------------+" )
 
-        print()
         print( "Perform moves on \"cMcabbgqs\" up to height 3." )
         print()
+        stdout.flush()
+        start = default_timer()
         initSig = "cMcabbgqs"
         stack = [ initSig ]
         seen = { initSig }
@@ -1628,7 +1624,8 @@ if __name__ == "__main__":
             sig = stack.pop()
             tri = Triangulation3.fromIsoSig(sig)
             if tri.size() <= initSize:
-                print(sig)
+                print( "Time: {:.6f}. Found \"{}\".".format(
+                    default_timer() - start, sig ) )
                 stdout.flush()
 
             # Moves on edges.
@@ -1636,8 +1633,8 @@ if __name__ == "__main__":
                 if e.degree() == 1:
                     for edgeEnd in {0,1}:
                         newTri = Triangulation3(tri)
-                        renum = twoOne( newTri.edge( e.index() ), edgeEnd )
-                        if renum is None:
+                        relab = twoOne( newTri.edge( e.index() ), edgeEnd )
+                        if relab is None:
                             continue
                         counts["2-1"] += 1
 
@@ -1649,8 +1646,8 @@ if __name__ == "__main__":
                             stack.append(newSig)
                 elif e.degree() == 2:
                     newTri = Triangulation3(tri)
-                    renum = twoZero( newTri.edge( e.index() ) )
-                    if renum is None:
+                    relab = twoZero( newTri.edge( e.index() ) )
+                    if relab is None:
                         continue
                     counts["2-0"] += 1
 
@@ -1662,8 +1659,8 @@ if __name__ == "__main__":
                         stack.append(newSig)
                 elif e.degree() == 3:
                     newTri = Triangulation3(tri)
-                    renum = threeTwo( newTri.edge( e.index() ) )
-                    if renum is None:
+                    relab = threeTwo( newTri.edge( e.index() ) )
+                    if relab is None:
                         continue
                     counts["3-2"] += 1
 
@@ -1676,8 +1673,8 @@ if __name__ == "__main__":
                 elif e.degree() == 4:
                     for newAxis in {0,1}:
                         newTri = Triangulation3(tri)
-                        renum = fourFour( newTri.edge( e.index() ), newAxis )
-                        if renum is None:
+                        relab = fourFour( newTri.edge( e.index() ), newAxis )
+                        if relab is None:
                             continue
                         counts["4-4"] += 1
 
@@ -1693,8 +1690,8 @@ if __name__ == "__main__":
                 continue
             for f in tri.triangles():
                 newTri = Triangulation3(tri)
-                renum = twoThree( newTri.triangle( f.index() ) )
-                if renum is None:
+                relab = twoThree( newTri.triangle( f.index() ) )
+                if relab is None:
                     continue
                 counts["2-3"] += 1
 
@@ -1713,3 +1710,7 @@ if __name__ == "__main__":
             counts["3-2"], "3-2 moves",
             counts["4-4"], "4-4 moves",
             counts["2-3"], "2-3 moves" ) )
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "All tests passed!" )
+        print()
+        stdout.flush()
