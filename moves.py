@@ -822,7 +822,7 @@ def twoZero( edge, edgeLab=None ):
     #
     #NOTE Triangulation3.move20(e) was introduced in Regina 7.4. In older
     #       versions of Regina, 2-0 moves were performed using
-    #       Triangulation3.twoZeroMove(e).
+    #           Triangulation3.twoZeroMove(e).
     tri.move20(edge)
     newLab = dict()
     for edgeInd in newEdgeLocations:
@@ -918,7 +918,7 @@ def fourFour( edge, newAxis, edgeLab=None ):
         f23 = doomed[1].triangle( verts[1][2] )
     e32 = edge.embedding(3).edge()
     relab = twoThree(f23)
-    return threeTwo( doomed[3].edge( e32, relab ) )
+    return threeTwo( doomed[3].edge(e32), relab )
 
 
 #TODO Reimplement using EdgeLabelling.
@@ -973,7 +973,7 @@ if __name__ == "__main__":
     from test import parseTestNames, doTest, allTestsPassedMessage
 
     RandomEngine.reseedWithHardware()
-    availableTests = [ "23", "20" ]
+    availableTests = [ "23", "20", "44" ]
     #TODO Reinstate full suite of tests once we have finished updating all the
     #       implementations.
 #    availableTests = [ "23", "20", "44", "graph" ]
@@ -1326,36 +1326,44 @@ if __name__ == "__main__":
         print( "| 4-4 moves |")
         print( "+-----------+" )
 
-        print()
         print( "4-4 moves on \"{}\"".format(smallSig) )
-        print()
 
+        start = default_timer()
+
+        #TODO Run tests on multiple triangulations.
+        count = 0
         for e in t.edges():
             for newAxis in range(2):
                 reg44 = Triangulation3(t)
                 new44 = Triangulation3(t)
-                if not reg44.fourFourMove( reg44.edge( e.index() ), newAxis ):
+                #NOTE Triangulation3.move44( e, ax ) was introduced in
+                #       Regina 7.4. In older versions of Regina, 4-4 moves
+                #       were performed using
+                #           Triangulation3.fourFourMove( e, ax ).
+                if not reg44.move44( reg44.edge( e.index() ), newAxis ):
                     continue
+                count += 1
                 renum = fourFour( new44.edge( e.index() ), newAxis )
 
                 # Test that fourFour gives the right isomorphism type, and
                 # that it outputs sensible renumberings.
                 if not reg44.isIsomorphicTo(new44):
-                    print("{}/{}: 4-4 not isomorphic!".format(
-                        e.index(), newAxis ))
                     print(t)
                     print(reg44)
                     print(new44)
-                    break
-                if set( renum.keys() ) != set( renum.values() ):
-                    error = "<--"
-                else:
-                    error = ""
-                print( "{}/{}: {} {}".format(
-                    e.index(), newAxis, renum, error ) )
-        else:
-            print()
-            print( "4-4 moves: Success!" )
+                    raise AssertionError(
+                            "{}/{}: 4-4 not isomorphic!".format(
+                                e.index(), newAxis ) )
+
+                #TODO Test the relabellings are sensible.
+        print( "Tested {} 4-4 moves.".format(count) )
+        print()
+        #TODO
+
+        print()
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "4-4 moves: All tests passed!" )
+        print()
 
     # Perform a bunch of moves to check that we don't get any exceptions.
     if "graph" in testNames:
