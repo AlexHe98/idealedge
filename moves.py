@@ -973,6 +973,7 @@ if __name__ == "__main__":
     from test import parseTestNames, doTest, allTestsPassedMessage
 
     RandomEngine.reseedWithHardware()
+    #TODO Add 2-1 move tests?
     availableTests = [ "23", "20", "44" ]
     #TODO Reinstate full suite of tests once we have finished updating all the
     #       implementations.
@@ -1078,9 +1079,6 @@ if __name__ == "__main__":
         return False
 
     # Test 2-3 and 3-2 moves.
-    #NOTE For these tests, we mostly perform moves on copies of triangulations
-    #       so that we don't lose all the labellings of the old
-    #       triangulations.
     if "23" in testNames:
         print( "+-------------------+" )
         print( "| 2-3 and 3-2 moves |")
@@ -1165,9 +1163,16 @@ if __name__ == "__main__":
             for f in t.triangles():
                 # Make sure that we get the correct isomorphism type, and that
                 # we preserve orientation.
-                pach = Triangulation3(t)
-                if not pach.pachner( pach.triangle( f.index() ) ):
-                    # Not eligible.
+                #
+                #NOTE Triangulation3.withPachner(f) was introduced in
+                #       Regina 7.4. Older versions of Regina did not provide
+                #       a routine to construct a new triangulation via a 2-3
+                #       move; instead, this behaviour was achieved by first
+                #       constructing a copy of the triangulation, and then
+                #       performing the appropriate 2-3 move one the copy.
+                pach = t.withPachner(f)
+                if pach is None:
+                    # 2-3 move not eligible on f.
                     continue
                 count += 1
                 try:
@@ -1282,7 +1287,7 @@ if __name__ == "__main__":
             # All done!
             return True
 
-        def test20all( testSig, maxIsos=8 ):
+        def test20all(testSig):
             """
             Test inverse 2-0 moves on the triangulations obtained by
             performing 0-2 moves on the given iso sig.
@@ -1312,58 +1317,65 @@ if __name__ == "__main__":
         print( "2-0 moves: All tests passed!" )
         print()
 
-    #TODO Update tests to use new renumbering format.
-
-    #TODO Replace 4-4 move tests with something similar to what we did for 2-3
-    #       and 2-0 moves.
-    smallSig = "gLLPQcdefeffpvauppb"
-    t = Triangulation3.fromIsoSig(smallSig)
-    t.orient()
-
     # Test 4-4 moves.
     if "44" in testNames:
         print( "+-----------+" )
         print( "| 4-4 moves |")
         print( "+-----------+" )
 
-        print( "4-4 moves on \"{}\"".format(smallSig) )
+        #TODO Test both values of newAxis at once, and compare inverses.
+        def test44single( edge, newAxis ):
+            t = edge.triangulation()
+            reg44 = t.with44( edge, newAxis )
+            #NOTE Triangulation3.with44( e, ax ) was introduced in
+            #       Regina 7.4. Older versions of Regina did not provide a
+            #       routine to construct a new triangulation via a 4-4 move;
+            #       instead, this behaviour was achieved by first constructing
+            #       a copy of the triangulation, and then performing the
+            #       appropriate 4-4 move one the copy.
+            if reg44 is None:
+                return False
+            new44 = Triangulation3(t)
+            renum = fourFour( new44.edge( edge.index() ), newAxis )
 
+            # Test that fourFour gives the right isomorphism type.
+            if not reg44.isIsomorphicTo(new44):
+                print(t)
+                print(reg44)
+                print(new44)
+                raise AssertionError(
+                        "{}/{}: 4-4 not isomorphic!".format(
+                            edge.index(), newAxis ) )
+
+            #TODO Test the relabellings are sensible.
+            return True
+
+        def test44all(testSig):
+            print( "4-4 moves on \"{}\"".format(testSig) )
+            t = Triangulation3.fromIsoSig(testSig)
+            t.orient()
+
+            count = 0
+            for e in t.edges():
+                for newAxis in range(2):
+                    if test44single( e, newAxis ):
+                        count += 1
+            print( "Tested {} 4-4 moves.".format(count) )
+            print()
+            return
+
+
+        # Run 4-4 move tests.
         start = default_timer()
-
-        #TODO Run tests on multiple triangulations.
-        count = 0
-        for e in t.edges():
-            for newAxis in range(2):
-                reg44 = Triangulation3(t)
-                new44 = Triangulation3(t)
-                #NOTE Triangulation3.move44( e, ax ) was introduced in
-                #       Regina 7.4. In older versions of Regina, 4-4 moves
-                #       were performed using
-                #           Triangulation3.fourFourMove( e, ax ).
-                if not reg44.move44( reg44.edge( e.index() ), newAxis ):
-                    continue
-                count += 1
-                renum = fourFour( new44.edge( e.index() ), newAxis )
-
-                # Test that fourFour gives the right isomorphism type, and
-                # that it outputs sensible renumberings.
-                if not reg44.isIsomorphicTo(new44):
-                    print(t)
-                    print(reg44)
-                    print(new44)
-                    raise AssertionError(
-                            "{}/{}: 4-4 not isomorphic!".format(
-                                e.index(), newAxis ) )
-
-                #TODO Test the relabellings are sensible.
-        print( "Tested {} 4-4 moves.".format(count) )
-        print()
-        #TODO
-
+        #TODO Add more testSigs.
+        for testSig in [ "gLLPQcdefeffpvauppb" ]:
+            test44all(testSig)
         print()
         print( "Time: {:.6f}".format( default_timer() - start ) )
         print( "4-4 moves: All tests passed!" )
         print()
+
+    #TODO Update tests to use new EdgeLabelling.
 
     # Perform a bunch of moves to check that we don't get any exceptions.
     if "graph" in testNames:
