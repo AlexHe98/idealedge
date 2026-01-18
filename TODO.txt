@@ -1,10 +1,11 @@
 --- Bounded SFS recognition
     --> Make moves track orientation
-        ->- Re-implement 2-1 moves
         ->- Update all usage of moves
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Monotonic simplification
 --- Test suites
     --> Moves
+        ->- Custom reference labellings
+        ->- Exhaustive moves test
     --> Embedded loops?
     --> Standardise layout

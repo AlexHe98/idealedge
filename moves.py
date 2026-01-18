@@ -1492,7 +1492,7 @@ if __name__ == "__main__":
         print( "| 2-1 moves |")
         print( "+-----------+" )
 
-        def test21single( edge, edgeEnd, data=None ):
+        def test21single( name, edge, edgeEnd, data=None ):
             # Test that twoOne gives the right isomorphism type, and that it
             # preserves orientation.
             t = edge.triangulation()
@@ -1500,13 +1500,17 @@ if __name__ == "__main__":
                 removeEdgeInd = edge.index()
                 edgeLab = None
                 trackedIndices = [ i for i in range( t.countEdges() ) ]
+                actual = Triangulation3(t)
             else:
                 removeEdgeInd, edgeLab = data
                 trackedIndices = edgeLab.trackedIndices()
+                # Need to fully clone custom EdgeLabelling.
+                edgeLab = edgeLab.clone()
+                actual = edgeLab.triangulation()
             expect = t.with21( edge, edgeEnd )
-            actual = Triangulation3(t)
             relab = twoOne( actual.edge( edge.index() ), edgeEnd, edgeLab )
-            move = "2-1 move {}/{}: ".format( edge.index(), edgeEnd )
+            move = "{}. 2-1 move {}/{}: ".format(
+                    name, edge.index(), edgeEnd )
             if not actual.isIsomorphicTo(expect):
                 raise AssertionError( move + "Not isomorphic!" )
             if ( t.isOriented() ) and ( not actual.isOriented() ):
@@ -1518,7 +1522,8 @@ if __name__ == "__main__":
                 raise AssertionError(
                         move +
                         " Relabelling continues tracking removed edge!" )
-            if relab[-1] is None:
+            newEdgeInd = -1 + min( 0, *trackedIndices )
+            if relab[newEdgeInd] is None:
                 raise AssertionError(
                         move +
                         " Relabelling fails to track new edge!" )
@@ -1527,7 +1532,6 @@ if __name__ == "__main__":
             # of degree one that is incident to the new tetrahedron.
             #
             #NOTE This test assumes that the new tetrahedron is indexed last.
-            newEdgeInd = -1 + min( 0, *trackedIndices )
             newEdge = actual.edge( edgeIndFromEmb( relab[newEdgeInd] ) )
             degOneEdge = None
             newTet = actual.tetrahedron( actual.size() - 1 )
@@ -1574,8 +1578,15 @@ if __name__ == "__main__":
 
                     # Test both with the default reference labelling, and with
                     # some custom reference labellings.
-                    test21single( e, edgeEnd )
-                    #TODO Test custom reference labellings.
+                    test21single( "Default", e, edgeEnd )
+                    trackOnlyRemovedEdge = EdgeLabelling(
+                            t, { -1: e.front() } )
+                    test21single( "Only removed", e, edgeEnd,
+                                 ( -1, trackOnlyRemovedEdge ) )
+                    untrackRemovedEdge = EdgeLabelling(t)
+                    untrackRemovedEdge.untrack( e.index() )
+                    test21single( "Untrack removed", e, edgeEnd,
+                                 ( e.index(), untrackRemovedEdge ) )
             return count
 
         # Run 2-1 move tests.

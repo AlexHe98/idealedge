@@ -179,5 +179,3 @@ class EdgeLabelling:
         labelling.
         """
         return self._labelling.values()
-
-    #TODO
