@@ -1323,31 +1323,71 @@ if __name__ == "__main__":
         print( "| 4-4 moves |")
         print( "+-----------+" )
 
-        #TODO Test both values of newAxis at once, and compare inverses.
-        def test44single( edge, newAxis ):
+        def test44single(edge):
+            """
+            Tests all possible 4-4 moves on the given edge.
+            """
             t = edge.triangulation()
-            reg44 = t.with44( edge, newAxis )
-            #NOTE Triangulation3.with44( e, ax ) was introduced in
-            #       Regina 7.4. Older versions of Regina did not provide a
-            #       routine to construct a new triangulation via a 4-4 move;
-            #       instead, this behaviour was achieved by first constructing
-            #       a copy of the triangulation, and then performing the
-            #       appropriate 4-4 move one the copy.
-            if reg44 is None:
+            #NOTE Triangulation3.has44( e, ax ) was introduced in Regina 7.4.
+            #       In older versions of Regina, equivalent functionality
+            #       (checking eligibility of the move, but not performing it)
+            #       was provided by
+            #           Triangulation3.fourFourMove( e, ax, True, False ).
+            if not t.has44( edge, 0 ):
+                # A 4-4 move with newAxis == 0 is available if and only if a
+                # 4-4 move with newAxis == 1 is available.
                 return False
-            new44 = Triangulation3(t)
-            renum = fourFour( new44.edge( edge.index() ), newAxis )
 
-            # Test that fourFour gives the right isomorphism type.
-            if not reg44.isIsomorphicTo(new44):
-                print(t)
-                print(reg44)
-                print(new44)
-                raise AssertionError(
-                        "{}/{}: 4-4 not isomorphic!".format(
-                            edge.index(), newAxis ) )
+            # The input edge forms one of three possible axes for an
+            # octahedron built from four tetrahedra. At each such axis, we
+            # perform both possible 4-4 moves, and check that the isomorphism
+            # types of the resulting triangulations all match up.
+            isoSigSet = { i: set() for i in range(3) }
+            isoSigSet[2].add( t.isoSig() )
+            for newAxis in range(2):
+                #NOTE Triangulation3.with44( e, ax ) was introduced in
+                #       Regina 7.4. Older versions of Regina did not provide a
+                #       routine to construct a new triangulation via a 4-4
+                #       move; instead, this behaviour was achieved by first
+                #       constructing a copy of the triangulation, and then
+                #       performing the appropriate 4-4 move on the copy.
+                reg44 = t.with44( edge, newAxis )
+                new44 = Triangulation3(t)
+                relab = fourFour( new44.edge( edge.index() ), newAxis )
 
-            #TODO Test the relabellings are sensible.
+                # Test that fourFour gives the right isomorphism type.
+                move = "4-4 move {}/{}: ".format( edge.index(), newAxis )
+                if not reg44.isIsomorphicTo(new44):
+                    print(t)
+                    print(reg44)
+                    print(new44)
+                    raise AssertionError( move + " Not isomorphic!" )
+                newSig = new44.isoSig()
+                isoSigSet[2].add(newSig)
+                isoSigSet[newAxis].add(newSig)
+
+                # Sanity checks on the relabelling.
+                if relab[ edge.index() ] is not None:
+                    raise AssertionError(
+                            move +
+                            " Relabelling continues tracking removed edge!" )
+                if relab[-1] is None:
+                    raise AssertionError(
+                            move +
+                            " Relabelling fails to track new edge!" )
+
+                # Finish filling in isoSigSet so that we can test the 4-4
+                # moves on the new edge that we just created.
+                for invAxis in range(2):
+                    inv44 = Triangulation3(new44)
+                    fourFour( inv44.edge( edgeIndFromEmb( relab[-1] ) ),
+                             invAxis )
+                    isoSigSet[newAxis].add( inv44.isoSig() )
+            for newAxis in range(2):
+                if isoSigSet[2] != isoSigSet[newAxis]:
+                    raise AssertionError(
+                            "Edge {}: Error with newAxis {}.".format(
+                                edge.index(), newAxis ) )
             return True
 
         def test44all(testSig):
@@ -1357,13 +1397,11 @@ if __name__ == "__main__":
 
             count = 0
             for e in t.edges():
-                for newAxis in range(2):
-                    if test44single( e, newAxis ):
-                        count += 1
-            print( "Tested {} 4-4 moves.".format(count) )
+                if test44single(e):
+                    count += 1
+            print( "Tested 4-4 moves on {} edges.".format(count) )
             print()
             return
-
 
         # Run 4-4 move tests.
         start = default_timer()
