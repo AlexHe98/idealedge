@@ -1499,8 +1499,10 @@ if __name__ == "__main__":
             if data is None:
                 removeEdgeInd = edge.index()
                 edgeLab = None
+                trackedIndices = [ i for i in range( t.countEdges() ) ]
             else:
                 removeEdgeInd, edgeLab = data
+                trackedIndices = edgeLab.trackedIndices()
             expect = t.with21( edge, edgeEnd )
             actual = Triangulation3(t)
             relab = twoOne( actual.edge( edge.index() ), edgeEnd, edgeLab )
@@ -1511,7 +1513,42 @@ if __name__ == "__main__":
                 raise AssertionError(
                         move + "Failed to preserve orientation!" )
 
-            #TODO Sanity checks for relabelling.
+            # Sanity checks on the relabelling.
+            if relab[removeEdgeInd] is not None:
+                raise AssertionError(
+                        move +
+                        " Relabelling continues tracking removed edge!" )
+            if relab[-1] is None:
+                raise AssertionError(
+                        move +
+                        " Relabelling fails to track new edge!" )
+
+            # The new edge created by the 2-1 move should be the unique edge
+            # of degree one that is incident to the new tetrahedron.
+            #
+            #NOTE This test assumes that the new tetrahedron is indexed last.
+            newEdgeInd = -1 + min( 0, *trackedIndices )
+            newEdge = actual.edge( edgeIndFromEmb( relab[newEdgeInd] ) )
+            degOneEdge = None
+            newTet = actual.tetrahedron( actual.size() - 1 )
+            for eNum in range(6):
+                candidateEdge = newTet.edge(eNum)
+                if candidateEdge.degree() != 1:
+                    continue
+                if degOneEdge is None:
+                    degOneEdge = candidateEdge
+                else:
+                    raise AssertionError(
+                            move +
+                            " Too many degree one edges!" )
+            if degOneEdge is None:
+                raise AssertionError(
+                        move +
+                        " Missing degree one edge!" )
+            if newEdge != degOneEdge:
+                raise AssertionError(
+                        move +
+                        " New edge tracked incorrectly!" )
 
             # All done!
             return
