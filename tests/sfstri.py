@@ -62,23 +62,24 @@ if __name__ == "__main__":
         for genus in range( -1, 2 ):
             for boundaries in range(2):
                 for fibres in testFibres:
-                    print( "g={}, b={}, fibres={}.".format(
-                        genus, boundaries, fibres ) )
+                    description = "g={}, b={}, fibres={}.".format(
+                            genus, boundaries, fibres )
                     nameIndex += 1
                     expectedName = expectedNames[nameIndex]
                     sfs = orientableSFS( genus, boundaries, *fibres )
-                    doTest( "Oriented?", True, sfs.isOriented() )
+                    doTest( description + " Oriented?",
+                           True, sfs.isOriented() )
                     if expectedName == "RP3 # RP3":
                         #NOTE StandardTriangulation doesn't recognise the
                         #   minimal triangulation of RP3 # RP3.
-                        print( "    Skipped recognition of RP3 # RP3." )
+                        print( "Skipped recognition of RP3 # RP3." )
                     else:
                         actual = StandardTriangulation.recognise(sfs)
                         if actual.manifold().structure():
                             actualName = actual.manifold().structure()
                         else:
                             actualName = actual.manifold().name()
-                        doTest( "Manifold?",
+                        doTest( description + " Manifold?",
                                expectedName, actualName )
 
         # End of orientableSFS() test.
@@ -114,7 +115,8 @@ if __name__ == "__main__":
         nameIndex = -1
         for genus in range( -2, 3 ):
             for boundaries in range(3):
-                print( "g={}, b={}.".format( genus, boundaries ) )
+                description = "g={}, b={}.".format(
+                        genus, boundaries )
                 nameIndex += 1
                 expectedName = expectedNames[nameIndex]
                 base = surface( genus, boundaries )
@@ -122,9 +124,11 @@ if __name__ == "__main__":
                 # Circle bundle.
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
-                doTest( "Oriented?", True, tri.isOriented() )
+                doTest( description + " Oriented?",
+                       True, tri.isOriented() )
                 actual = StandardTriangulation.recognise(tri).manifold()
-                doTest( "Manifold?", expectedName, actual.name() )
+                doTest( description + " Manifold?",
+                       expectedName, actual.name() )
                 for edge in base.edges():
                     if not edge.isBoundary():
                         continue
@@ -132,7 +136,7 @@ if __name__ == "__main__":
                     prism = bundle.triPrism(faceIndex)
                     square = edge.front().edge()
                     doTest(
-                            "Square {}({}) glued?".format(
+                            description + " Square {}({}) glued?".format(
                                 faceIndex, square ),
                             False, prism.isSquareGlued(square) )
 
@@ -146,13 +150,16 @@ if __name__ == "__main__":
         print( "| TriPrism class |" )
         print( "+----------------+" )
 
-        def _testTri( tri, isSolidTorus ):
+        def _testTri( description, tri, isSolidTorus ):
             """
             Test basic properties of the triangulation.
             """
-            doTest( "Solid torus?", isSolidTorus, tri.isSolidTorus() )
-            doTest( "Ball?", not isSolidTorus, tri.isBall() )
-            doTest( "Oriented?", True, tri.isOriented() )
+            doTest( description + " Solid torus?",
+                   isSolidTorus, tri.isSolidTorus() )
+            doTest( description + " Ball?",
+                   not isSolidTorus, tri.isBall() )
+            doTest( description + " Oriented?",
+                   True, tri.isOriented() )
             return
 
         def _testSlopeSign( prism, s, tri, isSolidTorus ):
@@ -160,23 +167,28 @@ if __name__ == "__main__":
             Test that the slope-sign constraint holds both before and after
             flipping square s of the given prism.
             """
+            if isSolidTorus:
+                prismDesc = "Solid torus."
+            else:
+                prismDesc = "Prism."
+            description = prismDesc + " Square {}.".format(s)
             # Before flipping.
             oldSlope = prism.squareSlope(s)
-            print( "Old slope of square {}: {}.".format(
-                s, oldSlope ) )
+            slopeDesc = description + " Old slope: {}.".format(oldSlope)
+            detail = " Slope-sign constraint, triangle {}."
             for t in range(2):
-                doTest( "Slope-sign constraint for triangle {}.".format(t),
+                doTest( slopeDesc + detail.format(t) + " Before flip.",
                        -1, oldSlope * prism.squareRoles(s,t).sign() )
 
             # After flipping.
             newSlope = prism.flipSlope(s)
-            doTest( "Flip slope of square {}.".format(s),
+            doTest( slopeDesc + " Flip slope.",
                     -oldSlope, newSlope )
-            doTest( "New slope of square {}.".format(s),
+            doTest( slopeDesc + " New slope.",
                     -oldSlope, prism.squareSlope(s) )
-            _testTri( tri, isSolidTorus )
+            _testTri( description + " After flip.", tri, isSolidTorus )
             for t in range(2):
-                doTest( "Slope-sign constraint for triangle {}.".format(t),
+                doTest( slopeDesc + detail.format(t) + " After flip.",
                         -1, newSlope * prism.squareRoles(s,t).sign() )
             return
 
@@ -184,7 +196,11 @@ if __name__ == "__main__":
         for isSolidTorus in ( True, False ):
             tri = Triangulation3()
             prism = TriPrism( tri, isSolidTorus )
-            _testTri( tri, isSolidTorus )
+            if isSolidTorus:
+                description = "Solid torus. Before flip."
+            else:
+                description = "Prism. Before flip."
+            _testTri( description, tri, isSolidTorus )
 
             # Flip everything one by one, and then unflip, and test that the
             # slope-sign constraint is preserved all the way through.
