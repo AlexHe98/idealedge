@@ -5,4 +5,3 @@
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
 --- Test suites
     --> Embedded loops
-    --> Standardise layout
