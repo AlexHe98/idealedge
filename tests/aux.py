@@ -1,6 +1,8 @@
 """
 Helper routines for test suites.
 """
+from sys import stdout
+from timeit import default_timer
 
 
 def parseTestNames( arguments, availableTests ):
@@ -62,6 +64,27 @@ def doTest( description, expected, actual, verbose=False ):
         if not verbose:
             print(msg)
         raise AssertionError("TEST FAILED!")
+    return
+
+
+def runNamedTestSuite( suiteName, runTestSuite ):
+    """
+    Runs the given test suite with the given name.
+
+    The runTestSuite parameter should be a function that runs a collection of
+    tests and returns the total number of tests completed.
+    """
+    suiteName = suiteName.strip()
+    print( "+-{}-+".format( "-" * len(suiteName) ) )
+    print( "| {} |".format(suiteName) )
+    print( "+-{}-+".format( "-" * len(suiteName) ) )
+    start = default_timer()
+    total = runTestSuite()
+    print()
+    print( "Time: {:.6f}".format( default_timer() - start ) )
+    print( "Total {} tests passed!".format(total) )
+    print()
+    stdout.flush()
     return
 
 
