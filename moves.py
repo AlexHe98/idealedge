@@ -5,14 +5,6 @@ from regina import *
 from edgelabel import EdgeLabelling
 
 
-def edgeIndFromEmb(edgeEmbedding):
-    """
-    Returns the index of the underlying edge of the given EdgeEmbedding3
-    object.
-    """
-    return edgeEmbedding.tetrahedron().edge( edgeEmbedding.edge() ).index()
-
-
 def twoThree( triangle, edgeLab=None ):
     """
     Performs a 2-3 move about the given triangle, and returns an EdgeLabelling
@@ -985,7 +977,7 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
         workingLab = edgeLab.cloneLabelling()
         trackInputEdge = False
         for ei in edgeLab:
-            if edge.index() != edgeIndFromEmb( edgeLab[ei] ):
+            if edge.index() != edgeLab.underlyingEdgeIndex(ei):
                 continue
             trackInputEdge = True
             e20 = ei
@@ -1010,8 +1002,7 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
     f23 = emb.tetrahedron().triangle( emb.vertices()[edgeEnd] )
     relab = twoThree( f23, workingLab )
     relab = twoZero(
-            tri.edge(
-                edgeIndFromEmb( relab[e20] ) ),
+            tri.edge( relab.underlyingEdgeIndex(e20) ),
             relab )
     if not trackInputEdge:
         relab.untrack(e20)
@@ -1113,7 +1104,7 @@ if __name__ == "__main__":
                 moveRelOr.append(-1)
 
             # Relative orientation after inverse move.
-            ii = edgeIndFromEmb( renum[i] )
+            ii = renum.underlyingEdgeIndex(i)
             tetIndex = innum[ii].tetrahedron().index()
             verts = innum[ii].vertices()
             compareVerts = after.tetrahedron(tetIndex).edgeMapping(
@@ -1153,7 +1144,7 @@ if __name__ == "__main__":
             # Also make sure that the inverse 3-2 move gives the correct
             # triangulation, up to isomorphism.
             inv = Triangulation3(tri23)
-            removedEdgeIndex = edgeIndFromEmb( renum[-1] )
+            removedEdgeIndex = renum.underlyingEdgeIndex(-1)
             innum = threeTwo( inv.edge(removedEdgeIndex) )
             if not origTri.isIsomorphicTo(inv):
                 # This test is subsumed by the more detailed isomorphisms
@@ -1179,22 +1170,22 @@ if __name__ == "__main__":
                 mults = multiplicities( origTri.edge(i) )
                 comMults = multiplicities(
                         inv.edge(
-                            edgeIndFromEmb( innum[
-                                edgeIndFromEmb( renum[i] ) ] ) ) )
+                            innum.underlyingEdgeIndex(
+                                renum.underlyingEdgeIndex(i) ) ) )
                 if mults != comMults:
-                    print( { k: edgeIndFromEmb(v)
-                            for k, v in renum.items() } )
-                    print( { k: edgeIndFromEmb(v)
-                            for k, v in innum.items() if v is not None } )
+                    print( { k: renum.underlyingEdgeIndex(k)
+                            for k in renum } )
+                    print( { k: innum.underlyingEdgeIndex(k)
+                            for k in innum } )
                     msg = "Face {}: Unmatched edge multiplicities!"
                     raise AssertionError( msg.format( face.index() ) )
 
             # Check that the renumberings are sensible.
             if not verifyRenum( origTri, renum, tri23, innum, inv ):
-                print( { k: edgeIndFromEmb(v)
-                        for k, v in renum.items() } )
-                print( { k: edgeIndFromEmb(v)
-                        for k, v in innum.items() if v is not None } )
+                print( { k: renum.underlyingEdgeIndex(k)
+                        for k in renum } )
+                print( { k: innum.underlyingEdgeIndex(k)
+                        for k in innum } )
                 msg = "Face {}: Relabellings failed!"
                 raise AssertionError( msg.format( face.index() ) )
 
@@ -1316,7 +1307,7 @@ if __name__ == "__main__":
             # Test that the inverse 2-0 move, performed on tri02 using
             # twoZero(), brings us back to a triangulation isomorphic to tri.
             inv = Triangulation3(tri02)
-            innum = twoZero( inv.edge( edgeIndFromEmb( renum[-1] ) ) )
+            innum = twoZero( inv.edge( renum.underlyingEdgeIndex(-1) ) )
             if not inv.isIsomorphicTo(tri):
                 print(tri)
                 print(tri02)
@@ -1329,10 +1320,10 @@ if __name__ == "__main__":
 
             # Check that the renumberings are sensible.
             if not verifyRenum( tri, renum, tri02, innum, inv ):
-                print( { k: edgeIndFromEmb(v)
-                        for k, v in renum.items() } )
-                print( { k: edgeIndFromEmb(v)
-                        for k, v in innum.items() if v is not None } )
+                print( { k: renum.underlyingEdgeIndex(k)
+                        for k in renum } )
+                print( { k: innum.underlyingEdgeIndex(k)
+                        for k in innum } )
                 raise AssertionError( msg + "Relabellings failed!" )
 
             # All done!
@@ -1441,7 +1432,7 @@ if __name__ == "__main__":
                 # moves on the new edge that we just created.
                 for invAxis in range(2):
                     inv44 = Triangulation3(new44)
-                    fourFour( inv44.edge( edgeIndFromEmb( relab[-1] ) ),
+                    fourFour( inv44.edge( relab.underlyingEdgeIndex(-1) ),
                              invAxis )
                     isoSigSet[newAxis].add( inv44.isoSig() )
             for newAxis in range(2):
@@ -1529,7 +1520,7 @@ if __name__ == "__main__":
             # of degree one that is incident to the new tetrahedron.
             #
             #NOTE This test assumes that the new tetrahedron is indexed last.
-            newEdge = actual.edge( edgeIndFromEmb( relab[newEdgeInd] ) )
+            newEdge = actual.edge( relab.underlyingEdgeIndex(newEdgeInd) )
             degOneEdge = None
             newTet = actual.tetrahedron( actual.size() - 1 )
             for eNum in range(6):

@@ -3,6 +3,8 @@
         ->- Update all usage of moves
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Monotonic simplification
+        ->- etc
+    --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
 --- Test suites
-    --> Embedded loops?
+    --> Embedded loops
     --> Standardise layout
