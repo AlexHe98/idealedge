@@ -326,17 +326,48 @@ class EmbeddedLoop:
         tri = Triangulation3.tightDecoding(triEncoding)
         return [ tri.edge(ei) for ei in edgeIndices ]
 
-    #TODO What do we need to change to track orientations?
-    def _setFromRenum( self, renum ):
+    def _setFromRelab( self, relab ):
         """
-        Sets this embedded loop using the given edge renumbering map.
+        Sets this embedded loop using the relabelling described by the given
+        EdgeLabelling.
 
         This routine is for internal use only.
+
+        Pre-condition:
+        --> The given EdgeLabelling relab tracks every index ei in self.
         """
         edges = []
+        oldOrientation = self.edgeOrientation(0)
+        newOrientation = 0
         for ei in self:
-            edges.append( self._tri.edge( renum[ei] ) )
-        self.setFromEdges(edges)
+            edge = self._tri.edge(
+                    relab.underlyingEdgeIndex(ei) )
+            edges.append(edge)
+            if newOrientation == 0:
+                # We are looking at edge 0 of the loop, which is the edge that
+                # determines the orientation of the loop. The embedding
+                # relab[ei] will orient this edge in the same direction as
+                # before, so to figure out the newOrientation for the loop we
+                # just need to compare relab[ei] with the corresponding
+                # underlying embedding of the edge.
+                found = False
+                for emb in edge.embeddings():
+                    if emb.tetrahedron() != relab[ei].tetrahedron():
+                        continue
+                    if emb.edge() != relab[ei].edge():
+                        continue
+
+                    # Found the corresponding embedding.
+                    found = True
+                    if emb.vertices()[0] == relab[ei].vertices()[0]:
+                        newOrientation = oldOrientation
+                    else:
+                        newOrientation = -1 * oldOrientation
+                    break
+                if not found:
+                    # This should never happen.
+                    raise AssertionError( "Bad relabelling!" )
+        self.setFromEdges( edges, newOrientation )
         return
 
     def __len__(self):
@@ -1066,7 +1097,7 @@ class EmbeddedLoop:
             if changedNow:
                 try:
                     # If we destroyed the loop, then this will raise NotLoop.
-                    self._setFromRenum(renum)
+                    self._setFromRelab(renum)
                 except NotLoop:
                     # As noted above, the loop can only get destroyed if it
                     # bounds a disc.
@@ -1179,7 +1210,7 @@ class EmbeddedLoop:
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
             renum = fourFour( *fourFourChoice )
-            tempLoop._setFromRenum(renum)
+            tempLoop._setFromRelab(renum)
             if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
                 # Start all over again.
@@ -1601,7 +1632,7 @@ class IdealLoop(EmbeddedLoop):
             renum = twoThree( self._tri.triangle(
                 RandomEngine.rand( self._tri.countTriangles() ) ) )
             if renum is not None:
-                self._setFromRenum(renum)
+                self._setFromRelab(renum)
 
                 # Try to force future random 2-3 moves to make "interesting"
                 # changes.
