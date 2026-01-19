@@ -1,0 +1,8 @@
+--- Bounded SFS recognition
+    --> Implement TriangulationWithEmbeddedLoops class
+        ->- Monotonic simplification
+        ->- etc
+    --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
+--- Test suites
+    --> Embedded loops
+    --> Standardise layout

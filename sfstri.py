@@ -1,10 +1,8 @@
 """
 Construct triangulations of orientable Seifert fibre spaces.
 """
-from sys import argv
 from regina import *
 from surftri import _polygon, surface
-from test import parseTestNames, doTest, allTestsPassedMessage
 
 
 def orientableSFS( baseSignedGenus, boundaries, *fibres ):
@@ -653,6 +651,9 @@ class TriPrism:
 
 
 if __name__ == "__main__":
+    from sys import argv
+    from test import parseTestNames, doTest, allTestsPassedMessage
+
     availableTests = [ "sfs",
                       "bundle",
                       "prism" ]
