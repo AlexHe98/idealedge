@@ -4,7 +4,8 @@ Test suite for triangulations of orientable Seifert fibre spaces.
 from regina import *
 from surftri import surface
 from sfstri import orientableSFS, OrientableBundle, TriPrism
-from sys import argv
+from sys import argv, stdout
+from timeit import default_timer
 from tests.aux import parseTestNames, doTest, allTestsPassedMessage
 
 
@@ -58,7 +59,10 @@ if __name__ == "__main__":
                 "SFS [Or, g=1 + 1 puncture: (3,1) (4,3)]",
                 "SFS [Or, g=1 + 1 puncture: (2,1) (5,2) (5,-1)]",
                 "SFS [Or, g=1 + 1 puncture: (3,2) (7,2) (7,3) (7,-2)]" ]
+
+        start = default_timer()
         nameIndex = -1
+        count = 0
         for genus in range( -1, 2 ):
             for boundaries in range(2):
                 for fibres in testFibres:
@@ -74,6 +78,7 @@ if __name__ == "__main__":
                         #   minimal triangulation of RP3 # RP3.
                         print( "Skipped recognition of RP3 # RP3." )
                     else:
+                        count += 1
                         actual = StandardTriangulation.recognise(sfs)
                         if actual.manifold().structure():
                             actualName = actual.manifold().structure()
@@ -84,6 +89,11 @@ if __name__ == "__main__":
 
         # End of orientableSFS() test.
         print()
+        print( "Tested {} orientable manifolds.".format(count) )
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "All tests passed!" )
+        print()
+        stdout.flush()
         pass
 
     # Test OrientableBundle class.
@@ -112,7 +122,10 @@ if __name__ == "__main__":
                 "Or, g=2 x S1",
                 "Or, g=2 + 1 puncture x S1",
                 "Or, g=2 + 2 punctures x S1" ]
+
+        start = default_timer()
         nameIndex = -1
+        count = 0
         for genus in range( -2, 3 ):
             for boundaries in range(3):
                 description = "g={}, b={}.".format(
@@ -122,6 +135,7 @@ if __name__ == "__main__":
                 base = surface( genus, boundaries )
 
                 # Circle bundle.
+                count += 1
                 bundle = OrientableBundle( base, True )
                 tri = bundle.triangulation()
                 doTest( description + " Oriented?",
@@ -142,6 +156,11 @@ if __name__ == "__main__":
 
         # End of OrientableBundle test.
         print()
+        print( "Tested {} orientable circle bundles.".format(count) )
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "All tests passed!" )
+        print()
+        stdout.flush()
         pass
 
     # Test TriPrism class.
@@ -193,6 +212,7 @@ if __name__ == "__main__":
             return
 
         # Test both solid-torus and non-solid-torus constructions.
+        start = default_timer()
         for isSolidTorus in ( True, False ):
             tri = Triangulation3()
             prism = TriPrism( tri, isSolidTorus )
@@ -210,6 +230,10 @@ if __name__ == "__main__":
 
         # End of TriPrism test.
         print()
+        print( "Time: {:.6f}".format( default_timer() - start ) )
+        print( "All tests passed!" )
+        print()
+        stdout.flush()
         pass
 
     # If we make it here, then all tests passed.
