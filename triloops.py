@@ -178,24 +178,23 @@ class TriangulationWithEmbeddedLoops:
             ans.append( ( embeddings, orientation ) )
         return ans
 
-    def _setFromRenum( self, renum ):
+    def _setFromRelab( self, relab ):
         """
-        Sets this triangulation with embedded loops using the given edge
-        renumbering map.
+        Sets this triangulation with embedded loops using the relabelling
+        described by the given EdgeLabelling.
 
         This routine is for internal use only. The purpose of this routine is
         to update the embedded loops whenever the ambient triangulation has
         been modified by a local move. See the twoThree, threeTwo, twoZero,
-        twoOne, and fourFour routines from moves.py for examples of how edge
-        renumbering maps should be specified.
+        twoOne, and fourFour routines from moves.py for examples of how
+        relabellings are specified.
+
+        Pre-condition:
+        --> The given EdgeLabelling relab tracks every index ei in
+            self.loopEdgeIndices().
         """
-        #TODO Reimplement so that this:
-        #       --> works for multiple loops, and
-        #       --> tracks orientation.
-        edges = []
-        for ei in self:
-            edges.append( self._tri.edge( renum[ei] ) )
-        self.setFromEdges(edges)
+        for embLoop in self:
+            embLoop._setFromRelab(relab)
         return
 
     def __len__(self):
@@ -633,29 +632,29 @@ class TriangulationWithEmbeddedLoops:
 
                 # If requested, try a 3-2 move.
                 if include32:
-                    renum = threeTwo(edge)
-                    if renum is not None:
+                    relabelling = threeTwo(edge)
+                    if relabelling is not None:
                         changedNow = True
                         changed = True
                         break
 
                 # Try a 2-0 edge move.
                 # This move can destroy a loop if it bounds a disc.
-                renum = twoZero(edge)
-                if renum is not None:
+                relabelling = twoZero(edge)
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
 
                 # Try a 2-1 edge move.
                 # This move can destroy a loop if it bounds a disc.
-                renum = twoOne( edge, 0 )
-                if renum is not None:
+                relabelling = twoOne( edge, 0 )
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
-                renum = twoOne( edge, 1 )
-                if renum is not None:
+                relabelling = twoOne( edge, 1 )
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
@@ -667,7 +666,7 @@ class TriangulationWithEmbeddedLoops:
                 try:
                     # If we destroyed any of the loops, then this will raise
                     # NotLoop.
-                    self._setFromRenum(renum)
+                    self._setFromRelab(relabelling)
                 except NotLoop:
                     # As noted above, a loop can only get destroyed if it
                     # bounds a disc.

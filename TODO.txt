@@ -1,6 +1,4 @@
 --- Bounded SFS recognition
-    --> Make moves track orientation
-        ->- Update all usage of moves
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Monotonic simplification
         ->- etc
