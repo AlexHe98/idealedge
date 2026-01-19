@@ -33,7 +33,10 @@ if __name__ == "__main__":
                 doTest( "Boundary components.",
                        boundaries, surf.countBoundaryComponents() )
                 doTest( "Oriented?", True, surf.isOriented() )
-                print()
+
+        # End of orientable() test.
+        print()
+        pass
 
     # Test nonOrientable() routine.
     if "norbl" in testNames:
@@ -55,7 +58,10 @@ if __name__ == "__main__":
                 doTest( "Boundary components.",
                        boundaries, surf.countBoundaryComponents() )
                 doTest( "Orientable?", False, surf.isOrientable() )
-                print()
+
+        # End of nonOrientable() test.
+        print()
+        pass
 
     # If we make it here, then all tests passed.
     allTestsPassedMessage(testNames)

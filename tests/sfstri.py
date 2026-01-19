@@ -71,7 +71,7 @@ if __name__ == "__main__":
                     if expectedName == "RP3 # RP3":
                         #NOTE StandardTriangulation doesn't recognise the
                         #   minimal triangulation of RP3 # RP3.
-                        print( "Skipped recognition of RP3 # RP3." )
+                        print( "    Skipped recognition of RP3 # RP3." )
                     else:
                         actual = StandardTriangulation.recognise(sfs)
                         if actual.manifold().structure():
@@ -80,7 +80,10 @@ if __name__ == "__main__":
                             actualName = actual.manifold().name()
                         doTest( "Manifold?",
                                expectedName, actualName )
-                    print()
+
+        # End of orientableSFS() test.
+        print()
+        pass
 
     # Test OrientableBundle class.
     if "bundle" in testNames:
@@ -132,7 +135,10 @@ if __name__ == "__main__":
                             "Square {}({}) glued?".format(
                                 faceIndex, square ),
                             False, prism.isSquareGlued(square) )
-                print()
+
+        # End of OrientableBundle test.
+        print()
+        pass
 
     # Test TriPrism class.
     if "prism" in testNames:
@@ -172,23 +178,23 @@ if __name__ == "__main__":
             for t in range(2):
                 doTest( "Slope-sign constraint for triangle {}.".format(t),
                         -1, newSlope * prism.squareRoles(s,t).sign() )
-            print()
             return
 
         # Test both solid-torus and non-solid-torus constructions.
         for isSolidTorus in ( True, False ):
             tri = Triangulation3()
             prism = TriPrism( tri, isSolidTorus )
-            print( "------------------------------------------------" )
             _testTri( tri, isSolidTorus )
-            print( "------------------------------------------------" )
-            print()
 
             # Flip everything one by one, and then unflip, and test that the
             # slope-sign constraint is preserved all the way through.
             for _ in range(2):
                 for s in range(3):
                     _testSlopeSign( prism, s, tri, isSolidTorus )
+
+        # End of TriPrism test.
+        print()
+        pass
 
     # If we make it here, then all tests passed.
     allTestsPassedMessage(testNames)

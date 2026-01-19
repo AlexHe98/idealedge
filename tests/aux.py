@@ -49,14 +49,18 @@ def parseTestNames( arguments, availableTests ):
     return testNames
 
 
-def doTest( description, expected, actual ):
+def doTest( description, expected, actual, verbose=False ):
     """
     Tests that an actual computed value is equal to the expected value, and
     raises an AssertionError if this fails.
     """
-    print( "{} Expected: {}. Actual: {}.".format(
-        description, expected, actual ) )
+    msg = "{} Expected: {}. Actual: {}.".format(
+            description, expected, actual )
+    if verbose:
+        print(msg)
     if expected != actual:
+        if not verbose:
+            print(msg)
         raise AssertionError("TEST FAILED!")
     return
 
