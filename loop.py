@@ -1064,29 +1064,29 @@ class EmbeddedLoop:
 
                 # If requested, try a 3-2 move.
                 if include32:
-                    renum = threeTwo(edge)
-                    if renum is not None:
+                    relabelling = threeTwo(edge)
+                    if relabelling is not None:
                         changedNow = True
                         changed = True
                         break
 
                 # Try a 2-0 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                renum = twoZero(edge)
-                if renum is not None:
+                relabelling = twoZero(edge)
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
 
                 # Try a 2-1 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                renum = twoOne( edge, 0 )
-                if renum is not None:
+                relabelling = twoOne( edge, 0 )
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
-                renum = twoOne( edge, 1 )
-                if renum is not None:
+                relabelling = twoOne( edge, 1 )
+                if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
@@ -1097,7 +1097,7 @@ class EmbeddedLoop:
             if changedNow:
                 try:
                     # If we destroyed the loop, then this will raise NotLoop.
-                    self._setFromRelab(renum)
+                    self._setFromRelab(relabelling)
                 except NotLoop:
                     # As noted above, the loop can only get destroyed if it
                     # bounds a disc.
@@ -1209,8 +1209,8 @@ class EmbeddedLoop:
             # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
-            renum = fourFour( *fourFourChoice )
-            tempLoop._setFromRelab(renum)
+            relabelling = fourFour( *fourFourChoice )
+            tempLoop._setFromRelab(relabelling)
             if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
                 # Start all over again.
@@ -1629,10 +1629,10 @@ class IdealLoop(EmbeddedLoop):
             count -= 1
 
             # Attempt a random 2-3 move.
-            renum = twoThree( self._tri.triangle(
+            relabelling = twoThree( self._tri.triangle(
                 RandomEngine.rand( self._tri.countTriangles() ) ) )
-            if renum is not None:
-                self._setFromRelab(renum)
+            if relabelling is not None:
+                self._setFromRelab(relabelling)
 
                 # Try to force future random 2-3 moves to make "interesting"
                 # changes.
