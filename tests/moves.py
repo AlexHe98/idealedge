@@ -25,7 +25,8 @@ def _generateIsomorphisms( triSize, maxIsos ):
             iso.inc()
     return
 
-def _multiplicities(edge):
+
+def _sortedMultiplicities(edge):
     """
     Returns a list of the multiplicities of the given edge, sorted from
     largest to smallest.
@@ -47,6 +48,7 @@ def _multiplicities(edge):
             ans.append(mult)
     ans.sort( reverse=True )
     return ans
+
 
 def _relativeEdgeOrientations( tri, iso ):
     """
@@ -71,6 +73,7 @@ def _relativeEdgeOrientations( tri, iso ):
             # Opposite orientation.
             ans.append(-1)
     return ans
+
 
 def _verifyRelab( before, relab, inter, inlab, after ):
     """
@@ -114,6 +117,7 @@ def testTwoThree():
         total += _test23all(testSig)
     return total
 
+
 def _test23all( testSig, maxIsos=16 ):
     print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
     stdout.flush()
@@ -137,11 +141,7 @@ def _test23all( testSig, maxIsos=16 ):
             # 2-3 move not eligible on f.
             continue
         count += 1
-        try:
-            _test23single( f, pach )
-        except AssertionError as ae:
-            print(t)
-            raise ae
+        _test23single( testSig, f, pach )
 
         # To test as many cases of the implementation as possible, test the
         # same 2-3 move with several relabellings of t.
@@ -151,55 +151,42 @@ def _test23all( testSig, maxIsos=16 ):
             fnum = f.embedding(0).face()
             tetImage = iso.simpImage(source)
             faceImage = iso.facetPerm(source)[fnum]
-            try:
-                _test23single(
-                        r.tetrahedron(tetImage).triangle(faceImage),
-                        pach )
-            except AssertionError as ae:
-                print(iso)
-                raise ae
+            _test23single(
+                    testSig,
+                    r.tetrahedron(tetImage).triangle(faceImage),
+                    pach )
 
     # All done!
     return count
 
 
-def _test23single( face, expectedTri ):
+def _test23single( testSig, face, expectedTri ):
     """
     Perform a 2-3 move on the given face, and check (among other things) that
     the result is isomorphic to expectedTri.
     """
+    description = "{}. Face {}.".format( testSig, face.index() )
     origTri = face.triangulation()
     tri23 = Triangulation3(origTri)
-    renum = twoThree( tri23.triangle( face.index() ) )
-    if not expectedTri.isIsomorphicTo(tri23):
-        print(expectedTri)
-        print(tri23)
-        msg = "Face {}: Not isomorphic!"
-        raise AssertionError( msg.format( face.index() ) )
-    if ( origTri.isOriented() ) and ( not tri23.isOriented() ):
-        print(tri23)
-        msg = "Face {}: Failed to preserve orientation!"
-        raise AssertionError( msg.format( face.index() ) )
+    relab = twoThree( tri23.triangle( face.index() ) )
+    doTest( description + " Isomorphic?",
+           True, expectedTri.isIsomorphicTo(tri23) is not None )
+    if origTri.isOriented():
+        doTest( description + " Oriented?",
+               True, tri23.isOriented() )
 
     # Also make sure that the inverse 3-2 move gives the correct
     # triangulation, up to isomorphism.
     inv = Triangulation3(tri23)
-    removedEdgeIndex = renum.underlyingEdgeIndex(-1)
-    innum = threeTwo( inv.edge(removedEdgeIndex) )
-    if not origTri.isIsomorphicTo(inv):
-        # This test is subsumed by the more detailed isomorphisms tests below,
-        # but we keep it anyway.
-        print(inv)
-        print( inv.detail() )
-        msg = "{}: Inverse not isomorphic!"
-        raise AssertionError( msg.format( face.index() ) )
-    if ( tri23.isOriented() ) and ( not inv.isOriented() ):
-        print(inv)
-        msg = "Face {}: Inverse failed to preserve orientation!"
-        raise AssertionError( msg.format( face.index() ) )
-    if innum[removedEdgeIndex] is not None:
-        msg = "Face {}: Inverse continues to track removed edge!"
-        raise AssertionError( msg.format( face.index() ) )
+    removedEdgeIndex = relab.underlyingEdgeIndex(-1)
+    inlab = threeTwo( inv.edge(removedEdgeIndex) )
+    doTest( description + " Inverse isomorphic?",
+           True, origTri.isIsomorphicTo(inv) is not None )
+    if tri23.isOriented():
+        doTest( description + " Inverse oriented?",
+               True, inv.isOriented() )
+    doTest( description + "Untrack edge.",
+           None, inlab[removedEdgeIndex] )
 
     # Check that the relabellings are sensible by comparing edge
     # multiplicities in origTri and inv.
@@ -207,27 +194,17 @@ def _test23single( face, expectedTri ):
     # This test is subsumed by the more detailed isomorphisms tests below, but
     # we keep it anyway.
     for i in range( origTri.countEdges() ):
-        mults = _multiplicities( origTri.edge(i) )
-        comMults = _multiplicities(
+        expectedMults = _sortedMultiplicities( origTri.edge(i) )
+        actualMults = _sortedMultiplicities(
                 inv.edge(
-                    innum.underlyingEdgeIndex(
-                        renum.underlyingEdgeIndex(i) ) ) )
-        if mults != comMults:
-            print( { k: renum.underlyingEdgeIndex(k)
-                    for k in renum } )
-            print( { k: innum.underlyingEdgeIndex(k)
-                    for k in innum } )
-            msg = "Face {}: Unmatched edge multiplicities!"
-            raise AssertionError( msg.format( face.index() ) )
+                    inlab.underlyingEdgeIndex(
+                        relab.underlyingEdgeIndex(i) ) ) )
+        doTest( description + " Edge {} multiplicities.".format(i),
+               expectedMults, actualMults )
 
     # Check that the relabellings are sensible.
-    if not _verifyRelab( origTri, renum, tri23, innum, inv ):
-        print( { k: renum.underlyingEdgeIndex(k)
-                for k in renum } )
-        print( { k: innum.underlyingEdgeIndex(k)
-                for k in innum } )
-        msg = "Face {}: Relabellings failed!"
-        raise AssertionError( msg.format( face.index() ) )
+    doTest( description + " Verify relabelling.",
+           True, _verifyRelab( origTri, relab, tri23, inlab, inv ) )
 
     # All done!
     return
@@ -270,33 +247,26 @@ def _test20single( tri, edgeIndex, i, ii ):
     Checks that the inverse 2-0 move correctly inverts the given 0-2 move.
     """
     tri02 = Triangulation3(tri)
-    renum = _zeroTwo( tri02, edgeIndex, i, ii )
-    if renum is None:
+    relab = _zeroTwo( tri02, edgeIndex, i, ii )
+    if relab is None:
         # No 0-2 move here.
         return False
-    msg = "Inverse 2-0 move {}, {}, {}: ".format( edgeIndex, i, ii )
+    description = "{}. Inverse 2-0 move {}/{}/{}.".format(
+            tri.isoSig(), edgeIndex, i, ii )
 
     # Test that the inverse 2-0 move, performed on tri02 using twoZero(),
     # brings us back to a triangulation isomorphic to tri.
     inv = Triangulation3(tri02)
-    innum = twoZero( inv.edge( renum.underlyingEdgeIndex(-1) ) )
-    if not inv.isIsomorphicTo(tri):
-        print(tri)
-        print(tri02)
-        print(inv)
-        raise AssertionError( msg + "Not isomorphic!" )
-    if ( tri02.isOriented() ) and ( not inv.isOriented() ):
-        print(tri02)
-        print(inv)
-        raise AssertionError( msg + "Failed to preserve orientation!" )
+    inlab = twoZero( inv.edge( relab.underlyingEdgeIndex(-1) ) )
+    doTest( description + " Isomorphic?",
+           True, inv.isIsomorphicTo(tri) is not None )
+    if tri02.isOriented():
+        doTest( description + " Oriented?",
+               True, inv.isOriented() )
 
     # Check that the relabellings are sensible.
-    if not _verifyRelab( tri, renum, tri02, innum, inv ):
-        print( { k: renum.underlyingEdgeIndex(k)
-                for k in renum } )
-        print( { k: innum.underlyingEdgeIndex(k)
-                for k in innum } )
-        raise AssertionError( msg + "Relabellings failed!" )
+    doTest( description + " Verify relabelling.",
+           True, _verifyRelab( tri, relab, tri02, inlab, inv ) )
 
     # All done!
     return True
@@ -358,12 +328,12 @@ def _test44all(testSig):
 
     count = 0
     for e in t.edges():
-        if _test44single(e):
+        if _test44single( testSig, e ):
             count += 1
     return count
 
 
-def _test44single(edge):
+def _test44single( testSig, edge ):
     """
     Tests all possible 4-4 moves on the given edge.
     """
@@ -396,28 +366,22 @@ def _test44single(edge):
 
         # Test that fourFour gives the right isomorphism type, and that it
         # preserves orientation.
-        move = "4-4 move {}/{}: ".format( edge.index(), newAxis )
-        if not reg44.isIsomorphicTo(new44):
-            print(t)
-            print(reg44)
-            print(new44)
-            raise AssertionError( move + " Not isomorphic!" )
-        if ( t.isOriented() ) and ( not new44.isOriented() ):
-            raise AssertionError(
-                    move + "Failed to preserve orientation!" )
+        description = "{}. 4-4 move {}/{}.".format(
+                testSig, edge.index(), newAxis )
+        doTest( description + " Isomorphic?",
+               True, reg44.isIsomorphicTo(new44) is not None )
+        if t.isOriented():
+            doTest( description + " Oriented?",
+                   True, new44.isOriented() )
         newSig = new44.isoSig()
         isoSigSet[2].add(newSig)
         isoSigSet[newAxis].add(newSig)
 
         # Sanity checks on the relabelling.
-        if relab[ edge.index() ] is not None:
-            raise AssertionError(
-                    move +
-                    " Relabelling continues tracking removed edge!" )
-        if relab[-1] is None:
-            raise AssertionError(
-                    move +
-                    " Relabelling fails to track new edge!" )
+        doTest( description + " Untrack edge.",
+               None, relab[ edge.index() ] )
+        doTest( description + " Track new edge.",
+               True, relab[-1] is not None )
 
         # Finish filling in isoSigSet so that we can test the 4-4 moves on the
         # new edge that we just created.
@@ -427,10 +391,10 @@ def _test44single(edge):
                      invAxis )
             isoSigSet[newAxis].add( inv44.isoSig() )
     for newAxis in range(2):
-        if isoSigSet[2] != isoSigSet[newAxis]:
-            raise AssertionError(
-                    "Edge {}: Error with newAxis {}.".format(
-                        edge.index(), newAxis ) )
+        description = "{}. Edge {}. New axis {}. Iso sig set.".format(
+                testSig, edge.index(), newAxis )
+        doTest( description,
+               isoSigSet[2], isoSigSet[newAxis] )
     return True
 
 
@@ -467,19 +431,19 @@ def _test21all(testSig):
 
             # Test both with the default reference labelling, and with some
             # custom reference labellings.
-            _test21single( "Default", e, edgeEnd )
+            _test21single( "Default", testSig, e, edgeEnd )
             trackOnlyRemovedEdge = EdgeLabelling(
                     t, { -1: e.front() } )
-            _test21single( "Only removed", e, edgeEnd,
+            _test21single( "Only removed", testSig, e, edgeEnd,
                          ( -1, trackOnlyRemovedEdge ) )
             untrackRemovedEdge = EdgeLabelling(t)
             untrackRemovedEdge.untrack( e.index() )
-            _test21single( "Untrack removed", e, edgeEnd,
+            _test21single( "Untrack removed", testSig, e, edgeEnd,
                          ( e.index(), untrackRemovedEdge ) )
     return count
 
 
-def _test21single( name, edge, edgeEnd, data=None ):
+def _test21single( name, testSig, edge, edgeEnd, data=None ):
     # Test that twoOne gives the right isomorphism type, and that it preserves
     # orientation.
     t = edge.triangulation()
@@ -496,24 +460,20 @@ def _test21single( name, edge, edgeEnd, data=None ):
         actual = edgeLab.triangulation()
     expect = t.with21( edge, edgeEnd )
     relab = twoOne( actual.edge( edge.index() ), edgeEnd, edgeLab )
-    move = "{}. 2-1 move {}/{}: ".format(
-            name, edge.index(), edgeEnd )
-    if not actual.isIsomorphicTo(expect):
-        raise AssertionError( move + "Not isomorphic!" )
-    if ( t.isOriented() ) and ( not actual.isOriented() ):
-        raise AssertionError(
-                move + "Failed to preserve orientation!" )
+    description = "{}. {}. 2-1 move {}/{}.".format(
+            name, testSig, edge.index(), edgeEnd )
+    doTest( description + " Isomorphic?",
+           True, actual.isIsomorphicTo(expect) is not None )
+    if t.isOriented():
+        doTest( description + " Oriented?",
+               True, actual.isOriented() )
 
     # Sanity checks on the relabelling.
-    if relab[removeEdgeInd] is not None:
-        raise AssertionError(
-                move +
-                " Relabelling continues tracking removed edge!" )
+    doTest( description + " Untrack edge.",
+           None, relab[removeEdgeInd] )
     newEdgeInd = -1 + min( 0, *trackedIndices )
-    if relab[newEdgeInd] is None:
-        raise AssertionError(
-                move +
-                " Relabelling fails to track new edge!" )
+    doTest( description + " Track new edge.",
+           True, relab[newEdgeInd] is not None )
 
     # The new edge created by the 2-1 move should be the unique edge of degree
     # one that is incident to the new tetrahedron.
@@ -530,22 +490,21 @@ def _test21single( name, edge, edgeEnd, data=None ):
             degOneEdge = candidateEdge
         else:
             raise AssertionError(
-                    move +
+                    description +
                     " Too many degree one edges!" )
     if degOneEdge is None:
         raise AssertionError(
-                move +
+                description +
                 " Missing degree one edge!" )
-    if newEdge != degOneEdge:
-        raise AssertionError(
-                move +
-                " New edge tracked incorrectly!" )
+    doTest( description + " New edge.",
+           degOneEdge, newEdge )
 
     # All done!
     return
 
 
 def testTriGraph():
+    # Here, we merely test that we never get an exception.
     print( "Perform moves on \"cMcabbgqs\" up to height 3." )
     stdout.flush()
     initSig = "cMcabbgqs"

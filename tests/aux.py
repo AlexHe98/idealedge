@@ -60,7 +60,17 @@ def doTest( description, expected, actual, verbose=False ):
             description, expected, actual )
     if verbose:
         print(msg)
-    if expected != actual:
+
+    # Make sure to properly handle the cases where expected is a built-in
+    # constant.
+    passed = False
+    if ( expected is None ) or ( expected is True ) or ( expected is False ):
+        if actual is expected:
+            passed = True
+    else:
+        if actual == expected:
+            passed = True
+    if not passed:
         if not verbose:
             print(msg)
         raise AssertionError("TEST FAILED!")
