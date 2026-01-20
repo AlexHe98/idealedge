@@ -347,26 +347,16 @@ class EmbeddedLoop:
                 # We are looking at edge 0 of the loop, which is the edge that
                 # determines the orientation of the loop. The embedding
                 # relab[ei] will orient this edge in the same direction as
-                # before, so to figure out the newOrientation for the loop we
-                # just need to compare relab[ei] with the corresponding
-                # underlying embedding of the edge.
-                found = False
-                for emb in edge.embeddings():
-                    if emb.tetrahedron() != relab[ei].tetrahedron():
-                        continue
-                    if emb.edge() != relab[ei].edge():
-                        continue
-
-                    # Found the corresponding embedding.
-                    found = True
-                    if emb.vertices()[0] == relab[ei].vertices()[0]:
-                        newOrientation = oldOrientation
-                    else:
-                        newOrientation = -1 * oldOrientation
-                    break
-                if not found:
-                    # This should never happen.
-                    raise AssertionError( "Bad relabelling!" )
+                # before, whereas the underlying labelling of the edge might
+                # or might not be the same as before. We therefore need to
+                # compare relab[ei] with the underlying labelling to determine
+                # the newOrientation for the loop.
+                vertexPerm = relab[ei].tetrahedron().edgeMapping(
+                        relab[ei].edge() )
+                if vertexPerm[0] == relab[ei].vertices()[0]:
+                    newOrientation = oldOrientation
+                else:
+                    newOrientation = -1 * oldOrientation
         self.setFromEdges( edges, newOrientation )
         return
 
