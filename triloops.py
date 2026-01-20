@@ -697,9 +697,115 @@ class TriangulationWithEmbeddedLoops:
         # Might raise BoundsDisc.
         return self._simplifyMonotonicImpl(True)
 
-    #TODO Implement full simplification so that it:
-    #       --> tracks orientation, and
-    #       --> handles multiple loops.
+    def simplify(self):
+        """
+        Attempts to simplify the ambient triangulation, while leaving the
+        embedded loops untouched.
+
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves that leave the loops untouched.
+
+        Note that the subroutine minimiseVertices() is *not* fully implemented
+        by default. Thus, subclasses that require this routine must either:
+        --> override this routine; or
+        --> ensure that minimiseVertices() is suitably implemented.
+        In the latter case, see the documentation for minimiseVertices() for
+        details on the behaviour that must be implemented.
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If the attempted simplification is not successful, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplify().
+
+        Warning:
+            --> Running this routine multiple times on the same triangulation
+                with embedded loops may produce different results, since the
+                implementation makes random decisions.
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        RandomEngine.reseedWithHardware()
+
+        #TODO Update implementation so that it:
+        #       --> tracks orientation, and
+        #       --> handles multiple loops.
+
+        # Work with a clone so that we can roll back changes if we are not
+        # able to reduce the number of tetrahedra.
+        tempLoop = self.clone()
+        tempTri = tempLoop.triangulation()
+
+        # Start by minimising vertices. This will probably increase the
+        # number of tetrahedra if the number of vertices is not already
+        # minimal, but hopefully the monotonic simplification saves us.
+        #
+        # Might raise BoundsDisc.
+        tempLoop.minimiseVertices()
+        tempLoop.simplifyMonotonic()
+
+        # Use random 4-4 moves until it feels like even this is not helping
+        # us make any further progress.
+        #
+        # In detail, we keep track of a cap on the number of consecutive 4-4
+        # moves that we are allowed to perform without successfully
+        # simplifying the triangulation. We give up whenever we reach or
+        # exceed this cap. The cap is scaled up based on our "perseverance".
+        fourFourAttempts = 0
+        fourFourCap = 0
+        perseverance = 5        # Hard-coded value copied from Regina.
+        while True:
+            # Find all available 4-4 moves.
+            fourFourAvailable = []
+            for edge in tempTri.edges():
+                if edge.index() in tempLoop:
+                    # We do not want to touch the embedded loop.
+                    continue
+                for axis in range(2):
+                    if tempTri.fourFourMove( edge, axis, True, False ):
+                        fourFourAvailable.append( ( edge, axis ) )
+
+            # Is it worthwhile to continue attempting 4-4 moves?
+            availableCount = len(fourFourAvailable)
+            if fourFourCap < perseverance * availableCount:
+                fourFourCap = perseverance * availableCount
+            if fourFourAttempts >= fourFourCap:
+                break
+
+            # Perform a random 4-4 move, and see if this is enough to help us
+            # simplify the triangulation.
+            #
+            # simplifyMonotonic() might raise BoundsDisc.
+            fourFourChoice = fourFourAvailable[
+                    RandomEngine.rand(availableCount) ]
+            relabelling = fourFour( *fourFourChoice )
+            tempLoop._setFromRelab(relabelling)
+            if tempLoop.simplifyMonotonic():
+                # We successfully simplified!
+                # Start all over again.
+                fourFourAttempts = 0
+                fourFourCap = 0
+            else:
+                fourFourAttempts += 1
+
+        # If simplification was successful (either by reducing the number of
+        # tetrahedra, or failing that by reducing the number of vertices
+        # without increasing the number of tetrahedra), then sync this
+        # embedded loop with the now-simpler tempLoop.
+        tri = self.triangulation()
+        simplified = ( tempTri.size() < tri.size() or
+                ( tempTri.size() == tri.size() and
+                    tempTri.countVertices() < tri.countVertices() ) )
+        if simplified:
+            self.setFromLoop(tempLoop)
+        return simplified
 
     #TODO
     pass
