@@ -10,6 +10,7 @@ from insert import snapEdge, layerOn
 from loopaux import NotLoop, BoundsDisc
 from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
 from loopaux import embeddingsFromEdgeIndices
+from edgelabel import EdgeLabelling
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -325,6 +326,13 @@ class EmbeddedLoop:
     def _edgesFromBlueprint( triEncoding, edgeIndices ):
         tri = Triangulation3.tightDecoding(triEncoding)
         return [ tri.edge(ei) for ei in edgeIndices ]
+
+    #TODO Document.
+    #TODO Add similar optimisation to TriangulationWithEmbeddedLoops.
+    def _edgeLab(self):
+        return EdgeLabelling(
+                self._tri,
+                { ei: self._tri.edge(ei).front() for ei in self } )
 
     def _setFromRelab( self, relab ):
         """
@@ -1048,6 +1056,7 @@ class EmbeddedLoop:
         changedNow = True   # Did we just change something? (Loop control.)
         while True:
             changedNow = False
+            edgeLab = self._edgeLab()
             for edge in self._tri.edges():
                 # Make sure to leave the embedded loop untouched.
                 if edge.index() in self:
@@ -1055,7 +1064,7 @@ class EmbeddedLoop:
 
                 # If requested, try a 3-2 move.
                 if include32:
-                    relabelling = threeTwo(edge)
+                    relabelling = threeTwo( edge, edgeLab )
                     if relabelling is not None:
                         changedNow = True
                         changed = True
@@ -1063,7 +1072,7 @@ class EmbeddedLoop:
 
                 # Try a 2-0 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                relabelling = twoZero(edge)
+                relabelling = twoZero( edge, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
@@ -1071,12 +1080,12 @@ class EmbeddedLoop:
 
                 # Try a 2-1 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                relabelling = twoOne( edge, 0 )
+                relabelling = twoOne( edge, 0, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
-                relabelling = twoOne( edge, 1 )
+                relabelling = twoOne( edge, 1, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
@@ -1200,7 +1209,8 @@ class EmbeddedLoop:
             # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
-            relabelling = fourFour( *fourFourChoice )
+            #TODO Figure out why custom relabelling breaks here.
+            relabelling = fourFour(*fourFourChoice)
             tempLoop._setFromRelab(relabelling)
             if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
@@ -1621,8 +1631,10 @@ class IdealLoop(EmbeddedLoop):
             count -= 1
 
             # Attempt a random 2-3 move.
-            relabelling = twoThree( self._tri.triangle(
-                RandomEngine.rand( self._tri.countTriangles() ) ) )
+            relabelling = twoThree(
+                    self._tri.triangle(
+                        RandomEngine.rand( self._tri.countTriangles() ) ),
+                    self._edgeLab() )
             if relabelling is not None:
                 self._setFromRelab(relabelling)
 
