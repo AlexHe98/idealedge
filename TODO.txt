@@ -1,9 +1,11 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Full simplification
-        ->- etc
-        ->- Eventually, tidy up TODO comments
+        ->- Implement randomise() for EdgeIdealTriangulation
+        ->- Implement new version of splitArcs()
+        ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
+        ->- Remove old simplification routines
+        ->- Update usage in knot factorisation algorithm
     --> etc
 --- Test suites
     --> EmbeddedLoop

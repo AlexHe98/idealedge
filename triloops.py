@@ -11,6 +11,9 @@ from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
 from loopaux import BoundsDisc, embeddingsFromEdgeIndices
 
 
+#TODO Double-check that everything tracks orientation of loops.
+
+
 class TriangulationWithEmbeddedLoops:
     """
     A 3-manifold triangulation containing a disjoint union of EmbeddedLoop
@@ -61,6 +64,10 @@ class TriangulationWithEmbeddedLoops:
         """
         Sets this to be a triangulation containing a disjoint union of the
         given loops.
+
+        The given loops can be any iterable that yields EmbeddedLoop objects.
+        For example, it could be a Python list of EmbeddedLoop objects, or it
+        could be a TriangulationWithEmbeddedLoops object.
 
         Precondition:
         --> loops is nonempty.
@@ -325,9 +332,6 @@ class TriangulationWithEmbeddedLoops:
 
     #TODO Need a version of splitArcs() that returns enough information to
     #   track all of the effects of crushing that we care about.
-
-    #TODO Implement simplification, and remove the old simplification code
-    #   from EmbeddedLoop.
 
     def shorten(self):
         """
@@ -734,22 +738,18 @@ class TriangulationWithEmbeddedLoops:
         """
         RandomEngine.reseedWithHardware()
 
-        #TODO Update implementation so that it:
-        #       --> tracks orientation, and
-        #       --> handles multiple loops.
-
         # Work with a clone so that we can roll back changes if we are not
         # able to reduce the number of tetrahedra.
-        tempLoop = self.clone()
-        tempTri = tempLoop.triangulation()
+        tempTriLoops = self.clone()
+        tempTri = tempTriLoops.triangulation()
 
         # Start by minimising vertices. This will probably increase the
         # number of tetrahedra if the number of vertices is not already
         # minimal, but hopefully the monotonic simplification saves us.
         #
         # Might raise BoundsDisc.
-        tempLoop.minimiseVertices()
-        tempLoop.simplifyMonotonic()
+        tempTriLoops.minimiseVertices()
+        tempTriLoops.simplifyMonotonic()
 
         # Use random 4-4 moves until it feels like even this is not helping
         # us make any further progress.
@@ -765,11 +765,18 @@ class TriangulationWithEmbeddedLoops:
             # Find all available 4-4 moves.
             fourFourAvailable = []
             for edge in tempTri.edges():
-                if edge.index() in tempLoop:
-                    # We do not want to touch the embedded loop.
+                if edge.index() in tempTriLoops.loopEdgeIndices():
+                    # We do not want to touch any of the embedded loops.
                     continue
                 for axis in range(2):
-                    if tempTri.fourFourMove( edge, axis, True, False ):
+                    #NOTE Triangulation3.has44( e, ax ) was introduced in
+                    #       Regina 7.4. In older versions of Regina,
+                    #       equivalent functionality (checking eligibility of
+                    #       the move, but not performing it) was provided by
+                    #
+                    #           Triangulation3.fourFourMove(
+                    #               e, ax, True, False ).
+                    if tempTri.has44( edge, axis ):
                         fourFourAvailable.append( ( edge, axis ) )
 
             # Is it worthwhile to continue attempting 4-4 moves?
@@ -786,8 +793,8 @@ class TriangulationWithEmbeddedLoops:
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
             relabelling = fourFour( *fourFourChoice )
-            tempLoop._setFromRelab(relabelling)
-            if tempLoop.simplifyMonotonic():
+            tempTriLoops._setFromRelab(relabelling)
+            if tempTriLoops.simplifyMonotonic():
                 # We successfully simplified!
                 # Start all over again.
                 fourFourAttempts = 0
@@ -797,18 +804,15 @@ class TriangulationWithEmbeddedLoops:
 
         # If simplification was successful (either by reducing the number of
         # tetrahedra, or failing that by reducing the number of vertices
-        # without increasing the number of tetrahedra), then sync this
-        # embedded loop with the now-simpler tempLoop.
+        # without increasing the number of tetrahedra), then sync self with
+        # the now-simpler tempTriLoops.
         tri = self.triangulation()
         simplified = ( tempTri.size() < tri.size() or
                 ( tempTri.size() == tri.size() and
                     tempTri.countVertices() < tri.countVertices() ) )
         if simplified:
-            self.setFromLoop(tempLoop)
+            self.setFromLoops(tempTriLoops)
         return simplified
-
-    #TODO
-    pass
 
 
 class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
@@ -1184,7 +1188,44 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         # Might raise BoundsDisc.
         return super().simplifyMonotonic()
 
-    #TODO
+    def simplify(self):
+        """
+        Attempts to simplify the ambient triangulation, while leaving the
+        ideal loops untouched.
+
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves that leave the loops untouched.
+
+        Although this routine works very well most of the time, it can
+        occasionally get stuck in a "well" that can only be escaped by
+        increasing the number of tetrahedra. In such cases, it might be
+        useful to try to escape using the randomise() routine.
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If the attempted simplification is not successful, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplify().
+
+        Warning:
+            --> Running this routine multiple times on the same edge-ideal
+                triangulation may produce different results, since the
+                implementation makes random decisions.
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
+
+    #TODO Implement randomise().
     pass
 
 
@@ -1594,5 +1635,35 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         # Might raise BoundsDisc.
         return super().simplifyMonotonic()
 
-    #TODO
-    pass
+    def simplify(self):
+        """
+        Attempts to simplify the ambient triangulation, while leaving the
+        boundary loops untouched.
+
+        This routine uses minimiseVertices() and simplifyMonotonic(), in
+        combination with random 4-4 moves (which leave the boundary loops
+        untouched).
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If the attempted simplification is not successful, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplify().
+
+        Warning:
+            --> Running this routine multiple times on the same triangulation
+                with boundary loops may produce different results, since the
+                implementation makes random decisions.
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # We have implemented the minimiseVertices() routine, so we can just
+        # use the default implementation.
+        return super().simplify()
