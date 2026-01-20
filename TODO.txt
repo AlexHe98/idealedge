@@ -1,6 +1,5 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Implement randomise() for EdgeIdealTriangulation
         ->- Implement new version of splitArcs()
         ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
