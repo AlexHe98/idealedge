@@ -1244,7 +1244,8 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         """
         RandomEngine.reseedWithHardware()
         randomisation = 4       # Hard-coded value copied from SnapPea.
-        count = randomisation * self._tri.size()
+        origSize = self._tri.size()
+        count = randomisation * origSize
         while count > 0:
             count -= 1
 
@@ -1257,7 +1258,10 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                 # Try to force future random 2-3 moves to make "interesting"
                 # changes.
                 self.simplifyBasic()    # Might raise BoundsDisc.
-                #TODO Potential early termination.
+                if self._tri.size() < origSize:
+                    # We already succeeded in escaping the well, so we might
+                    # as well terminate early.
+                    break
 
         # Finish up by simplifying. The built-in randomness should hopefully
         # take us somewhere new.

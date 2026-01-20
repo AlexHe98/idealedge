@@ -11,3 +11,4 @@
     --> EmbeddedLoop
     --> TriangulationWithEmbeddedLoops
     --> etc
+--- Experiment with alternate enumeration on reconstructed triangulation
