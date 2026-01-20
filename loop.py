@@ -666,7 +666,6 @@ class EmbeddedLoop:
     #   probably need to be updated after these are all removed.)
     #       --> minimiseBoundary()
     #       --> _findBoundaryMove()
-    #   Probably also remove _setFromRenum()?
 
     def shorten(self):
         """

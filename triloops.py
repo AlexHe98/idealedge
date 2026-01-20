@@ -610,20 +610,22 @@ class TriangulationWithEmbeddedLoops:
         If one of the embedded loops bounds a disc, then this routine might
         (but is not guaranteed to) raise BoundsDisc.
 
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If no monotonic simplification is possible, then the ambient
+        triangulation will remain entirely untouched.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
 
         Returns:
             True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
+            simplified.
         """
         changed = False     # Has anything changed ever?    (Return value.)
         changedNow = True   # Did we just change something? (Loop control.)
-        while True:
+        while changedNow:
             changedNow = False
             for edge in self._tri.edges():
                 # Make sure to leave the embedded loops untouched.
@@ -635,7 +637,6 @@ class TriangulationWithEmbeddedLoops:
                     relabelling = threeTwo(edge)
                     if relabelling is not None:
                         changedNow = True
-                        changed = True
                         break
 
                 # Try a 2-0 edge move.
@@ -643,7 +644,6 @@ class TriangulationWithEmbeddedLoops:
                 relabelling = twoZero(edge)
                 if relabelling is not None:
                     changedNow = True
-                    changed = True
                     break
 
                 # Try a 2-1 edge move.
@@ -651,18 +651,17 @@ class TriangulationWithEmbeddedLoops:
                 relabelling = twoOne( edge, 0 )
                 if relabelling is not None:
                     changedNow = True
-                    changed = True
                     break
                 relabelling = twoOne( edge, 1 )
                 if relabelling is not None:
                     changedNow = True
-                    changed = True
                     break
 
             # Did we improve the triangulation? If so, then we need to update
             # the details of the embedded loops, and then check whether we can
             # make further improvements.
             if changedNow:
+                changed = True
                 try:
                     # If we destroyed any of the loops, then this will raise
                     # NotLoop.
@@ -671,11 +670,34 @@ class TriangulationWithEmbeddedLoops:
                     # As noted above, a loop can only get destroyed if it
                     # bounds a disc.
                     raise BoundsDisc()
-            else:
-                break
 
         # Nothing further we can do.
         return changed
+
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        the number of tetrahedra in the ambient triangulation, while leaving
+        the embedded loops untouched.
+
+        If one of the embedded loops bounds a disc, then this routine might
+        (but is not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If no monotonic simplification is possible, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # Include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyMonotonicImpl(True)
 
     #TODO
     pass

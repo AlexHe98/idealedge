@@ -2,6 +2,9 @@
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Monotonic simplification
         ->- etc
+        ->- Eventually, tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
+    --> etc
 --- Test suites
     --> Embedded loops
+    --> etc
