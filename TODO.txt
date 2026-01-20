@@ -10,4 +10,6 @@
     --> EmbeddedLoop
     --> TriangulationWithEmbeddedLoops
     --> etc
---- Experiment with alternate enumeration on reconstructed triangulation
+--- Possible optimisations for knot factorisation
+    --> Figure out why new moves implementation is so slow
+    --> Experiment with alternate parallel computations from scratch
