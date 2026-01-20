@@ -89,25 +89,18 @@ class EdgeLabelling:
         integers (the tracked indices), and whose values are EdgeEmbedding3
         objects corresponding to edges in tri.
 
-        If supplied, the given labelling data may be safely modified after
-        initialising this EdgeLabelling, since this EdgeLabelling will keep
-        its own private (deep) copy of the labelling data.
-
-        However, be aware that this EdgeLabelling will keep a reference to the
-        original input triangulation tri. Modifications to tri might therefore
-        cause the tracked EdgeEmbedding3 objects to go out of date (if such a
-        modification removes a tetrahedron that is referenced by one of the
-        tracked EdgeEmbedding3 objects).
+        Warning:
+            --> This EdgeLabelling will keep a reference to both the given
+                triangulation tri and (if supplied) the given labelling data.
+                In particular, modifications to tri might therefore cause the
+                tracked EdgeEmbedding3 objects to go out of date (if such a
+                modification removes a tetrahedron that is referenced by one
+                of the tracked EdgeEmbedding3 objects).
         """
         if labelling is None:
             labelling = { e.index(): e.front() for e in tri.edges() }
         self._tri = tri
-        self._labelling = dict()
-        for i in labelling:
-            # Be extra careful not to map to None.
-            if labelling[i] is not None:
-                # For a deep copy, make sure to clone the embedding.
-                self._labelling[i] = EdgeEmbedding3( labelling[i] )
+        self._labelling = labelling
         return
 
     def triangulation(self):
@@ -121,7 +114,8 @@ class EdgeLabelling:
         Returns a clone of this labelling on the same underlying
         triangulation.
         """
-        # Constructor already clones the labelling data.
+        clonedLab = { i: EdgeEmbedding3( self._labelling[i] )
+                     for i in self._labelling }
         return EdgeLabelling( self._tri, self._labelling )
 
     def clone(self):
