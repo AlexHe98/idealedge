@@ -1201,8 +1201,8 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         increasing the number of tetrahedra. In such cases, it might be
         useful to try to escape using the randomise() routine.
 
-        If one of the embedded loops bounds a disc, then this routine might
-        (but is not guaranteed to) raise BoundsDisc.
+        If one of the ideal loops bounds a disc, then this routine might (but
+        is not guaranteed to) raise BoundsDisc.
 
         If the ambient triangulation is currently oriented, then this routine
         guarantees to preserve the orientation.
@@ -1225,8 +1225,44 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         # use the default implementation.
         return super().simplify()
 
-    #TODO Implement randomise().
-    pass
+    def randomise(self):
+        """
+        Attempts to randomly retriangulate this edge-ideal triangulation.
+
+        This routine works by performing lots of random 2-3 moves, before
+        attempting to simplify the ambient triangulation again (while leaving
+        the ideal loops untouched). As such, this routine is often useful for
+        escaping "wells" when the simplify() routine gets stuck.
+
+        If one of the ideal loops bounds a disc, then this routine might (but
+        is not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        Adapted from SnapPea's randomize_triangulation().
+        """
+        RandomEngine.reseedWithHardware()
+        randomisation = 4       # Hard-coded value copied from SnapPea.
+        count = randomisation * self._tri.size()
+        while count > 0:
+            count -= 1
+
+            # Attempt a random 2-3 move.
+            relabelling = twoThree( self._tri.triangle(
+                RandomEngine.rand( self._tri.countTriangles() ) ) )
+            if relabelling is not None:
+                self._setFromRelab(relabelling)
+
+                # Try to force future random 2-3 moves to make "interesting"
+                # changes.
+                self.simplifyBasic()    # Might raise BoundsDisc.
+                #TODO Potential early termination.
+
+        # Finish up by simplifying. The built-in randomness should hopefully
+        # take us somewhere new.
+        self.simplify()     # Might raise BoundsDisc.
+        return
 
 
 class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
@@ -1644,7 +1680,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         combination with random 4-4 moves (which leave the boundary loops
         untouched).
 
-        If one of the embedded loops bounds a disc, then this routine might
+        If one of the boundary loops bounds a disc, then this routine might
         (but is not guaranteed to) raise BoundsDisc.
 
         If the ambient triangulation is currently oriented, then this routine
