@@ -599,8 +599,6 @@ class TriangulationWithEmbeddedLoops:
         """
         raise NotImplementedError()
 
-    #TODO WORKING HERE
-
     def _simplifyMonotonicImpl( self, include32 ):
         """
         Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
@@ -613,8 +611,8 @@ class TriangulationWithEmbeddedLoops:
         If the ambient triangulation is currently oriented, then this routine
         guarantees to preserve the orientation.
 
-        If no monotonic simplification is possible, then the ambient
-        triangulation will remain entirely untouched.
+        If no 2-0, 2-1 or (if requested) 3-2 moves are available, then the
+        ambient triangulation will remain entirely untouched.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
         SnapPea's check_for_cancellation().
@@ -686,7 +684,7 @@ class TriangulationWithEmbeddedLoops:
         If the ambient triangulation is currently oriented, then this routine
         guarantees to preserve the orientation.
 
-        If no monotonic simplification is possible, then the ambient
+        If no 2-0, 2-1 or 3-2 moves are available, then the ambient
         triangulation will remain entirely untouched.
 
         Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
@@ -698,6 +696,10 @@ class TriangulationWithEmbeddedLoops:
         # Include 3-2 moves.
         # Might raise BoundsDisc.
         return self._simplifyMonotonicImpl(True)
+
+    #TODO Implement full simplification so that it:
+    #       --> tracks orientation, and
+    #       --> handles multiple loops.
 
     #TODO
     pass
@@ -1018,6 +1020,63 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                 return ( edge, self._edgeEmbeddingsData() )
 
         return
+
+    def simplifyBasic(self):
+        """
+        Uses 2-0 edge and 2-1 edge moves to monotonically reduce the number
+        of tetrahedra in the ambient triangulation, while leaving the ideal
+        loops untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() and
+        simplifyMonotonic() routines.
+
+        If some ideal loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If no 2-0 or 2-1 moves are available, then the ambient triangulation
+        will remain entirely untouched.
+
+        Adapted from SnapPea's check_for_cancellation().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # Do not include 3-2 moves.
+        # Might raise BoundsDisc.
+        return self._simplifyMonotonicImpl(False)
+
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        number of tetrahedra in the ambient triangulation, while leaving the
+        ideal loops untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() routine.
+
+        If some ideal loop bounds a disc, then this routine might (but is not
+        guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If no 2-0, 2-1 or 3-2 moves are available, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # Just use the default implementation.
+        # Might raise BoundsDisc.
+        return super().simplifyMonotonic()
 
     #TODO
     pass
@@ -1401,8 +1460,33 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                 return ( edge, self._edgeEmbeddingsData() )
         return
 
+    def simplifyMonotonic(self):
+        """
+        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
+        number of tetrahedra in the ambient triangulation, while leaving the
+        boundary loops untouched.
+
+        There should usually be no need to call this routine directly, since
+        the functionality is subsumed by the more powerful simplify() routine.
+
+        If some boundary loop bounds a disc, then this routine might (but is
+        not guaranteed to) raise BoundsDisc.
+
+        If the ambient triangulation is currently oriented, then this routine
+        guarantees to preserve the orientation.
+
+        If no 2-0, 2-1 or 3-2 moves are available, then the ambient
+        triangulation will remain entirely untouched.
+
+        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
+
+        Returns:
+            True if and only if the ambient triangulation was successfully
+            simplified.
+        """
+        # Just use the default implementation.
+        # Might raise BoundsDisc.
+        return super().simplifyMonotonic()
+
     #TODO
     pass
-
-
-#TODO Test suite.

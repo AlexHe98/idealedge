@@ -666,6 +666,12 @@ class EmbeddedLoop:
     #   probably need to be updated after these are all removed.)
     #       --> minimiseBoundary()
     #       --> _findBoundaryMove()
+    #       --> Most (or all?) other simplification routines that only touch
+    #           the ambient triangulation.
+
+    #TODO There is usage of setFromEdgeEmbeddings() that doesn't track
+    #       orientation. But since we're likely going to delete this usage
+    #       anyway, we can probably just ignore this.
 
     def shorten(self):
         """
@@ -1028,10 +1034,6 @@ class EmbeddedLoop:
             boundary has already been minimised.
         """
         raise NotImplementedError()
-
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
 
     def _simplifyMonotonicImpl( self, include32 ):
         """
@@ -2019,6 +2021,3 @@ class BoundaryLoop(EmbeddedLoop):
         # We have implemented the minimiseVertices() routine, so we can just
         # use the default implementation.
         return super().simplify()
-
-
-#TODO Test suite.

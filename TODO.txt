@@ -1,10 +1,11 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Monotonic simplification
+        ->- Full simplification
         ->- etc
         ->- Eventually, tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
     --> etc
 --- Test suites
-    --> Embedded loops
+    --> EmbeddedLoop
+    --> TriangulationWithEmbeddedLoops
     --> etc
