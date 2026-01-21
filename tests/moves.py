@@ -328,24 +328,36 @@ def _test44all(testSig):
 
     count = 0
     for e in t.edges():
-        if _test44single( testSig, e ):
-            count += 1
+        #NOTE Triangulation3.has44( e, ax ) was introduced in Regina 7.4. In
+        #       older versions of Regina, equivalent functionality (checking
+        #       eligibility of the move, but not performing it) was provided
+        #       by Triangulation3.fourFourMove( e, ax, True, False ).
+        if not t.has44( e, 0 ):
+            # A 4-4 move with newAxis == 0 is available if and only if a
+            # 4-4 move with newAxis == 1 is available.
+            continue
+        count += 1
+
+        # Test both with the default reference labelling, and with some custom
+        # reference labellings.
+        _test44single( "Default", testSig, e )
+        trackOnlyRemovedEdge = EdgeLabelling(
+                t, { -1: e.front() } )
+        _test44single( "Only removed", testSig, e,
+                     ( -1, trackOnlyRemovedEdge ) )
+        untrackRemovedEdge = EdgeLabelling(t)
+        untrackRemovedEdge.untrack( e.index() )
+        _test44single( "Untrack removed", testSig, e,
+                     ( e.index(), untrackRemovedEdge ) )
     return count
 
 
-def _test44single( testSig, edge ):
+def _test44single( name, testSig, edge, data=None ):
     """
     Tests all possible 4-4 moves on the given edge.
     """
     t = edge.triangulation()
-    #NOTE Triangulation3.has44( e, ax ) was introduced in Regina 7.4. In older
-    #       versions of Regina, equivalent functionality (checking eligibility
-    #       of the move, but not performing it) was provided by
-    #           Triangulation3.fourFourMove( e, ax, True, False ).
-    if not t.has44( edge, 0 ):
-        # A 4-4 move with newAxis == 0 is available if and only if a
-        # 4-4 move with newAxis == 1 is available.
-        return False
+    #TODO Incorporate name and custom reference labellings.
 
     # The input edge forms one of three possible axes for an octahedron built
     # from four tetrahedra. At each such axis, we perform both possible 4-4
@@ -361,13 +373,23 @@ def _test44single( testSig, edge ):
         #       triangulation, and then performing the appropriate 4-4 move on
         #       the copy.
         reg44 = t.with44( edge, newAxis )
-        new44 = Triangulation3(t)
-        relab = fourFour( new44.edge( edge.index() ), newAxis )
+        if data is None:
+            removeEdgeInd = edge.index()
+            edgeLab = None
+            trackedIndices = [ i for i in range( t.countEdges() ) ]
+            new44 = Triangulation3(t)
+        else:
+            removeEdgeInd, edgeLab = data
+            trackedIndices = edgeLab.trackedIndices()
+            # Need to fully clone custom EdgeLabelling.
+            edgeLab = edgeLab.clone()
+            new44 = edgeLab.triangulation()
+        relab = fourFour( new44.edge( edge.index() ), newAxis, edgeLab )
 
         # Test that fourFour gives the right isomorphism type, and that it
         # preserves orientation.
-        description = "{}. 4-4 move {}/{}.".format(
-                testSig, edge.index(), newAxis )
+        description = "{}. {}. 4-4 move {}/{}.".format(
+                name, testSig, edge.index(), newAxis )
         doTest( description + " Isomorphic?",
                True, reg44.isIsomorphicTo(new44) is not None )
         if t.isOriented():
@@ -379,23 +401,26 @@ def _test44single( testSig, edge ):
 
         # Sanity checks on the relabelling.
         doTest( description + " Untrack edge.",
-               None, relab[ edge.index() ] )
+               None, relab[removeEdgeInd] )
+        newEdgeInd = -1 + min( 0, *trackedIndices )
         doTest( description + " Track new edge.",
-               True, relab[-1] is not None )
+               True, relab[newEdgeInd] is not None )
 
         # Finish filling in isoSigSet so that we can test the 4-4 moves on the
         # new edge that we just created.
         for invAxis in range(2):
             inv44 = Triangulation3(new44)
-            fourFour( inv44.edge( relab.underlyingEdgeIndex(-1) ),
+            fourFour( inv44.edge( relab.underlyingEdgeIndex(newEdgeInd) ),
                      invAxis )
             isoSigSet[newAxis].add( inv44.isoSig() )
     for newAxis in range(2):
-        description = "{}. Edge {}. New axis {}. Iso sig set.".format(
-                testSig, edge.index(), newAxis )
+        description = "{}. {}. Edge {}. New axis {}. Iso sig set.".format(
+                name, testSig, edge.index(), newAxis )
         doTest( description,
                isoSigSet[2], isoSigSet[newAxis] )
-    return True
+
+    # All done!
+    return
 
 
 def testTwoOne():

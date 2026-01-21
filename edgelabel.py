@@ -24,7 +24,7 @@ class EdgeLabelling:
     index to each edge that it tracks. Each such index is associated to an
     EdgeEmbedding3 object in the underlying triangulation.
 
-    Since using this class creates two indepedent sets of indices for the
+    Since using this class creates two independent sets of indices for the
     edges of a triangulation, we use the following terminology to distinguish
     these two sets of edge indices:
     --> A "tracked index" is the index that is tracked by this class.
@@ -89,25 +89,18 @@ class EdgeLabelling:
         integers (the tracked indices), and whose values are EdgeEmbedding3
         objects corresponding to edges in tri.
 
-        If supplied, the given labelling data may be safely modified after
-        initialising this EdgeLabelling, since this EdgeLabelling will keep
-        its own private (deep) copy of the labelling data.
-
-        However, be aware that this EdgeLabelling will keep a reference to the
-        original input triangulation tri. Modifications to tri might therefore
-        cause the tracked EdgeEmbedding3 objects to go out of date (if such a
-        modification removes a tetrahedron that is referenced by one of the
-        tracked EdgeEmbedding3 objects).
+        Warning:
+            --> This EdgeLabelling will keep a reference to both the given
+                triangulation tri and (if supplied) the given labelling data.
+                In particular, modifications to tri might therefore cause the
+                tracked EdgeEmbedding3 objects to go out of date (if such a
+                modification removes a tetrahedron that is referenced by one
+                of the tracked EdgeEmbedding3 objects).
         """
         if labelling is None:
             labelling = { e.index(): e.front() for e in tri.edges() }
         self._tri = tri
-        self._labelling = dict()
-        for i in labelling:
-            # Be extra careful not to map to None.
-            if labelling[i] is not None:
-                # For a deep copy, make sure to clone the embedding.
-                self._labelling[i] = EdgeEmbedding3( labelling[i] )
+        self._labelling = labelling
         return
 
     def triangulation(self):
@@ -121,7 +114,8 @@ class EdgeLabelling:
         Returns a clone of this labelling on the same underlying
         triangulation.
         """
-        # Constructor already clones the labelling data.
+        clonedLab = { i: EdgeEmbedding3( self._labelling[i] )
+                     for i in self._labelling }
         return EdgeLabelling( self._tri, self._labelling )
 
     def clone(self):
@@ -147,24 +141,30 @@ class EdgeLabelling:
         Returns the EdgeEmbedding3 object at the given index, or None if the
         given index is not tracked.
         """
-        return self.get(index)
+        # Under normal usage, this will be called many times, and the index
+        # will usually be tracked. Therefore the performance penalty of
+        # catching rare KeyErrors is better than being hit with the overhead
+        # from dict.get() on every single call of this method.
+        try:
+            return self._labelling[index]
+        except KeyError:
+            return None
+        return
 
     def get( self, index ):
         """
         Returns the EdgeEmbedding3 object at the given index, or None if the
         given index is not tracked.
         """
-        return self._labelling.get( index, None )
+        return self[index]
 
     def underlyingEdgeIndex( self, index ):
         """
-        Returns the underlying index corresponding to the given tracked index,
-        or None if the given index is not tracked.
+        Returns the underlying index corresponding to the given tracked index.
+
+        Raises KeyError if the given index is not tracked.
         """
-        emb = self[index]
-        if emb is None:
-            return None
-        return edgeIndFromEmb(emb)
+        return edgeIndFromEmb( self._labelling[index] )
 
     def __setitem__( self, index, emb ):
         """

@@ -195,8 +195,7 @@ def twoThree( triangle, edgeLab=None ):
     # tetrahedron that will meet e after we have performed the requested 2-3
     # move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         oldTet = emb.tetrahedron()
 
         # For subsequent comments, let
@@ -518,8 +517,7 @@ def threeTwo( edge, edgeLab=None ):
     # reference labelling, find one tetrahedron that will meet e after we have
     # performed the requested 3-2 move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         oldTet = emb.tetrahedron()
         if oldTet.edge( emb.edge() ) == edge:
             # This edge is destroyed by the 3-2 move. Ignoring it now will
@@ -707,8 +705,7 @@ def twoZero( edge, edgeLab=None ):
     # reference labelling, find one tetrahedron that will meet e after we have
     # performed the requested 2-0 move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         tet = emb.tetrahedron()
         if tet.edge( emb.edge() ) == edge:
             # This edge is destroyed by the 2-0 move. Ignoring it now will
@@ -955,7 +952,9 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
         is not already tracked by the reference labelling (typically, this
         will mean that i is -1).
 
-    This routine will never modify edgeLab (if supplied).
+    This routine might make temporary modifications to edgeLab (if supplied),
+    but any such modifications will be reverted by the time this routine
+    terminates.
 
     Note also that a 2-1 move merges two edges into a single new edge e. If
     the reference labelling tracks indices, say i and j, for both of the
@@ -967,14 +966,24 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
     be preserved by the requested 2-1 move.
     """
     tri = edge.triangulation()
+
+    # Is the requested 2-1 move legal?
+    #
+    #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.twoOneMove( e, ed, True, False ).
+    if not tri.has21( edge, edgeEnd ):
+        return None
+
+    # To perform the move, we need to ensure that the input edge is tracked.
     if edgeLab is None:
-        workingLab = EdgeLabelling(tri)
+        edgeLab = EdgeLabelling(tri)
         trackInputEdge = True
         e20 = edge.index()
     else:
         # With a custom reference labelling, we will need to work out how the
         # input edge is labelled (assuming it is even tracked).
-        workingLab = edgeLab.cloneLabelling()
         trackInputEdge = False
         for ei in edgeLab:
             if edge.index() != edgeLab.underlyingEdgeIndex(ei):
@@ -986,24 +995,17 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
             # Temporarily track the input edge on the right (the left is
             # already reserved for tracking the newly-created edge).
             e20 = 1 + max( edgeLab.trackedIndices() )
-            workingLab[e20] = edge.front()
-
-    # Is the requested 2-1 move legal?
-    #
-    #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4. In older
-    #       versions of Regina, equivalent functionality (checking eligibility
-    #       of the move, but not performing it) was provided by
-    #       Triangulation3.twoOneMove( e, ed, True, False ).
-    if not tri.has21( edge, edgeEnd ):
-        return None
+            edgeLab[e20] = edge.front()
 
     # Perform the 2-1 move as a 2-3 move followed by a 2-0 move.
     emb = edge.front()
     f23 = emb.tetrahedron().triangle( emb.vertices()[edgeEnd] )
-    relab = twoThree( f23, workingLab )
+    relab = twoThree( f23, edgeLab )
     relab = twoZero(
             tri.edge( relab.underlyingEdgeIndex(e20) ),
             relab )
     if not trackInputEdge:
         relab.untrack(e20)
+        # Don't forget to restore edgeLab to its original state.
+        edgeLab.untrack(e20)
     return relab

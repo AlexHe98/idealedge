@@ -1,7 +1,14 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Monotonic simplification
-        ->- etc
+        ->- Implement new version of splitArcs()
+        ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
+        ->- Remove old simplification routines
+        ->- Update usage in knot factorisation algorithm
+    --> etc
 --- Test suites
-    --> Embedded loops
+    --> EmbeddedLoop
+    --> TriangulationWithEmbeddedLoops
+    --> etc
+--- Update Regina usage
+    --> Local moves

@@ -10,6 +10,7 @@ from insert import snapEdge, layerOn
 from loopaux import NotLoop, BoundsDisc
 from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
 from loopaux import embeddingsFromEdgeIndices
+from edgelabel import EdgeLabelling
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -326,12 +327,25 @@ class EmbeddedLoop:
         tri = Triangulation3.tightDecoding(triEncoding)
         return [ tri.edge(ei) for ei in edgeIndices ]
 
+    def _edgeLab(self):
+        """
+        Returns an EdgeLabelling that only tracks the edges involved in this
+        embedded loop.
+        """
+        return EdgeLabelling(
+                self._tri,
+                { ei: self._tri.edge(ei).front() for ei in self } )
+
     def _setFromRelab( self, relab ):
         """
         Sets this embedded loop using the relabelling described by the given
         EdgeLabelling.
 
-        This routine is for internal use only.
+        This routine is for internal use only. The purpose of this routine is
+        to update the embedded loop whenever the ambient triangulation has
+        been modified by a local move. See the twoThree, threeTwo, twoZero,
+        twoOne, and fourFour routines from moves.py for examples of how
+        relabellings are specified.
 
         Pre-condition:
         --> The given EdgeLabelling relab tracks every index ei in self.
@@ -347,26 +361,17 @@ class EmbeddedLoop:
                 # We are looking at edge 0 of the loop, which is the edge that
                 # determines the orientation of the loop. The embedding
                 # relab[ei] will orient this edge in the same direction as
-                # before, so to figure out the newOrientation for the loop we
-                # just need to compare relab[ei] with the corresponding
-                # underlying embedding of the edge.
-                found = False
-                for emb in edge.embeddings():
-                    if emb.tetrahedron() != relab[ei].tetrahedron():
-                        continue
-                    if emb.edge() != relab[ei].edge():
-                        continue
-
-                    # Found the corresponding embedding.
-                    found = True
-                    if emb.vertices()[0] == relab[ei].vertices()[0]:
-                        newOrientation = oldOrientation
-                    else:
-                        newOrientation = -1 * oldOrientation
-                    break
-                if not found:
-                    # This should never happen.
-                    raise AssertionError( "Bad relabelling!" )
+                # before, whereas the underlying labelling of the edge might
+                # or might not be the same as before. We therefore need to
+                # compare relab[ei] with the underlying labelling to determine
+                # the newOrientation for the loop.
+                referenceEmb = relab[ei]
+                vertexPerm = referenceEmb.tetrahedron().edgeMapping(
+                        referenceEmb.edge() )
+                if vertexPerm[0] == referenceEmb.vertices()[0]:
+                    newOrientation = oldOrientation
+                else:
+                    newOrientation = -1 * oldOrientation
         self.setFromEdges( edges, newOrientation )
         return
 
@@ -666,7 +671,12 @@ class EmbeddedLoop:
     #   probably need to be updated after these are all removed.)
     #       --> minimiseBoundary()
     #       --> _findBoundaryMove()
-    #   Probably also remove _setFromRenum()?
+    #       --> Most (or all?) other simplification routines that only touch
+    #           the ambient triangulation.
+
+    #TODO There is usage of setFromEdgeEmbeddings() that doesn't track
+    #       orientation. But since we're likely going to delete this usage
+    #       anyway, we can probably just ignore this.
 
     def shorten(self):
         """
@@ -1030,10 +1040,6 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
-    #TODO Check what needs to be done for orientations for everything below
-    #   this point.
-    #TODO WORKING HERE.
-
     def _simplifyMonotonicImpl( self, include32 ):
         """
         Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
@@ -1057,6 +1063,7 @@ class EmbeddedLoop:
         changedNow = True   # Did we just change something? (Loop control.)
         while True:
             changedNow = False
+            edgeLab = self._edgeLab()
             for edge in self._tri.edges():
                 # Make sure to leave the embedded loop untouched.
                 if edge.index() in self:
@@ -1064,7 +1071,7 @@ class EmbeddedLoop:
 
                 # If requested, try a 3-2 move.
                 if include32:
-                    relabelling = threeTwo(edge)
+                    relabelling = threeTwo( edge, edgeLab )
                     if relabelling is not None:
                         changedNow = True
                         changed = True
@@ -1072,7 +1079,7 @@ class EmbeddedLoop:
 
                 # Try a 2-0 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                relabelling = twoZero(edge)
+                relabelling = twoZero( edge, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
@@ -1080,12 +1087,12 @@ class EmbeddedLoop:
 
                 # Try a 2-1 edge move.
                 # This move can destroy the loop if it bounds a disc.
-                relabelling = twoOne( edge, 0 )
+                relabelling = twoOne( edge, 0, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
                     break
-                relabelling = twoOne( edge, 1 )
+                relabelling = twoOne( edge, 1, edgeLab )
                 if relabelling is not None:
                     changedNow = True
                     changed = True
@@ -1209,7 +1216,7 @@ class EmbeddedLoop:
             # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
-            relabelling = fourFour( *fourFourChoice )
+            relabelling = fourFour( *fourFourChoice, tempLoop._edgeLab() )
             tempLoop._setFromRelab(relabelling)
             if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
@@ -1624,19 +1631,26 @@ class IdealLoop(EmbeddedLoop):
         """
         RandomEngine.reseedWithHardware()
         randomisation = 4       # Hard-coded value copied from SnapPea.
-        count = randomisation * self._tri.size()
+        origSize = self._tri.size()
+        count = randomisation * origSize
         while count > 0:
             count -= 1
 
             # Attempt a random 2-3 move.
-            relabelling = twoThree( self._tri.triangle(
-                RandomEngine.rand( self._tri.countTriangles() ) ) )
+            relabelling = twoThree(
+                    self._tri.triangle(
+                        RandomEngine.rand( self._tri.countTriangles() ) ),
+                    self._edgeLab() )
             if relabelling is not None:
                 self._setFromRelab(relabelling)
 
                 # Try to force future random 2-3 moves to make "interesting"
                 # changes.
                 self.simplifyBasic()    # Might raise BoundsDisc.
+                if self._tri.size() < origSize:
+                    # We already succeeded in escaping the well, so we might
+                    # as well terminate early.
+                    break
 
         # Finish up by simplifying. The built-in randomness should hopefully
         # take us somewhere new.
@@ -2020,6 +2034,3 @@ class BoundaryLoop(EmbeddedLoop):
         # We have implemented the minimiseVertices() routine, so we can just
         # use the default implementation.
         return super().simplify()
-
-
-#TODO Test suite.
