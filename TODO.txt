@@ -15,3 +15,5 @@
 --- Possible optimisations for knot factorisation
     --> Figure out why new moves implementation is so slow
     --> Experiment with alternate parallel computations from scratch
+--- Update Regina usage
+    --> Local moves
