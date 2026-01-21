@@ -327,9 +327,11 @@ class EmbeddedLoop:
         tri = Triangulation3.tightDecoding(triEncoding)
         return [ tri.edge(ei) for ei in edgeIndices ]
 
-    #TODO Document.
-    #TODO Add similar optimisation to TriangulationWithEmbeddedLoops.
     def _edgeLab(self):
+        """
+        Returns an EdgeLabelling that only tracks the edges involved in this
+        embedded loop.
+        """
         return EdgeLabelling(
                 self._tri,
                 { ei: self._tri.edge(ei).front() for ei in self } )
@@ -339,7 +341,11 @@ class EmbeddedLoop:
         Sets this embedded loop using the relabelling described by the given
         EdgeLabelling.
 
-        This routine is for internal use only.
+        This routine is for internal use only. The purpose of this routine is
+        to update the embedded loop whenever the ambient triangulation has
+        been modified by a local move. See the twoThree, threeTwo, twoZero,
+        twoOne, and fourFour routines from moves.py for examples of how
+        relabellings are specified.
 
         Pre-condition:
         --> The given EdgeLabelling relab tracks every index ei in self.

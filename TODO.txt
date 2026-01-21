@@ -1,6 +1,4 @@
 --- Bounded SFS recognition
-    --> Speed up by tracking as few edges as possible
-        ->- Add to TriangulationWithEmbeddedLoops
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Implement new version of splitArcs()
         ->- Tidy up TODO comments
