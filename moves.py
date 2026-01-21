@@ -205,8 +205,6 @@ def twoThree( triangle, edgeLab=None ):
             i = doomed.index(oldTet)
         except ValueError:
             # The oldTet survives.
-            #TODO Why does this line break when calling fourFour() with a
-            #       custom relabelling?
             newEdgeLocations[edgeInd] = ( newIndex[ oldTet.index() ],
                                          emb.vertices() )
         else:

@@ -1209,8 +1209,7 @@ class EmbeddedLoop:
             # simplifyMonotonic() might raise BoundsDisc.
             fourFourChoice = fourFourAvailable[
                     RandomEngine.rand(availableCount) ]
-            #TODO Figure out why custom relabelling breaks here.
-            relabelling = fourFour(*fourFourChoice)
+            relabelling = fourFour( *fourFourChoice, tempLoop._edgeLab() )
             tempLoop._setFromRelab(relabelling)
             if tempLoop.simplifyMonotonic():
                 # We successfully simplified!
