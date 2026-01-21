@@ -966,6 +966,17 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
     be preserved by the requested 2-1 move.
     """
     tri = edge.triangulation()
+
+    # Is the requested 2-1 move legal?
+    #
+    #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality (checking eligibility
+    #       of the move, but not performing it) was provided by
+    #       Triangulation3.twoOneMove( e, ed, True, False ).
+    if not tri.has21( edge, edgeEnd ):
+        return None
+
+    # To perform the move, we need to ensure that the input edge is tracked.
     if edgeLab is None:
         edgeLab = EdgeLabelling(tri)
         trackInputEdge = True
@@ -985,15 +996,6 @@ def twoOne( edge, edgeEnd, edgeLab=None ):
             # already reserved for tracking the newly-created edge).
             e20 = 1 + max( edgeLab.trackedIndices() )
             edgeLab[e20] = edge.front()
-
-    # Is the requested 2-1 move legal?
-    #
-    #NOTE Triangulation3.has21( e, ed ) was introduced in Regina 7.4. In older
-    #       versions of Regina, equivalent functionality (checking eligibility
-    #       of the move, but not performing it) was provided by
-    #       Triangulation3.twoOneMove( e, ed, True, False ).
-    if not tri.has21( edge, edgeEnd ):
-        return None
 
     # Perform the 2-1 move as a 2-3 move followed by a 2-0 move.
     emb = edge.front()
