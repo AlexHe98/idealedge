@@ -365,9 +365,10 @@ class EmbeddedLoop:
                 # or might not be the same as before. We therefore need to
                 # compare relab[ei] with the underlying labelling to determine
                 # the newOrientation for the loop.
-                vertexPerm = relab[ei].tetrahedron().edgeMapping(
-                        relab[ei].edge() )
-                if vertexPerm[0] == relab[ei].vertices()[0]:
+                referenceEmb = relab[ei]
+                vertexPerm = referenceEmb.tetrahedron().edgeMapping(
+                        referenceEmb.edge() )
+                if vertexPerm[0] == referenceEmb.vertices()[0]:
                     newOrientation = oldOrientation
                 else:
                     newOrientation = -1 * oldOrientation

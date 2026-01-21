@@ -160,13 +160,11 @@ class EdgeLabelling:
 
     def underlyingEdgeIndex( self, index ):
         """
-        Returns the underlying index corresponding to the given tracked index,
-        or None if the given index is not tracked.
+        Returns the underlying index corresponding to the given tracked index.
+
+        Raises KeyError if the given index is not tracked.
         """
-        emb = self[index]
-        if emb is None:
-            return None
-        return edgeIndFromEmb(emb)
+        return edgeIndFromEmb( self._labelling[index] )
 
     def __setitem__( self, index, emb ):
         """

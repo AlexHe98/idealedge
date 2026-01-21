@@ -195,8 +195,7 @@ def twoThree( triangle, edgeLab=None ):
     # tetrahedron that will meet e after we have performed the requested 2-3
     # move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         oldTet = emb.tetrahedron()
 
         # For subsequent comments, let
@@ -518,8 +517,7 @@ def threeTwo( edge, edgeLab=None ):
     # reference labelling, find one tetrahedron that will meet e after we have
     # performed the requested 3-2 move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         oldTet = emb.tetrahedron()
         if oldTet.edge( emb.edge() ) == edge:
             # This edge is destroyed by the 3-2 move. Ignoring it now will
@@ -707,8 +705,7 @@ def twoZero( edge, edgeLab=None ):
     # reference labelling, find one tetrahedron that will meet e after we have
     # performed the requested 2-0 move.
     newEdgeLocations = dict()
-    for edgeInd in edgeLab:
-        emb = edgeLab[edgeInd]
+    for edgeInd, emb in edgeLab.items():
         tet = emb.tetrahedron()
         if tet.edge( emb.edge() ) == edge:
             # This edge is destroyed by the 2-0 move. Ignoring it now will
