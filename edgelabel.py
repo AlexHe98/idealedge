@@ -141,14 +141,22 @@ class EdgeLabelling:
         Returns the EdgeEmbedding3 object at the given index, or None if the
         given index is not tracked.
         """
-        return self.get(index)
+        # Under normal usage, this will be called many times, and the index
+        # will usually be tracked. Therefore the performance penalty of
+        # catching rare KeyErrors is better than being hit with the overhead
+        # from dict.get() on every single call of this method.
+        try:
+            return self._labelling[index]
+        except KeyError:
+            return None
+        return
 
     def get( self, index ):
         """
         Returns the EdgeEmbedding3 object at the given index, or None if the
         given index is not tracked.
         """
-        return self._labelling.get( index, None )
+        return self[index]
 
     def underlyingEdgeIndex( self, index ):
         """
