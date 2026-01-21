@@ -24,7 +24,7 @@ class EdgeLabelling:
     index to each edge that it tracks. Each such index is associated to an
     EdgeEmbedding3 object in the underlying triangulation.
 
-    Since using this class creates two indepedent sets of indices for the
+    Since using this class creates two independent sets of indices for the
     edges of a triangulation, we use the following terminology to distinguish
     these two sets of edge indices:
     --> A "tracked index" is the index that is tracked by this class.
