@@ -7,6 +7,7 @@ from insert import layerOn
 from segment import OrientedSegment
 
 
+#TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
 def decomposeAlong( surf, oldLoops ):
     """
     Decomposes along surf, and returns a list of the resulting components.
@@ -48,16 +49,16 @@ def decomposeAlong( surf, oldLoops ):
     --> The given surf and each ideal loop in oldLoops must all lie in the
         same triangulation.
     """
-    #TODO Update usage of idealLoops to use the new EdgeEmbedding3 output.
-
     # Find where the new ideal loops will be after crushing.
-    loopInfo = idealLoops( surf, oldLoops )
+    loopEmbs = idealLoops( surf, oldLoops )
     crushed = surf.crush()
 
     # Split crushed into its components.
     if crushed.isConnected():
         components = [crushed]
-        compLoopInfo = [loopInfo]
+        compLoopInfo = [ [
+            ( emb.tetrahedron().index(), emb.vertices() )
+            for emb in loopEmbs ] ]
     else:
         components = list( crushed.triangulateComponents() )
 
@@ -70,17 +71,20 @@ def decomposeAlong( surf, oldLoops ):
             shiftedIndex.append( compSize[compi] )
             compSize[compi] += 1
 
-        # Shift tetrahedron indices for the ideal loops to account for the
-        # renumbering computed above.
+        # Using the renumbering that we just computed, record shifted
+        # tetrahedron indices for the ideal loops.
         compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
-        for seq in loopInfo:
-            shiftedSeq = []
-            for teti, tail, head in seq:
-                shiftedSeq.append( ( shiftedIndex[teti], tail, head ) )
+        for embSequence in loopEmbs:
+            singleLoopInfo = []
+            for survivingEmb in embSequence:
+                teti = survivingEmb.tetrahedron().index()
+                singleLoopInfo.append( ( shiftedIndex[teti],
+                                        survivingEmb.vertices() ) )
 
-            # Abuse the fact that teti persists beyond the scope of the loop.
+            # Abuse the fact that teti persists beyond the scope of the above
+            # for loop.
             compi = crushed.tetrahedron(teti).component().index()
-            compLoopInfo[compi].append(shiftedSeq)
+            compLoopInfo[compi].append(singleLoopInfo)
 
     # Use compLoopInfo to find the ideal loops in each component.
     output = []
@@ -88,20 +92,20 @@ def decomposeAlong( surf, oldLoops ):
         tri = components[compi]
         loopInfo = compLoopInfo[compi]
         loops = []
-        for seq in loopInfo:
+        for singleLoopInfo in loopInfo:
             # To construct an IdealLoop, we need:
             #   --> a list of edges, in order as we traverse the loop; and
             #   --> an orientation, which is either +1 if the first edge of
             #       the loop is oriented from vertex 0 to vertex 1, and -1 if
             #       the first edge is oriented from vertex 1 to vertex 0.
             edgeList = []
-            for teti, tail, head in seq:
+            for teti, ver in singleLoopInfo:
                 edgeList.append(
-                        tri.tetrahedron(teti).edge( tail, head ) )
-            firstTet = tri.tetrahedron( seq[0][0] )
-            firstTail, firstHead = seq[0][1], seq[0][2]
-            edgeNum = Edge3.edgeNumber[firstTail][firstHead]
-            if firstTail == firstTet.edgeMapping(edgeNum)[0]:
+                        tri.tetrahedron(teti).edge( ver[0], ver[1] ) )
+            firstTet = tri.tetrahedron( singleLoopInfo[0][0] )
+            firstVer = singleLoopInfo[0][1]
+            firstEdgeNum = Edge3.faceNumber(firstVer)
+            if firstVer[0] == firstTet.edgeMapping(firstEdgeNum)[0]:
                 orientation = 1
             else:
                 orientation = -1
