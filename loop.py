@@ -11,6 +11,7 @@ from loopaux import NotLoop, BoundsDisc
 from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
 from loopaux import embeddingsFromEdgeIndices
 from edgelabel import EdgeLabelling
+from segment import OrientedSegment
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -523,6 +524,7 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
+    #TODO Update this to output OrientedSegment instead of ad hoc tuples.
     def splitArcs( self, surf ):
         """
         Returns a list describing the arcs into which the given normal

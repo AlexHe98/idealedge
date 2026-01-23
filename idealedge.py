@@ -4,6 +4,7 @@ Find the ideal edges after crushing a normal surface.
 from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
+from segment import OrientedSegment
 
 
 def decomposeAlong( surf, oldLoops ):
@@ -47,6 +48,8 @@ def decomposeAlong( surf, oldLoops ):
     --> The given surf and each ideal loop in oldLoops must all lie in the
         same triangulation.
     """
+    #TODO Update usage of idealLoops to use the new EdgeEmbedding3 output.
+
     # Find where the new ideal loops will be after crushing.
     loopInfo = idealLoops( surf, oldLoops )
     crushed = surf.crush()
@@ -122,10 +125,13 @@ def decomposeAlong( surf, oldLoops ):
     return output
 
 
+#TODO Update documentation and implementation to:
+#       --> use the new TriangulationWithEmbeddedLoops class, and
+#       --> account for the extra cases that arise from SFS recognition.
 def idealLoops( surf, oldLoops=[] ):
     """
-    Returns information about the ideal loops after crushing the given normal
-    surface surf.
+    Returns surviving edge embeddings which describe the ideal loops after
+    crushing the given normal surface surf.
 
     The given oldLoops list (which may be empty, and is empty by default)
     should be a list of pre-existing ideal loops, encoded as instances of
@@ -148,13 +154,8 @@ def idealLoops( surf, oldLoops=[] ):
     after crushing the given surface (see below for a more detailed
     description of how the ideal loops before crushing are related to the
     ideal loops after crushing). Each such ideal loop is encoded as a list of
-    pairs of the form (ia, t, h), where:
-    --> ia is the index after crushing of a tetrahedron that will be incident
-        to one of the ideal edges;
-    --> t is the vertex number (from 0 to 3, inclusive) of tetrahedron ia at
-        the tail of the ideal edge in question; and
-    --> h is the vertex number of tetrahedron ia at the head of the ideal
-        edge.
+    surviving edge embeddings.
+
     A caveat to this is that when the given surf is a 2-sphere, there is one
     possible degenerate ideal loop: a pair of edges giving an unknotted loop,
     such that the two edges get merged to become a single non-loop edge after
@@ -198,8 +199,8 @@ def idealLoops( surf, oldLoops=[] ):
 
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
-    newLoops = []
-    targets = _survivingSegments(surf)
+    newLoopEmbs = []
+    survivors = OrientedSegment.survivors(surf)
     for oldLoop in oldLoops:
         wt = oldLoop.weight(surf)
         if wt == 2:
@@ -217,20 +218,21 @@ def idealLoops( surf, oldLoops=[] ):
             raise ValueError(msg)
 
         # The given surface splits the current oldLoop into some number of
-        # components. Which of these components survive to become new ideal
-        # loops after crushing?
+        # arcs. Which of these arcs survive to become new ideal loops after
+        # crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
-            idEdge = _findIdealEdge( surf, seg, targets )
-            if idEdge is None:
-                # This component does not survive after crushing.
+            survivingSeg = seg.translateAlongSurface(survivors)
+            if survivingSeg is None:
+                # This arc does not survive after crushing.
                 continue
 
-            # This component survives after crushing.
-            newLoop = [idEdge]
+            # This arc survives after crushing.
+            newLoop = [ survivingSeg.survivingEmbedding() ]
             for seg in arc[1:]:
-                newLoop.append( _findIdealEdge( surf, seg, targets ) )
-            newLoops.append(newLoop)
+                survivingSeg = seg.translateAlongSurface(survivors)
+                newLoop.append( survivingSeg.survivingEmbedding() )
+            newLoopEmbs.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
     # chain of boundary bigons?
@@ -241,26 +243,26 @@ def idealLoops( surf, oldLoops=[] ):
             if ( e.isBoundary() and
                     surf.edgeWeight(ei).safeLongValue() >= 2 ):
                 # Arbitrarily assign orientation +1.
-                seg = ( ei, 1, 1 )
+                seg = OrientedSegment( surf, ei, 1, 1 )
                 break
 
-        # If this segment survives after crushing, then it forms a new ideal
-        # loop of length one.
-        idEdge = _findIdealEdge( surf, seg, targets )
-        if idEdge is not None:
-            newLoops.append( [idEdge] )
+        # If this segment survives after crushing, then it will form a new
+        # ideal loop of length one.
+        survivingSeg = seg.translateAlongSurface(survivors)
+        if survivingSeg is not None:
+            newLoopEmbs.append( [ survivingSeg.survivingEmbedding() ] )
 
     #TODO If we crushed an annulus, it would probably be useful to use
     #   fillIdealEdges() to include additional ideal loops obtained by filling
     #   in pinched 2-sphere boundary components.
     #
     #   If/when we implement this functionality, we will need to document the
-    #   possibility that we could create an addiitonal new ideal loop. We
+    #   possibility that we could create an additional new ideal loop. We
     #   should probably also note that this would come at the cost of
     #   introducing a new tetrahedron.
 
     # Done!
-    return newLoops
+    return newLoopEmbs
 
 
 def fillIdealEdges( tri, endpoints ):
@@ -437,6 +439,22 @@ def countIncidentBoundaries(s):
     return len(incident)
 
 
+def findSurvivor( seg, survivors=None ):
+    """
+    Returns a surviving segment that becomes identified with the given segment
+    seg after crushing, or None if no such surviving segment exists.
+
+    If the set of surviving segments has been precomputed using
+    OrientedSegment.survivors( seg.surface() ), then this can be supplied
+    using the optional targets parameter. Otherwise, this routine will compute
+    the set of surviving segments for itself.
+    """
+    if survivors is None:
+        survivors = OrientedSegment.survivors( seg.surface() )
+    return seg.translateAlongSurface(survivors)
+
+
+#TODO Delete this obsolete routine.
 def _findIdealEdge( surf, start, targets=None ):
     """
     Returns details of the ideal edge that corresponds to the given start
@@ -657,6 +675,7 @@ def _findIdealEdge( surf, start, targets=None ):
     return None
 
 
+#TODO Delete this obsolete routine.
 def _survivingSegments(surf):
     """
     Uses the given normal surface to divide the edges of the ambient

@@ -468,6 +468,9 @@ class OrientedSegment:
         routine returns None. Otherwise, this routine will return a target
         segment whose orientation is consistent with this segment's
         orientation under the translation.
+
+        This routine only runs membership tests on the given set of targets.
+        In particular, this routine will never modify targets.
         """
         # If this segment is one of the targets, then we are already done.
         if self in targets:
