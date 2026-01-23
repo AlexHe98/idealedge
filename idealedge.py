@@ -5,6 +5,7 @@ from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
 from segment import OrientedSegment
+from loopaux import tetRenumbering
 
 
 #TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
@@ -50,8 +51,11 @@ def decomposeAlong( surf, oldLoops ):
         same triangulation.
     """
     # Find where the new ideal loops will be after crushing.
-    loopEmbs = idealLoops( surf, oldLoops )
+    loopEmbsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     crushed = surf.crush()
+
+    #TODO Use tetRenumbering() to adjust all tetrahedron indices to be
+    #       indices after crushing!
 
     # Split crushed into its components.
     if crushed.isConnected():
@@ -132,7 +136,7 @@ def decomposeAlong( surf, oldLoops ):
 #TODO Update documentation and implementation to:
 #       --> use the new TriangulationWithEmbeddedLoops class, and
 #       --> account for the extra cases that arise from SFS recognition.
-def idealLoops( surf, oldLoops=[] ):
+def newIdealLoopEmbs( surf, oldLoops=[] ):
     """
     Returns surviving edge embeddings which describe the ideal loops after
     crushing the given normal surface surf.

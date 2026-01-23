@@ -4,7 +4,7 @@ Routines for experimenting with the ideal edge code in Regina's GUI.
 from sys import argv
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong, idealLoops
+from idealedge import decomposeAlong, newIdealLoopEmbs
 from idealedge import isAnnulus, isSphere, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
@@ -94,7 +94,9 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                # Or just print if we're not using packets.
 #                print(adorn)
         components = []
-        idEdgeDetails = idealLoops(surf)
+        #TODO Need to translate these embeddings so that they reference the
+        #       crushed triangulation instead of the original triangulation.
+        idEdgeDetails = newIdealLoopEmbs(surf)
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
             # ideal edges.
