@@ -244,6 +244,221 @@ class OrientedSegment:
         """
         return self._surface.edgeWeight( self._edgeIndex ).pythonValue()
 
+    def adjacentSegments(self):
+        """
+        Yields all oriented segments that are adjacent to self by translation
+        across parallel cells or faces.
+
+        This routine guarantees to be exhaustive, but might redundantly yield
+        an adjacent segment multiple times.
+        """
+        for emb in self.edge().embeddings():
+            teti = emb.tetrahedron().index()
+            en = emb.face()
+            ver = emb.vertices()
+
+            # To locate the relevant parallel cells and faces in the current
+            # tetrahedron, we need to get the normal coordinates incident to
+            # self.edge().
+            f = [ self.surface().triangles( teti, ver[i] ).pythonValue()
+                 for i in range(2) ]
+            q = 0
+            qType = None
+            for qt in range(3):
+                if qt in { en, 5 - en }:
+                    # This is the quad type that is disjoint from self.edge().
+                    continue
+                quads = self.surface().quads( teti, qt ).pythonValue()
+                if quads > 0:
+                    q = quads
+                    qType = qt
+                    break
+
+            # Does this segment belong to a parallel cell or face in the
+            # current tetrahedron? If so, then we can translate along any such
+            # cells or faces to find some of the adjacent segments.
+            if self._segPos < f[0]:
+                # This segment belongs to either a corner cell or a parallel
+                # triangular cell at vertex ver[0].
+                for adjSeg in self._adjSegsAtVert0(emb):
+                    yield adjSeg
+            elif self._segPos > f[0] + q:
+                # This segment belongs to either a corner cell or a parallel
+                # triangular cell at vertex ver[1].
+                for adjSeg in self._adjSegsAtVert1(emb):
+                    yield adjSeg
+            elif q > 0:
+                # At this point, we have f[0] <= self._segPos <= f[0] + q, and
+                # hence this segment belongs to either a wedge cell or a
+                # parallel quad cell.
+                qDepth = self._segPos - f[0]     # 0 <= qDepth <= q
+                for adjSeg in self._adjSegsAlongQuad(
+                        emb, q, qType, qDepth ):
+                    yield adjSeg
+        return
+
+    def _adjSegsAtVert0( self, edgeEmb ):
+        """
+        Yields all segments adjacent to self via translation along a normal
+        triangle at vertex 0 of the given edge embedding.
+
+        Precondition:
+        --> This segment is incident to either a corner cell or a parallel
+            triangular cell at vertex 0.
+        """
+        tet = edgeEmb.tetrahedron()
+        ver = edgeEmb.vertices()
+        for otherEnd in range(4):
+            if otherEnd in { ver[0], ver[1] }:
+                continue
+
+            # This segment is adjacent to a segment of the edge with endpoints
+            # ver[0] and otherEnd.
+            #                          ver[0]
+            #                             •
+            #                            / \
+            #               ambient edge/   \
+            #                          /     \
+            #                   ver[1]•       •otherEnd
+            #
+            enOther = Edge3.faceNumber(
+                    Perm4( ver[1], otherEnd ) * ver )
+            eiOther = tet.edge(enOther).index()
+            verOther = tet.edgeMapping(enOther)
+            if verOther[0] == ver[0]:
+                # Same orientation.
+                yield OrientedSegment(
+                        self._surface,
+                        eiOther,
+                        self._segPos,
+                        self._orientation )
+            else:
+                # Opposite orientation.
+                wtOther = self._surface.edgeWeight(eiOther).pythonValue()
+                yield OrientedSegment(
+                        self._surface,
+                        eiOther,
+                        wtOther - self._segPos,
+                        -1 * self._orientation )
+        return
+
+    def _adjSegsAtVert1( self, edgeEmb ):
+        """
+        Yields all segments adjacent to self via translation along a normal
+        triangle at vertex 1 of the given edge embedding.
+
+        Precondition:
+        --> This segment is incident to either a corner cell or a parallel
+            triangular cell at vertex 1.
+        """
+        tet = edgeEmb.tetrahedron()
+        ver = edgeEmb.vertices()
+        for otherEnd in range(4):
+            if otherEnd in { ver[0], ver[1] }:
+                continue
+
+            # This segment is adjacent to a segment of the edge with endpoints
+            # ver[1] and otherEnd.
+            #                          ver[0]
+            #                             •
+            #                            /
+            #               ambient edge/
+            #                          /
+            #                   ver[1]•-------•otherEnd
+            #
+            enOther = Edge3.faceNumber(
+                    Perm4( ver[0], otherEnd ) * ver )
+            eiOther = tet.edge(enOther).index()
+            verOther = tet.edgeMapping(enOther)
+            if verOther[0] == ver[1]:
+                # Opposite orientation.
+                yield OrientedSegment(
+                        self._surface,
+                        eiOther,
+                        self.edgeWeight() - self._segPos,
+                        -1 * self._orientation )
+            else:
+                # Same orientation.
+                wtOther = self._surface.edgeWeight(eiOther).pythonValue()
+                yield OrientedSegment(
+                        self._surface,
+                        eiOther,
+                        wtOther - self.edgeWeight() + self._segPos,
+                        self._orientation )
+        return
+
+    def _adjSegsAlongQuad( self, edgeEmb, qCount, qType, qDepth ):
+        """
+        Yields all segments adjacent to self via translation along a normal
+        quad.
+
+        Precondition:
+        --> This segment is incident to either a wedge cell or a parallel
+            quad cell.
+        """
+        tet = edgeEmb.tetrahedron()
+        ver = edgeEmb.vertices()
+
+        # The quads divide tet into two "sides". The edge opposite this
+        # segment has endpoints lying on different sides, and we can label
+        # these opposite endpoints opp[i], for i in {0,1}, so that ver[i] and
+        # opp[i] lie on the same side of the quads, as shown in the diagram.
+        #
+        #                              ver[0]
+        #                                 •
+        #                                /|\
+        #                   ambient edge/ | \
+        #                              /__|__\
+        #                             /|  |  |\
+        #                      ver[1]•-|--|--|-•opp[1]
+        #                             \|__|__|/
+        #                              \  |  /
+        #                               \ | /opposite edge
+        #                                \|/
+        #                                 •
+        #                              opp[0]
+        #
+        side = [ { 0, qType + 1 } ]
+        side.append( {0,1,2,3} - side[0] )
+        if ver[0] not in side[0]:
+            side[0], side[1] = side[1], side[0]
+        side[0].remove( ver[0] )
+        side[1].remove( ver[1] )
+        opp = [ side[0].pop(), side[1].pop() ]
+
+        # Find all edges of tet containing segments that are adjacent to self.
+        adjVertexPerms = []
+        if qDepth < qCount:
+            adjVertexPerms.append(
+                    Perm4( ver[0], opp[1], ver[1], opp[0] ) )
+        if qDepth > 0:
+            adjVertexPerms.append(
+                    Perm4( opp[0], ver[1], ver[0], opp[1] ) )
+        if qDepth != 0 and qDepth != qCount:
+            adjVertexPerms.append(
+                    Perm4( opp[0], opp[1], ver[0], ver[1] ) )
+        for vertexPerm in adjVertexPerms:
+            enAdj = Edge3.faceNumber(vertexPerm)
+            eiAdj = tet.edge(enAdj).index()
+            verAdj = tet.edgeMapping(enAdj)
+            triangles = self._surface.triangles(
+                    tet.index(), verAdj[0] ).pythonValue()
+            if verAdj[0] == vertexPerm[0]:
+                # Same orientation.
+                yield OrientedSegment(
+                        self._surface,
+                        eiAdj,
+                        triangles + qDepth,
+                        self._orientation )
+            else:
+                # Opposite orientation.
+                yield OrientedSegment(
+                        self._surface,
+                        eiAdj,
+                        triangles + qCount - qDepth,
+                        -1 * self._orientation )
+        return
+
     def translateAlongSurface( self, targets ):
         """
         Translates this segment along self.surface(), and if possible returns
@@ -254,8 +469,33 @@ class OrientedSegment:
         segment whose orientation is consistent with this segment's
         orientation under the translation.
         """
-        #TODO
-        raise NotImplementedError()
+        # If this segment is one of the targets, then we are already done.
+        if self in targets:
+            return self
 
-    #TODO
-    pass
+        # Otherwise, we search for a target using depth-first search.
+        #
+        # In theory, this could be done in polynomial time using the
+        # Agol-Hass-Thurston weighted orbit-counting algorithm. However, this
+        # search is much easier to implement, and works very well in practice.
+        tri = self.triangulation()
+        segStack = [self]
+        visitedSegs = set()
+        while segStack:
+            currentSeg = segStack.pop()
+            if currentSeg in visitedSegs:
+                continue
+
+            # We haven't previously visited currentSeg, so check whether any
+            # of its adjacent segments are targets, and if not check whether
+            # we still need to visit these adjacent segments later.
+            visitedSegs.add(currentSeg)
+            for adjSeg in currentSeg.adjacentSegments():
+                if adjSeg in targets:
+                    return adjSeg
+                elif adjSeg not in visitedSegs:
+                    segStack.append(adjSeg)
+
+        # If the search terminates without finding a target, then all of the
+        # targets must be unreachable via translation along self.surface().
+        return None
