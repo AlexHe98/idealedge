@@ -98,9 +98,9 @@ def crushAnnuli( surfaces, threshold=30 ):
         if idEdgeDetails:
             # There is only one ideal loop, given by a length-1 sequence of
             # ideal edges.
-            idEdge = idEdgeDetails[0][0]
+            idEdgeEmb = idEdgeDetails[0][0]
         else:
-            idEdge = None
+            idEdgeEmb = None
         idComp = None
         if tri.isEmpty():
             if usingPackets:
@@ -110,7 +110,7 @@ def crushAnnuli( surfaces, threshold=30 ):
         else:
             if tri.isConnected():
                 components.append(tri)
-                if idEdge is not None:
+                if idEdgeEmb is not None:
                     idComp = 0
             else:
                 if usingPackets:
@@ -127,13 +127,13 @@ def crushAnnuli( surfaces, threshold=30 ):
 
                 # Find the component containing the ideal edge, and adjust
                 # the ideal tetrahedron index.
-                if idEdge is not None:
-                    idComp = tri.tetrahedron( idEdge[0] ).component().index()
+                if idEdgeEmb is not None:
+                    idComp = idEdgeEmb.tetrahedron().component().index()
                     idTeti = 0
                     for tet in tri.tetrahedra():
                         if tet.component().index() == idComp:
-                            if tet.index() == idEdge[0]:
-                                idEdge = ( idTeti, idEdge[1], idEdge[2] )
+                            if tet == idEdgeEmb.tetrahedron():
+                                idEdgeInfo = ( idTeti, idEdgeEmb.vertices() )
                                 break
                             else:
                                 idTeti += 1
@@ -330,8 +330,9 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    ide = comp.tetrahedron( idEdge[0] ).edge(
-                            idEdge[1], idEdge[2] )
+                    idTeti, idVer = idEdgeInfo
+                    ide = comp.tetrahedron(idTeti).edge(
+                            idVer[0], idVer[1] )
                     idLoop = IdealLoop( [ide] )
                     if usingPackets:
                         comp.setLabel( comp.adornedLabel(
