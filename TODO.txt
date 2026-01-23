@@ -1,7 +1,7 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Implement new OrientedSegment class
-            ->> Update EmbeddedLoop.splitArcs()
+            ->> Fix bug
             ->> Clean up idealedge.py
         ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
         ->- Tidy up TODO comments
@@ -16,3 +16,4 @@
     --> etc
 --- Update Regina usage
     --> Local moves
+    --> Use pythonValue() instead of safeLongValue()
