@@ -4,6 +4,16 @@ Oriented segments resulting from splitting edges along normal surfaces.
 from regina import *
 
 
+def hasQuads( tet, surface ):
+    """
+    Does the given tetrahedron contain any quads of the given normal surface?
+    """
+    for q in range(3):
+        if surface.quads( tet.index(), q ).pythonValue() > 0:
+            return True
+    return False
+
+
 class OrientedSegment:
     """
     An oriented segment resulting from splitting an edge along a normal
@@ -106,12 +116,7 @@ class OrientedSegment:
         tri = surface.triangulation()
         survivorSet = set()
         for tet in tri.tetrahedra():
-            hasQuads = False
-            for q in range(3):
-                if surface.quads( tet.index(), q ).pythonValue() > 0:
-                    hasQuads = True
-                    break
-            if hasQuads:
+            if hasQuads( tet, surface ):
                 continue
 
             # No quads in tet, so we will find one surviving segment along
@@ -119,8 +124,8 @@ class OrientedSegment:
             for en in range(6):
                 vertexPerm = tet.edgeMapping(en)
                 edgeInd = tet.edge(en).index()
-                survivingSegPos = surface.triangles(
-                        tet.index(), vertexPerm[0] ).pythonValue()
+                survivingSegPos = cls._survivingSegmentPosition(
+                        tet, vertexPerm, surface )
 
                 # Include both +1 and -1 orientations.
                 survivorSet.add(
@@ -133,17 +138,40 @@ class OrientedSegment:
                                 tet, vertexPerm * Perm4(1,0,3,2) ) ) )
         return survivorSet
 
+    @staticmethod
+    def _survivingSegmentPosition( tet, vertexPerm, surface ):
+        """
+        Returns the position of the surviving segment along the edge of tet
+        with endpoints vertexPerm[0] and vertexPerm[1].
+
+        Precondition:
+        --> hasQuads( tet, surface ) is False.
+        """
+        return surface.triangles( tet.index(), vertexPerm[0] ).pythonValue()
+
     def surface(self):
         """
         Returns the normal surface that defines this segment.
         """
         return self._surface
 
+    def triangulation(self):
+        """
+        Returns the ambient triangulation.
+        """
+        return self._surface.triangulation()
+
     def edgeIndex(self):
         """
         Returns the index of the ambient edge.
         """
         return self._edgeIndex
+
+    def edge(self):
+        """
+        Returns the ambient edge.
+        """
+        return self.triangulation().edge( self._edgeIndex )
 
     def segmentPosition(self):
         """
@@ -187,8 +215,25 @@ class OrientedSegment:
             return self._survivingEmb
 
         # Check whether a surviving embedding exists.
-        #TODO
-        raise NotImplementedError()
+        self._checkedSurvivingEmb = True
+        self._survivingEmb = None   # Just in case default isn't set properly.
+        for emb in self.edge().embeddings():
+            tet = emb.tetrahedron()
+            if hasQuads( tet, self._surface ):
+                continue
+            survivingSegPos = self._survivingSegmentPosition(
+                    tet, emb.vertices(), self._surface )
+            if survivingSegPos != self._segPos:
+                continue
+
+            # Found a surviving embedding associated to this segment.
+            if self.orientation() == 1:
+                self._survivingEmb = emb
+            else:   # self.orientation() == -1
+                self._survivingEmb = EdgeEmbedding3(
+                        tet, emb.vertices() * Perm4(1,0,3,2) )
+            break
+        return self._survivingEmb
 
     def edgeWeight(self):
         """
