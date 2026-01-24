@@ -64,6 +64,7 @@ def decomposeAlong( surf, oldLoops ):
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
             embSequence.append( EdgeEmbedding3(
                 crushedTet, oldEmb.vertices() ) )
+        loopEmbs.append(embSequence)
 
     # Split crushed into its components.
     if crushed.isConnected():

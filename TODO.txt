@@ -1,9 +1,8 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Implement new OrientedSegment class
-            ->> Fix bugs
+            ->> Fix bug
                 >-- Translate surviving embeddings to reference crushed triangulation
-                >-- Figure out other bug(s)
             ->> Clean up idealedge.py
         ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
         ->- Tidy up TODO comments
