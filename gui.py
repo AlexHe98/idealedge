@@ -10,6 +10,7 @@ from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
+from loopaux import tetRenumbering, tetHasQuads
 
 
 def meridian( tri, edgeIndex ):
@@ -94,15 +95,25 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                # Or just print if we're not using packets.
 #                print(adorn)
         components = []
-        #TODO Need to translate these embeddings so that they reference the
-        #       crushed triangulation instead of the original triangulation.
-        idEdgeDetails = newIdealLoopEmbs(surf)
-        if idEdgeDetails:
+        idEdgeDetailsInOldTri = newIdealLoopEmbs(surf)
+        if idEdgeDetailsInOldTri:
             # There is only one ideal loop, given by a length-1 sequence of
             # ideal edges.
-            idEdgeEmb = idEdgeDetails[0][0]
+            oldEmb = idEdgeDetailsInOldTri[0][0]
+
+            # Translate oldEmb into an edge embedding in the crushed
+            # triangulation tri.
+            doomed = [ tet for tet in surf.triangulation().tetrahedra()
+                      if tetHasQuads( tet, surf ) ]
+            tetIndicesAfterCrush = tetRenumbering(doomed)
+            crushedTet = tri.tetrahedron(
+                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+            idEdgeEmb = EdgeEmbedding3( crushedTet, oldEmb.vertices() )
         else:
             idEdgeEmb = None
+
+        # Split tri into components, and find the ideal edge amongst the newly
+        # split components.
         idComp = None
         if tri.isEmpty():
             if usingPackets:
