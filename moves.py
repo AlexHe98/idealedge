@@ -3,6 +3,7 @@ Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from regina import *
 from edgelabel import EdgeLabelling
+from loopaux import tetRenumbering, tetIndexRenumbering
 
 
 def twoThree( triangle, edgeLab=None ):
@@ -102,15 +103,7 @@ def twoThree( triangle, edgeLab=None ):
     for emb in triangle.embeddings():
         doomed.append( emb.simplex() )
         verts.append( emb.vertices() )
-    newIndex = []   # New tetrahedron indices after performing the move.
-    doomedIndices = sorted( [ d.index() for d in doomed ] )
-    for k in range( tri.size() ):
-        if k < doomedIndices[0]:
-            newIndex.append(k)
-        elif k < doomedIndices[1]:
-            newIndex.append(k-1)
-        else:
-            newIndex.append(k-2)
+    newIndex = tetRenumbering(doomed)
     survive = tri.size() - 2
     gluings = []
     triGlu = doomed[0].adjacentGluing( verts[0][3] )
@@ -352,17 +345,7 @@ def threeTwo( edge, edgeLab=None ):
     for emb in edge.embeddings():
         doomed.append( emb.simplex() )
         verts.append( emb.vertices() )
-    newIndex = [] # Value of newIndex[ doomed[i].index() ] is meaningless.
-    doomedIndices = sorted( [ d.index() for d in doomed ] )
-    for k in range( tri.size() ):
-        if k < doomedIndices[0]:
-            newIndex.append(k)
-        elif k < doomedIndices[1]:
-            newIndex.append(k-1)
-        elif k < doomedIndices[2]:
-            newIndex.append(k-2)
-        else:
-            newIndex.append(k-3)
+    newIndex = tetRenumbering(doomed)
     survive = tri.size() - 3
     gluings = [ ( survive, verts[1][1], survive+1,
         Perm4( verts[1][0], verts[1][1] ) ) ]
@@ -690,16 +673,9 @@ def twoZero( edge, edgeLab=None ):
 
     # How will the tetrahedra in tri get renumbered after we perform the
     # requested 2-0 move?
-    doomedIndices = sorted(
-            [ emb.simplex().index() for emb in edge.embeddings() ] )
-    newIndex = [] # Value of newIndex[ doomedIndices[i] ] is meaningless.
-    for k in range( tri.size() ):
-        if k < doomedIndices[0]:
-            newIndex.append(k)
-        elif k < doomedIndices[1]:
-            newIndex.append(k-1)
-        else:
-            newIndex.append(k-2)
+    doomedIndices = { emb.tetrahedron().index()
+                     for emb in edge.embeddings() }
+    newIndex = tetIndexRenumbering( tri, doomedIndices )
 
     # For each edge e (other than the input edge) that is tracked by the
     # reference labelling, find one tetrahedron that will meet e after we have
@@ -717,7 +693,7 @@ def twoZero( edge, edgeLab=None ):
         # look for a tetrahedron that survives the 2-0 move.
         found = False
         for otherEmb in tet.edge( emb.edge() ).embeddings():
-            oldTetInd  = otherEmb.tetrahedron().index()
+            oldTetInd = otherEmb.tetrahedron().index()
             if oldTetInd in doomedIndices:
                 continue
 

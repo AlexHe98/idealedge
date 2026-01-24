@@ -4,12 +4,13 @@ Routines for experimenting with the ideal edge code in Regina's GUI.
 from sys import argv
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong, idealLoops
+from idealedge import decomposeAlong, newIdealLoopEmbs
 from idealedge import isAnnulus, isSphere, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
+from loopaux import tetRenumbering, tetHasQuads
 
 
 def meridian( tri, edgeIndex ):
@@ -94,13 +95,25 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                # Or just print if we're not using packets.
 #                print(adorn)
         components = []
-        idEdgeDetails = idealLoops(surf)
-        if idEdgeDetails:
+        idEdgeDetailsInOldTri = newIdealLoopEmbs(surf)
+        if idEdgeDetailsInOldTri:
             # There is only one ideal loop, given by a length-1 sequence of
             # ideal edges.
-            idEdge = idEdgeDetails[0][0]
+            oldEmb = idEdgeDetailsInOldTri[0][0]
+
+            # Translate oldEmb into an edge embedding in the crushed
+            # triangulation tri.
+            doomed = [ tet for tet in surf.triangulation().tetrahedra()
+                      if tetHasQuads( tet, surf ) ]
+            tetIndicesAfterCrush = tetRenumbering(doomed)
+            crushedTet = tri.tetrahedron(
+                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+            idEdgeEmb = EdgeEmbedding3( crushedTet, oldEmb.vertices() )
         else:
-            idEdge = None
+            idEdgeEmb = None
+
+        # Split tri into components, and find the ideal edge amongst the newly
+        # split components.
         idComp = None
         if tri.isEmpty():
             if usingPackets:
@@ -110,7 +123,7 @@ def crushAnnuli( surfaces, threshold=30 ):
         else:
             if tri.isConnected():
                 components.append(tri)
-                if idEdge is not None:
+                if idEdgeEmb is not None:
                     idComp = 0
             else:
                 if usingPackets:
@@ -127,13 +140,13 @@ def crushAnnuli( surfaces, threshold=30 ):
 
                 # Find the component containing the ideal edge, and adjust
                 # the ideal tetrahedron index.
-                if idEdge is not None:
-                    idComp = tri.tetrahedron( idEdge[0] ).component().index()
+                if idEdgeEmb is not None:
+                    idComp = idEdgeEmb.tetrahedron().component().index()
                     idTeti = 0
                     for tet in tri.tetrahedra():
                         if tet.component().index() == idComp:
-                            if tet.index() == idEdge[0]:
-                                idEdge = ( idTeti, idEdge[1], idEdge[2] )
+                            if tet == idEdgeEmb.tetrahedron():
+                                idEdgeInfo = ( idTeti, idEdgeEmb.vertices() )
                                 break
                             else:
                                 idTeti += 1
@@ -330,8 +343,9 @@ def crushAnnuli( surfaces, threshold=30 ):
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
                 if compNum == idComp:
-                    ide = comp.tetrahedron( idEdge[0] ).edge(
-                            idEdge[1], idEdge[2] )
+                    idTeti, idVer = idEdgeInfo
+                    ide = comp.tetrahedron(idTeti).edge(
+                            idVer[0], idVer[1] )
                     idLoop = IdealLoop( [ide] )
                     if usingPackets:
                         comp.setLabel( comp.adornedLabel(

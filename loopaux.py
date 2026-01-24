@@ -1,5 +1,5 @@
 """
-Auxiliary classes and functions for EmbeddedLoop.
+Auxiliary classes and functions for ideal loops.
 """
 from regina import *
 
@@ -70,3 +70,53 @@ def embeddingsFromEdgeIndices( tri, edgeIndices ):
     edgeIndices argument.
     """
     return [ tri.edge(ei).front() for ei in edgeIndices ]
+
+
+def tetRenumbering(doomed):
+    """
+    Returns a list describing how tetrahedra get renumbered after deleting the
+    given doomed tetrahedra.
+
+    In detail, letting r denote the returned list, for each index i of a
+    tetrahedron T that is not doomed, r[i] will be the new index of T after
+    all the doomed tetrahedra have been deleted. For an index i of a doomed
+    tetrahedron, r[i] will be None.
+
+    Precondition:
+    --> doomed is nonempty, and contains only tetrahedra that all belong to
+        the same 3-manifold triangulation.
+    """
+    tri = doomed[0].triangulation()
+    doomedIndices = { tet.index() for tet in doomed }
+    return tetIndexRenumbering( tri, doomedIndices )
+
+
+def tetHasQuads( tet, surface ):
+    """
+    Does the given tetrahedron contain any quads of the given normal surface?
+    """
+    for q in range(3):
+        if surface.quads( tet.index(), q ).pythonValue() > 0:
+            return True
+    return False
+
+
+def tetIndexRenumbering( tri, doomedIndices ):
+    """
+    Returns a list describing how tetrahedron in the given triangulation get
+    renumbered after deleting the tetrahedra with the given doomed indices.
+
+    In detail, letting r denote the returned list, for each index i of a
+    tetrahedron T that is not doomed, r[i] will be the new index of T after
+    all the doomed tetrahedra have been deleted. For a doomed index, i, r[i]
+    will be None.
+    """
+    renum = []
+    tetShift = 0
+    for tetIndex in range( tri.size() ):
+        if tetIndex in doomedIndices:
+            renum.append(None)
+            tetShift += 1
+        else:
+            renum.append( tetIndex - tetShift )
+    return renum

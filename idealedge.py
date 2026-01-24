@@ -4,8 +4,11 @@ Find the ideal edges after crushing a normal surface.
 from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
+from segment import OrientedSegment
+from loopaux import tetRenumbering, tetHasQuads
 
 
+#TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
 def decomposeAlong( surf, oldLoops ):
     """
     Decomposes along surf, and returns a list of the resulting components.
@@ -48,13 +51,27 @@ def decomposeAlong( surf, oldLoops ):
         same triangulation.
     """
     # Find where the new ideal loops will be after crushing.
-    loopInfo = idealLoops( surf, oldLoops )
+    loopEmbsInOldTri = newIdealLoopEmbs( surf, oldLoops )
+    doomed = [ tet for tet in surf.triangulation().tetrahedra()
+              if tetHasQuads( tet, surf ) ]
+    tetIndicesAfterCrush = tetRenumbering(doomed)
     crushed = surf.crush()
+    loopEmbs = []
+    for oldEmbSequence in loopEmbsInOldTri:
+        embSequence = []
+        for oldEmb in oldEmbSequence:
+            crushedTet = crushed.tetrahedron(
+                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+            embSequence.append( EdgeEmbedding3(
+                crushedTet, oldEmb.vertices() ) )
+        loopEmbs.append(embSequence)
 
     # Split crushed into its components.
     if crushed.isConnected():
         components = [crushed]
-        compLoopInfo = [loopInfo]
+        compLoopInfo = [ [
+            ( emb.tetrahedron().index(), emb.vertices() )
+            for emb in loopEmbs ] ]
     else:
         components = list( crushed.triangulateComponents() )
 
@@ -67,17 +84,20 @@ def decomposeAlong( surf, oldLoops ):
             shiftedIndex.append( compSize[compi] )
             compSize[compi] += 1
 
-        # Shift tetrahedron indices for the ideal loops to account for the
-        # renumbering computed above.
+        # Using the renumbering that we just computed, record shifted
+        # tetrahedron indices for the ideal loops.
         compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
-        for seq in loopInfo:
-            shiftedSeq = []
-            for teti, tail, head in seq:
-                shiftedSeq.append( ( shiftedIndex[teti], tail, head ) )
+        for embSequence in loopEmbs:
+            singleLoopInfo = []
+            for survivingEmb in embSequence:
+                teti = survivingEmb.tetrahedron().index()
+                singleLoopInfo.append( ( shiftedIndex[teti],
+                                        survivingEmb.vertices() ) )
 
-            # Abuse the fact that teti persists beyond the scope of the loop.
+            # Abuse the fact that teti persists beyond the scope of the above
+            # for loop.
             compi = crushed.tetrahedron(teti).component().index()
-            compLoopInfo[compi].append(shiftedSeq)
+            compLoopInfo[compi].append(singleLoopInfo)
 
     # Use compLoopInfo to find the ideal loops in each component.
     output = []
@@ -85,20 +105,20 @@ def decomposeAlong( surf, oldLoops ):
         tri = components[compi]
         loopInfo = compLoopInfo[compi]
         loops = []
-        for seq in loopInfo:
+        for singleLoopInfo in loopInfo:
             # To construct an IdealLoop, we need:
             #   --> a list of edges, in order as we traverse the loop; and
             #   --> an orientation, which is either +1 if the first edge of
             #       the loop is oriented from vertex 0 to vertex 1, and -1 if
             #       the first edge is oriented from vertex 1 to vertex 0.
             edgeList = []
-            for teti, tail, head in seq:
+            for teti, ver in singleLoopInfo:
                 edgeList.append(
-                        tri.tetrahedron(teti).edge( tail, head ) )
-            firstTet = tri.tetrahedron( seq[0][0] )
-            firstTail, firstHead = seq[0][1], seq[0][2]
-            edgeNum = Edge3.edgeNumber[firstTail][firstHead]
-            if firstTail == firstTet.edgeMapping(edgeNum)[0]:
+                        tri.tetrahedron(teti).edge( ver[0], ver[1] ) )
+            firstTet = tri.tetrahedron( singleLoopInfo[0][0] )
+            firstVer = singleLoopInfo[0][1]
+            firstEdgeNum = Edge3.faceNumber(firstVer)
+            if firstVer[0] == firstTet.edgeMapping(firstEdgeNum)[0]:
                 orientation = 1
             else:
                 orientation = -1
@@ -122,10 +142,13 @@ def decomposeAlong( surf, oldLoops ):
     return output
 
 
-def idealLoops( surf, oldLoops=[] ):
+#TODO Update documentation and implementation to:
+#       --> use the new TriangulationWithEmbeddedLoops class, and
+#       --> account for the extra cases that arise from SFS recognition.
+def newIdealLoopEmbs( surf, oldLoops=[] ):
     """
-    Returns information about the ideal loops after crushing the given normal
-    surface surf.
+    Returns surviving edge embeddings which describe the ideal loops after
+    crushing the given normal surface surf.
 
     The given oldLoops list (which may be empty, and is empty by default)
     should be a list of pre-existing ideal loops, encoded as instances of
@@ -148,13 +171,8 @@ def idealLoops( surf, oldLoops=[] ):
     after crushing the given surface (see below for a more detailed
     description of how the ideal loops before crushing are related to the
     ideal loops after crushing). Each such ideal loop is encoded as a list of
-    pairs of the form (ia, t, h), where:
-    --> ia is the index after crushing of a tetrahedron that will be incident
-        to one of the ideal edges;
-    --> t is the vertex number (from 0 to 3, inclusive) of tetrahedron ia at
-        the tail of the ideal edge in question; and
-    --> h is the vertex number of tetrahedron ia at the head of the ideal
-        edge.
+    surviving edge embeddings.
+
     A caveat to this is that when the given surf is a 2-sphere, there is one
     possible degenerate ideal loop: a pair of edges giving an unknotted loop,
     such that the two edges get merged to become a single non-loop edge after
@@ -198,8 +216,8 @@ def idealLoops( surf, oldLoops=[] ):
 
     # Find the ideal loops that arise from the pre-existing ideal loops.
     tri = surf.triangulation()
-    newLoops = []
-    targets = _survivingSegments(surf)
+    newLoopEmbs = []
+    survivors = OrientedSegment.survivors(surf)
     for oldLoop in oldLoops:
         wt = oldLoop.weight(surf)
         if wt == 2:
@@ -217,20 +235,21 @@ def idealLoops( surf, oldLoops=[] ):
             raise ValueError(msg)
 
         # The given surface splits the current oldLoop into some number of
-        # components. Which of these components survive to become new ideal
-        # loops after crushing?
+        # arcs. Which of these arcs survive to become new ideal loops after
+        # crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
-            idEdge = _findIdealEdge( surf, seg, targets )
-            if idEdge is None:
-                # This component does not survive after crushing.
+            survivingSeg = seg.translateAlongSurface(survivors)
+            if survivingSeg is None:
+                # This arc does not survive after crushing.
                 continue
 
-            # This component survives after crushing.
-            newLoop = [idEdge]
+            # This arc survives after crushing.
+            newLoop = [ survivingSeg.survivingEmbedding() ]
             for seg in arc[1:]:
-                newLoop.append( _findIdealEdge( surf, seg, targets ) )
-            newLoops.append(newLoop)
+                survivingSeg = seg.translateAlongSurface(survivors)
+                newLoop.append( survivingSeg.survivingEmbedding() )
+            newLoopEmbs.append(newLoop)
 
     # Will there also be an entirely new ideal loop created by flattening a
     # chain of boundary bigons?
@@ -241,26 +260,26 @@ def idealLoops( surf, oldLoops=[] ):
             if ( e.isBoundary() and
                     surf.edgeWeight(ei).safeLongValue() >= 2 ):
                 # Arbitrarily assign orientation +1.
-                seg = ( ei, 1, 1 )
+                seg = OrientedSegment( surf, ei, 1, 1 )
                 break
 
-        # If this segment survives after crushing, then it forms a new ideal
-        # loop of length one.
-        idEdge = _findIdealEdge( surf, seg, targets )
-        if idEdge is not None:
-            newLoops.append( [idEdge] )
+        # If this segment survives after crushing, then it will form a new
+        # ideal loop of length one.
+        survivingSeg = seg.translateAlongSurface(survivors)
+        if survivingSeg is not None:
+            newLoopEmbs.append( [ survivingSeg.survivingEmbedding() ] )
 
     #TODO If we crushed an annulus, it would probably be useful to use
     #   fillIdealEdges() to include additional ideal loops obtained by filling
     #   in pinched 2-sphere boundary components.
     #
     #   If/when we implement this functionality, we will need to document the
-    #   possibility that we could create an addiitonal new ideal loop. We
+    #   possibility that we could create an additional new ideal loop. We
     #   should probably also note that this would come at the cost of
     #   introducing a new tetrahedron.
 
     # Done!
-    return newLoops
+    return newLoopEmbs
 
 
 def fillIdealEdges( tri, endpoints ):
@@ -435,279 +454,3 @@ def countIncidentBoundaries(s):
         if s.edgeWeight( e.index() ).safeLongValue() > 0:
             incident.add( bdy.index() )
     return len(incident)
-
-
-def _findIdealEdge( surf, start, targets=None ):
-    """
-    Returns details of the ideal edge that corresponds to the given start
-    segment after crushing surf.
-
-    Specifically, if the ideal edge belongs to an ideal arc that gets
-    destroyed after crushing, then this routine returns None. Otherwise, this
-    routine returns a triple (i, t, h), where:
-    --> i is the index after crushing of a tetrahedron that will be incident
-        to the ideal edge;
-    --> t is the vertex number of this tetrahedron that is at the tail of the
-        ideal edge; and
-    --> h is the vertex number that is at the head of the ideal edge.
-    Here, "tail" and "head" are with respect to the orientation of the ideal
-    edge, which will be consistent with the given start segment.
-
-    If the dictionary of surviving segments has been precomputed using the
-    _survivingSegments() routine, then this can be supplied using the
-    optional targets argument. Otherwise, this routine will compute the
-    surviving segments for itself.
-    """
-    tri = surf.triangulation()
-    if targets is None:
-        targets = _survivingSegments(surf)
-
-    # If the start segment is one of the targets, then we are already done.
-    output = targets.get( start, None )
-    if output is not None:
-        return output
-
-    # Otherwise, we find the ideal edge using depth-first search.
-    #
-    # In theory, this could be done in polynomial time using the
-    # Agol-Hass-Thurston weighted orbit-counting algorithm. However,
-    # depth-first search is much easier to implement, and works very well in
-    # practice.
-    stack = [start]
-    visited = set()
-    while stack:
-        current = stack.pop()
-        if current in visited:
-            continue
-
-        # We haven't visited the current segment yet, so we need to find all
-        # segments that are adjacent to it along parallel cells or faces.
-        ei, seg, orient = current
-        e = tri.edge(ei)
-        wt = surf.edgeWeight(ei).safeLongValue()
-        visited.add(current)    # Record as visited now, so we don't forget.
-        for emb in e.embeddings():
-            tet = emb.tetrahedron()
-            teti = tet.index()
-            en = emb.face()
-            ver = emb.vertices()
-
-            # To locate the relevant parallel cells and faces in tet, need to
-            # get the normal coordinates incident to e.
-            f = [ surf.triangles( teti, ver[i] ).safeLongValue()
-                    for i in range(2) ]
-            q = 0
-            qType = None
-            for qt in range(3):
-                if qt in { en, 5-en }:
-                    # This is the quad type that is disjoint from e.
-                    continue
-                quads = surf.quads( teti, qt ).safeLongValue()
-                if quads > 0:
-                    q = quads
-                    qType = qt
-                    break
-
-            # Does the current segment belong to a parallel cell or face in
-            # this tet? If so, then we need to find all adjacent segments.
-            if seg < f[0]:
-                # The current segment belongs to a parallel triangular cell
-                # at vertex ver[0].
-                for otherEnd in range(4):
-                    if otherEnd in { ver[0], ver[1] }:
-                        continue
-
-                    # The current segment is adjacent to a segment of the
-                    # edge with endpoints ver[0] and otherEnd.
-                    #
-                    #           ver[0]
-                    #              •
-                    #             / \
-                    #      edge e/   \
-                    #           /     \
-                    #    ver[1]•       •otherEnd
-                    #
-                    eiOther = tet.edge( ver[0], otherEnd ).index()
-                    enOther = Edge3.edgeNumber[ver[0]][otherEnd]
-                    verOther = tet.edgeMapping(enOther)
-                    if verOther[0] == ver[0]:
-                        # Same tails, hence same orientation.
-                        adjacent = ( eiOther, seg, orient )
-                    else:
-                        # Opposite orientation.
-                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - seg, -orient )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        return output
-                    else:
-                        stack.append(adjacent)
-            elif seg > f[0] + q:
-                # The current segment belongs to a parallel triangular cell
-                # at vertex ver[1].
-                for otherEnd in range(4):
-                    if otherEnd in { ver[0], ver[1] }:
-                        continue
-
-                    # The current segment is adjacent to a segment of the
-                    # edge with endpoints ver[1] and otherEnd.
-                    #
-                    #           ver[0]
-                    #              •
-                    #             /
-                    #      edge e/
-                    #           /
-                    #    ver[1]•-------•otherEnd
-                    #
-                    eiOther = tet.edge( ver[1], otherEnd ).index()
-                    enOther = Edge3.edgeNumber[ver[1]][otherEnd]
-                    verOther = tet.edgeMapping(enOther)
-                    if verOther[0] == ver[1]:
-                        # Opposite orientation.
-                        adjacent = ( eiOther, wt - seg, -orient )
-                    else:
-                        # Same orientation.
-                        wtOther = surf.edgeWeight(eiOther).safeLongValue()
-                        adjacent = ( eiOther, wtOther - wt + seg, orient )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        return output
-                    else:
-                        stack.append(adjacent)
-            elif q > 0:
-                # At this point, we have f[0] <= seg <= f[0] + q.
-                #
-                # The quadrilaterals divide tet into two "sides". The edge
-                # opposite this segment has endpoints lying on different
-                # sides, and we can label these opposite endpoints opp[i],
-                # i in {0,1}, so that ver[i] and opp[i] lie on the same side
-                # of the quadrilaterals, as shown in the diagram below.
-                #
-                #               ver[0]
-                #                  •
-                #                 /|\
-                #          edge e/ | \
-                #               /__|__\
-                #              /|  |  |\
-                #       ver[1]•-|--|--|-•opp[1]
-                #              \|__|__|/
-                #               \  |  /
-                #                \ | /opposite edge
-                #                 \|/
-                #                  •
-                #               opp[0]
-                #
-                side = [ { 0, qType + 1 } ]
-                side.append( {0,1,2,3} - side[0] )
-                if ver[0] not in side[0]:
-                    side[0], side[1] = side[1], side[0]
-                side[0].remove( ver[0] )
-                side[1].remove( ver[1] )
-                opp = [ side[0].pop(), side[1].pop() ]
-
-                # Find all edges containing segments that are adjacent to the
-                # current segment.
-                #
-                # It is crucial that for each pair in adjEndpoints, the first
-                # vertex is on the "0" side of the quadrilateral, and the
-                # second vertex is on the "1" side of the quadrilateral.
-                qDepth = seg - f[0]     # 0 <= qDepth <= q
-                if qDepth == 0:
-                    adjEndpoints = [ [ ver[0], opp[1] ] ]
-                elif qDepth == q:
-                    adjEndpoints = [ [ opp[0], ver[1] ] ]
-                else:
-                    adjEndpoints = [
-                            [ ver[0], opp[1] ],
-                            [ opp[0], ver[1] ],
-                            [ opp[0], opp[1] ] ]
-                for start, end in adjEndpoints:
-                    # The current segment is adjacent to a segment of the
-                    # edge going from start to end.
-                    eiAdj = tet.edge( start, end ).index()
-                    enAdj = Edge3.edgeNumber[start][end]
-                    verAdj = tet.edgeMapping(enAdj)
-                    triangles = surf.triangles(
-                            teti, verAdj[0] ).safeLongValue()
-                    if verAdj[0] == start:
-                        # Same orientation.
-                        adjacent = ( eiAdj, triangles + qDepth, orient )
-                    else:
-                        # Opposite orientation.
-                        adjacent = ( eiAdj, triangles + q - qDepth, -orient )
-
-                    # If the adjacent segment is one of the targets, then we
-                    # are done; otherwise, we add it to the stack.
-                    output = targets.get( adjacent, None )
-                    if output is not None:
-                        return output
-                    else:
-                        stack.append(adjacent)
-
-        # End of loop. Move on to the next embedding of edge e.
-
-    # If the search terminates without finding the ideal edge, then the ideal
-    # edge must belong to a component that gets destroyed.
-    return None
-
-
-def _survivingSegments(surf):
-    """
-    Uses the given normal surface to divide the edges of the ambient
-    triangulation into segments, and returns a dictionary describing the
-    segments that would survive after crushing surf.
-
-    In detail, the keys of the returned dictionary will be oriented surviving
-    segments, encoded as triples of the form (ei, s, o), where:
-    --> ei is an edge index;
-    --> s is a segment number from 0 to w, inclusive, where w is the weight
-        of surf on edge ei; and
-    --> o is +1 if edge ei is oriented from vertex 0 to vertex 1, and -1 if
-        edge ei is oriented from vertex 1 to vertex 0.
-    The segments for each edge e are numbered in ascending order from the one
-    incident to e.vertex(0) to the one incident to e.vertex(1). The returned
-    dictionary will map each such segment to a triple (ia, t, h), where:
-    --> ia is the index after crushing of a tetrahedron that will be incident
-        to the segment in question;
-    --> t is the vertex number (from 0 to 3, inclusive) of tetrahedron ia
-        that is at the tail of the edge that corresponds to the segment in
-        question; and
-    --> h is the vertex number of tetrahedron ia that is at the head of the
-        edge.
-    """
-    tri = surf.triangulation()
-    survivors = dict()
-    shift = 0
-    for tet in tri.tetrahedra():
-        teti = tet.index()
-        hasQuads = False
-        for q in range(3):
-            if surf.quads( teti, q ).safeLongValue() > 0:
-                hasQuads = True
-                break
-        if hasQuads:
-            # Presence of quads means tet is destroyed by crushing, which
-            # will shift all larger tetrahedron indices down by one.
-            shift += 1
-            continue
-
-        # No quads in tet, so there is a cell in the centre that survives
-        # crushing. Find the edges of this cell that survive.
-        for en in range(6):
-            tail = tet.edgeMapping(en)[0]
-            head = tet.edgeMapping(en)[1]
-            ei = tet.edge(en).index()
-            s = surf.triangles( teti, tail ).safeLongValue()
-
-            # Include both possible orientations.
-            survivors[ (ei,s,1) ] = ( teti - shift, tail, head )
-            survivors[ (ei,s,-1) ] = ( teti - shift, head, tail )
-
-    # Done!
-    return survivors

@@ -341,8 +341,21 @@ class TriangulationWithEmbeddedLoops:
             wt += embLoop.weight()
         return wt
 
-    #TODO Need a version of splitArcs() that returns enough information to
-    #   track all of the effects of crushing that we care about.
+    def splitArcs( self, surf ):
+        """
+        Returns data describing the arcs into which the given normal surface
+        surf splits the union of embedded loops.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        --> If surf is one-sided, then self.weight(surf) <= 1; otherwise,
+            self.weight(surf) <= 2.
+        """
+        #TODO Implementation needs to account for:
+        #       --> Multiple loops
+        #       --> Arcs getting merged after crushing
+        #       --> Whether merged arcs have same or opposite orientation
+        raise NotImplementedError()
 
     def shorten(self):
         """

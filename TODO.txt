@@ -1,14 +1,16 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Implement new version of splitArcs()
+        ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
         ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Remove old simplification routines
         ->- Update usage in knot factorisation algorithm
     --> etc
 --- Test suites
-    --> EmbeddedLoop
+    --> OrientedSegment
     --> TriangulationWithEmbeddedLoops
+    --> EmbeddedLoop
     --> etc
 --- Update Regina usage
     --> Local moves
+    --> Use pythonValue() instead of safeLongValue()
