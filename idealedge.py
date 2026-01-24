@@ -5,7 +5,7 @@ from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
 from segment import OrientedSegment
-from loopaux import tetRenumbering
+from loopaux import tetRenumbering, tetHasQuads
 
 
 #TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
@@ -52,10 +52,18 @@ def decomposeAlong( surf, oldLoops ):
     """
     # Find where the new ideal loops will be after crushing.
     loopEmbsInOldTri = newIdealLoopEmbs( surf, oldLoops )
+    doomed = [ tet for tet in surf.triangulation().tetrahedra()
+              if tetHasQuads( tet, surf ) ]
+    tetIndicesAfterCrush = tetRenumbering(doomed)
     crushed = surf.crush()
-
-    #TODO Use tetRenumbering() to adjust all tetrahedron indices to be
-    #       indices after crushing!
+    loopEmbs = []
+    for oldEmbSequence in loopEmbsInOldTri:
+        embSequence = []
+        for oldEmb in oldEmbSequence:
+            crushedTet = crushed.tetrahedron(
+                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+            embSequence.append( EdgeEmbedding3(
+                crushedTet, oldEmb.vertices() ) )
 
     # Split crushed into its components.
     if crushed.isConnected():
@@ -712,13 +720,7 @@ def _survivingSegments(surf):
     survivors = dict()
     shift = 0
     for tet in tri.tetrahedra():
-        teti = tet.index()
-        hasQuads = False
-        for q in range(3):
-            if surf.quads( teti, q ).safeLongValue() > 0:
-                hasQuads = True
-                break
-        if hasQuads:
+        if tetHasQuads( tet, surf ):
             # Presence of quads means tet is destroyed by crushing, which
             # will shift all larger tetrahedron indices down by one.
             shift += 1
@@ -726,6 +728,7 @@ def _survivingSegments(surf):
 
         # No quads in tet, so there is a cell in the centre that survives
         # crushing. Find the edges of this cell that survive.
+        teti = tet.index()
         for en in range(6):
             tail = tet.edgeMapping(en)[0]
             head = tet.edgeMapping(en)[1]

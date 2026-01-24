@@ -91,6 +91,16 @@ def tetRenumbering(doomed):
     return tetIndexRenumbering( tri, doomedIndices )
 
 
+def tetHasQuads( tet, surface ):
+    """
+    Does the given tetrahedron contain any quads of the given normal surface?
+    """
+    for q in range(3):
+        if surface.quads( tet.index(), q ).pythonValue() > 0:
+            return True
+    return False
+
+
 def tetIndexRenumbering( tri, doomedIndices ):
     """
     Returns a list describing how tetrahedron in the given triangulation get

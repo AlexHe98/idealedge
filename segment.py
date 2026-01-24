@@ -2,16 +2,7 @@
 Oriented segments resulting from splitting edges along normal surfaces.
 """
 from regina import *
-
-
-def hasQuads( tet, surface ):
-    """
-    Does the given tetrahedron contain any quads of the given normal surface?
-    """
-    for q in range(3):
-        if surface.quads( tet.index(), q ).pythonValue() > 0:
-            return True
-    return False
+from loopaux import tetHasQuads
 
 
 class OrientedSegment:
@@ -116,7 +107,7 @@ class OrientedSegment:
         tri = surface.triangulation()
         survivorSet = set()
         for tet in tri.tetrahedra():
-            if hasQuads( tet, surface ):
+            if tetHasQuads( tet, surface ):
                 continue
 
             # No quads in tet, so we will find one surviving segment along
@@ -145,7 +136,7 @@ class OrientedSegment:
         with endpoints vertexPerm[0] and vertexPerm[1].
 
         Precondition:
-        --> hasQuads( tet, surface ) is False.
+        --> tetHasQuads( tet, surface ) is False.
         """
         return surface.triangles( tet.index(), vertexPerm[0] ).pythonValue()
 
@@ -219,7 +210,7 @@ class OrientedSegment:
         self._survivingEmb = None   # Just in case default isn't set properly.
         for emb in self.edge().embeddings():
             tet = emb.tetrahedron()
-            if hasQuads( tet, self._surface ):
+            if tetHasQuads( tet, self._surface ):
                 continue
             survivingSegPos = self._survivingSegmentPosition(
                     tet, emb.vertices(), self._surface )
