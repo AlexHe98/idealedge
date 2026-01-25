@@ -5,7 +5,7 @@ from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
 from segment import OrientedSegment
-from loopaux import tetRenumbering
+from tetrenum import tetRenumbering
 from quadaux import tetHasQuads
 
 

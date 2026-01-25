@@ -10,7 +10,7 @@ from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
-from loopaux import tetRenumbering
+from tetrenum import tetRenumbering
 from quadaux import tetHasQuads
 
 
