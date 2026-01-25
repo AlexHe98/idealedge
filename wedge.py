@@ -6,7 +6,7 @@ given by an ideal loop, such lost components correspond to a lost fibre of
 multiplicity 3.
 """
 from regina import *
-from quadtype import tetQuadType
+from quadaux import tetQuadType
 
 
 def wedgeLoops(surf):

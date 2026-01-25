@@ -10,7 +10,8 @@ from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
-from loopaux import tetRenumbering, tetHasQuads
+from loopaux import tetRenumbering
+from quadaux import tetHasQuads
 
 
 def meridian( tri, edgeIndex ):
@@ -104,7 +105,7 @@ def crushAnnuli( surfaces, threshold=30 ):
             # Translate oldEmb into an edge embedding in the crushed
             # triangulation tri.
             doomed = [ tet for tet in surf.triangulation().tetrahedra()
-                      if tetHasQuads( tet, surf ) ]
+                      if tetHasQuads( surf, tet.index() ) ]
             tetIndicesAfterCrush = tetRenumbering(doomed)
             crushedTet = tri.tetrahedron(
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )

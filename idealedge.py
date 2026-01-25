@@ -5,7 +5,8 @@ from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
 from segment import OrientedSegment
-from loopaux import tetRenumbering, tetHasQuads
+from loopaux import tetRenumbering
+from quadaux import tetHasQuads
 
 
 #TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
@@ -53,7 +54,7 @@ def decomposeAlong( surf, oldLoops ):
     # Find where the new ideal loops will be after crushing.
     loopEmbsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
-              if tetHasQuads( tet, surf ) ]
+              if tetHasQuads( surf, tet.index() ) ]
     tetIndicesAfterCrush = tetRenumbering(doomed)
     crushed = surf.crush()
     loopEmbs = []

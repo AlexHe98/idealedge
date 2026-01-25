@@ -2,7 +2,7 @@
 Oriented segments resulting from splitting edges along normal surfaces.
 """
 from regina import *
-from loopaux import tetHasQuads
+from quadaux import tetHasQuads
 
 
 class OrientedSegment:
@@ -107,7 +107,7 @@ class OrientedSegment:
         tri = surface.triangulation()
         survivorSet = set()
         for tet in tri.tetrahedra():
-            if tetHasQuads( tet, surface ):
+            if tetHasQuads( surface, tet.index() ):
                 continue
 
             # No quads in tet, so we will find one surviving segment along
@@ -136,7 +136,7 @@ class OrientedSegment:
         with endpoints vertexPerm[0] and vertexPerm[1].
 
         Precondition:
-        --> tetHasQuads( tet, surface ) is False.
+        --> tetHasQuads( surface, tet.index() ) is False.
         """
         return surface.triangles( tet.index(), vertexPerm[0] ).pythonValue()
 
@@ -210,7 +210,7 @@ class OrientedSegment:
         self._survivingEmb = None   # Just in case default isn't set properly.
         for emb in self.edge().embeddings():
             tet = emb.tetrahedron()
-            if tetHasQuads( tet, self._surface ):
+            if tetHasQuads( self._surface, tet.index() ):
                 continue
             survivingSegPos = self._survivingSegmentPosition(
                     tet, emb.vertices(), self._surface )
