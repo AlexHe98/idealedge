@@ -10,7 +10,8 @@ from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
-from loopaux import tetRenumbering, tetHasQuads
+from aux.tetrenum import tetRenumbering
+from aux.quad import tetHasQuads
 
 
 def meridian( tri, edgeIndex ):
@@ -104,7 +105,7 @@ def crushAnnuli( surfaces, threshold=30 ):
             # Translate oldEmb into an edge embedding in the crushed
             # triangulation tri.
             doomed = [ tet for tet in surf.triangulation().tetrahedra()
-                      if tetHasQuads( tet, surf ) ]
+                      if tetHasQuads( surf, tet.index() ) ]
             tetIndicesAfterCrush = tetRenumbering(doomed)
             crushedTet = tri.tetrahedron(
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
@@ -532,15 +533,15 @@ def fibreParams( surf, merEdgeIndex ):
     # Use boundary edge weights of the disc to calculate
     # Seifert parameters.
     drilled = surf.triangulation()
-    merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
+    merWt = surf.edgeWeight(merEdgeIndex).pythonValue()
     merEdge = drilled.edge(merEdgeIndex)
     front = merEdge.front()
     ver = front.vertices()
     tet = front.tetrahedron()
     lower = tet.edge( ver[0], ver[2] )
     upper = tet.edge( ver[1], ver[2] )
-    lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
-    uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+    lowWt = surf.edgeWeight( lower.index() ).pythonValue()
+    uppWt = surf.edgeWeight( upper.index() ).pythonValue()
     if merWt == lowWt + uppWt:
         print("M=L+U")
         shift = lowWt

@@ -13,4 +13,4 @@
     --> etc
 --- Update Regina usage
     --> Local moves
-    --> Use pythonValue() instead of safeLongValue()
+--- Reorganise source files to reduce clutter

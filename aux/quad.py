@@ -1,6 +1,17 @@
 """
-Helper routines for accessing quads and quad types of a normal surface.
+Auxiliary functions for accessing quads and quad types of a normal surface.
 """
+
+
+def tetHasQuads( surf, tetIndex ):
+    """
+    Does the tetrahedron at the given index contain any quads of the given
+    normal surface?
+    """
+    for quadType in range(3):
+        if surf.quads( tetIndex, quadType ).pythonValue() > 0:
+            return True
+    return False
 
 
 def tetQuadType( surf, tetIndex ):
@@ -22,7 +33,7 @@ def tetQuads( surf, tetIndex ):
     is no such quad.
     """
     for quadType in range(3):
-        quadCount = surf.quads( tetIndex, quadType ).safeLongValue()
+        quadCount = surf.quads( tetIndex, quadType ).pythonValue()
         if quadCount > 0:
             return ( quadType, quadCount )
     return None

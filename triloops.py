@@ -8,7 +8,8 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
-from loopaux import BoundsDisc, embeddingsFromEdgeIndices
+from aux.looperror import BoundsDisc
+from aux.edgeemb import embeddingsFromEdgeIndices
 from edgelabel import EdgeLabelling
 
 
@@ -340,6 +341,21 @@ class TriangulationWithEmbeddedLoops:
         for embLoop in self:
             wt += embLoop.weight()
         return wt
+
+    def loopWeights( self, surf ):
+        """
+        Returns a dictionary mapping loop indices to their weights with
+        respect to the given normal surface.
+
+        Only loops with positive weights will be included in the returned
+        dictionary.
+        """
+        ans = dict()
+        for i, embLoop in enumerate(self):
+            wt = embLoop.weight()
+            if wt > 0:
+                ans[i] = wt
+        return ans
 
     def splitArcs( self, surf ):
         """

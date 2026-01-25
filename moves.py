@@ -3,7 +3,7 @@ Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from regina import *
 from edgelabel import EdgeLabelling
-from loopaux import tetRenumbering, tetIndexRenumbering
+from aux.tetrenum import tetRenumbering, tetIndexRenumbering
 
 
 def twoThree( triangle, edgeLab=None ):

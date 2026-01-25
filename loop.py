@@ -7,9 +7,9 @@ from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
-from loopaux import NotLoop, BoundsDisc
-from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
-from loopaux import embeddingsFromEdgeIndices
+from aux.looperror import NotLoop, BoundsDisc
+from aux.edgeemb import edgesFromEmbeddings, edgeOrientationFromEmbedding
+from aux.edgeemb import embeddingsFromEdgeIndices
 from edgelabel import EdgeLabelling
 from segment import OrientedSegment
 
@@ -492,7 +492,7 @@ class EmbeddedLoop:
         --> The given normal surface is embedded in self.triangulation().
         """
         for i in self:
-            if surf.edgeWeight(i).safeLongValue() > 0:
+            if surf.edgeWeight(i).pythonValue() > 0:
                 return True
         return False
 
@@ -506,7 +506,7 @@ class EmbeddedLoop:
         """
         wt = 0
         for i in self:
-            wt += surf.edgeWeight(i).safeLongValue()
+            wt += surf.edgeWeight(i).pythonValue()
         return wt
 
     #TODO Want a way to test disjointness of pairs of loops. A generalisable
