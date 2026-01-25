@@ -4,7 +4,7 @@ Experiment with certifying primeness of torus knots.
 from sys import argv, stdout
 from math import isqrt, gcd
 from regina import *
-from experiment import runDecompositionExperiment
+from experiments.knots.main import runDecompositionExperiment
 
 
 def generateTorusKnots( minCrossings, maxCrossings ):

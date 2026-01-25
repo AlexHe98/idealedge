@@ -4,7 +4,7 @@ to decompose each knot into prime summands.
 """
 from sys import argv, stdout
 from regina import *
-from experiment import runDecompositionExperiment
+from experiments.knots.main import runDecompositionExperiment
 
 
 def decomposeKnotSigs(dataset):

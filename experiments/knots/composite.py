@@ -4,9 +4,9 @@ perform knot decomposition experiments on the knots generated in this way.
 """
 from sys import argv, stdout
 from regina import *
-from experiment import runDecompositionExperiment
-from experiment import printDatasetNames
-from sample import sample
+from experiments.knots.main import runDecompositionExperiment
+from experiments.knots.main import printDatasetNames
+from experiments.knots.sample import sample
 
 
 def generateComposites( numKnots, numSummands, *datasets ):

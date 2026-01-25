@@ -1,5 +1,5 @@
 """
-Routines for experimenting with the ideal edge code in Regina's GUI.
+Scratch work for ideal edges.
 """
 from sys import argv
 from timeit import default_timer

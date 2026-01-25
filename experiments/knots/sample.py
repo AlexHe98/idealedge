@@ -5,8 +5,8 @@ experiments on such samples.
 from sys import argv, stdout
 from timeit import default_timer
 from regina import *
-from experiment import runDecompositionExperiment
-from experiment import readKnots, printDatasetNames
+from experiments.knots.main import runDecompositionExperiment
+from experiments.knots.main import readKnots, printDatasetNames
 
 
 def sample( size, *datasets ):
