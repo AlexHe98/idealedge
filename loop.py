@@ -492,7 +492,7 @@ class EmbeddedLoop:
         --> The given normal surface is embedded in self.triangulation().
         """
         for i in self:
-            if surf.edgeWeight(i).safeLongValue() > 0:
+            if surf.edgeWeight(i).pythonValue() > 0:
                 return True
         return False
 
@@ -506,7 +506,7 @@ class EmbeddedLoop:
         """
         wt = 0
         for i in self:
-            wt += surf.edgeWeight(i).safeLongValue()
+            wt += surf.edgeWeight(i).pythonValue()
         return wt
 
     #TODO Want a way to test disjointness of pairs of loops. A generalisable

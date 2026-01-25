@@ -341,6 +341,21 @@ class TriangulationWithEmbeddedLoops:
             wt += embLoop.weight()
         return wt
 
+    def loopWeights( self, surf ):
+        """
+        Returns a dictionary mapping loop indices to their weights with
+        respect to the given normal surface.
+
+        Only loops with positive weights will be included in the returned
+        dictionary.
+        """
+        ans = dict()
+        for i, embLoop in enumerate(self):
+            wt = embLoop.weight()
+            if wt > 0:
+                ans[i] = wt
+        return ans
+
     def splitArcs( self, surf ):
         """
         Returns data describing the arcs into which the given normal surface
