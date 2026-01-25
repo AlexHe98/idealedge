@@ -2,7 +2,7 @@
 Oriented segments resulting from splitting edges along normal surfaces.
 """
 from regina import *
-from quadaux import tetHasQuads
+from aux.quad import tetHasQuads
 
 
 class OrientedSegment:

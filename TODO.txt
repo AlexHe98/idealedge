@@ -13,3 +13,4 @@
     --> etc
 --- Update Regina usage
     --> Local moves
+--- Reorganise source files to reduce clutter

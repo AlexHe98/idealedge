@@ -7,9 +7,9 @@ from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
-from loopaux import NotLoop, BoundsDisc
-from loopaux import edgesFromEmbeddings, edgeOrientationFromEmbedding
-from loopaux import embeddingsFromEdgeIndices
+from aux.looperror import NotLoop, BoundsDisc
+from aux.edgeemb import edgesFromEmbeddings, edgeOrientationFromEmbedding
+from aux.edgeemb import embeddingsFromEdgeIndices
 from edgelabel import EdgeLabelling
 from segment import OrientedSegment
 

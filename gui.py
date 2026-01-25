@@ -10,8 +10,8 @@ from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from sfstri import orientableSFS
-from tetrenum import tetRenumbering
-from quadaux import tetHasQuads
+from aux.tetrenum import tetRenumbering
+from aux.quad import tetHasQuads
 
 
 def meridian( tri, edgeIndex ):

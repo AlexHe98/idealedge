@@ -5,8 +5,8 @@ from regina import *
 from loop import NotLoop, IdealLoop
 from insert import layerOn
 from segment import OrientedSegment
-from tetrenum import tetRenumbering
-from quadaux import tetHasQuads
+from aux.tetrenum import tetRenumbering
+from aux.quad import tetHasQuads
 
 
 #TODO Eventually, we probably want to return EdgeIdealTriangulation objects.

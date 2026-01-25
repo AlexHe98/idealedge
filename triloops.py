@@ -8,7 +8,8 @@ from regina import *
 from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
-from loopaux import BoundsDisc, embeddingsFromEdgeIndices
+from aux.looperror import BoundsDisc
+from aux.edgeemb import embeddingsFromEdgeIndices
 from edgelabel import EdgeLabelling
 
 
