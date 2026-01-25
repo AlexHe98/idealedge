@@ -7,7 +7,7 @@ from timeit import default_timer
 from multiprocessing import Pool, TimeoutError
 import snappy
 from regina import *
-from hardknotimpl import attemptHardComposite
+from hardknot.impl import attemptHardComposite
 
 
 def randomHardComposite( numSummands, workers, verbose=True ):

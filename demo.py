@@ -4,7 +4,7 @@ Demo with hard diagrams of composite knots.
 from sys import argv
 import snappy
 from regina import *
-from hardknot import randomHardComposite
+from hardknot.genrand import randomHardComposite
 from decomposeknot import decompose
 
 

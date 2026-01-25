@@ -1,4 +1,4 @@
-from overlay import overlayPD
+from hardknot.overlay import overlayPD
 import snappy
 
 

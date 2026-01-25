@@ -30,6 +30,12 @@ The main scripts in this repository are the following:
     normal surface, while keeping track of not just how the triangulation
     changes, but also how the ideal loop changes.
 
+An important test of the performance of our knot decomposition algorithm is on
+hard diagrams of composite knots. Here, by *hard*, we mean that the diagram is
+diagrammatically prime, and cannot be simplified using SnapPy's global
+simplification heuristic. Our code for generating such hard diagrams, which
+may be of independent interest, is available in the ``hardknot/`` directory.
+
 This repository also includes, in the ``experiments/knots/`` directory, the
 following scripts for running computational experiments:
 - ``experiments/knots/main.py``: Runs the decompose() routine on all knots

@@ -4,7 +4,7 @@ Generate a sample of hard diagrams of composite knots.
 from sys import argv
 from timeit import default_timer
 from regina import *
-from hardknot import randomHardComposite
+from hardknot.genrand import randomHardComposite
 
 
 if __name__ == "__main__":
