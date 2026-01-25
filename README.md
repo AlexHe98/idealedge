@@ -29,6 +29,9 @@ The main scripts in this repository are the following:
 - ``idealedge.py``: Contains the decomposeAlong() routine, which crushes a
     normal surface, while keeping track of not just how the triangulation
     changes, but also how the ideal loop changes.
+- ``demo.py``: Runs a live demonstration of the decomposeAlong() routine,
+    either with a randomly-generated hard diagram of a composite knot, or with
+    a user-provided knot signature.
 
 An important test of the performance of our knot decomposition algorithm is on
 hard diagrams of composite knots. Here, by *hard*, we mean that the diagram is
@@ -36,7 +39,7 @@ diagrammatically prime, and cannot be simplified using SnapPy's global
 simplification heuristic. Our code for generating such hard diagrams, which
 may be of independent interest, is available in the ``hardknot/`` directory.
 
-This repository also includes, in the ``experiments/knots/`` directory, the
+This repository includes, in the ``experiments/knots/`` directory, the
 following scripts for running computational experiments:
 - ``experiments/knots/main.py``: Runs the decompose() routine on all knots
     from a given collection of knot tables.
@@ -52,5 +55,10 @@ following scripts for running computational experiments:
     the 3-sphere.
 - ``experiments/knots/sigs.py``: Runs the decompose() routine on all knots
     given by knot signatures in a given dataset.
+
+One of the implementation challenges with ideal loops is keeping track of them
+as we modify a triangulation (say, through local moves, or through crushing).
+In particular, our implementations for tracking edges through local moves,
+available in the ``retriangulate/`` directory, may be of independent interest.
 
 — *Alex He (a.he@uqconnect.edu.au)*

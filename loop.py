@@ -5,12 +5,12 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 """
 from regina import *
 #TODO Check what imports are still needed after we're done refactoring.
-from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from insert import snapEdge, layerOn
 from aux.looperror import NotLoop, BoundsDisc
 from aux.edgeemb import edgesFromEmbeddings, edgeOrientationFromEmbedding
 from aux.edgeemb import embeddingsFromEdgeIndices
-from edgelabel import EdgeLabelling
+from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
+from retriangulate.insert import snapEdge, layerOn
+from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
 
 
@@ -345,8 +345,8 @@ class EmbeddedLoop:
         This routine is for internal use only. The purpose of this routine is
         to update the embedded loop whenever the ambient triangulation has
         been modified by a local move. See the twoThree, threeTwo, twoZero,
-        twoOne, and fourFour routines from moves.py for examples of how
-        relabellings are specified.
+        twoOne, and fourFour routines from retriangulate/moves.py for examples
+        of how relabellings are specified.
 
         Pre-condition:
         --> The given EdgeLabelling relab tracks every index ei in self.

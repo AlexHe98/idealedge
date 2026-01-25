@@ -2,7 +2,7 @@
 Perform 2-3, 3-2 and 2-0 moves while tracking how edges are relabelled.
 """
 from regina import *
-from edgelabel import EdgeLabelling
+from retriangulate.edgelabel import EdgeLabelling
 from aux.tetrenum import tetRenumbering, tetIndexRenumbering
 
 

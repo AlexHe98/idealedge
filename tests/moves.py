@@ -2,9 +2,9 @@
 Test suite for 2-3, 3-2 and 2-0 moves.
 """
 from regina import *
-from edgelabel import EdgeLabelling
-from moves import twoThree, threeTwo, twoZero, fourFour, twoOne
 from sys import argv, stdout
+from retriangulate.edgelabel import EdgeLabelling
+from retriangulate.moves import twoThree, threeTwo, twoZero, fourFour, twoOne
 from tests.aux import parseTestNames, allTestsPassedMessage
 from tests.aux import doTest, runNamedTestSuite
 
