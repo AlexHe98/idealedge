@@ -532,15 +532,15 @@ def fibreParams( surf, merEdgeIndex ):
     # Use boundary edge weights of the disc to calculate
     # Seifert parameters.
     drilled = surf.triangulation()
-    merWt = surf.edgeWeight(merEdgeIndex).safeLongValue()
+    merWt = surf.edgeWeight(merEdgeIndex).pythonValue()
     merEdge = drilled.edge(merEdgeIndex)
     front = merEdge.front()
     ver = front.vertices()
     tet = front.tetrahedron()
     lower = tet.edge( ver[0], ver[2] )
     upper = tet.edge( ver[1], ver[2] )
-    lowWt = surf.edgeWeight( lower.index() ).safeLongValue()
-    uppWt = surf.edgeWeight( upper.index() ).safeLongValue()
+    lowWt = surf.edgeWeight( lower.index() ).pythonValue()
+    uppWt = surf.edgeWeight( upper.index() ).pythonValue()
     if merWt == lowWt + uppWt:
         print("M=L+U")
         shift = lowWt

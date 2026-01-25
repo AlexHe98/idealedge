@@ -22,7 +22,7 @@ def tetQuads( surf, tetIndex ):
     is no such quad.
     """
     for quadType in range(3):
-        quadCount = surf.quads( tetIndex, quadType ).safeLongValue()
+        quadCount = surf.quads( tetIndex, quadType ).pythonValue()
         if quadCount > 0:
             return ( quadType, quadCount )
     return None

@@ -13,4 +13,3 @@
     --> etc
 --- Update Regina usage
     --> Local moves
-    --> Use pythonValue() instead of safeLongValue()

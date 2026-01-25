@@ -258,7 +258,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         for e in tri.edges():
             ei = e.index()
             if ( e.isBoundary() and
-                    surf.edgeWeight(ei).safeLongValue() >= 2 ):
+                    surf.edgeWeight(ei).pythonValue() >= 2 ):
                 # Arbitrarily assign orientation +1.
                 seg = OrientedSegment( surf, ei, 1, 1 )
                 break
@@ -451,6 +451,6 @@ def countIncidentBoundaries(s):
         bdy = e.boundaryComponent()
         if ( bdy is None ) or ( bdy.index() in incident ):
             continue
-        if s.edgeWeight( e.index() ).safeLongValue() > 0:
+        if s.edgeWeight( e.index() ).pythonValue() > 0:
             incident.add( bdy.index() )
     return len(incident)
