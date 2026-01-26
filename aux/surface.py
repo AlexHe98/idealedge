@@ -1,6 +1,49 @@
 """
-Auxiliary functions for normal surfaces.
+Auxiliary classes and functions for normal surfaces.
 """
+from enum import Enum, auto
+
+
+class SurfaceType(Enum):
+    """
+    The homeomorphism type of a normal surface.
+
+    Currently, this enumeration recognises the following surfaces:
+    --> 2-spheres (SPHERE)
+    --> discs (DISC)
+    --> annuli (ANNULUS)
+    --> projective planes (RP3)
+    --> Mobius bands (MOBIUS)
+    All other surfaces will be recognised as type OTHER.
+    """
+    SPHERE = auto()
+    DISC = auto()
+    ANNULUS = auto()
+    RP3 = auto()
+    MOBIUS = auto()
+    OTHER = auto()
+
+    @classmethod
+    def recognise( cls, surface ):
+        """
+        Recognises the homeomorphism type of the given normal surface.
+        """
+        if surface.isCompact() and surface.isConnected():
+            euler = surface.eulerChar()
+            if surface.isOrientable():
+                if euler == 2:
+                    return cls.SPHERE
+                if euler == 1:
+                    return cls.DISC
+                if euler == 0 and surface.hasRealBoundary():
+                    return cls.ANNULUS
+            else:
+                if euler == 1:
+                    return cls.RP3
+                if euler == 0 and surface.hasRealBoundary():
+                    return cls.MOBIUS
+        # At this point, we have a surface that we don't currently recognise.
+        return cls.OTHER
 
 
 def isAnnulus(s):
@@ -10,8 +53,7 @@ def isAnnulus(s):
     Pre-condition:
     --> It is known in advance that s is connected.
     """
-    return ( s.isCompact() and s.isOrientable() and
-            s.hasRealBoundary() and s.eulerChar() == 0 )
+    return ( SurfaceType.recognise(s) == SurfaceType.ANNULUS )
 
 
 def isSphere(s):
@@ -21,8 +63,7 @@ def isSphere(s):
     Pre-condition:
     --> It is known in advance that s is connected.
     """
-    return ( s.isCompact() and s.isOrientable() and
-            not s.hasRealBoundary() and s.eulerChar() == 2 )
+    return ( SurfaceType.recognise(s) == SurfaceType.SPHERE )
 
 
 def countIncidentBoundaries(s):
