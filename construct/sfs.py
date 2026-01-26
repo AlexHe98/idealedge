@@ -2,7 +2,7 @@
 Construct triangulations of orientable Seifert fibre spaces.
 """
 from regina import *
-from surftri import _polygon, surface
+from construct.surface import _polygon, surface
 
 
 def orientableSFS( baseSignedGenus, boundaries, *fibres ):
