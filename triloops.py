@@ -367,6 +367,14 @@ class TriangulationWithEmbeddedLoops:
         --> If surf is one-sided, then self.weight(surf) <= 1; otherwise,
             self.weight(surf) <= 2.
         """
+        arcData = []
+        for embLoop in self:
+            arcData.append( embLoop.splitArcs(surf) )
+
+        # Find arcs (if any) that will get merged together after crushing.
+        loopWts = self.loopWeights(surf)
+        for loopIndex in loopWts:
+
         #TODO Implementation needs to account for:
         #       --> Multiple loops
         #       --> Arcs getting merged after crushing

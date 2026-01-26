@@ -4,10 +4,11 @@ Decompose knots into prime knots.
 from sys import stdout
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong, isSphere
+from idealedge import decomposeAlong
 from loop import IdealLoop, BoundsDisc
 from knotted import isKnotted, knownHyperbolic
 from embed import loopPacket, reversePinch, embedByFilling, embedFromDiagram
+from aux.surface import isSphere
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.

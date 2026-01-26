@@ -2,9 +2,10 @@
 Tests whether an ideal loop is nontrivially knotted.
 """
 from regina import *
-from idealedge import decomposeAlong, isSphere
+from idealedge import decomposeAlong
 from loop import IdealLoop
 from retriangulate.insert import layerOn
+from aux.surface import isSphere
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.
