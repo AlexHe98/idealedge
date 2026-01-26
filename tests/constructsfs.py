@@ -2,8 +2,8 @@
 Test suite for triangulations of orientable Seifert fibre spaces.
 """
 from regina import *
-from surftri import surface
-from sfstri import orientableSFS, OrientableBundle, TriPrism
+from construct.surface import surface
+from construct.sfs import orientableSFS, OrientableBundle, TriPrism
 from sys import argv
 from tests.aux import parseTestNames, allTestsPassedMessage
 from tests.aux import doTest, runNamedTestSuite

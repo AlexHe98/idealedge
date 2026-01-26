@@ -4,7 +4,7 @@ Tests whether an ideal loop is nontrivially knotted.
 from regina import *
 from idealedge import decomposeAlong, isSphere
 from loop import IdealLoop
-from insert import layerOn
+from retriangulate.insert import layerOn
 try:
     # The multiprocessing package doesn't work with the standard Windows
     # build for Regina.

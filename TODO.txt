@@ -6,6 +6,7 @@
         ->- Remove old simplification routines
         ->- Update usage in knot factorisation algorithm
     --> etc
+    --> Update README.md
 --- Test suites
     --> OrientedSegment
     --> TriangulationWithEmbeddedLoops

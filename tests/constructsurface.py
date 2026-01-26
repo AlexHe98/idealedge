@@ -2,7 +2,7 @@
 Test suite for minimal triangulations of surfaces.
 """
 from regina import *
-from surftri import orientable, nonOrientable
+from construct.surface import orientable, nonOrientable
 from sys import argv
 from tests.aux import parseTestNames, allTestsPassedMessage
 from tests.aux import doTest, runNamedTestSuite

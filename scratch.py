@@ -1,5 +1,5 @@
 """
-Routines for experimenting with the ideal edge code in Regina's GUI.
+Scratch work for ideal edges.
 """
 from sys import argv
 from timeit import default_timer
@@ -9,7 +9,7 @@ from idealedge import isAnnulus, isSphere, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
-from sfstri import orientableSFS
+from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 

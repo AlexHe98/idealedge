@@ -5,12 +5,12 @@ The classes here provide methods for simplifying the ambient 3-manifold
 triangulation, while preserving the topological embedding of the loops.
 """
 from regina import *
-from moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from insert import snapEdge, layerOn
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
 from aux.looperror import BoundsDisc
 from aux.edgeemb import embeddingsFromEdgeIndices
-from edgelabel import EdgeLabelling
+from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
+from retriangulate.insert import snapEdge, layerOn
+from retriangulate.edgelabel import EdgeLabelling
 
 
 #TODO Double-check that everything tracks orientation of loops.
@@ -205,8 +205,8 @@ class TriangulationWithEmbeddedLoops:
         This routine is for internal use only. The purpose of this routine is
         to update the embedded loops whenever the ambient triangulation has
         been modified by a local move. See the twoThree, threeTwo, twoZero,
-        twoOne, and fourFour routines from moves.py for examples of how
-        relabellings are specified.
+        twoOne, and fourFour routines from retriangulate/moves.py for examples
+        of how relabellings are specified.
 
         Pre-condition:
         --> The given EdgeLabelling relab tracks every index ei in
