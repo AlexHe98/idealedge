@@ -1,5 +1,6 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
+        ->- Replace ad hoc lists with new EmbeddedArc
         ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
         ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
