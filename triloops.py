@@ -314,7 +314,11 @@ class TriangulationWithEmbeddedLoops:
             ans.append( loop.orientation() )
         return tuple(ans)
 
-    #TODO Do we need intersects() and weight()?
+    #TODO Which of the following do we really need?
+    #       --> intersects()
+    #       --> weight()
+    #       --> loopWeights()
+    #       --> incidentLoopIndices()
 
     def intersects( self, surf ):
         """
@@ -352,10 +356,21 @@ class TriangulationWithEmbeddedLoops:
         """
         ans = dict()
         for i, embLoop in enumerate(self):
-            wt = embLoop.weight()
+            wt = embLoop.weight(surf)
             if wt > 0:
                 ans[i] = wt
         return ans
+
+    def incidentLoopIndices( self, surf ):
+        """
+        Returns a set consisting of the indices of the embedded loops that
+        are incident to the given normal surface.
+        """
+        ans = set()
+        for i, embLoop in enumerate(self):
+            if embLoop.weight(surf) > 0:
+                ans.add(i)
+        return count
 
     def splitArcs( self, surf ):
         """
@@ -367,13 +382,20 @@ class TriangulationWithEmbeddedLoops:
         --> If surf is one-sided, then self.weight(surf) <= 1; otherwise,
             self.weight(surf) <= 2.
         """
-        arcData = []
+        arcsByLoopIndex = []
         for embLoop in self:
-            arcData.append( embLoop.splitArcs(surf) )
+            arcsByLoopIndex.append( embLoop.splitArcs(surf) )
 
         # Find arcs (if any) that will get merged together after crushing.
-        loopWts = self.loopWeights(surf)
-        for loopIndex in loopWts:
+        incidentLoopInds = self.incidentLoopIndices(surf)
+        if len(incidentLoopInds) == 2:
+            # From the preconditions, we may assume that surf is two-sided. We
+            # may also assume that each of the two incident loops has weight
+            # one with respect to surf, which means that each such loop is
+            # split into exactly one arc; these two arcs will be merged
+            # together after crushing surf.
+            #TODO
+            raise NotImplementedError()
 
         #TODO Implementation needs to account for:
         #       --> Multiple loops
