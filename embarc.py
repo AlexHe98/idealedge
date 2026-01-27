@@ -56,8 +56,9 @@ class EmbeddedArc:
     def __iter__(self):
         return iter( self._segments )
 
-    def __getitem__( self, index ):
-        return self._segments[index]
+    def __getitem__( self, key ):
+        # This automatically handles both integer indices and slices.
+        return self._segments.__getitem__(key)
 
     def join( self, arcEnd, other, otherEnd ):
         """

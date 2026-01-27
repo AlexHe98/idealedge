@@ -12,6 +12,7 @@ from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
+from embarc import EmbeddedArc
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -520,33 +521,27 @@ class EmbeddedLoop:
         instead.
 
         Apart from the improvement in the name, the new splitArcs() routine
-        also keeps track of the orientation of the embedded loop.
+        also uses the new EmbeddedArc class to help keep track of additional
+        properties (such as loop orientation) through crushing.
         """
         raise NotImplementedError()
 
     def splitArcs( self, surf ):
         """
-        Returns a list describing the arcs into which the given normal surface
-        surf splits this embedded loop.
+        Splits this embedded loop along the given normal surface, and returns
+        a list containing the resulting EmbeddedArc objects.
 
-        In detail, each item of the returned list is a list of OrientedSegment
-        objects that all belong to the same arc, satisfying the following
-        conditions:
-        --> The segments appear in the same order as they do when we traverse
-            this embedded loop.
-        --> Each segment is oriented in the same direction as this embedded
-            loop.
-
-        Note that the order of the arcs need not be the same as the order in
-        which they appear as we traverse this loop. Only the order of segments
-        within each individual arc is guaranteed to match the traversal order.
+        Each EmbeddedArc in the returned list will be oriented in the same
+        direction as this loop. However, the order of the EmbeddedArc objects
+        in the returned list might not match the order that they would appear
+        as we traverse this loop.
         """
         # We find all the arcs by simply walking around the loop. Take the
         # first arc to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
         # in the middle of the last arc, so we need to make sure to remember
         # all the segments of the last arc.
-        lastArc = []
+        lastArcSegs = []
         splitIndex = None
         for i in range( len(self) ):
             edgeIndex = self._edgeIndices[i]
@@ -560,18 +555,18 @@ class EmbeddedLoop:
                         surf, edgeIndex, wt, orientation )
                 if self._tails[i] == 1:
                     tailSeg, headSeg = headSeg, tailSeg
-                lastArc.append(tailSeg)
+                lastArcSegs.append(tailSeg)
                 splitIndex = i
                 break
             else:
                 # We are still in the middle of the last arc.
-                lastArc.append(tailSeg)
+                lastArcSegs.append(tailSeg)
 
         if splitIndex is None:
             # If this loop is disjoint from the surface, then there is only
             # one arc, and we have already found all the constituent segments
             # of this arc.
-            return [lastArc]
+            return [ EmbeddedArc(lastArcSegs) ]
 
         # The given surf splits this embedded loop into multiple arcs, so we
         # need to do a bit more work.
@@ -590,12 +585,12 @@ class EmbeddedLoop:
                 # If orientation == -1 and wt > 2, then this will add new
                 # arcs in the "wrong" order, but this is fine since we never
                 # promised the "right" order anyway.
-                arcs.append( [ OrientedSegment(
-                    surf, edgeIndex, segPos, orientation ) ] )
+                arcs.append( EmbeddedArc( [ OrientedSegment(
+                    surf, edgeIndex, segPos, orientation ) ] ) )
 
             # We now need to find all the segments that comprise the next
             # (long) arc.
-            nextArc = [headSeg]
+            nextArgSegs = [headSeg]
             continuation = splitIndex + 1
 
             # Unless we have already returned to the last arc, we must
@@ -615,14 +610,14 @@ class EmbeddedLoop:
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
                     splitIndex = i
-                    arcs.append(nextArc)
+                    arcs.append( EmbeddedArc(nextArgSegs) )
                     break
                 else:
                     # We are still in the middle of the current arc.
-                    nextArc.append(tailSeg)
+                    nextArgSegs.append(tailSeg)
 
         # Don't forget to include the last arc.
-        arcs.append( [ *nextArc, *lastArc ] )
+        arcs.append( EmbeddedArc( [ *nextArgSegs, *lastArcSegs ] ) )
         return arcs
 
     def orientation(self):
