@@ -31,18 +31,16 @@ class EmbeddedArc:
         """
         Initialises an embedded arc consisting of the given segments.
 
-        The segments should be provided as a list of segments (that is,
-        OrientedSegment objects) satisfying the following conditions:
-        --> The segments are all defined by the same normal surface.
-        --> The segments appear in the list in the order in which they would
-            be encountered as we traverse this arc, and each individual
-            segment is oriented in the direction of traversal.
-
-        Warning:
-        --> The initialised EmbeddedArc will keep a reference to the given
-            segments list.
+        The segments should be provided as a sequence of OrientedSegment
+        objects satisfying the following conditions:
+        --> The OrientedSegment objects are all defined by the same normal
+            surface.
+        --> The OrientedSegment objects appear in the list in the order in
+            which they would be encountered as we traverse this arc.
+        --> Each individual OrientedSegment is oriented in the direction of
+            traversal.
         """
-        self._segments = segments
+        self._segments = tuple(segments)
         self._joinedArc = [ None, None ]
         self._joinedEnd = [ None, None ]
         return
@@ -59,6 +57,15 @@ class EmbeddedArc:
     def __getitem__( self, key ):
         # This automatically handles both integer indices and slices.
         return self._segments.__getitem__(key)
+
+    def __hash__(self):
+        """
+        Computes a hash for this embedded arc.
+
+        Note that the computation uses the underlying sequence of
+        OrientedSegment objects, but does not use the joined ends (if any).
+        """
+        return hash( self._segments )
 
     def join( self, arcEnd, other, otherEnd ):
         """
