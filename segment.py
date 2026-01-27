@@ -235,6 +235,52 @@ class OrientedSegment:
         """
         return self._surface.edgeWeight( self._edgeIndex ).pythonValue()
 
+    def _traverseOrbit( self, targets, adjSegs ):
+        """
+        Returns a target segment that is reachable by traversing an "orbit" of
+        this segment, or None if no such target is reachable.
+
+        The "orbit" is defined and traversed using the given adjSegs()
+        function, which should take any instance seg of this class as input,
+        and should yield all segments "adjacent" to seg, for whatever
+        definition of "adjacent" is appropriate to define the desired orbit.
+
+        This routine only runs membership tests on the given set of targets.
+        In particular, this routine will never modify targets.
+        """
+        #TODO Update implementation.
+
+        # If this segment is one of the targets, then we are already done.
+        if self in targets:
+            return self
+
+        # Otherwise, we search for a target using depth-first search.
+        #
+        # In theory, this could be done in polynomial time using the
+        # Agol-Hass-Thurston weighted orbit-counting algorithm. However, this
+        # search is much easier to implement, and works very well in practice.
+        tri = self.triangulation()
+        segStack = [self]
+        visitedSegs = set()
+        while segStack:
+            currentSeg = segStack.pop()
+            if currentSeg in visitedSegs:
+                continue
+
+            # We haven't previously visited currentSeg, so check whether any
+            # of its adjacent segments are targets, and if not check whether
+            # we still need to visit these adjacent segments later.
+            visitedSegs.add(currentSeg)
+            for adjSeg in currentSeg.adjacentSegments():
+                if adjSeg in targets:
+                    return adjSeg
+                elif adjSeg not in visitedSegs:
+                    segStack.append(adjSeg)
+
+        # If the search terminates without finding a target, then all of the
+        # targets must be unreachable via translation along self.surface().
+        return None
+
     def adjacentSegments(self):
         """
         Yields all oriented segments that are adjacent to self by translation
