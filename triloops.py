@@ -392,8 +392,19 @@ class TriangulationWithEmbeddedLoops:
             # From the preconditions, we may assume that surf is two-sided. We
             # may also assume that each of the two incident loops has weight
             # one with respect to surf, which means that each such loop is
-            # split into exactly one arc; these two arcs will be merged
-            # together after crushing surf.
+            # split into exactly one arc; after crushing surf, the segments at
+            # the ends of the two arcs will get joined together, so that the
+            # two arcs combine to form a single new loop.
+            joinedSegments = set()
+            segLocations = dict()
+            for loopIndex in incidentLoopInds:
+                # As above, we should have exactly one arc.
+                arc = arcsByLoopIndex[loopIndex][0]
+                for endNum in range(2):
+                    seg = arc[endNum]
+                    joinedSegments.add(seg)
+                    segLocations[seg] = ( arc, endNum )
+
             #TODO
             raise NotImplementedError()
 
