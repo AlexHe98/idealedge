@@ -394,16 +394,29 @@ class TriangulationWithEmbeddedLoops:
             # one with respect to surf, which means that each such loop is
             # split into exactly one arc; after crushing surf, the segments at
             # the ends of the two arcs will get joined together, so that the
-            # two arcs combine to form a single new loop.
-            joinedSegments = set()
+            # two arcs combine to form a single new loop. Note that both of
+            # the arcs will be "long arcs", so the segments at either end of
+            # each arc are guaranteed to be distinct; hence, we will have four
+            # segments that get joined to each other in two pairs.
+            endSegments = { loopIndex: set()
+                              for loopIndex in incidentLoopInds }
             segLocations = dict()
             for loopIndex in incidentLoopInds:
                 # As above, we should have exactly one arc.
                 arc = arcsByLoopIndex[loopIndex][0]
                 for endNum in range(2):
                     seg = arc[endNum]
-                    joinedSegments.add(seg)
+                    endSegments[loopIndex].add(seg)
                     segLocations[seg] = ( arc, endNum )
+
+            # Work out which two pairs of the endSegments will be joined
+            # to each other after crushing surf.
+            #TODO translateAlongSurface() doesn't quite do the right thing.
+            myLoopInd, yourLoopInd = endSegments.keys()
+            mySeg = endSegments[myLoopInd].pop()
+            yourSeg = mySeg.translateAlongSurface(
+                    endSegments[yourLoopInd] )
+            endSegments[yourLoopInd].remove(yourSeg)
 
             #TODO
             raise NotImplementedError()
