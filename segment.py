@@ -235,6 +235,21 @@ class OrientedSegment:
         """
         return self._surface.edgeWeight( self._edgeIndex ).pythonValue()
 
+    def segmentType(self):
+        """
+        Returns the type of this segment.
+
+        Specifically, a segment is of type k if it has k endpoints incident to
+        the normal surface that defines the segment. Thus, the type will be
+        either 0, 1 or 2.
+        """
+        wt = self.edgeWeight()
+        if wt == 0:
+            return 0
+        if self._segPos in { 0, wt }:
+            return 1
+        return 2
+
     def _traverseOrbit( self, targets, adjacentSegments ):
         """
         Returns a target segment that is reachable by traversing an "orbit" of
@@ -279,6 +294,28 @@ class OrientedSegment:
         # targets must be unreachable via translation along self.surface().
         return None
 
+    def translateAlongSurface( self, targets ):
+        """
+        Translates this type-1 segment along self.surface(), and if possible
+        returns one of the given target segments onto which this segment
+        translates.
+
+        Raises ValueError if this segment is not of type 1.
+
+        If no target segment is reachable under such translation, then this
+        routine returns None. Otherwise, this routine will return a target
+        segment whose orientation is consistent with this segment's
+        orientation under the translation.
+
+        This routine only runs membership tests on the given set of targets.
+        In particular, this routine will never modify targets.
+        """
+        if self.segmentType() != 1:
+            raise ValueError(
+                    "translateAlongSurface() requires type-1 segment" )
+        return self._traverseOrbit( targets,
+                                   _adjacentSegmentsAlongSurface )
+
     def translateAlongParallelCells( self, targets ):
         """
         Translates this segment along parallel cells and faces induced by
@@ -297,13 +334,28 @@ class OrientedSegment:
                                    _adjacentSegmentsAlongParallelCells )
 
 
+def _adjacentSegmentsAlongSurface(seg):
+    """
+    Yields all oriented segments that are adjacent to seg by translation
+    across elementary discs of seg.surface().
+
+    This routine guarantees to be exhaustive, but might redundantly yield an
+    adjacent segment multiple times.
+
+    Precondition:
+    --> seg.segmentType() == 1.
+    """
+    #TODO
+    raise NotImplementedError()
+
+
 def _adjacentSegmentsAlongParallelCells(seg):
     """
     Yields all oriented segments that are adjacent to seg by translation
-    across parallel cells or faces.
+    across parallel cells or faces induced by seg.surface().
 
-    This routine guarantees to be exhaustive, but might redundantly yield
-    an adjacent segment multiple times.
+    This routine guarantees to be exhaustive, but might redundantly yield an
+    adjacent segment multiple times.
     """
     for emb in seg.edge().embeddings():
         teti = emb.tetrahedron().index()
