@@ -241,7 +241,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         # crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
-            survivingSeg = seg.translateAlongSurface(survivors)
+            survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:
                 # This arc does not survive after crushing.
                 continue
@@ -249,7 +249,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
             # This arc survives after crushing.
             newLoop = [ survivingSeg.survivingEmbedding() ]
             for seg in arc[1:]:
-                survivingSeg = seg.translateAlongSurface(survivors)
+                survivingSeg = seg.translateAlongParallelCells(survivors)
                 newLoop.append( survivingSeg.survivingEmbedding() )
             newLoopEmbs.append(newLoop)
 
@@ -267,7 +267,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
 
         # If this segment survives after crushing, then it will form a new
         # ideal loop of length one.
-        survivingSeg = seg.translateAlongSurface(survivors)
+        survivingSeg = seg.translateAlongParallelCells(survivors)
         if survivingSeg is not None:
             newLoopEmbs.append( [ survivingSeg.survivingEmbedding() ] )
 

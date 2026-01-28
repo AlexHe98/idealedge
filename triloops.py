@@ -411,7 +411,7 @@ class TriangulationWithEmbeddedLoops:
 
             # Work out which two pairs of the endSegments will be joined
             # to each other after crushing surf.
-            #TODO translateAlongSurface() doesn't quite do the right thing.
+            #TODO Implement translateAlongSurface().
             myLoopInd, yourLoopInd = endSegments.keys()
             mySeg = endSegments[myLoopInd].pop()
             yourSeg = mySeg.translateAlongSurface(
