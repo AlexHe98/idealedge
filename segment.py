@@ -250,15 +250,21 @@ class OrientedSegment:
             return 1
         return 2
 
-    def _traverseOrbit( self, targets, adjacentSegments ):
+    def _traverseOrbit( self, targets, adjacentSegments, *args ):
         """
         Returns a target segment that is reachable by traversing an "orbit" of
         this segment, or None if no such target is reachable.
 
-        The "orbit" is defined and traversed using the given adjacentSegments
-        function, which should take any instance seg of this class as input,
-        and should yield all segments "adjacent" to seg, for whatever
-        definition of "adjacent" is appropriate to define the desired orbit.
+        The "orbit" is defined and traversed using the given
+        adjacentSegments() function. The adjacentSegments() function should
+        take as input any instance seg of this class, followed by all
+        additional args supplied to this routine. Note that for a single call
+        to this routine, adjacentSegments() may be called with many instances
+        of this class as the first parameter, but then all subsequent
+        parameters will be fixed to whatever the supplied args happen to be.
+        With such input, the adjacentSegments() function should yield all
+        segments "adjacent" to seg, for whatever definition of "adjacent" is
+        appropriate to transitively define the desired orbit.
 
         This routine only runs membership tests on the given set of targets.
         In particular, this routine will never modify targets.
@@ -284,7 +290,7 @@ class OrientedSegment:
             # of its adjacent segments are targets, and if not check whether
             # we still need to visit these adjacent segments later.
             visitedSegs.add(currentSeg)
-            for adjSeg in adjacentSegments(currentSeg):
+            for adjSeg in adjacentSegments( currentSeg, *args ):
                 if adjSeg in targets:
                     return adjSeg
                 elif adjSeg not in visitedSegs:
@@ -313,8 +319,21 @@ class OrientedSegment:
         if self.segmentType() != 1:
             raise ValueError(
                     "translateAlongSurface() requires type-1 segment" )
+
+        # Mark the end of this segment that is incident to self.surface().
+        if self._segPos == 0:
+            if self._orientation == 1:
+                markedEnd = 1
+            else:   # self._orientation == -1
+                markedEnd = 0
+        else:   # self._segPos == self.edgeWeight()
+            if self._orientation == 1:
+                markedEnd = 0
+            else:   # self._orientation == -1
+                markedEnd = 1
         return self._traverseOrbit( targets,
-                                   _adjacentSegmentsAlongSurface )
+                                   _adjacentSegmentsAlongSurface,
+                                   markedEnd )
 
     def translateAlongParallelCells( self, targets ):
         """
@@ -334,21 +353,28 @@ class OrientedSegment:
                                    _adjacentSegmentsAlongParallelCells )
 
 
-def _adjacentSegmentsAlongSurface(seg):
+def _adjacentSegmentsAlongSurface( seg, markedEnd ):
     """
-    Yields all oriented segments that are adjacent to seg by translation
-    across elementary discs of seg.surface().
+    Yields all oriented segments that are adjacent to seg by translating the
+    markedEnd across elementary discs of seg.surface().
+
+    The markedEnd specifies one of the two endpoints of seg relative to its
+    orientation. Specifically:
+    --> if seg is oriented away from the marked endpoint, then markedEnd
+        should be 0; and
+    --> if seg is oriented towards the marked endpoint, then markedEnd should
+        be 1.
 
     This routine guarantees to be exhaustive, but might redundantly yield an
     adjacent segment multiple times.
-
-    Precondition:
-    --> seg.segmentType() == 1.
     """
     for emb in seg.edge().embeddings():
         teti = emb.tetrahedron().index()
         en = emb.face()
         ver = emb.vertices()
+
+        #TODO Definition of adjacent depends on the choice of markedEnd.
+        #TODO We cannot always assume type-1.
 
         # From the precondition, seg is a type-1 segment.
         if seg._segPos == 0:
