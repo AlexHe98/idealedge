@@ -441,12 +441,12 @@ def _adjacentSegmentsAlongParallelCells(seg):
 
 def _adjSegsParCellsAtVert0( seg, edgeEmb ):
     """
-    Yields all segments adjacent to seg via translation along a normal
-    triangle at vertex 0 of the given edge embedding.
+    Yields all segments adjacent to seg via translation along a corner or
+    parallel triangular cell at vertex 0 of the given edge embedding.
 
     Precondition:
-    --> This segment is incident to either a corner cell or a parallel
-        triangular cell at vertex 0.
+    --> The given segment seg is incident to either a corner cell or a
+        parallel triangular cell at vertex 0.
     """
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
@@ -454,8 +454,9 @@ def _adjSegsParCellsAtVert0( seg, edgeEmb ):
         if otherEnd in { ver[0], ver[1] }:
             continue
 
-        # This segment is adjacent to a segment of the edge with endpoints
-        # ver[0] and otherEnd.
+        # The given segment seg is adjacent to a segment of the edge with
+        # endpoints ver[0] and otherEnd.
+        #
         #                          ver[0]
         #                             •
         #                            / \
@@ -487,12 +488,12 @@ def _adjSegsParCellsAtVert0( seg, edgeEmb ):
 
 def _adjSegsParCellsAtVert1( seg, edgeEmb ):
     """
-    Yields all segments adjacent to seg via translation along a normal
-    triangle at vertex 1 of the given edge embedding.
+    Yields all segments adjacent to seg via translation along a corner or
+    parallel triangular cell at vertex 1 of the given edge embedding.
 
     Precondition:
-    --> This segment is incident to either a corner cell or a parallel
-        triangular cell at vertex 1.
+    --> The given segment seg is incident to either a corner cell or a
+        parallel triangular cell at vertex 1.
     """
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
@@ -500,8 +501,9 @@ def _adjSegsParCellsAtVert1( seg, edgeEmb ):
         if otherEnd in { ver[0], ver[1] }:
             continue
 
-        # This segment is adjacent to a segment of the edge with endpoints
-        # ver[1] and otherEnd.
+        # The given segment seg is adjacent to a segment of the edge with
+        # endpoints ver[1] and otherEnd.
+        #
         #                          ver[0]
         #                             •
         #                            /
@@ -531,13 +533,25 @@ def _adjSegsParCellsAtVert1( seg, edgeEmb ):
     return
 
 
-def _adjSegsParQuadCells( seg, edgeEmb, qCount, qType, qDepth ):
+def _adjSegsType1WedgeCells( seg, edgeEmb ):
     """
-    Yields all segments adjacent to seg via translation along a normal
-    quad.
+    Yields all segments adjacent to seg via translation along a quad incident
+    to a wedge cell.
 
     Precondition:
-    --> This segment is incident to either a wedge cell or a parallel
+    --> The given segment seg is of type 1, with one end incident to a quad.
+    """
+    #TODO
+    raise NotImplementedError()
+
+
+def _adjSegsParQuadCells( seg, edgeEmb, qCount, qType, qDepth ):
+    """
+    Yields all segments adjacent to seg via translation along a parallel cell
+    or face incident to a quad.
+
+    Precondition:
+    --> The given segment seg is incident to either a wedge cell or a parallel
         quad cell.
     """
     tet = edgeEmb.tetrahedron()
