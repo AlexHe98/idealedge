@@ -1,6 +1,7 @@
 """
 Oriented segments resulting from splitting edges along normal surfaces.
 """
+from enum import Enum, auto
 from regina import *
 from aux.quad import tetHasQuads, tetQuads
 
@@ -353,6 +354,21 @@ class OrientedSegment:
                                    _adjacentSegmentsAlongParallelCells )
 
 
+class _SegmentEndIncidence(Enum):
+    """
+    Classification of the object incident to an endpoint of a segment.
+
+    This is either:
+    --> a vertex of the ambient edge,
+    --> a normal triangle touching the ambient edge, or
+    --> a normal quad touching the ambient edge.
+    """
+    VERTEX = auto()
+    TRIANGLE = auto()
+    QUAD = auto()
+    pass
+
+
 def _adjacentSegmentsAlongSurface( seg, markedEnd ):
     """
     Yields all oriented segments that are adjacent to seg by translating the
@@ -372,6 +388,8 @@ def _adjacentSegmentsAlongSurface( seg, markedEnd ):
         teti = emb.tetrahedron().index()
         en = emb.face()
         ver = emb.vertices()
+
+        # Find the elementary disc that is incident to the markedEnd.
 
         #TODO Definition of adjacent depends on the choice of markedEnd.
         #TODO We cannot always assume type-1.
@@ -427,6 +445,8 @@ def _adjacentSegmentsAlongParallelCells(seg):
     adjacent segment multiple times.
     """
     for emb in seg.edge().embeddings():
+        #TODO Update to use new _endIncidences() routine.
+
         teti = emb.tetrahedron().index()
         en = emb.face()
         ver = emb.vertices()
@@ -462,6 +482,56 @@ def _adjacentSegmentsAlongParallelCells(seg):
                     seg, emb, qType, False ):
                 yield adjSeg
     return
+
+
+def _endIncidences( seg, edgeEmb ):
+    r"""
+    Classifies the objects incident to the endpoints of the given segment,
+    relative to the given edge embedding.
+
+    In detail, the edge embedding should describe how the ambient edge of the
+    given segment is embedded in some tetrahedron. The return value will then
+    be a pair R structured as follows. For each i in {0, 1}, consider the end
+    of seg that is closer to vertex i of the given edge embedding. R[i] will
+    be a pair P that specifies the object incident to this end as follows:
+    --> If the end is incident to a vertex v, then P will be
+            ( _SegmentEndIncidence.VERTEX, j ),
+        where j in {0, 1} is the vertex number assigned to v by edgeEmb.
+    --> If the end is incident to a normal triangle t, then P will be
+            ( _SegmentEndIncidence.TRIANGLE, j ),
+        where j in {0, 1} is vertex number assigned by edgeEmb to the vertex
+        that is cut off by t.
+    --> If the end is incident to a normal quad q, then P will be
+            ( _SegmentEndIncident.QUAD, opp ),
+        where opp is a 2-element list that describes the incidence between seg
+        and q in the manner explained in the next paragraph.
+
+    Suppose (at least) one end of seg is incident to a normal quad. This quad
+    divides the ambient tetrahedron into two "sides". The edge containing seg
+    has endpoints lying on different sides, and the same is true for the edge
+    opposite seg. We can therefore label the endpoints of the opposite edge by
+    opp[k], for k in {0, 1}, so that edgeEmb.vertices()[k] and opp[k] lie on
+    the same side of the quads. This is illustrated in the diagram below, with
+    edgeEmb.vertices() abbreviated to ver.
+
+                                   ver[0]
+                                      •
+                                     /|\
+                        ambient edge/ | \
+                                   /__|__\
+                                  /|  |  |\
+                           ver[1]•-|--|--|-•opp[1]
+                                  \|__|__|/
+                                   \  |  /
+                                    \ | /opposite edge
+                                     \|/
+                                      •
+                                   opp[0]
+    """
+    #TODO Repurpose the relevant parts of the following routines:
+    #       --> _adjacentSegmentsAlongParallelCells()
+    #       --> _adjSegsAlongQuad()
+    raise NotImplementedError()
 
 
 def _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):
@@ -568,6 +638,8 @@ def _adjSegsAlongQuad( seg, edgeEmb, quadType, includeNonParallel ):
     Precondition:
     --> The given segment seg is incident to a quad of the given type.
     """
+    #TODO Update to use new _endIncidences() routine.
+
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
     quadCount = seg.surface().quads( tet.index(), quadType ).pythonValue()
