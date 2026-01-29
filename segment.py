@@ -2,7 +2,7 @@
 Oriented segments resulting from splitting edges along normal surfaces.
 """
 from regina import *
-from aux.quad import tetHasQuads
+from aux.quad import tetHasQuads, tetQuads
 
 
 class OrientedSegment:
@@ -345,6 +345,49 @@ def _adjacentSegmentsAlongSurface(seg):
     Precondition:
     --> seg.segmentType() == 1.
     """
+    for emb in seg.edge().embeddings():
+        teti = emb.tetrahedron().index()
+        en = emb.face()
+        ver = emb.vertices()
+
+        # From the precondition, seg is a type-1 segment.
+        if seg._segPos == 0:
+            triangleCount = seg.surface().triangles(
+                    teti, ver[0] ).pythonValue()
+            if triangleCount > 0:
+                for adjSeg in _adjSegsParCellsAtVert0( seg, emb ):
+                    yield adjSeg
+
+                # No more segments to yield with current emb.
+                continue
+        else:   # seg._segPos == seg.edgeWeight()
+            triangleCount = seg.surface().triangles(
+                    teti, ver[1] ).pythonValue()
+            if triangleCount > 0:
+                for adjSeg in _adjSegsParCellsAtVert1( seg, emb ):
+                    yield adjSeg
+
+                # No more segments to yield with current emb.
+                continue
+
+        # At this point, we know that there are no triangles at the same end
+        # as the given seg.
+        quadType, quadCount = tetQuads( seg.surface(), teti )
+        if quadType in { en, 5 - en }:
+            # This is the quad type that is disjoint from seg.edge().
+            quadType, quadCount = None, 0
+        if quadType is None:
+            # No quads incident to seg.edge(), which means that the given
+            # type-1 segment must meet a triangle at the opposite end of
+            # seg.edge().
+            #TODO
+
+            # No more segments to yield with current emb.
+            continue
+
+        # 
+        #TODO
+        raise NotImplementedError()
     #TODO
     raise NotImplementedError()
 
@@ -367,17 +410,10 @@ def _adjacentSegmentsAlongParallelCells(seg):
         # seg.edge().
         f = [ seg.surface().triangles( teti, ver[i] ).pythonValue()
              for i in range(2) ]
-        q = 0
-        qType = None
-        for qt in range(3):
-            if qt in { en, 5 - en }:
-                # This is the quad type that is disjoint from seg.edge().
-                continue
-            quads = seg.surface().quads( teti, qt ).pythonValue()
-            if quads > 0:
-                q = quads
-                qType = qt
-                break
+        qType, q = tetQuads( seg.surface(), teti )
+        if qType in { en, 5 - en }:
+            # This is the quad type that is disjoint from seg.edge().
+            qType, q = None, 0
 
         # Does this segment belong to a parallel cell or face in the
         # current tetrahedron? If so, then we can translate along any such
