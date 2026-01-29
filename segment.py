@@ -355,7 +355,7 @@ def _adjacentSegmentsAlongSurface(seg):
             triangleCount = seg.surface().triangles(
                     teti, ver[0] ).pythonValue()
             if triangleCount > 0:
-                for adjSeg in _adjSegsParCellsAtVert0( seg, emb ):
+                for adjSeg in _adjSegsAlongTriangleAtVert0( seg, emb ):
                     yield adjSeg
 
                 # No more segments to yield with current emb.
@@ -364,7 +364,7 @@ def _adjacentSegmentsAlongSurface(seg):
             triangleCount = seg.surface().triangles(
                     teti, ver[1] ).pythonValue()
             if triangleCount > 0:
-                for adjSeg in _adjSegsParCellsAtVert1( seg, emb ):
+                for adjSeg in _adjSegsAlongTriangleAtVert1( seg, emb ):
                     yield adjSeg
 
                 # No more segments to yield with current emb.
@@ -421,12 +421,12 @@ def _adjacentSegmentsAlongParallelCells(seg):
         if seg._segPos < f[0]:
             # This segment belongs to either a corner cell or a parallel
             # triangular cell at vertex ver[0].
-            for adjSeg in _adjSegsParCellsAtVert0( seg, emb ):
+            for adjSeg in _adjSegsAlongTriangleAtVert0( seg, emb ):
                 yield adjSeg
         elif seg._segPos > f[0] + q:
             # This segment belongs to either a corner cell or a parallel
             # triangular cell at vertex ver[1].
-            for adjSeg in _adjSegsParCellsAtVert1( seg, emb ):
+            for adjSeg in _adjSegsAlongTriangleAtVert1( seg, emb ):
                 yield adjSeg
         elif q > 0:
             # At this point, we have f[0] <= seg._segPos <= f[0] + q, and
@@ -438,14 +438,13 @@ def _adjacentSegmentsAlongParallelCells(seg):
     return
 
 
-def _adjSegsParCellsAtVert0( seg, edgeEmb ):
+def _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):
     """
-    Yields all segments adjacent to seg via translation along a corner or
-    parallel triangular cell at vertex 0 of the given edge embedding.
+    Yields all segments adjacent to seg via translation along a normal
+    triangle at vertex 0 of the given edge embedding.
 
     Precondition:
-    --> The given segment seg is incident to either a corner cell or a
-        parallel triangular cell at vertex 0.
+    --> The given segment seg is incident to a normal triangle at vertex 0.
     """
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
@@ -485,14 +484,13 @@ def _adjSegsParCellsAtVert0( seg, edgeEmb ):
     return
 
 
-def _adjSegsParCellsAtVert1( seg, edgeEmb ):
+def _adjSegsAlongTriangleAtVert1( seg, edgeEmb ):
     """
-    Yields all segments adjacent to seg via translation along a corner or
-    parallel triangular cell at vertex 1 of the given edge embedding.
+    Yields all segments adjacent to seg via translation along a normal
+    triangle at vertex 1 of the given edge embedding.
 
     Precondition:
-    --> The given segment seg is incident to either a corner cell or a
-        parallel triangular cell at vertex 1.
+    --> The given segment seg is incident to a normal triangle at vertex 1.
     """
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()

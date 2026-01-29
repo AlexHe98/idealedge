@@ -1,5 +1,6 @@
 --- Bounded SFS recognition
     --> Create version of translateAlongSurface() suitable for splitArcs()
+        ->- Allow adjacentSegments function to take extra arguments
     --> Implement TriangulationWithEmbeddedLoops class
         ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
         ->- Tidy up TODO comments
