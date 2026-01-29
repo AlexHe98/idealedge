@@ -491,9 +491,10 @@ def _endIncidences( seg, edgeEmb ):
 
     In detail, the edge embedding should describe how the ambient edge of the
     given segment is embedded in some tetrahedron. The return value will then
-    be a pair R structured as follows. For each i in {0, 1}, consider the end
-    of seg that is closer to vertex i of the given edge embedding. R[i] will
-    be a pair P that specifies the object incident to this end as follows:
+    be a 2-element list R structured as follows. For each i in {0, 1},
+    consider the end of seg that is closer to vertex i of the given edge
+    embedding. R[i] will be a pair P that specifies the object incident to
+    this end as follows:
     --> If the end is incident to a vertex v, then P will be
             ( _SegmentEndIncidence.VERTEX, j ),
         where j in {0, 1} is the vertex number assigned to v by edgeEmb.
@@ -528,10 +529,48 @@ def _endIncidences( seg, edgeEmb ):
                                       •
                                    opp[0]
     """
-    #TODO Repurpose the relevant parts of the following routines:
-    #       --> _adjacentSegmentsAlongParallelCells()
-    #       --> _adjSegsAlongQuad()
-    raise NotImplementedError()
+    teti = edgeEmb.tetrahedron().index()
+    en = edgeEmb.edge()
+    ver = edgeEmb.vertices()
+    ans = []
+
+    # The answer depends on where seg sits relative to the elementary discs.
+    triangleCount = [ seg.surface().triangles( teti, ver[i] ).pythonValue()
+                     for i in range(2) ]
+    quadType, quadCount = tetQuads( seg.surface(), teti )
+    if ( quadType is not None ) and ( quadType not in { en, 5 - en } ):
+        # There is potentially a quad incident to seg, so we compute opp now
+        # in case we need it.
+        side = [ { 0, quadType + 1 } ]
+        side.append( {0,1,2,3} - side[0] )
+        if ver[0] not in side[0]:
+            side[0], side[1] = side[1], side[0]
+        side[0].remove( ver[0] )
+        side[1].remove( ver[1] )
+        opp = [ side[0].pop(), side[1].pop() ]
+
+    # First incidence.
+    if seg._segPos == 0:
+        ans.append( ( _SegmentEndIncidence.VERTEX, 0 ) )
+    elif seg._segPos <= triangleCount[0]:
+        ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
+    elif seg._segPos <= triangleCount[0] + quadCount:
+        ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+    else:
+        ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
+
+    # Second incidence.
+    if seg._segPos < triangleCount[0]:
+        ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
+    elif seg._segPos < triangleCount[0] + quadCount:
+        ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+    elif seg._segPos < seg.edgeWeight():
+        ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
+    else:
+        ans.append( ( _SegmentEndIncidence.VERTEX, 1 ) )
+
+    # All done!
+    return ans
 
 
 def _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):

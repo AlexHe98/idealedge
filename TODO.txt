@@ -1,6 +1,5 @@
 --- Bounded SFS recognition
     --> Create version of translateAlongSurface() suitable for splitArcs()
-        ->- Finish implementing _endIncidences()
         ->- Use _endIncidences() to tidy up and finish the helper routines for _traverseOrbit()
         ->- Use _traverseOrbit() to reimplement translateAlongSurface()
     --> Implement TriangulationWithEmbeddedLoops class
