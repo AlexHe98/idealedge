@@ -432,9 +432,8 @@ def _adjacentSegmentsAlongParallelCells(seg):
             # At this point, we have f[0] <= seg._segPos <= f[0] + q, and
             # hence this segment belongs to either a wedge cell or a
             # parallel quad cell.
-            qDepth = seg._segPos - f[0]     # 0 <= qDepth <= q
-            for adjSeg in _adjSegsParQuadCells(
-                    seg, emb, q, qType, qDepth ):
+            for adjSeg in _adjSegsAlongQuad(
+                    seg, emb, qType, False ):
                 yield adjSeg
     return
 
@@ -533,29 +532,24 @@ def _adjSegsParCellsAtVert1( seg, edgeEmb ):
     return
 
 
-def _adjSegsType1WedgeCells( seg, edgeEmb ):
+def _adjSegsAlongQuad( seg, edgeEmb, quadType, includeNonParallel ):
     """
-    Yields all segments adjacent to seg via translation along a quad incident
-    to a wedge cell.
+    Yields all segments adjacent to seg via translation along the given quad
+    type.
+
+    If includeNonParallel is False, then only translations across parallel or
+    corner faces will be taken into account. Otherwise, all translations along
+    the quad will be considered.
 
     Precondition:
-    --> The given segment seg is of type 1, with one end incident to a quad.
-    """
-    #TODO
-    raise NotImplementedError()
-
-
-def _adjSegsParQuadCells( seg, edgeEmb, qCount, qType, qDepth ):
-    """
-    Yields all segments adjacent to seg via translation along a parallel cell
-    or face incident to a quad.
-
-    Precondition:
-    --> The given segment seg is incident to either a wedge cell or a parallel
-        quad cell.
+    --> The given segment seg is incident to a quad of the given type.
     """
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
+    quadCount = seg.surface().quads( tet.index(), quadType ).pythonValue()
+    triangleCount = seg.surface().triangles( tet.index(), ver[0] ).pythonValue()
+    quadDepth = seg._segPos - triangleCount
+    # From the precondition, we have 0 <= quadDepth <= quadCount.
 
     # The quads divide tet into two "sides". The edge opposite this
     # segment has endpoints lying on different sides, and we can label
@@ -576,7 +570,7 @@ def _adjSegsParQuadCells( seg, edgeEmb, qCount, qType, qDepth ):
     #                                 •
     #                              opp[0]
     #
-    side = [ { 0, qType + 1 } ]
+    side = [ { 0, quadType + 1 } ]
     side.append( {0,1,2,3} - side[0] )
     if ver[0] not in side[0]:
         side[0], side[1] = side[1], side[0]
@@ -586,33 +580,33 @@ def _adjSegsParQuadCells( seg, edgeEmb, qCount, qType, qDepth ):
 
     # Find all edges of tet containing segments that are adjacent to seg.
     adjVertexPerms = []
-    if qDepth < qCount:
+    if includeNonParallel or quadDepth < quadCount:
         adjVertexPerms.append(
                 Perm4( ver[0], opp[1], ver[1], opp[0] ) )
-    if qDepth > 0:
+    if includeNonParallel or quadDepth > 0:
         adjVertexPerms.append(
                 Perm4( opp[0], ver[1], ver[0], opp[1] ) )
-    if qDepth != 0 and qDepth != qCount:
+    if includeNonParallel or ( quadDepth not in { 0, quadCount } ):
         adjVertexPerms.append(
                 Perm4( opp[0], opp[1], ver[0], ver[1] ) )
     for vertexPerm in adjVertexPerms:
         enAdj = Edge3.faceNumber(vertexPerm)
         eiAdj = tet.edge(enAdj).index()
         verAdj = tet.edgeMapping(enAdj)
-        triangles = seg._surface.triangles(
+        adjTriangleCount = seg._surface.triangles(
                 tet.index(), verAdj[0] ).pythonValue()
         if verAdj[0] == vertexPerm[0]:
             # Same orientation.
             yield OrientedSegment(
                     seg._surface,
                     eiAdj,
-                    triangles + qDepth,
+                    adjTriangleCount + quadDepth,
                     seg._orientation )
         else:
             # Opposite orientation.
             yield OrientedSegment(
                     seg._surface,
                     eiAdj,
-                    triangles + qCount - qDepth,
+                    adjTriangleCount + quadCount - quadDepth,
                     -1 * seg._orientation )
     return
