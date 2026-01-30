@@ -693,6 +693,33 @@ def _adjSegsAlongQuad( seg, edgeEmb, opp, includeNonParallel ):
     quadDepth = seg._segPos - triangleCount
     # From the precondition, we have 0 <= quadDepth <= quadCount.
 
+    # The quads divide tet into two "sides". The edge opposite this
+    # segment has endpoints lying on different sides, and we can label
+    # these opposite endpoints opp[i], for i in {0,1}, so that ver[i] and
+    # opp[i] lie on the same side of the quads, as shown in the diagram.
+    #
+    #                              ver[0]
+    #                                 •
+    #                                /|\
+    #                   ambient edge/ | \
+    #                              /__|__\
+    #                             /|  |  |\
+    #                      ver[1]•-|--|--|-•opp[1]
+    #                             \|__|__|/
+    #                              \  |  /
+    #                               \ | /opposite edge
+    #                                \|/
+    #                                 •
+    #                              opp[0]
+    #
+    side = [ { 0, quadType + 1 } ]
+    side.append( {0,1,2,3} - side[0] )
+    if ver[0] not in side[0]:
+        side[0], side[1] = side[1], side[0]
+    side[0].remove( ver[0] )
+    side[1].remove( ver[1] )
+    opp = [ side[0].pop(), side[1].pop() ]
+
     # Find all edges of tet containing segments that are adjacent to seg.
     adjVertexPerms = []
     if includeNonParallel or quadDepth < quadCount:
