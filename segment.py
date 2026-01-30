@@ -301,6 +301,96 @@ class OrientedSegment:
         # targets must be unreachable via translation along self.surface().
         return None
 
+    def _getEndIncidences( self, edgeEmb ):
+        r"""
+        Classifies the objects incident to the endpoints of this segment,
+        relative to the given edge embedding.
+
+        In detail, the edge embedding should describe how self.edge() is
+        embedded in some tetrahedron. The return value will then be a
+        2-element list R structured as follows. For each i in {0, 1}, consider
+        the end of seg that is closer to vertex i of the given edge embedding.
+        R[i] will be a pair P that specifies the object incident to this end
+        as follows:
+        --> If the end is incident to a vertex v, then P will be
+                ( _SegmentEndIncidence.VERTEX, j ),
+            where j in {0, 1} is the vertex number assigned to v by edgeEmb.
+        --> If the end is incident to a normal triangle t, then P will be
+                ( _SegmentEndIncidence.TRIANGLE, j ),
+            where j in {0, 1} is vertex number assigned by edgeEmb to the
+            vertex that is cut off by t.
+        --> If the end is incident to a normal quad q, then P will be
+                ( _SegmentEndIncident.QUAD, opp ),
+            where opp is a 2-element list that describes the incidence of this
+            segment with q in the manner explained in the next paragraph.
+
+        Suppose (at least) one end of this segment is incident to a normal
+        quad. This quad divides the ambient tetrahedron into two "sides". The
+        edge self.edge() has endpoints lying on different sides, and the same
+        is true for the edge opposite self.edge(). We can therefore label the
+        endpoints of the opposite edge by opp[k], for k in {0, 1}, so that
+        edgeEmb.vertices()[k] and opp[k] lie on the same side of the quads.
+        This is illustrated in the diagram below, with edgeEmb.vertices()
+        abbreviated to ver.
+                                      ver[0]
+                                         •
+                                        /|\
+                            self.edge()/ | \
+                                      /__|__\
+                                     /|  |  |\
+                              ver[1]•-|--|--|-•opp[1]
+                                     \|__|__|/
+                                      \  |  /
+                                       \ | /opposite edge
+                                        \|/
+                                         •
+                                      opp[0]
+        """
+        teti = edgeEmb.tetrahedron().index()
+        en = edgeEmb.edge()
+        ver = edgeEmb.vertices()
+        ans = []
+
+        # The answer depends on where this segment sits relative to the
+        # elementary discs.
+        triangleCount = [
+                self.surface().triangles( teti, ver[i] ).pythonValue()
+                for i in range(2) ]
+        quadType, quadCount = tetQuads( self.surface(), teti )
+        if ( quadType is not None ) and ( quadType not in { en, 5 - en } ):
+            # There is potentially a quad incident to self, so we compute opp
+            # now in case we need it.
+            side = [ { 0, quadType + 1 } ]
+            side.append( {0,1,2,3} - side[0] )
+            if ver[0] not in side[0]:
+                side[0], side[1] = side[1], side[0]
+            side[0].remove( ver[0] )
+            side[1].remove( ver[1] )
+            opp = [ side[0].pop(), side[1].pop() ]
+
+        # First incidence.
+        if self._segPos == 0:
+            ans.append( ( _SegmentEndIncidence.VERTEX, 0 ) )
+        elif self._segPos <= triangleCount[0]:
+            ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
+        elif self._segPos <= triangleCount[0] + quadCount:
+            ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+        else:
+            ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
+
+        # Second incidence.
+        if self._segPos < triangleCount[0]:
+            ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
+        elif self._segPos < triangleCount[0] + quadCount:
+            ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+        elif self._segPos < self.edgeWeight():
+            ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
+        else:
+            ans.append( ( _SegmentEndIncidence.VERTEX, 1 ) )
+
+        # All done!
+        return ans
+
     def translateAlongSurface( self, targets ):
         """
         Translates this type-1 segment along self.surface(), and if possible
@@ -383,57 +473,41 @@ def _adjacentSegmentsAlongSurface( seg, markedEnd ):
 
     This routine guarantees to be exhaustive, but might redundantly yield an
     adjacent segment multiple times.
+
+    This routine raises ValueError if the markedEnd of seg is not incident to
+    seg.surface().
     """
-    for emb in seg.edge().embeddings():
-        teti = emb.tetrahedron().index()
-        en = emb.face()
-        ver = emb.vertices()
+    for edgeEmb in seg.edge().embeddings():
+        ver = edgeEmb.vertices()
+        endIncidences = seg._getEndIncidences(edgeEmb)
 
-        # Find the elementary disc that is incident to the markedEnd.
+        # The endIncidences pair labels the ends 0 and 1 according to the
+        # labelling of seg.edge() given by the ver permutation. In contrast,
+        # the given markedEnd labels the ends 0 and 1 according to the
+        # orientation of the segment, which might differ from the ver
+        # labelling.
+        if seg._orientation == 1:
+            markedIncidence = endIncidences[markedEnd]
+        else:   # seg._orientation == -1
+            markedIncidence = endIncidences[ 1 - markedEnd ]
 
-        #TODO Definition of adjacent depends on the choice of markedEnd.
-        #TODO We cannot always assume type-1.
-
-        # From the precondition, seg is a type-1 segment.
-        if seg._segPos == 0:
-            triangleCount = seg.surface().triangles(
-                    teti, ver[0] ).pythonValue()
-            if triangleCount > 0:
-                for adjSeg in _adjSegsAlongTriangleAtVert0( seg, emb ):
+        # The adjacent segments depend on whether the markedEnd is incident to
+        # a triangle or a quad.
+        if markedIncidence[0] == _SegmentEndIncidence.TRIANGLE:
+            if markedIncidence[1] == 0:
+                for adjSeg in _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):
                     yield adjSeg
-
-                # No more segments to yield with current emb.
-                continue
-        else:   # seg._segPos == seg.edgeWeight()
-            triangleCount = seg.surface().triangles(
-                    teti, ver[1] ).pythonValue()
-            if triangleCount > 0:
-                for adjSeg in _adjSegsAlongTriangleAtVert1( seg, emb ):
+            else:   # markedIncidence[1] == 1
+                for adjSeg in _adjSegsAlongTriangleAtVert1( seg, edgeEmb ):
                     yield adjSeg
-
-                # No more segments to yield with current emb.
-                continue
-
-        # At this point, we know that there are no triangles at the same end
-        # as the given seg.
-        quadType, quadCount = tetQuads( seg.surface(), teti )
-        if quadType in { en, 5 - en }:
-            # This is the quad type that is disjoint from seg.edge().
-            quadType, quadCount = None, 0
-        if quadType is None:
-            # No quads incident to seg.edge(), which means that the given
-            # type-1 segment must meet a triangle at the opposite end of
-            # seg.edge().
-            #TODO
-
-            # No more segments to yield with current emb.
-            continue
-
-        # 
-        #TODO
-        raise NotImplementedError()
-    #TODO
-    raise NotImplementedError()
+        elif markedIncidence[0] == _SegmentEndIncidence.QUAD:
+            for adjSeg in _adjSegsAlongQuad(
+                    seg, edgeEmb, markedIncident[1] ):
+                yield adjSeg
+        else:
+            raise ValueError(
+                    "The markedEnd should be incident to seg.surface()" )
+    return
 
 
 def _adjacentSegmentsAlongParallelCells(seg):
@@ -445,7 +519,7 @@ def _adjacentSegmentsAlongParallelCells(seg):
     adjacent segment multiple times.
     """
     for emb in seg.edge().embeddings():
-        #TODO Update to use new _endIncidences() routine.
+        #TODO Update to use new _getEndIncidences() routine.
 
         teti = emb.tetrahedron().index()
         en = emb.face()
@@ -484,95 +558,6 @@ def _adjacentSegmentsAlongParallelCells(seg):
     return
 
 
-def _endIncidences( seg, edgeEmb ):
-    r"""
-    Classifies the objects incident to the endpoints of the given segment,
-    relative to the given edge embedding.
-
-    In detail, the edge embedding should describe how the ambient edge of the
-    given segment is embedded in some tetrahedron. The return value will then
-    be a 2-element list R structured as follows. For each i in {0, 1},
-    consider the end of seg that is closer to vertex i of the given edge
-    embedding. R[i] will be a pair P that specifies the object incident to
-    this end as follows:
-    --> If the end is incident to a vertex v, then P will be
-            ( _SegmentEndIncidence.VERTEX, j ),
-        where j in {0, 1} is the vertex number assigned to v by edgeEmb.
-    --> If the end is incident to a normal triangle t, then P will be
-            ( _SegmentEndIncidence.TRIANGLE, j ),
-        where j in {0, 1} is vertex number assigned by edgeEmb to the vertex
-        that is cut off by t.
-    --> If the end is incident to a normal quad q, then P will be
-            ( _SegmentEndIncident.QUAD, opp ),
-        where opp is a 2-element list that describes the incidence between seg
-        and q in the manner explained in the next paragraph.
-
-    Suppose (at least) one end of seg is incident to a normal quad. This quad
-    divides the ambient tetrahedron into two "sides". The edge containing seg
-    has endpoints lying on different sides, and the same is true for the edge
-    opposite seg. We can therefore label the endpoints of the opposite edge by
-    opp[k], for k in {0, 1}, so that edgeEmb.vertices()[k] and opp[k] lie on
-    the same side of the quads. This is illustrated in the diagram below, with
-    edgeEmb.vertices() abbreviated to ver.
-
-                                   ver[0]
-                                      •
-                                     /|\
-                        ambient edge/ | \
-                                   /__|__\
-                                  /|  |  |\
-                           ver[1]•-|--|--|-•opp[1]
-                                  \|__|__|/
-                                   \  |  /
-                                    \ | /opposite edge
-                                     \|/
-                                      •
-                                   opp[0]
-    """
-    teti = edgeEmb.tetrahedron().index()
-    en = edgeEmb.edge()
-    ver = edgeEmb.vertices()
-    ans = []
-
-    # The answer depends on where seg sits relative to the elementary discs.
-    triangleCount = [ seg.surface().triangles( teti, ver[i] ).pythonValue()
-                     for i in range(2) ]
-    quadType, quadCount = tetQuads( seg.surface(), teti )
-    if ( quadType is not None ) and ( quadType not in { en, 5 - en } ):
-        # There is potentially a quad incident to seg, so we compute opp now
-        # in case we need it.
-        side = [ { 0, quadType + 1 } ]
-        side.append( {0,1,2,3} - side[0] )
-        if ver[0] not in side[0]:
-            side[0], side[1] = side[1], side[0]
-        side[0].remove( ver[0] )
-        side[1].remove( ver[1] )
-        opp = [ side[0].pop(), side[1].pop() ]
-
-    # First incidence.
-    if seg._segPos == 0:
-        ans.append( ( _SegmentEndIncidence.VERTEX, 0 ) )
-    elif seg._segPos <= triangleCount[0]:
-        ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
-    elif seg._segPos <= triangleCount[0] + quadCount:
-        ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
-    else:
-        ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
-
-    # Second incidence.
-    if seg._segPos < triangleCount[0]:
-        ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
-    elif seg._segPos < triangleCount[0] + quadCount:
-        ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
-    elif seg._segPos < seg.edgeWeight():
-        ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
-    else:
-        ans.append( ( _SegmentEndIncidence.VERTEX, 1 ) )
-
-    # All done!
-    return ans
-
-
 def _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):
     """
     Yields all segments adjacent to seg via translation along a normal
@@ -581,6 +566,8 @@ def _adjSegsAlongTriangleAtVert0( seg, edgeEmb ):
     Precondition:
     --> The given segment seg is incident to a normal triangle at vertex 0.
     """
+    #TODO Update to use new _getEndIncidences() routine.
+
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
     for otherEnd in range(4):
@@ -627,6 +614,8 @@ def _adjSegsAlongTriangleAtVert1( seg, edgeEmb ):
     Precondition:
     --> The given segment seg is incident to a normal triangle at vertex 1.
     """
+    #TODO Update to use new _getEndIncidences() routine.
+
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
     for otherEnd in range(4):
@@ -677,7 +666,7 @@ def _adjSegsAlongQuad( seg, edgeEmb, quadType, includeNonParallel ):
     Precondition:
     --> The given segment seg is incident to a quad of the given type.
     """
-    #TODO Update to use new _endIncidences() routine.
+    #TODO Update to use new _getEndIncidences() routine.
 
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
