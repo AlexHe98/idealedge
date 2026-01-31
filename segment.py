@@ -301,8 +301,6 @@ class OrientedSegment:
         # targets must be unreachable via translation along self.surface().
         return None
 
-    #TODO Reimplement again: It is still best to handle opp in
-    #       _adjSegsAlongQuad()
     def _getEndIncidences( self, edgeEmb ):
         r"""
         Classifies the objects incident to the endpoints of this segment,
@@ -322,31 +320,9 @@ class OrientedSegment:
             where j in {0, 1} is vertex number assigned by edgeEmb to the
             vertex that is cut off by t.
         --> If the end is incident to a normal quad q, then P will be
-                ( _SegmentEndIncident.QUAD, opp ),
-            where opp is a 2-element list that describes the incidence of this
-            segment with q in the manner explained in the next paragraph.
-
-        Suppose (at least) one end of this segment is incident to a normal
-        quad. This quad divides the ambient tetrahedron into two "sides". The
-        edge self.edge() has endpoints lying on different sides, and the same
-        is true for the edge opposite self.edge(). We can therefore label the
-        endpoints of the opposite edge by opp[k], for k in {0, 1}, so that
-        edgeEmb.vertices()[k] and opp[k] lie on the same side of the quads.
-        This is illustrated in the diagram below, with edgeEmb.vertices()
-        abbreviated to ver.
-                                      ver[0]
-                                         •
-                                        /|\
-                            self.edge()/ | \
-                                      /__|__\
-                                     /|  |  |\
-                              ver[1]•-|--|--|-•opp[1]
-                                     \|__|__|/
-                                      \  |  /
-                                       \ | /opposite edge
-                                        \|/
-                                         •
-                                      opp[0]
+                ( _SegmentEndIncident.QUAD, k ),
+            where k in {0, 1, 2} indicates that q separates the edges number k
+            and 5 - k.
         """
         teti = edgeEmb.tetrahedron().index()
         en = edgeEmb.edge()
@@ -360,17 +336,9 @@ class OrientedSegment:
                 for i in range(2) ]
         quadType, quadCount = tetQuads( self.surface(), teti )
         if ( quadType is None ) or ( quadType in { en, 5 - en } ):
-            # No quad incident to self.edge().
+            # Even if there is a quad, it won't incident to self.edge(), so we
+            # don't want to count it.
             quadCount = 0
-        else:
-            # Compute opp now, in case we need it.
-            side = [ { 0, quadType + 1 } ]
-            side.append( {0,1,2,3} - side[0] )
-            if ver[0] not in side[0]:
-                side[0], side[1] = side[1], side[0]
-            side[0].remove( ver[0] )
-            side[1].remove( ver[1] )
-            opp = [ side[0].pop(), side[1].pop() ]
 
         # First incidence.
         if self._segPos == 0:
@@ -378,7 +346,7 @@ class OrientedSegment:
         elif self._segPos <= triangleCount[0]:
             ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
         elif self._segPos <= triangleCount[0] + quadCount:
-            ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+            ans.append( ( _SegmentEndIncidence.QUAD, quadType ) )
         else:
             ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
 
@@ -386,7 +354,7 @@ class OrientedSegment:
         if self._segPos < triangleCount[0]:
             ans.append( ( _SegmentEndIncidence.TRIANGLE, 0 ) )
         elif self._segPos < triangleCount[0] + quadCount:
-            ans.append( ( _SegmentEndIncidence.QUAD, opp ) )
+            ans.append( ( _SegmentEndIncidence.QUAD, quadType ) )
         elif self._segPos < self.edgeWeight():
             ans.append( ( _SegmentEndIncidence.TRIANGLE, 1 ) )
         else:
@@ -647,35 +615,10 @@ def _adjSegsAlongTriangleAtVert1( seg, edgeEmb ):
     return
 
 
-#TODO Restore quadType (and maybe also quadCount) parameter.
-#TODO Fix usage again.
-def _adjSegsAlongQuad( seg, edgeEmb, opp, includeNonParallel ):
-    r"""
-    Yields all segments adjacent to seg via translation along the quad with
-    the given opp labelling.
-
-    The opp labelling is the same as that described in the documentation for
-    the seg._getEndIncidences() routine. In detail, the quad divides the
-    ambient tetrahedron into two "sides". The edge seg.edge() has endpoints
-    lying on different sides, and the same is true for the edge opposite
-    seg.edge(). We can therefore label the endpoints of the opposite edge by
-    opp[k], for k in {0, 1}, so that edgeEmb.vertices()[k] and opp[k] lie on
-    the same side of the quads. This is illustrated in the diagram below, with
-    edgeEmb.vertices() abbreviated to ver.
-
-                                 ver[0]
-                                    •
-                                   /|\
-                        seg.edge()/ | \
-                                 /__|__\
-                                /|  |  |\
-                         ver[1]•-|--|--|-•opp[1]
-                                \|__|__|/
-                                 \  |  /
-                                  \ | /opposite edge
-                                   \|/
-                                    •
-                                 opp[0]
+def _adjSegsAlongQuad( seg, edgeEmb, quadType, includeNonParallel ):
+    """
+    Yields all segments adjacent to seg via translation along the quad of the
+    given type.
 
     If includeNonParallel is False, then only translations across parallel or
     corner faces will be taken into account. Otherwise, all translations along
@@ -684,12 +627,11 @@ def _adjSegsAlongQuad( seg, edgeEmb, opp, includeNonParallel ):
     Precondition:
     --> The given segment seg is incident to a quad of the specified type.
     """
-    #TODO Update to use new _getEndIncidences() routine.
-
     tet = edgeEmb.tetrahedron()
     ver = edgeEmb.vertices()
     quadCount = seg.surface().quads( tet.index(), quadType ).pythonValue()
-    triangleCount = seg.surface().triangles( tet.index(), ver[0] ).pythonValue()
+    triangleCount = seg.surface().triangles(
+            tet.index(), ver[0] ).pythonValue()
     quadDepth = seg._segPos - triangleCount
     # From the precondition, we have 0 <= quadDepth <= quadCount.
 
@@ -698,19 +640,19 @@ def _adjSegsAlongQuad( seg, edgeEmb, opp, includeNonParallel ):
     # these opposite endpoints opp[i], for i in {0,1}, so that ver[i] and
     # opp[i] lie on the same side of the quads, as shown in the diagram.
     #
-    #                              ver[0]
-    #                                 •
-    #                                /|\
-    #                   ambient edge/ | \
-    #                              /__|__\
-    #                             /|  |  |\
-    #                      ver[1]•-|--|--|-•opp[1]
-    #                             \|__|__|/
-    #                              \  |  /
-    #                               \ | /opposite edge
-    #                                \|/
-    #                                 •
-    #                              opp[0]
+    #                            ver[0]
+    #                               •
+    #                              /|\
+    #                   seg.edge()/ | \
+    #                            /__|__\
+    #                           /|  |  |\
+    #                    ver[1]•-|--|--|-•opp[1]
+    #                           \|__|__|/
+    #                            \  |  /
+    #                             \ | /opposite edge
+    #                              \|/
+    #                               •
+    #                            opp[0]
     #
     side = [ { 0, quadType + 1 } ]
     side.append( {0,1,2,3} - side[0] )
