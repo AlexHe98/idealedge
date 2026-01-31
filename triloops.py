@@ -314,53 +314,6 @@ class TriangulationWithEmbeddedLoops:
             ans.append( loop.orientation() )
         return tuple(ans)
 
-    #TODO Which of the following do we really need?
-    #       --> intersects()
-    #       --> weight()
-    #       --> loopWeights()
-    #       --> incidentLoopIndices()
-
-    def intersects( self, surf ):
-        """
-        Returns True if and only if the union of embedded loops has nonempty
-        intersection with the given normal surface surf.
-
-        Precondition:
-        --> The given normal surface is embedded in self.triangulation().
-        """
-        for embLoop in self:
-            if embLoop.intersects(surf):
-                return True
-        return False
-
-    def weight( self, surf ):
-        """
-        Returns the number of times the union of embedded loops intersects
-        the given normal surface surf.
-
-        Precondition:
-        --> The given normal surface is embedded in self.triangulation().
-        """
-        wt = 0
-        for embLoop in self:
-            wt += embLoop.weight()
-        return wt
-
-    def loopWeights( self, surf ):
-        """
-        Returns a dictionary mapping loop indices to their weights with
-        respect to the given normal surface.
-
-        Only loops with positive weights will be included in the returned
-        dictionary.
-        """
-        ans = dict()
-        for i, embLoop in enumerate(self):
-            wt = embLoop.weight(surf)
-            if wt > 0:
-                ans[i] = wt
-        return ans
-
     def incidentLoopIndices( self, surf ):
         """
         Returns a set consisting of the indices of the embedded loops that
