@@ -1,6 +1,4 @@
 --- Bounded SFS recognition
-    --> Implement TriangulationWithEmbeddedLoops class
-        ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Remove old simplification routines
         ->- Update usage in knot factorisation algorithm

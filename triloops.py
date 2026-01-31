@@ -13,9 +13,6 @@ from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
 
 
-#TODO Double-check that everything tracks orientation of loops.
-
-
 class TriangulationWithEmbeddedLoops:
     """
     A 3-manifold triangulation containing a disjoint union of EmbeddedLoop
