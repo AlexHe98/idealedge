@@ -9,8 +9,8 @@
     --> TriangulationWithEmbeddedLoops
     --> EmbeddedLoop
     --> etc
---- Update Regina usage
-    --> Local moves
+--- Update to use Regina 7.4
+    --> Check for places where updates haven't been applied yet
 --- Reorganise source files to reduce clutter
 --- Tidy up documentation
     --> Preconditions

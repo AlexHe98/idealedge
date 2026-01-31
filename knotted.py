@@ -213,8 +213,11 @@ def _isKnottedSerial( drilled, tracker ):
     # survived to this point, the given drilled triangulation is "probably"
     # an ideal solid torus, so this will hopefully terminate quickly.
     drilled.idealToFinite()
-    drilled.intelligentSimplify()
-    drilled.intelligentSimplify()
+    #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality was provided by
+    #       Triangulation3.intelligentSimplify().
+    drilled.simplify()
+    drilled.simplify()
     if tracker is not None:
         beforeReport = "Resorting to solid torus recognition.\n"
         beforeReport += "Truncated: {} tetrahedra.".format( drilled.size() )
@@ -248,8 +251,11 @@ def surgery0(oldLoop):
     # but it should be fine in practice.
     tri = oldLoop.drill()
     tri.idealToFinite()
-    tri.intelligentSimplify()
-    tri.intelligentSimplify()
+    #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality was provided by
+    #       Triangulation3.intelligentSimplify().
+    tri.simplify()
+    tri.simplify()
     mer, lon = tri.meridianLongitude()
 
     # Get a tetrahedron index and edge number for the meridian, so that we

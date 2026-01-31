@@ -309,8 +309,8 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                drilled.setLabel( comp.adornedLabel(
 #                    "Closed, pinched edge {}".format( ide.index() ) ) )
 #                drilled.pinchEdge(ide)
-#                drilled.intelligentSimplify()
-#                drilled.intelligentSimplify()
+#                drilled.simplify()
+#                drilled.simplify()
 #                if ( ( drilled.knowsSolidTorus() or
 #                    drilled.size() < threshold ) and
 #                    drilled.isSolidTorus() ):
@@ -321,8 +321,8 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                    trunc = PacketOfTriangulation3(drilled)
 #                    drilled.insertChildLast(trunc)
 #                    trunc.idealToFinite()
-#                    trunc.intelligentSimplify()
-#                    trunc.intelligentSimplify()
+#                    trunc.simplify()
+#                    trunc.simplify()
 #                    std = StandardTriangulation.recognise(trunc)
 #                    if std is None:
 #                        name = "Not recognised"
@@ -482,8 +482,8 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                        comp.setLabel( comp.adornedLabel(
 #                            "Ideal edge {}".format( ide.index() ) ) )
 #                    drilled.pinchEdge(ide)
-#                    drilled.intelligentSimplify()
-#                    drilled.intelligentSimplify()
+#                    drilled.simplify()
+#                    drilled.simplify()
 #
 #                    # Try to recognise the drilled manifold.
 #                    if ( ( drilled.knowsSolidTorus() or
@@ -497,8 +497,8 @@ def crushAnnuli( surfaces, threshold=30 ):
 #                        if usingPackets:
 #                            drilled.insertChildLast(trunc)
 #                        trunc.idealToFinite()
-#                        trunc.intelligentSimplify()
-#                        trunc.intelligentSimplify()
+#                        trunc.simplify()
+#                        trunc.simplify()
 #                        std = StandardTriangulation.recognise(trunc)
 #                        if std is None:
 #                            name = "Not recognised"
@@ -599,8 +599,8 @@ def crushSpheres( surfaces, idealEdgeIndex, threshold=30 ):
             tri.insertChildLast(drilled)
             for t, e in loops:
                 drilled.pinchEdge( drilled.tetrahedron(t).edge(e) )
-                drilled.intelligentSimplify()
-                drilled.intelligentSimplify()
+                drilled.simplify()
+                drilled.simplify()
 
                 # Is drilled a solid torus?
                 if ( drilled.knowsSolidTorus() or
@@ -758,15 +758,15 @@ if __name__ == "__main__":
 #    tri = manifold.construct()
 #    tri.removeTetrahedronAt(3)
 #    tri.orient()
-#    tri.intelligentSimplify()
-#    tri.intelligentSimplify()
+#    tri.simplify()
+#    tri.simplify()
 ##    p = int( argv[1] )
 ##    q = int( argv[2] )
 ##    knot = ExampleLink.torus(p,q)
 ##    ext = knot.complement()
 ##    ext.idealToFinite()
-##    ext.intelligentSimplify()
-##    ext.intelligentSimplify()
+##    ext.simplify()
+##    ext.simplify()
 ##    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
     surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
     crushAnnuli(surfaces)

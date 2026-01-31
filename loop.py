@@ -1160,7 +1160,7 @@ class EmbeddedLoop:
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may
@@ -1204,7 +1204,14 @@ class EmbeddedLoop:
                     # We do not want to touch the embedded loop.
                     continue
                 for axis in range(2):
-                    if tempTri.fourFourMove( edge, axis, True, False ):
+                    #NOTE Triangulation3.has44( e, ax ) was introduced in
+                    #       Regina 7.4. In older versions of Regina,
+                    #       equivalent functionality (checking eligibility of
+                    #       the move, but not performing it) was provided by
+                    #
+                    #           Triangulation3.fourFourMove(
+                    #               e, ax, True, False ).
+                    if tempTri.has44( edge, axis ):
                         fourFourAvailable.append( ( edge, axis ) )
 
             # Is it worthwhile to continue attempting 4-4 moves?
@@ -1311,9 +1318,12 @@ class IdealLoop(EmbeddedLoop):
         for emb in drillEmbeddings:
             drilled.pinchEdge(
                     emb.tetrahedron().edge( emb.edge() ) )
-        drilled.intelligentSimplify()
+        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+        #       versions of Regina, equivalent functionality was provided by
+        #       Triangulation3.intelligentSimplify().
+        drilled.simplify()
         drilled.minimiseVertices()
-        drilled.intelligentSimplify()
+        drilled.simplify()
         return drilled
 
     def shorten(self):
@@ -1602,7 +1612,7 @@ class IdealLoop(EmbeddedLoop):
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may
@@ -2024,7 +2034,7 @@ class BoundaryLoop(EmbeddedLoop):
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may

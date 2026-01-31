@@ -97,12 +97,15 @@ def reversePinch( knotComplement, packet=None ):
     # and longitude. The last step is not guaranteed to terminate in theory,
     # but it usually works pretty well in practice.
     knotComplement.minimiseVertices()
-    knotComplement.intelligentSimplify()
-    knotComplement.intelligentSimplify()
+    #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality was provided by
+    #       Triangulation3.intelligentSimplify().
+    knotComplement.simplify()
+    knotComplement.simplify()
     knotComplement.idealToFinite()
     noSimplification = 0
     while noSimplification < 2:
-        if not knotComplement.intelligentSimplify():
+        if not knotComplement.simplify():
             noSimplification += 1
     mer, lon = knotComplement.meridianLongitude()
 

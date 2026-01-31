@@ -5,6 +5,11 @@ This repository contains source code for working with *ideal loops*: loops
 that are embedded in the interior of a 3-manifold triangulation as a sequence
 of edges.
 
+This source code depends on Regina (https://regina-normal.github.io/). The
+oldest suitable version of Regina is 7.4. For users who are (for whatever
+reason) unable to upgrade to Regina 7.4 or later, there are some comments
+throughout the code to help with porting to older versions of Regina.
+
 The rationale is that an *edge-ideal triangulation* (i.e., a triangulation
 endowed with an ideal loop) represents a 3-manifold *M* with a torus boundary
 component *B* given by deleting a small regular neighbourhood *N* of the
@@ -62,4 +67,4 @@ as we modify a triangulation (say, through local moves, or through crushing).
 In particular, our implementations for tracking edges through local moves,
 available in the ``retriangulate/`` directory, may be of independent interest.
 
-— *Alex He (a.he@uqconnect.edu.au)*
+— *Alex He (a.he@uqconnect.edu.au)*, 31 Jan 2026
