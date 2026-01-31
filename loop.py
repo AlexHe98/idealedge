@@ -1160,7 +1160,7 @@ class EmbeddedLoop:
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may
@@ -1311,9 +1311,12 @@ class IdealLoop(EmbeddedLoop):
         for emb in drillEmbeddings:
             drilled.pinchEdge(
                     emb.tetrahedron().edge( emb.edge() ) )
-        drilled.intelligentSimplify()
+        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+        #       versions of Regina, equivalent functionality was provided by
+        #       Triangulation3.intelligentSimplify().
+        drilled.simplify()
         drilled.minimiseVertices()
-        drilled.intelligentSimplify()
+        drilled.simplify()
         return drilled
 
     def shorten(self):
@@ -1602,7 +1605,7 @@ class IdealLoop(EmbeddedLoop):
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may
@@ -2024,7 +2027,7 @@ class BoundaryLoop(EmbeddedLoop):
         If the triangulation containing this loop is currently oriented, then
         this routine guarantees to preserve the orientation.
 
-        Adapted from Regina's Triangulation3.intelligentSimplify().
+        Adapted from Regina's Triangulation3.simplify().
 
         Warning:
             --> Running this routine multiple times on the same loop may

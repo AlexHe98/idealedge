@@ -11,6 +11,7 @@
     --> etc
 --- Update Regina usage
     --> Local moves
+    --> Add minimum version to README.md
 --- Reorganise source files to reduce clutter
 --- Tidy up documentation
     --> Preconditions
