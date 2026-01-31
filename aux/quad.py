@@ -19,21 +19,23 @@ def tetQuadType( surf, tetIndex ):
     Returns the quad type in which the given normal surface intersects the
     tetrahedron with the given index, or None if there is no such quad.
     """
-    quads = tetQuads( surf, tetIndex )
-    if quads is None:
-        return None
-    else:
-        return quads[0]
+    return tetQuads( surf, tetIndex )[0]
 
 
 def tetQuads( surf, tetIndex ):
     """
-    Returns the quad type and the number of quads in which the given normal
-    surface intersects the tetrahedron with the given index, or None if there
-    is no such quad.
+    Returns a pair consisting of the quad type and the number of quads in
+    which the given normal surface intersects the tetrahedron with the given
+    index.
+
+    The quad type is specified as follows:
+    --> None, if there are no quads in the tetrahedron.
+    --> 0, if the quad(s) separate edges 0 and 5.
+    --> 1, if the quad(s) separate edges 1 and 4.
+    --> 2, if the quad(s) separate edges 2 and 3.
     """
     for quadType in range(3):
         quadCount = surf.quads( tetIndex, quadType ).pythonValue()
         if quadCount > 0:
             return ( quadType, quadCount )
-    return None
+    return ( None, 0 )

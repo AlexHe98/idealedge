@@ -24,6 +24,7 @@ The main scripts in this repository are the following:
 - ``decomposeknot.py``: Contains the decompose() routine, which implements
     the aforementioned knot decomposition algorithm.
 - ``loop.py``: Implements the IdealLoop class.
+- ``triloops.py``: Implements the EdgeIdealTriangulation class.
 - ``embed.py``: Implements routines for converting a Regina Link object into
     an ideal loop.
 - ``idealedge.py``: Contains the decomposeAlong() routine, which crushes a

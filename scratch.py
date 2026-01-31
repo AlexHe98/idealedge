@@ -4,14 +4,14 @@ Scratch work for ideal edges.
 from sys import argv
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong, newIdealLoopEmbs
-from idealedge import isAnnulus, isSphere, fillIdealEdges
+from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
 from wedge import wedgeLoops
 from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
+from aux.surface import isSphere, isAnnulus
 
 
 def meridian( tri, edgeIndex ):

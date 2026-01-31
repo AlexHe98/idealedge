@@ -6,6 +6,7 @@ from loop import NotLoop, IdealLoop
 from segment import OrientedSegment
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
+from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from retriangulate.insert import layerOn
 
 
@@ -240,7 +241,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         # crushing?
         for arc in oldLoop.splitArcs(surf):
             seg = arc[0]
-            survivingSeg = seg.translateAlongSurface(survivors)
+            survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:
                 # This arc does not survive after crushing.
                 continue
@@ -248,7 +249,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
             # This arc survives after crushing.
             newLoop = [ survivingSeg.survivingEmbedding() ]
             for seg in arc[1:]:
-                survivingSeg = seg.translateAlongSurface(survivors)
+                survivingSeg = seg.translateAlongParallelCells(survivors)
                 newLoop.append( survivingSeg.survivingEmbedding() )
             newLoopEmbs.append(newLoop)
 
@@ -266,7 +267,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
 
         # If this segment survives after crushing, then it will form a new
         # ideal loop of length one.
-        survivingSeg = seg.translateAlongSurface(survivors)
+        survivingSeg = seg.translateAlongParallelCells(survivors)
         if survivingSeg is not None:
             newLoopEmbs.append( [ survivingSeg.survivingEmbedding() ] )
 
@@ -413,45 +414,3 @@ def fillIdealEdges( tri, endpoints ):
 
     # All done!
     return [ tet.edge(edgeNum) for tet, edgeNum in idealEdgeLocations ]
-
-
-def isAnnulus(s):
-    """
-    Is the given normal surface s an annulus?
-
-    Pre-condition:
-    --> It is known in advance that s is connected.
-    """
-    return ( s.isCompact() and s.isOrientable() and
-            s.hasRealBoundary() and s.eulerChar() == 0 )
-
-
-def isSphere(s):
-    """
-    Is the given normal surface s a 2-sphere?
-
-    Pre-condition:
-    --> It is known in advance that s is connected.
-    """
-    return ( s.isCompact() and s.isOrientable() and
-            not s.hasRealBoundary() and s.eulerChar() == 2 )
-
-
-def countIncidentBoundaries(s):
-    """
-    In the triangulation containing the given normal surface s, counts the
-    number of boundary components that are incident to s.
-
-    Pre-condition:
-    --> The surface s lies inside a triangulation with only real boundary
-        components.
-    """
-    tri = s.triangulation()
-    incident = set()
-    for e in tri.edges():
-        bdy = e.boundaryComponent()
-        if ( bdy is None ) or ( bdy.index() in incident ):
-            continue
-        if s.edgeWeight( e.index() ).pythonValue() > 0:
-            incident.add( bdy.index() )
-    return len(incident)

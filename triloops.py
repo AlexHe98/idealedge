@@ -13,9 +13,6 @@ from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
 
 
-#TODO Double-check that everything tracks orientation of loops.
-
-
 class TriangulationWithEmbeddedLoops:
     """
     A 3-manifold triangulation containing a disjoint union of EmbeddedLoop
@@ -314,64 +311,82 @@ class TriangulationWithEmbeddedLoops:
             ans.append( loop.orientation() )
         return tuple(ans)
 
-    #TODO Do we need intersects() and weight()?
-
-    def intersects( self, surf ):
+    def incidentLoopIndices( self, surf ):
         """
-        Returns True if and only if the union of embedded loops has nonempty
-        intersection with the given normal surface surf.
-
-        Precondition:
-        --> The given normal surface is embedded in self.triangulation().
+        Returns a set consisting of the indices of the embedded loops that
+        are incident to the given normal surface.
         """
-        for embLoop in self:
-            if embLoop.intersects(surf):
-                return True
-        return False
-
-    def weight( self, surf ):
-        """
-        Returns the number of times the union of embedded loops intersects
-        the given normal surface surf.
-
-        Precondition:
-        --> The given normal surface is embedded in self.triangulation().
-        """
-        wt = 0
-        for embLoop in self:
-            wt += embLoop.weight()
-        return wt
-
-    def loopWeights( self, surf ):
-        """
-        Returns a dictionary mapping loop indices to their weights with
-        respect to the given normal surface.
-
-        Only loops with positive weights will be included in the returned
-        dictionary.
-        """
-        ans = dict()
+        ans = set()
         for i, embLoop in enumerate(self):
-            wt = embLoop.weight()
-            if wt > 0:
-                ans[i] = wt
-        return ans
+            if embLoop.weight(surf) > 0:
+                ans.add(i)
+        return count
 
     def splitArcs( self, surf ):
         """
-        Returns data describing the arcs into which the given normal surface
+        Returns a list containing the arcs into which the given normal surface
         surf splits the union of embedded loops.
+
+        The ends of all the returned arcs will be abstractly joined together
+        in pairs to indicate how all these arcs would combine to form new
+        embedded loops after crushing surf.
 
         Precondition:
         --> The given normal surface is embedded in self.triangulation().
         --> If surf is one-sided, then self.weight(surf) <= 1; otherwise,
             self.weight(surf) <= 2.
         """
-        #TODO Implementation needs to account for:
-        #       --> Multiple loops
-        #       --> Arcs getting merged after crushing
-        #       --> Whether merged arcs have same or opposite orientation
-        raise NotImplementedError()
+        arcsByLoopIndex = []
+        for embLoop in self:
+            arcsByLoopIndex.append( embLoop.splitArcs(surf) )
+
+        # Find arcs (if any) that will get joined together after crushing.
+        incidentLoopInds = self.incidentLoopIndices(surf)
+        if len(incidentLoopInds) == 2:
+            # From the preconditions, we may assume that surf is two-sided. We
+            # may also assume that each of the two incident loops has weight
+            # one with respect to surf, which means that each such loop is
+            # split into exactly one arc; after crushing surf, the segments at
+            # the ends of the two arcs will get joined together, so that the
+            # two arcs combine to form a single new loop. Note that both of
+            # the arcs will be "long arcs", so the segments at either end of
+            # each arc are guaranteed to be distinct; hence, we will have four
+            # segments that get joined to each other in two pairs.
+            endSegments = { loopIndex: set()
+                              for loopIndex in incidentLoopInds }
+            segLocations = dict()
+            for loopIndex in incidentLoopInds:
+                # As above, we should have exactly one arc.
+                arc = arcsByLoopIndex[loopIndex][0]
+                for endNum in range(2):
+                    seg = arc.endSegment(endNum)
+                    endSegments[loopIndex].add(seg)
+                    segLocations[seg] = ( arc, endNum )
+
+            # Work out which two pairs of the endSegments will be joined
+            # to each other after crushing surf.
+            myLoopInd, yourLoopInd = endSegments.keys()
+            mySeg = endSegments[myLoopInd].pop()
+            yourSeg = mySeg.translateAlongSurface(
+                    endSegments[yourLoopInd] )
+            endSegments[yourLoopInd].remove(yourSeg)
+
+            # Abstractly join the two pairs of endSegments together, so that
+            # we can reconstruct the new embedded loops after crushing surf.
+            myArc, myEndNum = segLocations[mySeg]
+            yourArc, yourEndNum = segLocations[yourSeg]
+            myArc.join( myEndNum, yourArc, yourEndNum )
+            myArc.join( 1 - myEndNum, yourArc, 1 - yourEndNum )
+
+        # All as yet unjoined arcs will simply join with themselves to form
+        # a new loop.
+        ans = []
+        for loopIndex in range( len(self) ):
+            for arc in arcsByLoopIndex[loopIndex]:
+                if arc.joinedArc(0) is None:
+                    arc.join( 0, arc, 1 )
+                ans.append(arc)
+        return ans
 
     def shorten(self):
         """
