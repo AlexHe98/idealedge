@@ -541,8 +541,6 @@ class EmbeddedLoop:
         will be abstractly joined with each other to indicate that no actual
         split occurred along surf.
         """
-        #TODO Deal with orientation correctly.
-
         # We find all the arcs by simply walking around the loop. Take the
         # first arc to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
