@@ -1204,7 +1204,14 @@ class EmbeddedLoop:
                     # We do not want to touch the embedded loop.
                     continue
                 for axis in range(2):
-                    if tempTri.fourFourMove( edge, axis, True, False ):
+                    #NOTE Triangulation3.has44( e, ax ) was introduced in
+                    #       Regina 7.4. In older versions of Regina,
+                    #       equivalent functionality (checking eligibility of
+                    #       the move, but not performing it) was provided by
+                    #
+                    #           Triangulation3.fourFourMove(
+                    #               e, ax, True, False ).
+                    if tempTri.has44( edge, axis ):
                         fourFourAvailable.append( ( edge, axis ) )
 
             # Is it worthwhile to continue attempting 4-4 moves?

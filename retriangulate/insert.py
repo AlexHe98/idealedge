@@ -59,10 +59,13 @@ def snapEdge( edge, check=True, perform=True ):
             break
 
     # Finish up by performing a 2-1 move on e.
-    if not tri.twoOneMove( e, 0 ):
-        if not tri.twoOneMove( e, 1 ):
-            # This should never happen.
-            raise RuntimeError( "Snap edge failed unexpectedly." )
+    #NOTE Triangulation3.move21( e, ed ) was introduced in Regina 7.4. In
+    #       older versions of Regina, equivalent functionality was provided by
+    #           Triangulation3.twoOneMove( e, ed ).
+    if not tri.move21( e, 0 ):
+        if not tri.move21( e, 1 ):
+            raise AssertionError(
+                    "snapEdge() should never reach this point" )
     return True
 
 
