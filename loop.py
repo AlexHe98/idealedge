@@ -535,7 +535,14 @@ class EmbeddedLoop:
         direction as this loop. However, the order of the EmbeddedArc objects
         in the returned list might not match the order that they would appear
         as we traverse this loop.
+
+        If this embedded loop is disjoint from surf, then the returned list
+        will of course contain just a single arc. The two ends of this arc
+        will be abstractly joined with each other to indicate that no actual
+        split occurred along surf.
         """
+        #TODO Deal with orientation correctly.
+
         # We find all the arcs by simply walking around the loop. Take the
         # first arc to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
@@ -565,8 +572,11 @@ class EmbeddedLoop:
         if splitIndex is None:
             # If this loop is disjoint from the surface, then there is only
             # one arc, and we have already found all the constituent segments
-            # of this arc.
-            return [ EmbeddedArc(lastArcSegs) ]
+            # of this arc. All that remains is to abstractly join the two ends
+            # back together.
+            onlyArc = EmbeddedArc(lastArcSegs)
+            onlyArc.join( 0, onlyArc, 1 )
+            return [onlyArc]
 
         # The given surf splits this embedded loop into multiple arcs, so we
         # need to do a bit more work.

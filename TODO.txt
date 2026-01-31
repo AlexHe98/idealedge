@@ -1,6 +1,6 @@
 --- Bounded SFS recognition
     --> Implement TriangulationWithEmbeddedLoops class
-        ->- Implement TriangulationWithEmbeddedLoops.splitArcs()
+        ->- Fix EmbeddedLoop.splitArcs() to deal with orientation correctly
         ->- Tidy up TODO comments
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Remove old simplification routines

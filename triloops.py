@@ -374,8 +374,12 @@ class TriangulationWithEmbeddedLoops:
 
     def splitArcs( self, surf ):
         """
-        Returns data describing the arcs into which the given normal surface
+        Returns a list containing the arcs into which the given normal surface
         surf splits the union of embedded loops.
+
+        The ends of all the returned arcs will be abstractly joined together
+        in pairs to indicate how all these arcs would combine to form new
+        embedded loops after crushing surf.
 
         Precondition:
         --> The given normal surface is embedded in self.triangulation().
@@ -386,7 +390,7 @@ class TriangulationWithEmbeddedLoops:
         for embLoop in self:
             arcsByLoopIndex.append( embLoop.splitArcs(surf) )
 
-        # Find arcs (if any) that will get merged together after crushing.
+        # Find arcs (if any) that will get joined together after crushing.
         incidentLoopInds = self.incidentLoopIndices(surf)
         if len(incidentLoopInds) == 2:
             # From the preconditions, we may assume that surf is two-sided. We
@@ -405,27 +409,34 @@ class TriangulationWithEmbeddedLoops:
                 # As above, we should have exactly one arc.
                 arc = arcsByLoopIndex[loopIndex][0]
                 for endNum in range(2):
-                    seg = arc[endNum]
+                    seg = arc.endSegment(endNum)
                     endSegments[loopIndex].add(seg)
                     segLocations[seg] = ( arc, endNum )
 
             # Work out which two pairs of the endSegments will be joined
             # to each other after crushing surf.
-            #TODO Implement translateAlongSurface().
             myLoopInd, yourLoopInd = endSegments.keys()
             mySeg = endSegments[myLoopInd].pop()
             yourSeg = mySeg.translateAlongSurface(
                     endSegments[yourLoopInd] )
             endSegments[yourLoopInd].remove(yourSeg)
 
-            #TODO
-            raise NotImplementedError()
+            # Abstractly join the two pairs of endSegments together, so that
+            # we can reconstruct the new embedded loops after crushing surf.
+            myArc, myEndNum = segLocations[mySeg]
+            yourArc, yourEndNum = segLocations[yourSeg]
+            myArc.join( myEndNum, yourArc, yourEndNum )
+            myArc.join( 1 - myEndNum, yourArc, 1 - yourEndNum )
 
-        #TODO Implementation needs to account for:
-        #       --> Multiple loops
-        #       --> Arcs getting merged after crushing
-        #       --> Whether merged arcs have same or opposite orientation
-        raise NotImplementedError()
+        # All as yet unjoined arcs will simply join with themselves to form
+        # a new loop.
+        ans = []
+        for loopIndex in range( len(self) ):
+            for arc in arcsByLoopIndex[loopIndex]:
+                if arc.joinedArc(0) is None:
+                    arc.join( 0, arc, 1 )
+                ans.append(arc)
+        return ans
 
     def shorten(self):
         """

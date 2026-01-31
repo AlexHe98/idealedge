@@ -67,6 +67,21 @@ class EmbeddedArc:
         """
         return hash( self._segments )
 
+    def endSegment( self, i ):
+        """
+        Returns the segment at end number i of this embedded arc.
+
+        End 0 is the end where traversal begins, and end 1 is where traversal
+        ends.
+
+        This routine raises KeyError if i is not either 0 or 1.
+        """
+        if i == 0:
+            return self[0]
+        elif i == 1:
+            return self[-1]
+        raise KeyError( "Ends are numbered either 0 or 1" )
+
     def join( self, arcEnd, other, otherEnd ):
         """
         Abstractly joins an end of this arc to an end of the other arc.
