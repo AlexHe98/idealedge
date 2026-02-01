@@ -14,10 +14,16 @@ from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
 
 
+#TODO Update usage of drillMeridian() for TriangulationWithBoundaryLoops.
+
+
+#TODO meridian() is never used anywhere. Just delete it?
 def meridian( tri, edgeIndex ):
     """
     Drills out an edge loop e (corresponding to the given triangulation and
-    edge index), and returns the resulting meridian curve.
+    edge index), and returns the resulting TriangulationWithBoundaryLoops,
+    which will have a single BoundaryLoop corresponding to the meridian of the
+    drilled loop.
 
     Pre-condition:
     --> The edge given by tri.edge(edgeIndex) must lie entirely in the
@@ -212,9 +218,10 @@ def crushAnnuli( surfaces, threshold=30 ):
                     if usingPackets:
                         filled.insertChildLast(drilled)
 
-                    # Because we minimised the boundary, the meridian is
-                    # guaranteed to be given by a single edge.
-                    merEdgeIndex = mer[0]
+                    # There is only one BoundaryLoop, corresponding to the
+                    # meridian. Also, because we minimised the boundary, the
+                    # meridian is guaranteed to be given by a single edge.
+                    merEdgeIndex = mer[0][0]
                     if usingPackets:
                         drilled.setLabel( comp.adornedLabel(
                             "Drilled, meridian edge {}".format(merEdgeIndex) ) )
