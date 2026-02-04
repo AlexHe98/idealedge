@@ -780,5 +780,8 @@ if __name__ == "__main__":
 ##    ext.simplify()
 ##    ext.simplify()
 ##    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
-    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
+    #NOTE As of Regina 7.4, NS_QUAD and NS_VERTEX have been deprecated and
+    #       replaced with NormalCoords.Quad and NormalList.Vertex,
+    #       respectively.
+    surfaces = NormalSurfaces( tri, NormalCoords.Quad, NormalList.Vertex )
     crushAnnuli(surfaces)
