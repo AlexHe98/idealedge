@@ -7,6 +7,9 @@ from decomposeknot import decompose, DecompositionTracker
 from loop import IdealLoop
 
 
+#TODO Replace IdealLoop with EdgeIdealTriangulation.
+
+
 def extractFilenames(nameFile):
     """
     Extracts filenames from the given nameFile, which should be a text file

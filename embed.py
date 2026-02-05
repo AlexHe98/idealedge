@@ -10,6 +10,9 @@ except ModuleNotFoundError:
     snappy = False
 
 
+#TODO Replace IdealLoop with EdgeIdealTriangulation.
+
+
 def loopPacket(loop):
     """
     Returns a packet of the triangulation containing the given loop, with an
