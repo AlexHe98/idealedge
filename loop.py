@@ -283,10 +283,9 @@ class EmbeddedLoop:
         --> The given edge embeddings must all reference tetrahedra belonging
             to the same 3-manifold triangulation.
         """
-        return cls.setFromEdges(
-                edgesFromEmbeddings(edgeEmbeddings),
-                edgeOrientationFromEmbedding(
-                    edgeEmbeddings[0], orientation ) )
+        return cls( edgesFromEmbeddings(edgeEmbeddings),
+                   edgeOrientationFromEmbedding(
+                       edgeEmbeddings[0], orientation ) )
 
     #TODO Delete this entirely at a later date.
     def setFromLightweight( self, sig, edgeLocations ):

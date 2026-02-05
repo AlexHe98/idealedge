@@ -3,12 +3,14 @@ Pinch an ideal loop without forgetting the meridian.
 """
 from regina import *
 from loop import BoundaryLoop
+from triloops import TriangulationWithBoundaryLoops
 
 
 def drillMeridian(loop):
     """
-    Builds a BoundaryLoop representing the meridian curve obtained by
-    drilling out the given IdealLoop.
+    Drills out the given IdealLoop from its ambient triangulation, and returns
+    the resulting TriangulationWithBoundaryLoops, which will have a single
+    BoundaryLoop corresponding to the meridian of the drilled loop.
 
     This routine might raise BoundsDisc if the meridian curve bounds a disc
     in the complement of the given loop.
@@ -21,7 +23,8 @@ def drillMeridian(loop):
             refTri,
             { refTri.tetrahedron(merTetIndex).vertex(merVert).index() } )
     merEdge = truncTri.linkEdge( merTetIndex, merVert, merFace )
-    meridian = BoundaryLoop( [merEdge] )
+    meridian = TriangulationWithBoundaryLoops( [
+        BoundaryLoop( [merEdge] ) ] )
     meridian.simplify()     # Might raise BoundsDisc.
     return meridian
 

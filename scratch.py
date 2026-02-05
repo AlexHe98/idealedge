@@ -14,10 +14,13 @@ from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
 
 
+#TODO meridian() is never used anywhere. Just delete it?
 def meridian( tri, edgeIndex ):
     """
     Drills out an edge loop e (corresponding to the given triangulation and
-    edge index), and returns the resulting meridian curve.
+    edge index), and returns the resulting TriangulationWithBoundaryLoops,
+    which will have a single BoundaryLoop corresponding to the meridian of the
+    drilled loop.
 
     Pre-condition:
     --> The edge given by tri.edge(edgeIndex) must lie entirely in the
@@ -190,7 +193,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     # The meridian of the ideal loop is a candidate for a
                     # regular fibre.
                     #NOTE Drilling preserves orientation.
-                    mer = drillMeridian(invIdLoop)
+                    triWithMeridian = drillMeridian(invIdLoop)
                 except BoundsDisc:
                     # The meridian bounds a disc "on the outside", so the
                     # filled triangulation must have been S2 x S1. In
@@ -204,17 +207,19 @@ def crushAnnuli( surfaces, threshold=30 ):
                 else:
                     # Successfully drilled.
                     #NOTE Simplification preserves orientation.
-                    mer.minimiseBoundary()
-                    mer.simplify()
-                    mer.simplify()
-                    drilled = PacketOfTriangulation3( mer.triangulation() )
+                    triWithMeridian.minimiseBoundary()
+                    triWithMeridian.simplify()
+                    triWithMeridian.simplify()
+                    drilled = PacketOfTriangulation3(
+                            triWithMeridian.triangulation() )
                     print( "Oriented? {}".format( drilled.isOriented() ) )
                     if usingPackets:
                         filled.insertChildLast(drilled)
 
-                    # Because we minimised the boundary, the meridian is
-                    # guaranteed to be given by a single edge.
-                    merEdgeIndex = mer[0]
+                    # There is only one BoundaryLoop, corresponding to the
+                    # meridian. Also, because we minimised the boundary, the
+                    # meridian is guaranteed to be given by a single edge.
+                    merEdgeIndex = triWithMeridian[0][0]
                     if usingPackets:
                         drilled.setLabel( comp.adornedLabel(
                             "Drilled, meridian edge {}".format(merEdgeIndex) ) )
@@ -259,19 +264,20 @@ def crushAnnuli( surfaces, threshold=30 ):
                             # We should be able to drill and get Seifert
                             # fibre parameters.
                             try:
-                                newMer = drillMeridian(newLoop)
+                                newTriWithMeridian = drillMeridian(newLoop)
                             except BoundsDisc:
                                 name += "N/A (S2 x S1); "
                             else:
-                                newMer.minimiseBoundary()
-                                newMer.simplify()
-                                newMer.simplify()
+                                newTriWithMeridian.minimiseBoundary()
+                                newTriWithMeridian.simplify()
+                                newTriWithMeridian.simplify()
                                 newDrilled = PacketOfTriangulation3(
-                                        newMer.triangulation() )
+                                        newTriWithMeridian.triangulation() )
 
-                                # Because we minimised the boundary, the meridian is
-                                # guaranteed to be given by a single edge.
-                                newMerEdgeIndex = newMer[0]
+                                # There is only one BoundaryLoop, corresponding to the
+                                # meridian. Also, because we minimised the boundary, the
+                                # meridian is guaranteed to be given by a single edge.
+                                newMerEdgeIndex = newTriWithMeridian[0][0]
                                 newSurf = newDrilled.nonTrivialSphereOrDisc()
                                 if newSurf is None:
                                     name += "N/A (no disc); "
@@ -358,7 +364,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # The meridian of the ideal loop is a candidate for an
                         # exceptional fibre.
                         #NOTE Drilling preserves orientation.
-                        mer = drillMeridian(idLoop)
+                        triWithMeridian = drillMeridian(idLoop)
                     except BoundsDisc:
                         # The meridian bounds a disc "on the outside", so the
                         # filled triangulation must have been S2 x S1. In
@@ -373,17 +379,19 @@ def crushAnnuli( surfaces, threshold=30 ):
                     else:
                         # Successfully drilled.
                         #NOTE Simplification preserves orientation.
-                        mer.minimiseBoundary()
-                        mer.simplify()
-                        mer.simplify()
-                        drilled = PacketOfTriangulation3( mer.triangulation() )
+                        triWithMeridian.minimiseBoundary()
+                        triWithMeridian.simplify()
+                        triWithMeridian.simplify()
+                        drilled = PacketOfTriangulation3(
+                                triWithMeridian.triangulation() )
                         print( "Oriented? {}".format( drilled.isOriented() ) )
                         if usingPackets:
                             comp.insertChildLast(drilled)
 
-                        # Because we minimised the boundary, the meridian is
-                        # guaranteed to be given by a single edge.
-                        merEdgeIndex = mer[0]
+                        # There is only one BoundaryLoop, corresponding to the
+                        # meridian. Also, because we minimised the boundary, the
+                        # meridian is guaranteed to be given by a single edge.
+                        merEdgeIndex = triWithMeridian[0][0]
                         if usingPackets:
                             drilled.setLabel( comp.adornedLabel(
                                 "Drilled, meridian edge {}".format(merEdgeIndex) ) )
@@ -428,19 +436,20 @@ def crushAnnuli( surfaces, threshold=30 ):
                                 # We should be able to drill and get Seifert
                                 # fibre parameters.
                                 try:
-                                    newMer = drillMeridian(newLoop)
+                                    newTriWithMeridian = drillMeridian(newLoop)
                                 except BoundsDisc:
                                     name += "N/A (S2 x S1); "
                                 else:
-                                    newMer.minimiseBoundary()
-                                    newMer.simplify()
-                                    newMer.simplify()
+                                    newTriWithMeridian.minimiseBoundary()
+                                    newTriWithMeridian.simplify()
+                                    newTriWithMeridian.simplify()
                                     newDrilled = PacketOfTriangulation3(
-                                            newMer.triangulation() )
+                                            newTriWithMeridian.triangulation() )
 
-                                    # Because we minimised the boundary, the meridian is
-                                    # guaranteed to be given by a single edge.
-                                    newMerEdgeIndex = newMer[0]
+                                    # There is only one BoundaryLoop, corresponding to the
+                                    # meridian. Also, because we minimised the boundary, the
+                                    # meridian is guaranteed to be given by a single edge.
+                                    newMerEdgeIndex = newTriWithMeridian[0][0]
                                     newSurf = newDrilled.nonTrivialSphereOrDisc()
                                     if newSurf is None:
                                         name += "N/A (no disc); "
@@ -745,6 +754,9 @@ if __name__ == "__main__":
         q = params.pop()
         p = params.pop()
         fibres.append( (p,q) )
+    print( "g={}, b={}".format( genus, boundaries ) )
+    print(fibres)
+    print()
     tri = orientableSFS( genus, boundaries, *fibres )
     tri.simplify()
     tri.simplify()
@@ -768,5 +780,8 @@ if __name__ == "__main__":
 ##    ext.simplify()
 ##    ext.simplify()
 ##    surfaces = NormalSurfaces( ext, NS_QUAD, NS_VERTEX )
-    surfaces = NormalSurfaces( tri, NS_QUAD, NS_VERTEX )
+    #NOTE As of Regina 7.4, NS_QUAD and NS_VERTEX have been deprecated and
+    #       replaced with NormalCoords.Quad and NormalList.Vertex,
+    #       respectively.
+    surfaces = NormalSurfaces( tri, NormalCoords.Quad, NormalList.Vertex )
     crushAnnuli(surfaces)
