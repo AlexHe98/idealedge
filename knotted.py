@@ -20,6 +20,9 @@ else:
     _serial = False
 
 
+#TODO Replace IdealLoop with EdgeIdealTriangulation.
+
+
 def knownHyperbolic(loop):
     """
     Is the given ideal loop known to represent a hyperbolic knot?

@@ -9,6 +9,7 @@ from regina import *
 from aux.quad import tetQuadType
 
 
+#TODO To avoid confusion, call these "cycles" of wedge cells instead.
 def wedgeLoops(surf):
     """
     Detects loops of wedge cells induced by the given normal surface.

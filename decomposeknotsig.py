@@ -9,6 +9,7 @@ from decomposeknot import decompose
 if __name__ == "__main__":
     # Run decompose() with the verbose option.
     print()
+    #TODO Update usage.
     primes = decompose( Link.fromKnotSig( argv[1] ), True )
     if len(primes) == 0:
         print( "Unknot!" )

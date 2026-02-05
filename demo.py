@@ -34,6 +34,7 @@ if __name__ == "__main__":
 
     # Now try to decompose the knot (in verbose mode).
     print()
+    #TODO Update usage.
     primeLoops = decompose( knot, True )
     print()
 
