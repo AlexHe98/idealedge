@@ -35,9 +35,10 @@ def pinch(loop):
     vertex link of a newly constructed ideal triangulation given by pinching
     the given ideal loop.
 
-    This routine returns a triple (t, i, v, f), where:
-    --> t is the pinched triangulation;
-    --> i is the index of a tetrahedron incident to the meridian;
+    This routine returns a triple (p, i, v, f), where:
+    --> p is the pinched triangulation;
+    --> i is the index of a tetrahedron t of p that is incident to the
+        meridian;
     --> v is a vertex number of t whose corresponding vertex-linking triangle
         is incident to the meridian; and
     --> f is a triangle number of t whose corresponding triangle is incident
