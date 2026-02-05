@@ -2,36 +2,38 @@
 Find the ideal edges after crushing a normal surface.
 """
 from regina import *
-from loop import NotLoop, IdealLoop
+from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
+from triloops import EdgeIdealTriangulation
 from segment import OrientedSegment
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
+from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
 #TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
-def decomposeAlong( surf, oldLoops ):
+def decomposeAlong( surf, edgeIdealTri=None ):
     """
     Decomposes along surf, and returns a list of the resulting components.
 
-    In detail, each item in the returned list is a list I of ideal loops,
-    encoded as instances of IdealLoop, such that:
-    --> each loop in I lies inside the same triangulation T; and
-    --> the corresponding component is obtained by drilling out the loops in
-        I from T.
-    Thus, a side-effect of this routine is that it effectively deletes any
-    components that contain no ideal loops at all (since there is no way to
-    recover a triangulation from an empty list of ideal loops).
+    In detail, each item in the returned list will be instance of either
+    EdgeIdealTriangulation or Triangulation3. The underlying triangulations
+    will just be the components that result from crushing surf.triangulation()
+    along surf. If there are any EdgeIdealTriangulation objects in the
+    returned list, then the IdealLoop objects that are embedded in these
+    triangulations indicate loops that should be drilled out to obtain
+    topologically useful 3-manifolds obtained by decomposing along surf.
 
-    Another side-effect is that this routine might detect and delete some
-    ideal loops that are "trivial" in the sense that they bound embedded
-    discs. However, note that this routine does not systematically test
-    whether every loop is trivial or nontrivial, so it is still possible for
-    the output to include some trivial loops.
+    If there are no pre-existing IdealLoop objects to track, then only surf
+    needs to be supplied as input to this routine. Otherwise, both surf and
+    edgeIdealTri should be supplied, in which case edgeIdealTri should be an
+    instance of EdgeIdealTriangulation that tracks all of the pre-existing
+    IdealLoop objects.
 
-    The given oldLoops list should be a list of pre-existing ideal loops,
-    encoded as instances of IdealLoop.
+    A side-effect of this routine is that it might (but is not guaranteed to)
+    detect and silently delete some (or all, or none) of the ideal loops that
+    are "trivial" in the sense that they bound embedded discs.
 
     The given normal surface surf should be either:
     --> an annulus or 2-sphere that is disjoint from all of the pre-existing
@@ -45,13 +47,16 @@ def decomposeAlong( surf, oldLoops ):
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does not check this condition.
 
-    Pre-condition
+    Precondition
     --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
-    --> The given surf and each ideal loop in oldLoops must all lie in the
-        same triangulation.
+    --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
+        be the same as surf.triangulation(). In other words, edgeIdealTri and
+        surf should both reference the same triangulation object in memory.
     """
+    #TODO Return EdgeIdealTriangulation objects instead of IdealLoop lists.
+
     # Find where the new ideal loops will be after crushing.
     loopEmbSeqsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
