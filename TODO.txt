@@ -1,16 +1,17 @@
 --- Bounded SFS recognition
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
-        ->- Check for usage in following files (these all contain occurrences of "[lL]oop"):
-            ->> decomposeknot.py
+        ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> decomposeknotsig.py
             ->> demo.py
-            ->> idealedge.py
             ->> wedge.py
             ->> knotted.py
             ->> scratch.py
-            ->> triloops.py
             ->> experiments/knots/main.py
             ->> embed.py
+        ->- Update usage in the following main files:
+            ->> decomposeknot.py
+            ->> idealedge.py
+            ->> triloops.py (this is probably already fine, but double-check)
             ->> loop.py
         ->- Remove old simplification routines
         ->- Update usage in knot factorisation algorithm
