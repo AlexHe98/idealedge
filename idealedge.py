@@ -53,27 +53,29 @@ def decomposeAlong( surf, oldLoops ):
         same triangulation.
     """
     # Find where the new ideal loops will be after crushing.
-    loopEmbsInOldTri = newIdealLoopEmbs( surf, oldLoops )
+    loopEmbSeqsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
               if tetHasQuads( surf, tet.index() ) ]
     tetIndicesAfterCrush = tetRenumbering(doomed)
     crushed = surf.crush()
-    loopEmbs = []
-    for oldEmbSequence in loopEmbsInOldTri:
+    loopEmbSeqs = []
+    for oldEmbSequence in loopEmbSeqsInOldTri:
         embSequence = []
         for oldEmb in oldEmbSequence:
             crushedTet = crushed.tetrahedron(
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
             embSequence.append( EdgeEmbedding3(
                 crushedTet, oldEmb.vertices() ) )
-        loopEmbs.append(embSequence)
+        loopEmbSeqs.append(embSequence)
 
     # Split crushed into its components.
     if crushed.isConnected():
         components = [crushed]
-        compLoopInfo = [ [
-            ( emb.tetrahedron().index(), emb.vertices() )
-            for emb in loopEmbs ] ]
+        compLoopInfo = [[]]
+        for embSequence in loopEmbSeqs:
+            compLoopInfo[0].append(
+                    [ ( emb.tetrahedron().index(), emb.vertices() )
+                     for emb in embSequence ] )
     else:
         components = list( crushed.triangulateComponents() )
 
@@ -89,7 +91,7 @@ def decomposeAlong( surf, oldLoops ):
         # Using the renumbering that we just computed, record shifted
         # tetrahedron indices for the ideal loops.
         compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
-        for embSequence in loopEmbs:
+        for embSequence in loopEmbSeqs:
             singleLoopInfo = []
             for survivingEmb in embSequence:
                 teti = survivingEmb.tetrahedron().index()

@@ -2,7 +2,6 @@
 Tests whether an ideal loop is nontrivially knotted.
 """
 from regina import *
-from idealedge import decomposeAlong
 from loop import IdealLoop
 from retriangulate.insert import layerOn
 from aux.surface import isSphere
