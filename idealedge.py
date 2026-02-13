@@ -35,12 +35,18 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     detect and silently delete some (or all, or none) of the ideal loops that
     are "trivial" in the sense that they bound embedded discs.
 
-    The given normal surface surf should be either:
-    --> an annulus or 2-sphere that is disjoint from all of the pre-existing
-        ideal loops; or
-    --> a separating 2-sphere that intersects one of the pre-existing ideal
-        loops in exactly two points, and is disjoint from all of the other
-        pre-existing ideal loops.
+    If there are no pre-existing ideal loops, then surf should be of one of
+    the following types:
+    --> A 2-sphere.
+    --> A disc.
+    --> An annulus.
+    --> A projective plane.
+    --> A Mobius band.
+    Otherwise, letting W denote the weight of surf on the pre-existing ideal
+    loops, surf should be of one of the following types:
+    --> A 2-sphere with either W == 2 or W == 0.
+    --> A disc with either W == 1 or W == 0.
+    --> A projective plan with W == 1 or W == 0.
     This routine raises ValueError if surf is not of one of these allowed
     types.
 
@@ -49,14 +55,12 @@ def decomposeAlong( surf, edgeIdealTri=None ):
 
     Precondition
     --> The given surf should be a quadrilateral vertex normal surface.
-    --> If surf is an annulus, then each boundary component that it meets
+    --> If surf has real boundary, then each boundary component that it meets
         must be a two-triangle torus.
     --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
-    #TODO Return EdgeIdealTriangulation objects instead of IdealLoop lists.
-
     # Find where the new ideal loops will be after crushing.
     loopEmbSeqsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
@@ -107,6 +111,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             # for loop.
             compi = crushed.tetrahedron(teti).component().index()
             compLoopInfo[compi].append(singleLoopInfo)
+
+    #TODO Return EdgeIdealTriangulation objects instead of IdealLoop lists.
+    #TODO Update to deal with the additional types of allowed surfaces.
 
     # Use compLoopInfo to find the ideal loops in each component.
     output = []
