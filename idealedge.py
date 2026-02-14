@@ -12,7 +12,7 @@ from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
-#TODO Eventually, we probably want to return EdgeIdealTriangulation objects.
+#TODO Update usage for new output format.
 def decomposeAlong( surf, edgeIdealTri=None ):
     """
     Decomposes along surf, and returns a list of the resulting components.
@@ -30,6 +30,14 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     edgeIdealTri should be supplied, in which case edgeIdealTri should be an
     instance of EdgeIdealTriangulation that tracks all of the pre-existing
     IdealLoop objects.
+
+    This routine might (but is not guaranteed to) detect that some ideal loops
+    are "trivial" in the sense that they bound embedded discs. This routine
+    handles such a trivial ideal loop L in one of two ways:
+    --> If L is the only ideal loop in its ambient triangulation, then this
+        routine will silently delete L.
+    --> Otherwise, if there are other ideal loops in the ambient triangulation
+        of L, then this routine will raise BoundsDisc.
 
     A side-effect of this routine is that it might (but is not guaranteed to)
     detect and silently delete some (or all, or none) of the ideal loops that
@@ -61,7 +69,13 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
+    #TODO Make a final decision on how to deal with trivial loops, and then
+    #       check that trivial loops are actually dealt with as intended.
+
     # Find where the new ideal loops will be after crushing.
+    #
+    #NOTE The newIdealLoopEmbs() requires, and will check, that the given
+    #       surface is of one of the allowed types.
     loopEmbSeqsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
               if tetHasQuads( surf, tet.index() ) ]
@@ -112,9 +126,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             compi = crushed.tetrahedron(teti).component().index()
             compLoopInfo[compi].append(singleLoopInfo)
 
-    #TODO Return EdgeIdealTriangulation objects instead of IdealLoop lists.
-    #TODO Update to deal with the additional types of allowed surfaces.
-
     # Use compLoopInfo to find the ideal loops in each component.
     output = []
     for compi in range( crushed.countComponents() ):
@@ -143,18 +154,26 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             try:
                 loop = IdealLoop( edgeList, orientation )
             except NotLoop:
+                #TODO Is ignoring these the right thing to do?
+
                 # Ignore degenerate loop.
                 continue
             else:
                 loops.append(loop)
-        if len(loops) == 1:
-            try:
-                loops[0].simplify()
-                loops[0].simplify()
-            except BoundsDisc:
-                # Ignore trivial loop.
-                continue
-        output.append(loops)
+
+        # If we have any loops at all, then package them all together as a
+        # single EdgeIdealTriangulation. Otherwise, just add an ordinary
+        # Triangulation3 to the output list.
+        #
+        #TODO Consider simplifying before adding to the output list. But this
+        #       requires deciding how this routine should behave if
+        #       simplification raises BoundsDisc.
+        if loops:
+            output.append( EdgeIdealTriangulation(loops) )
+        else:
+            output.append(tri)
+
+    # All done!
     return output
 
 
