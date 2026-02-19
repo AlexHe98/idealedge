@@ -30,6 +30,56 @@ def meridian( tri, edgeIndex ):
     return drillMeridian( IdealLoop( [ tri.edge(edgeIndex) ] ) )
 
 
+#TODO Make this more general.
+def filledHomology(annulus):
+    """
+    Given an annulus A in a triangulation whose boundary is a two-triangle
+    torus B, such that both boundary curves of A are parallel to an edge of B,
+    computes the first homology of the manifold given by filling along the
+    slope of the boundary of A.
+    """
+    # What's the homology of the manifold before filling?
+    tri = annulus.triangulation()
+    markedH1 = tri.markedHomology(1)
+    rank = markedH1.rank()
+    numInvFacs = markedH1.countInvariantFactors()
+    invFacs = [ markedH1.invariantFactor(i) for i in range(numInvFacs) ]
+    numGenerators = rank + numInvFacs
+    # Each column represents a generator.
+    # Each row gives a relation.
+    presentation = []
+    for i in range(numInvFacs):
+        relation = [0] * numGenerators
+        relation[i] = invFacs[i]
+        presentation.append(relation)
+
+    # We need to add one extra relation corresponding to the curve c that is
+    # killed by the Dehn filling. By assumption, there is a boundary edge that
+    # is parallel to c.
+    missedEdgeIndex = None
+    for e in tri.edges():
+        if not e.isBoundary():
+            continue
+        if annulus.edgeWeight( e.index() ).pythonValue() == 0:
+            missedEdgeIndex = e.index()
+            break
+    if missedEdgeIndex is None:
+        raise ValueError( "Given surface doesn't satisfy preconditions" )
+
+    # Write the missed edge in terms of generators, so that we can then add a
+    # relation that kills c.
+    cycle = [0] * tri.countEdges()
+    cycle[missedEdgeIndex] = 1
+    relation = markedH1.snfRep(cycle)
+    #TODO BEGIN TEST
+    if presentation:
+        print( AbelianGroup( MatrixInt(presentation) ) )
+    print(relation)
+    #TODO END TEST
+    presentation.append(relation)
+    return AbelianGroup( MatrixInt(presentation) )
+
+
 #TODO Experiment with crushing Mobius bands as well.
 def crushAnnuli( surfaces, threshold=30 ):
     """
@@ -82,6 +132,12 @@ def crushAnnuli( surfaces, threshold=30 ):
                 crushedName += " (Lost (3,{}))".format(twist)
         #NOTE Crushing preserves orientation.
         tri = PacketOfTriangulation3( surf.crush() )
+        try:
+            filledH1 = filledHomology(surf)
+        except ValueError:
+            filledH1 = "unknown"
+        print( "--> Dehn-filled homology: {} -> {}".format(
+            surf.triangulation().homology(), filledH1 ) )
         if usingPackets:
             tri.setLabel(crushedName)
             results.insertChildLast(tri)
@@ -177,6 +233,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                 invIdEdgeIndex = fillIdealEdges(
                         filled, endpoints )[0].index()
                 filled = PacketOfTriangulation3(filled)
+                print( "--> filled component homology: {}".format(
+                    filled.homology() ) )
                 invIdEdge = filled.edge(invIdEdgeIndex)
                 if usingPackets:
                     filled.setLabel( comp.adornedLabel(
@@ -349,6 +407,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                 #TODO Experiment with drillMeridian() instead of pinchEdge().
                 # If this component contains the ideal edge, then attempt to
                 # simplify (and possibly identify) the drilled manifold.
+                print( "--> component homology: {}".format(
+                    comp.homology() ) )
                 if compNum == idComp:
                     idTeti, idVer = idEdgeInfo
                     ide = comp.tetrahedron(idTeti).edge(
