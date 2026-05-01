@@ -820,7 +820,8 @@ class DecompositionTracker:
         beforeReport = "Processing new {}-tetrahedron".format(size)
         beforeReport += " edge-ideal triangulation.\n"
         triEncoding, edgeIndices, orientation = loop.blueprint()
-        beforeReport += "    Encoding:    {}\n".format(triEncoding)
+        beforeReport += "    Encoding:    {}\n".format(
+                triEncoding.encode("unicode_escape") )
         beforeReport += "    Edges:       {}\n".format(
                 ", ".join( [ str(i) for i in edgeIndices ] ) )
         beforeReport += "    Orientation: {}".format(orientation)
