@@ -2,6 +2,7 @@
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Remove old simplification routines
         ->- Update usage in knot factorisation algorithm
+        ->- Make sure to actually track orientation of embedded loops
     --> etc
     --> Update README.md
 --- Test suites
