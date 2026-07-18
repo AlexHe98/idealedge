@@ -44,8 +44,6 @@ def twoThree( triangle, edgeLab=None ):
     will be preserved by the requested 2-3 move.
     """
     tri = triangle.triangulation()
-    if edgeLab is None:
-        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 2-3 move legal?
     #
@@ -55,6 +53,9 @@ def twoThree( triangle, edgeLab=None ):
     #       Triangulation3.pachner( f, True, False ).
     if not tri.hasPachner(triangle):
         return None
+
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # We need to work out the gluings that we need to perform before we make
     # any changes.
@@ -326,8 +327,6 @@ def threeTwo( edge, edgeLab=None ):
     be preserved by the requested 3-2 move.
     """
     tri = edge.triangulation()
-    if edgeLab is None:
-        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 3-2 move legal?
     #
@@ -337,6 +336,9 @@ def threeTwo( edge, edgeLab=None ):
     #       Triangulation3.pachner( e, True, False ).
     if not tri.hasPachner(edge):
         return None
+
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # We need to work out the gluings that we need to perform before we make
     # any changes.
@@ -659,8 +661,6 @@ def twoZero( edge, edgeLab=None ):
     be preserved by the requested 2-0 move.
     """
     tri = edge.triangulation()
-    if edgeLab is None:
-        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 2-0 move legal?
     #
@@ -670,6 +670,9 @@ def twoZero( edge, edgeLab=None ):
     #       Triangulation3.twoZeroMove( e, True, False ).
     if not tri.has20(edge):
         return None
+
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # How will the tetrahedra in tri get renumbered after we perform the
     # requested 2-0 move?
@@ -849,8 +852,6 @@ def fourFour( edge, newAxis, edgeLab=None ):
     be preserved by the requested 4-4 move.
     """
     tri = edge.triangulation()
-    if edgeLab is None:
-        edgeLab = EdgeLabelling(tri)
 
     # Is the requested 4-4 move legal?
     #
@@ -860,6 +861,9 @@ def fourFour( edge, newAxis, edgeLab=None ):
     #       Triangulation3.fourFourMove( e, ax, True, False ).
     if not tri.has44( edge, newAxis ):
         return None
+
+    if edgeLab is None:
+        edgeLab = EdgeLabelling(tri)
 
     # Find the doomed tetrahedra.
     doomed = []
