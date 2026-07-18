@@ -25,6 +25,9 @@
     --> etc
 --- Update to use Regina 7.4
     --> Check for places where updates haven't been applied yet
+--- Update in preparation for Regina 8.0, but without breaking backward compatibility
+    --> Use Link.fromSig() instead of Link.fromKnotSig()
+    --> Use neoSig(), but fall back on old routines if this function doesn't exist
 --- Reorganise source files to reduce clutter
 --- Tidy up documentation
     --> Preconditions
