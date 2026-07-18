@@ -29,5 +29,6 @@
     --> Use Link.fromSig() instead of Link.fromKnotSig()
     --> Use neoSig(), but fall back on old routines if this function doesn't exist
 --- Reorganise source files to reduce clutter
+--- Tidy up imports
 --- Tidy up documentation
     --> Preconditions

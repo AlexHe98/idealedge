@@ -47,14 +47,14 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     the following types:
     --> A 2-sphere.
     --> A disc.
-    --> An annulus.
-    --> A projective plane.
-    --> A Mobius band.
+    --> An annulus with nontrivial boundary curves.
+    --> A Mobius band with nontrivial boundary curve.
     Otherwise, letting W denote the weight of surf on the pre-existing ideal
     loops, surf should be of one of the following types:
     --> A 2-sphere with either W == 2 or W == 0.
-    --> A disc with either W == 1 or W == 0.
-    --> A projective plan with W == 1 or W == 0.
+    --> A disc with W == 1 and nontrivial boundary curve.
+    --> A disc with W == 0.
+    --> A projective plane with W == 1.
     This routine raises ValueError if surf is not of one of these allowed
     types.
 
@@ -69,6 +69,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
+    #TODO Decide whether to bother with allowing projective planes as input.
+
     #TODO Make a final decision on how to deal with trivial loops, and then
     #       check that trivial loops are actually dealt with as intended.
 
@@ -190,12 +192,18 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
     IdealLoop. Each of these ideal loops must lie in the same triangulation
     as surf, and these ideal loops must all be mutually disjoint.
 
-    The given normal surface surf should be either:
-    --> an annulus or 2-sphere that is disjoint from all of the pre-existing
-        ideal loops; or
-    --> a separating 2-sphere that intersects one of the pre-existing ideal
-        loops in exactly two points, and is disjoint from all of the other
-        pre-existing ideal loops.
+    If there are no pre-existing ideal loops, then surf should be of one of
+    the following types:
+    --> A 2-sphere.
+    --> A disc.
+    --> An annulus with nontrivial boundary curves.
+    --> A Mobius band with nontrivial boundary curve.
+    Otherwise, letting W denote the weight of surf on the pre-existing ideal
+    loops, surf should be of one of the following types:
+    --> A 2-sphere with either W == 2 or W == 0.
+    --> A disc with W == 1 and nontrivial boundary curve.
+    --> A disc with W == 0.
+    --> A projective plane with W == 1.
     This routine raises ValueError if surf is not of one of these allowed
     types.
 
@@ -232,6 +240,9 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
     """
+    #TODO Update the checks below to allow for the extra cases that arise in
+    #       the context of bounded SFS recognition.
+
     # The given surf must be either a 2-sphere or an annulus. Moreover:
     # - In the 2-sphere case, we allow one of the ideal loops to have
     #   nonempty intersection with the surface.
