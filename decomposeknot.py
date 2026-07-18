@@ -370,6 +370,7 @@ def _enumerateParallel( oldLoop, tracker ):
         wt = oldLoop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
+        #TODO Update usage to account for extra book-keeping.
         decomposed = decomposeAlong( sphere, [oldLoop] )
         newLoops = []
         for decomposedLoops in decomposed:
@@ -440,6 +441,7 @@ def _indefiniteEnumerate( receiver, sender ):
         wt = loop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
+        #TODO Update usage to account for extra book-keeping.
         decomposed = decomposeAlong( sphere, [loop] )
         newBlueprints = []
         for decomposedLoops in decomposed:
@@ -505,6 +507,7 @@ def _enumerateSerial( oldLoop, tracker ):
         wt = oldLoop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
+        #TODO Update usage to account for extra book-keeping.
         decomposed = decomposeAlong( sphere, [oldLoop] )
         newLoops = []
         for decomposedLoops in decomposed:

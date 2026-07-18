@@ -639,6 +639,7 @@ def crushSpheres( surfaces, idealEdgeIndex, threshold=30 ):
             continue
         try:
             #TODO This needs to be updated.
+            #TODO Update usage to account for extra book-keeping.
             pieces = decomposeAlong( surf, {idealEdgeIndex} )
         except ValueError:
             continue
@@ -736,6 +737,7 @@ def decomposeAlongSpheres(idealLoop):
                     lostFibres += " Lost (3,{}).".format(twist)
             if lostFibres:
                 print( lostFibres[1:] )
+            #TODO Update usage to account for extra book-keeping.
             decomposed = decomposeAlong( sphere, [oldLoop] )
             for newLoops in decomposed:
                 if newLoops:

@@ -12,6 +12,9 @@ from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
+#TODO Overhaul decomposeAlong() to not only return the components that
+#       survive crushing, but also to do the book-keeping of tracking deleted
+#       components and counting the number of orbital compressions.
 #TODO Update usage for new output format.
 def decomposeAlong( surf, edgeIdealTri=None ):
     """
