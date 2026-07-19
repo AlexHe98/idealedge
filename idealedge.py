@@ -5,9 +5,10 @@ from regina import *
 from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
 from triloops import EdgeIdealTriangulation
 from segment import OrientedSegment
+from aux.bdry import hasOnlyMinimalRealTorusBoundaryComponents
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
-from aux.surface import SurfaceType
+from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
@@ -245,10 +246,10 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
-    #TODO Enforce more properties of the triangulation.
     tri = surf.triangulation()
-    if not tri.hasMinimalBoundary():
-        raise ValueError( "Triangulation must have minimal boundary" )
+    if not hasOnlyMinimalRealTorusBoundaryComponents(tri):
+        raise ValueError( "Triangulation is only allowed to have real " +
+                         "boundary components that are two-triangle tori" )
 
     # Check that surf is of one of the required types.
     surfType = SurfaceType.recognise(surf)
@@ -261,9 +262,15 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
             #TODO
             raise NotImplementedError()
         elif surfType == SurfaceType.ANNULUS:
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                raise ValueError( "An annulus must have nontrivial " +
+                                 "boundary curves" )
             #TODO
             raise NotImplementedError()
         elif surfType == SurfaceType.MOBIUS:
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                raise ValueError( "A Mobius band must have nontrivial " +
+                                 "boundary curve" )
             #TODO
             raise NotImplementedError()
         else:
@@ -272,13 +279,30 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
     else:
         # EdgeIdealTriangulation always holds a nonempty collection of ideal
         # loops.
+        weight = edgeIdealTri.weight(surf)
         if surfType == SurfaceType.SPHERE:
+            if weight not in {0, 2}:
+                raise ValueError( "A 2-sphere must have ideal weight " +
+                                 "either 0 or 2" )
             #TODO
             raise NotImplementedError()
         elif surfType == SurfaceType.DISC:
-            #TODO
-            raise NotImplementedError()
+            if weight == 0:
+                #TODO
+                raise NotImplementedError()
+            elif weight == 1:
+                if not hasOnlyNonTrivialBoundaryCurves(surf):
+                    raise ValueError( "A disc with ideal weight 1 must " +
+                                     "have nontrivial boundary curve" )
+                #TODO
+                raise NotImplementedError()
+            else:
+                raise ValueError( "A disc must have ideal weight " +
+                                 "either 0 or 1" )
         elif surfType == SurfaceType.RP3:
+            if weight != 1:
+                raise ValueError( "A projective plane must have ideal " +
+                                 "weight 1" )
             #TODO
             raise NotImplementedError()
         else:

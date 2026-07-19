@@ -46,8 +46,38 @@ class SurfaceType(Enum):
         return cls.OTHER
 
 
-#TODO Given a normal surface in a boundary-minimal triangulation, determine
-#       whether all of its boundary 
+def hasOnlyNonTrivialBoundaryCurves(surf):
+    """
+    Returns True if and only if surf is either closed or has only nontrivial
+    boundary curves.
+
+    In particular, this routine vacuously returns True if surf has no
+    boundary at all.
+
+    This routine requires that surf lies inside a triangulation in which
+    every boundary component is a real two-triangle torus. This requirement
+    is not checked, and failure of this condition may lead to undefined
+    behaviour.
+
+    Pre-condition:
+    --> Every boundary component of surf.triangulation() is a real
+        two-triangle torus
+    """
+    tri = surf.triangulation()
+    for bc in tri.boundaryComponents():
+        # By assumption, bc is a real two-triangle torus. Therefore, surf has
+        # a trivial boundary curve in bc if and only if every normal arc
+        # coordinate in bc is positive. To check this, it suffices to examine
+        # only one of the two triangles of bc.
+        faceIndex = bc.triangle(0).index()
+        hasTrivialBoundaryCurve = True  # True until we prove otherwise.
+        for vertexNum in range(3):
+            if surf.arcs( faceIndex, vertexNum ) == LargeInteger.zero:
+                hasTrivialBoundaryCurve = False
+                break
+        if hasTrivialBoundaryCurve:
+            return False
+    return True
 
 
 def isAnnulus(s):
