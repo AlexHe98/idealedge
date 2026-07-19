@@ -496,13 +496,13 @@ class TriangulationWithEmbeddedLoops:
 
             # Perform the move, and then update this loop.
             #
-            # The _findBoundaryMove() routine should already ensure legality
-            # of the close book move, so no need to check before performing.
+            # The _findBoundaryMove() routine ensures legality of the close
+            # book move.
             changed = True
             edge, doLayer, edgeEmbeddingsData = moveDetails
             if doLayer:
                 edge = layerOn(edge).edge(5)
-            self._tri.closeBook( edge, False, True )
+            self._tri.closeBook(edge)
             self.setFromEdgeEmbeddings(edgeEmbeddingsData)
         return
 
@@ -1038,8 +1038,15 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
 
             # First try to find a close book move, which does not increase
             # the number of tetrahedra.
+            #
+            #NOTE Triangulation3.hasCloseBook(e) was introduced in
+            #       Regina 7.4. In older versions of Regina, equivalent
+            #       functionality (checking eligibility of the move, but
+            #       not performing it) was provided by
+            #
+            #           Triangulation3.closeBook( e, True, False ).
             for edge in bc.edges():
-                if self._tri.closeBook( edge, True, False ):
+                if self._tri.hasCloseBook(edge):
                     return ( edge,
                             False,  # Close book w/out layering.
                             self._edgeEmbeddingsData() )
@@ -1517,8 +1524,14 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
                 for edge in bloop.boundaryComponent().edges():
                     # Check eligibility of close book move, but do *not*
                     # perform yet.
-                    if not bloop.triangulation.closeBook(
-                            edge, True, False ):
+                    #
+                    #NOTE Triangulation3.hasCloseBook(e) was introduced in
+                    #       Regina 7.4. In older versions of Regina,
+                    #       equivalent functionality (checking eligibility of
+                    #       the move, but not performing it) was provided by
+                    #
+                    #           Triangulation3.closeBook( e, True, False ).
+                    if not bloop.triangulation.hasCloseBook(edge):
                         continue
 
                     # Because we have assumed that bloop cannot be
@@ -1577,7 +1590,13 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
             for edge in bc.edges():
                 if edge.index() in avoidEdgeIndices:
                     continue
-                if self._tri.closeBook( edge, True, False ):
+                #NOTE Triangulation3.hasCloseBook(e) was introduced in
+                #       Regina 7.4. In older versions of Regina, equivalent
+                #       functionality (checking eligibility of the move, but
+                #       not performing it) was provided by
+                #
+                #           Triangulation3.closeBook( e, True, False ).
+                if self._tri.hasCloseBook(edge):
                     return ( edge,
                             False,  # Close book w/out layering.
                             self._edgeEmbeddingsData() )
