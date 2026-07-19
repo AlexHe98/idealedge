@@ -26,7 +26,7 @@ class SurfaceType(Enum):
     @classmethod
     def recognise( cls, surface ):
         """
-        Recognises the homeomorphism type of the given normal surface.
+        Returns the homeomorphism type of the given normal surface.
         """
         if surface.isCompact() and surface.isConnected():
             euler = surface.eulerChar()
@@ -44,6 +44,10 @@ class SurfaceType(Enum):
                     return cls.MOBIUS
         # At this point, we have a surface that we don't currently recognise.
         return cls.OTHER
+
+
+#TODO Given a normal surface in a boundary-minimal triangulation, determine
+#       whether all of its boundary 
 
 
 def isAnnulus(s):

@@ -7,6 +7,7 @@ from triloops import EdgeIdealTriangulation
 from segment import OrientedSegment
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
+from aux.surface import SurfaceType
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
@@ -217,8 +218,10 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
     --> A disc with W == 1 and nontrivial boundary curve.
     --> A disc with W == 0.
     --> A projective plane with W == 1.
-    This routine raises ValueError if surf is not of one of these allowed
-    types.
+    Regardless of whether there are any pre-existing ideal loops, the ambient
+    triangulation surf.triangulation() must either be closed or have minimal
+    toroidal boundary. This routine raises ValueError if any of these
+    conditions are not satisfied.
 
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does not check this condition.
@@ -242,6 +245,45 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
+    #TODO Enforce more properties of the triangulation.
+    tri = surf.triangulation()
+    if not tri.hasMinimalBoundary():
+        raise ValueError( "Triangulation must have minimal boundary" )
+
+    # Check that surf is of one of the required types.
+    surfType = SurfaceType.recognise(surf)
+    if edgeIdealTri is None:
+        # No pre-existing ideal loops.
+        if surfType == SurfaceType.SPHERE:
+            #TODO
+            raise NotImplementedError()
+        elif surfType == SurfaceType.DISC:
+            #TODO
+            raise NotImplementedError()
+        elif surfType == SurfaceType.ANNULUS:
+            #TODO
+            raise NotImplementedError()
+        elif surfType == SurfaceType.MOBIUS:
+            #TODO
+            raise NotImplementedError()
+        else:
+            raise ValueError( "With no pre-existing ideal edges, we do " +
+                             "not support {}".format(surfType) )
+    else:
+        # EdgeIdealTriangulation always holds a nonempty collection of ideal
+        # loops.
+        if surfType == SurfaceType.SPHERE:
+            #TODO
+            raise NotImplementedError()
+        elif surfType == SurfaceType.DISC:
+            #TODO
+            raise NotImplementedError()
+        elif surfType == SurfaceType.RP3:
+            #TODO
+            raise NotImplementedError()
+        else:
+            raise ValueError( "With an edge-ideal triangulation, we do " +
+                             "not support {}".format(surfType) )
     #TODO
     raise NotImplementedError()
 
