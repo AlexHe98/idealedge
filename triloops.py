@@ -311,16 +311,62 @@ class TriangulationWithEmbeddedLoops:
             ans.append( loop.orientation() )
         return tuple(ans)
 
+    #TODO Which of the following do we really need?
+    #       --> intersects()
+    #       --> loopWeights()
+    #       --> weight()
+    #       --> incidentLoopIndices()
+
+    def intersects( self, surf ):
+        """
+        Returns True if and only if the union of embedded loops has nonempty
+        intersection with the given normal surface surf.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        for embLoop in self:
+            if embLoop.intersects(surf):
+                return True
+        return False
+
+    def loopWeights( self, surf ):
+        """
+        Returns a dictionary mapping loop indices to their weights with
+        respect to the given normal surface.
+
+        Only loops with positive weights will be included in the returned
+        dictionary.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        ans = dict()
+        for i, embLoop in enumerate(self):
+            wt = embLoop.weight(surf)
+            if wt > 0:
+                ans[i] = wt
+        return ans
+
+    def weight( self, surf ):
+        """
+        Returns the number of times the union of embedded loops intersects
+        the given normal surface surf.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        return sum( self.loopWeights(surf).values() )
+
     def incidentLoopIndices( self, surf ):
         """
         Returns a set consisting of the indices of the embedded loops that
         are incident to the given normal surface.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
         """
-        ans = set()
-        for i, embLoop in enumerate(self):
-            if embLoop.weight(surf) > 0:
-                ans.add(i)
-        return count
+        return set( self.loopWeights(surf).keys() )
 
     def splitArcs( self, surf ):
         """
