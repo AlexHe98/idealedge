@@ -11,6 +11,7 @@
         ->- Update usage in the following main files:
             ->> decomposeknot.py
             ->> idealedge.py
+                >-- Replace newIdealLoopEmbs() with more general trackIdealSegments() routine
                 >-- Overhaul implementation of decomposeAlong()
                 >-- Update usage of decomposeAlong() both in this and in other files
                 >-- Make sure knot factorisation continues to work with the overhauled decomposeAlong()

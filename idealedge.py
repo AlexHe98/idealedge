@@ -182,6 +182,70 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     return output
 
 
+#TODO First draft of the documentation is based on the old newIdealLoopEmbs()
+#       routine, and doesn't quite describe what this new routine will
+#       eventually do, so we will need to update documentation accordingly.
+def trackIdealSegments( surf, edgeIdealTri=None ):
+    """
+    Tracks ideal segments through the operation of crushing the given normal
+    surface surf.
+
+    This routine returns a pair of objects:
+    (0) A list describing the ideal loops that would arise after crushing the
+        given surface (see below for a more detailed description of how the
+        ideal loops before crushing are related to the ideal loops after
+        crushing). Each such ideal loop is encoded as a list of surviving
+        edge embeddings.
+    (1) An integer counting the number of orbital compression discs that
+        would be cut along as a consequence of crushing the given surface.
+
+    If there are no pre-existing IdealLoop objects to track, then only surf
+    needs to be supplied as input to this routine. Otherwise, both surf and
+    edgeIdealTri should be supplied, in which case edgeIdealTri should be an
+    instance of EdgeIdealTriangulation that tracks all of the pre-existing
+    IdealLoop objects.
+
+    If there are no pre-existing ideal loops, then surf should be of one of
+    the following types:
+    --> A 2-sphere.
+    --> A disc.
+    --> An annulus with nontrivial boundary curves.
+    --> A Mobius band with nontrivial boundary curve.
+    Otherwise, letting W denote the weight of surf on the pre-existing ideal
+    loops, surf should be of one of the following types:
+    --> A 2-sphere with either W == 2 or W == 0.
+    --> A disc with W == 1 and nontrivial boundary curve.
+    --> A disc with W == 0.
+    --> A projective plane with W == 1.
+    This routine raises ValueError if surf is not of one of these allowed
+    types.
+
+    We also require surf to be a quadrilateral vertex normal surface, but
+    this routine does not check this condition.
+
+    Crushing the given surface has the following effects:
+    --> Pre-existing ideal loops that are disjoint from the surface will be
+        left topologically untouched. In particular, their orientations will
+        be preserved.
+    --> Ideal loops that intersect the surface will be split into multiple
+        arcs, and each such arc may or may not survive to become a new ideal
+        loop after crushing. The orientation will be preserved for the arcs
+        that do survive.
+    --> If the surface is an annulus (which, as specified above, must be
+        disjoint from all pre-existing ideal loops), then crushing might
+        create an entirely new ideal loop. This new loop will be assigned an
+        arbitrary orientation.
+
+    Pre-condition:
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
+        be the same as surf.triangulation(). In other words, edgeIdealTri and
+        surf should both reference the same triangulation object in memory.
+    """
+    #TODO
+    raise NotImplementedError()
+
+
 #TODO Update documentation and implementation to:
 #       --> use the new TriangulationWithEmbeddedLoops class, and
 #       --> account for the extra cases that arise from SFS recognition.
