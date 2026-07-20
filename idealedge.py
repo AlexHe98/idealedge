@@ -207,6 +207,11 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
     instance of EdgeIdealTriangulation that tracks all of the pre-existing
     IdealLoop objects.
 
+    If both surf and edgeIdealTri are supplied, then surf.triangulation() and
+    edgeIdealTri.triangulation() must both reference the same Triangulation3
+    object in memory. This routine raises RuntimeError if this condition is
+    not satisfied.
+
     If there are no pre-existing ideal loops, then surf should be of one of
     the following types:
     --> A 2-sphere.
@@ -242,72 +247,69 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
 
     Pre-condition:
     --> The given surf should be a quadrilateral vertex normal surface.
-    --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
-        be the same as surf.triangulation(). In other words, edgeIdealTri and
-        surf should both reference the same triangulation object in memory.
     """
     tri = surf.triangulation()
     if not hasOnlyMinimalRealTorusBoundaryComponents(tri):
         raise ValueError( "Triangulation is only allowed to have real " +
                          "boundary components that are two-triangle tori" )
 
-    # Check that surf is of one of the required types.
+    # Check that surf is of one of the required types, and also find the new
+    # ideal edge embeddings that arise from the pre-existing ideal loops.
     surfType = SurfaceType.recognise(surf)
+    newLoopEmbs = []
+    survivors = OrientedSegment.survivors(surf)
     if edgeIdealTri is None:
-        # No pre-existing ideal loops.
-        if surfType == SurfaceType.SPHERE:
-            #TODO
-            raise NotImplementedError()
-        elif surfType == SurfaceType.DISC:
-            #TODO
-            raise NotImplementedError()
-        elif surfType == SurfaceType.ANNULUS:
+        # No pre-existing ideal loops, so just need to check the surface.
+        weight = 0
+        if surfType == SurfaceType.ANNULUS:
             if not hasOnlyNonTrivialBoundaryCurves(surf):
                 raise ValueError( "An annulus must have nontrivial " +
                                  "boundary curves" )
-            #TODO
-            raise NotImplementedError()
         elif surfType == SurfaceType.MOBIUS:
             if not hasOnlyNonTrivialBoundaryCurves(surf):
                 raise ValueError( "A Mobius band must have nontrivial " +
                                  "boundary curve" )
-            #TODO
-            raise NotImplementedError()
-        else:
+        elif surfType not in { SurfaceType.SPHERE, SurfaceType.DISC }:
             raise ValueError( "With no pre-existing ideal edges, we do " +
                              "not support {}".format(surfType) )
     else:
+        # Enforce the precondition that the two input objects reference
+        # precisely the same Triangulation3 object in memory.
+        if tri is not edgeIdealTri.triangulation():
+            raise RuntimeError( "The NormalSurface and the " +
+                               "EdgeIdealTriangulation must reference the " +
+                               "same Triangulation3 object in memory" )
+
         # EdgeIdealTriangulation always holds a nonempty collection of ideal
-        # loops.
+        # loops. We first check the surface.
         weight = edgeIdealTri.weight(surf)
         if surfType == SurfaceType.SPHERE:
             if weight not in {0, 2}:
                 raise ValueError( "A 2-sphere must have ideal weight " +
                                  "either 0 or 2" )
-            #TODO
-            raise NotImplementedError()
         elif surfType == SurfaceType.DISC:
-            if weight == 0:
-                #TODO
-                raise NotImplementedError()
-            elif weight == 1:
+            if weight == 1:
                 if not hasOnlyNonTrivialBoundaryCurves(surf):
                     raise ValueError( "A disc with ideal weight 1 must " +
                                      "have nontrivial boundary curve" )
-                #TODO
-                raise NotImplementedError()
-            else:
+            elif weight != 0
                 raise ValueError( "A disc must have ideal weight " +
                                  "either 0 or 1" )
         elif surfType == SurfaceType.RP3:
             if weight != 1:
                 raise ValueError( "A projective plane must have ideal " +
                                  "weight 1" )
-            #TODO
-            raise NotImplementedError()
         else:
             raise ValueError( "With an edge-ideal triangulation, we do " +
                              "not support {}".format(surfType) )
+
+        # The given surface splits the old ideal loops into a collection of
+        # arcs. Which of these arcs survive after crushing, and how do the
+        # surviving arcs join together to become new ideal loops?
+        splitArcs = edgeIdealTri.splitArcs(surf)
+        #TODO
+        raise NotImplementedError()
+
     #TODO
     raise NotImplementedError()
 
