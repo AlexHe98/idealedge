@@ -528,14 +528,12 @@ class EmbeddedLoop:
     def splitArcs( self, surf ):
         """
         Splits this embedded loop along the given normal surface, and returns
-        a list containing the resulting EmbeddedArc objects.
+        a set containing the resulting EmbeddedArc objects.
 
-        Each EmbeddedArc in the returned list will be oriented in the same
-        direction as this loop. However, the order of the EmbeddedArc objects
-        in the returned list might not match the order that they would appear
-        as we traverse this loop.
+        Each EmbeddedArc in the returned set will be oriented in the same
+        direction as this loop.
 
-        If this embedded loop is disjoint from surf, then the returned list
+        If this embedded loop is disjoint from surf, then the returned set
         will of course contain just a single arc. The two ends of this arc
         will be abstractly joined with each other to indicate that no actual
         split occurred along surf.
@@ -573,11 +571,11 @@ class EmbeddedLoop:
             # back together.
             onlyArc = EmbeddedArc(lastArcSegs)
             onlyArc.join( 0, onlyArc, 1 )
-            return [onlyArc]
+            return {onlyArc}
 
         # The given surf splits this embedded loop into multiple arcs, so we
         # need to do a bit more work.
-        arcs = []
+        arcSet = set()
         while splitIndex is not None:
             # Abuse the fact that the following variables all persist beyond
             # the scope of the above for loop.
@@ -588,11 +586,7 @@ class EmbeddedLoop:
             for segPos in range( 1, wt ):
                 # For wt >= 2, we get a sequence of short arcs given by
                 # type-2 segments.
-                #
-                # If orientation == -1 and wt > 2, then this will add new
-                # arcs in the "wrong" order, but this is fine since we never
-                # promised the "right" order anyway.
-                arcs.append( EmbeddedArc( [ OrientedSegment(
+                arcSet.add( EmbeddedArc( [ OrientedSegment(
                     surf, edgeIndex, segPos, orientation ) ] ) )
 
             # We now need to find all the segments that comprise the next
@@ -617,15 +611,15 @@ class EmbeddedLoop:
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
                     splitIndex = i
-                    arcs.append( EmbeddedArc(nextArgSegs) )
+                    arcSet.add( EmbeddedArc(nextArgSegs) )
                     break
                 else:
                     # We are still in the middle of the current arc.
                     nextArgSegs.append(tailSeg)
 
         # Don't forget to include the last arc.
-        arcs.append( EmbeddedArc( [ *nextArgSegs, *lastArcSegs ] ) )
-        return arcs
+        arcSet.add( EmbeddedArc( [ *nextArgSegs, *lastArcSegs ] ) )
+        return arcSet
 
     def orientation(self):
         """

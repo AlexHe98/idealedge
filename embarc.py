@@ -58,15 +58,6 @@ class EmbeddedArc:
         # This automatically handles both integer indices and slices.
         return self._segments.__getitem__(key)
 
-    def __hash__(self):
-        """
-        Computes a hash for this embedded arc.
-
-        Note that the computation uses the underlying sequence of
-        OrientedSegment objects, but does not use the joined ends (if any).
-        """
-        return hash( self._segments )
-
     def endSegment( self, i ):
         """
         Returns the segment at end number i of this embedded arc.

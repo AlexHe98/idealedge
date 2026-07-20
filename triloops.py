@@ -370,7 +370,7 @@ class TriangulationWithEmbeddedLoops:
 
     def splitArcs( self, surf ):
         """
-        Returns a list containing the arcs into which the given normal surface
+        Returns a set containing the arcs into which the given normal surface
         surf splits the union of embedded loops.
 
         The ends of all the returned arcs will be abstractly joined together
@@ -383,8 +383,11 @@ class TriangulationWithEmbeddedLoops:
             self.weight(surf) <= 2.
         """
         arcsByLoopIndex = []
+        ans = set()
         for embLoop in self:
-            arcsByLoopIndex.append( embLoop.splitArcs(surf) )
+            splitArcs = embLoop.splitArcs(surf)
+            arcsByLoopIndex.append(splitArcs)
+            ans.update(splitArcs)
 
         # Find arcs (if any) that will get joined together after crushing.
         incidentLoopInds = self.incidentLoopIndices(surf)
@@ -403,7 +406,7 @@ class TriangulationWithEmbeddedLoops:
             segLocations = dict()
             for loopIndex in incidentLoopInds:
                 # As above, we should have exactly one arc.
-                arc = arcsByLoopIndex[loopIndex][0]
+                arc = arcsByLoopIndex[loopIndex].pop()
                 for endNum in range(2):
                     seg = arc.endSegment(endNum)
                     endSegments[loopIndex].add(seg)
@@ -426,12 +429,9 @@ class TriangulationWithEmbeddedLoops:
 
         # All as yet unjoined arcs will simply join with themselves to form
         # a new loop.
-        ans = []
-        for loopIndex in range( len(self) ):
-            for arc in arcsByLoopIndex[loopIndex]:
-                if arc.joinedArc(0) is None:
-                    arc.join( 0, arc, 1 )
-                ans.append(arc)
+        for arc in ans:
+            if arc.joinedArc(0) is None:
+                arc.join( 0, arc, 1 )
         return ans
 
     def shorten(self):
