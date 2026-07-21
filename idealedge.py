@@ -74,6 +74,61 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
+    tri = surf.triangulation()
+    if not hasOnlyMinimalRealTorusBoundaryComponents(tri):
+        raise ValueError( "decomposeAlong() requires that the ambient " +
+                         "triangulation only has real boundary components " +
+                         "that are two-triangle tori" )
+
+    # Check that surf is of one of the required types.
+    surfType = SurfaceType.recognise(surf)
+    if edgeIdealTri is None:
+        # No pre-existing ideal loops, so just need to check the surface.
+        weight = 0
+        if surfType == SurfaceType.ANNULUS:
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                raise ValueError( "To decompose along an annulus, both of " +
+                                 "its boundary curves must be nontrivial" )
+        elif surfType == SurfaceType.MOBIUS:
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                raise ValueError( "To decompose along a Mobius band, its " +
+                                 "boundary curve must be nontrivial" )
+        elif surfType not in { SurfaceType.SPHERE, SurfaceType.DISC }:
+            raise ValueError( "With no pre-existing ideal edges, we " +
+                             "cannot decompose along {}".format(surfType) )
+    else:
+        # Enforce the precondition that the two input objects reference
+        # precisely the same Triangulation3 object in memory.
+        if tri is not edgeIdealTri.triangulation():
+            raise RuntimeError( "decomposeAlong() requires the input " +
+                               "NormalSurface and the input " +
+                               "EdgeIdealTriangulation to reference the " +
+                               "same Triangulation3 object in memory" )
+
+        # EdgeIdealTriangulation always holds a nonempty collection of ideal
+        # loops. We first check the surface.
+        weight = edgeIdealTri.weight(surf)
+        if surfType == SurfaceType.SPHERE:
+            if weight not in {0, 2}:
+                raise ValueError( "To decompose along a 2-sphere, it must " +
+                                 "have ideal weight either 0 or 2" )
+        elif surfType == SurfaceType.DISC:
+            if weight == 1:
+                if not hasOnlyNonTrivialBoundaryCurves(surf):
+                    raise ValueError( "To decompose along a disc with " +
+                                     "ideal weight 1, its boundary curve " +
+                                     "must be nontrivial" )
+            elif weight != 0
+                raise ValueError( "To decompose along a disc, it must " +
+                                 "have ideal weight either 0 or 1" )
+        elif surfType == SurfaceType.RP3:
+            if weight != 1:
+                raise ValueError( "To decompose along a projective plane, " +
+                                 "it must have ideal weight 1" )
+        else:
+            raise ValueError( "With an edge-ideal triangulation, we " +
+                             "cannot decompose along {}".format(surfType) )
+
     #TODO Decide whether to bother with allowing projective planes as input.
 
     #TODO Make a final decision on how to deal with trivial loops, and then
@@ -184,20 +239,25 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     return output
 
 
-#TODO First draft of the documentation is based on the old newIdealLoopEmbs()
-#       routine, and doesn't quite describe what this new routine will
-#       eventually do, so we will need to update documentation accordingly.
 #TODO Still need to make a final decision on the name for this routine.
-def trackIdealSegments( surf, edgeIdealTri=None ):
+def trackIdealSegments( surf, edgeIdealTri ):
     """
     Tracks ideal segments through the operation of crushing the given normal
     surface surf.
 
-    This routine returns a list describing the ideal loops that would arise
-    after crushing the given surface (see below for a more detailed
-    description of how the ideal loops before crushing are related to the
-    ideal loops after crushing). Each such ideal loop is encoded as a pair
-    consisting of the following items:
+    This routine returns a list describing the new ideal loops that would
+    arise from the pre-existing ideal loops in edgeIdealTri after crushing
+    the given normal surface surf. In detail:
+    --> Pre-existing ideal loops that are disjoint from the surface will be
+        left topologically untouched. In particular, their orientations will
+        be preserved.
+    --> Ideal loops that intersect the surface will be split into multiple
+        arcs. Each such arc either survives the crushing operation, or is
+        entirely destroyed by crushing. For the surviving arcs, crushing will
+        essentially rearrange how the endpoints of these arcs are joined
+        together, thereby yielding new ideal loops.
+    Each element of the returned list describes one of the new ideal loops
+    via a pair consisting of the following items:
     (0) A list of surviving edge embeddings, appearing in order of traversal
         around the ideal loop, and also oriented consistently with the order
         of traversal.
@@ -210,153 +270,73 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         --> 0, if the loop contains segments that are oriented
             inconsistently.
 
-    If there are no pre-existing IdealLoop objects to track, then only surf
-    needs to be supplied as input to this routine. Otherwise, both surf and
-    edgeIdealTri should be supplied, in which case edgeIdealTri should be an
-    instance of EdgeIdealTriangulation that tracks all of the pre-existing
-    IdealLoop objects.
-
-    If both surf and edgeIdealTri are supplied, then surf.triangulation() and
-    edgeIdealTri.triangulation() must both reference the same Triangulation3
-    object in memory. This routine raises RuntimeError if this condition is
-    not satisfied.
-
-    If there are no pre-existing ideal loops, then surf should be of one of
-    the following types:
-    --> A 2-sphere.
-    --> A disc.
-    --> An annulus with nontrivial boundary curves.
-    --> A Mobius band with nontrivial boundary curve.
-    Otherwise, letting W denote the weight of surf on the pre-existing ideal
-    loops, surf should be of one of the following types:
+    Letting W denote the weight of surf on the ideal loops in edgeIdealTri,
+    surf should be of one of the following types:
     --> A 2-sphere with either W == 2 or W == 0.
     --> A disc with W == 1 and nontrivial boundary curve.
     --> A disc with W == 0.
     --> A projective plane with W == 1.
-    Regardless of whether there are any pre-existing ideal loops, the ambient
-    triangulation surf.triangulation() must either be closed or have minimal
-    toroidal boundary. This routine raises ValueError if any of these
-    conditions are not satisfied.
-
-    We also require surf to be a quadrilateral vertex normal surface, but
-    this routine does not check this condition.
-
-    Crushing the given surface has the following effects:
-    --> Pre-existing ideal loops that are disjoint from the surface will be
-        left topologically untouched. In particular, their orientations will
-        be preserved.
-    --> Ideal loops that intersect the surface will be split into multiple
-        arcs, and ...
-        TODO
-    --> If the surface is an annulus (which, as specified above, must be
-        disjoint from all pre-existing ideal loops), then crushing might
-        create an entirely new ideal loop. This new loop will be assigned an
-        arbitrary orientation.
+    Be aware that this routine does not check this requirement, nor does it
+    check any of the other pre-conditions listed below.
 
     Pre-condition:
     --> The given surf should be a quadrilateral vertex normal surface.
+    --> The given surf should be of one of the types listed above.
+    --> The ambient triangulation surf.triangulation() must either be closed
+        or have minimal toroidal boundary.
+    --> Both surf.triangulation() and edgeIdealTri.triangulation() must
+        reference the same Triangulation3 object in memory.
     """
     tri = surf.triangulation()
-    if not hasOnlyMinimalRealTorusBoundaryComponents(tri):
-        raise ValueError( "Triangulation is only allowed to have real " +
-                         "boundary components that are two-triangle tori" )
-
-    # Check that surf is of one of the required types, and also find the new
-    # ideal edge embeddings that arise from the pre-existing ideal loops.
-    surfType = SurfaceType.recognise(surf)
-    newLoops = []
+    newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
-    if edgeIdealTri is None:
-        # No pre-existing ideal loops, so just need to check the surface.
-        weight = 0
-        if surfType == SurfaceType.ANNULUS:
-            if not hasOnlyNonTrivialBoundaryCurves(surf):
-                raise ValueError( "An annulus must have nontrivial " +
-                                 "boundary curves" )
-        elif surfType == SurfaceType.MOBIUS:
-            if not hasOnlyNonTrivialBoundaryCurves(surf):
-                raise ValueError( "A Mobius band must have nontrivial " +
-                                 "boundary curve" )
-        elif surfType not in { SurfaceType.SPHERE, SurfaceType.DISC }:
-            raise ValueError( "With no pre-existing ideal edges, we do " +
-                             "not support {}".format(surfType) )
-    else:
-        # Enforce the precondition that the two input objects reference
-        # precisely the same Triangulation3 object in memory.
-        if tri is not edgeIdealTri.triangulation():
-            raise RuntimeError( "The NormalSurface and the " +
-                               "EdgeIdealTriangulation must reference the " +
-                               "same Triangulation3 object in memory" )
+    splitArcs = edgeIdealTri.splitArcs(surf)
+    while splitArcs:
+        currentArc = splitArcs.pop()
+        arcsInNewLoop = [currentArc]
+        newLoopOrientation = currentArc[0].orientation()
+        lastArcEnd = 1
+        currentArc = currentArc.joinedArc(1)
+        while currentArc != arcsInNewLoop[0]:
+            splitArcs.remove(currentArc)
+            joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
+            if joinedArcEnd == 1:
+                # The current arc is oriented inconsistently with the
+                # first arc in this new loop.
+                newLoopOrientation = 0
+                arcsInNewLoop.append( currentArc.reversed() )
+            else:
+                arcsInNewLoop.append(currentArc)
+            lastArcEnd = 1 - joinedArcEnd
+            currentArc = currentArc.joinedArc(lastArcEnd)
+        assert lastArcEnd == 1
 
-        # EdgeIdealTriangulation always holds a nonempty collection of ideal
-        # loops. We first check the surface.
-        weight = edgeIdealTri.weight(surf)
-        if surfType == SurfaceType.SPHERE:
-            if weight not in {0, 2}:
-                raise ValueError( "A 2-sphere must have ideal weight " +
-                                 "either 0 or 2" )
-        elif surfType == SurfaceType.DISC:
-            if weight == 1:
-                if not hasOnlyNonTrivialBoundaryCurves(surf):
-                    raise ValueError( "A disc with ideal weight 1 must " +
-                                     "have nontrivial boundary curve" )
-            elif weight != 0
-                raise ValueError( "A disc must have ideal weight " +
-                                 "either 0 or 1" )
-        elif surfType == SurfaceType.RP3:
-            if weight != 1:
-                raise ValueError( "A projective plane must have ideal " +
-                                 "weight 1" )
-        else:
-            raise ValueError( "With an edge-ideal triangulation, we do " +
-                             "not support {}".format(surfType) )
-
-        # The given surface splits the old ideal loops into a collection of
-        # arcs. Which of these arcs survive after crushing, and how do the
-        # surviving arcs join together to become new ideal loops?
-        splitArcs = edgeIdealTri.splitArcs(surf)
-        while splitArcs:
-            currentArc = splitArcs.pop()
-            arcsInNewLoop = [currentArc]
-            newLoopOrientation = currentArc[0].orientation()
-            lastArcEnd = 1
-            currentArc = currentArc.joinedArc(1)
-            while currentArc != arcsInNewLoop[0]:
-                splitArcs.remove(currentArc)
-                joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
-                if joinedArcEnd == 1:
-                    # The current arc is oriented inconsistently with the
-                    # first arc in this new loop.
-                    newLoopOrientation = 0
-                    arcsInNewLoop.append( currentArc.reversed() )
-                else:
-                    arcsInNewLoop.append(currentArc)
-                lastArcEnd = 1 - joinedArcEnd
-                currentArc = currentArc.joinedArc(lastArcEnd)
-            assert lastArcEnd == 1
-
-            # One ideal segment survives if and only if every segment in
-            # every ideal arc of the current loop survives.
-            newLoopEmbeddings = []
-            newLoopSurvives = True  # Until we prove otherwise.
-            for arc in arcsInNewLoop:
-                for seg in arc:
-                    survivingSeg = seg.translateAlongParallelCells(survivors)
-                    if survivingSeg is None:
-                        newLoopSurvives = False
-                        break
-                    else:
-                        newLoopEmbeddings.append(
-                                survivingSeg.survivingEmbedding() )
-                if not newLoopSurvives:
+        # One ideal segment survives if and only if every segment in
+        # every ideal arc of the current loop survives.
+        newLoopEmbeddings = []
+        newLoopSurvives = True  # Until we prove otherwise.
+        for arc in arcsInNewLoop:
+            for seg in arc:
+                survivingSeg = seg.translateAlongParallelCells(survivors)
+                if survivingSeg is None:
+                    newLoopSurvives = False
                     break
-            if newLoopSurvives:
-                newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
-
-    #TODO Find new loops arising from real boundary.
+                else:
+                    newLoopEmbeddings.append(
+                            survivingSeg.survivingEmbedding() )
+            if not newLoopSurvives:
+                break
+        if newLoopSurvives:
+            newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
 
     # All done!
     return newLoops
+
+
+def idealLoopsFromRealBoundary(surf):
+    """
+    """
+    #TODO Find new loops arising from real boundary.
 
 
 #TODO Update documentation and implementation to:
