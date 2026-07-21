@@ -187,19 +187,28 @@ def decomposeAlong( surf, edgeIdealTri=None ):
 #TODO First draft of the documentation is based on the old newIdealLoopEmbs()
 #       routine, and doesn't quite describe what this new routine will
 #       eventually do, so we will need to update documentation accordingly.
+#TODO Still need to make a final decision on the name for this routine.
 def trackIdealSegments( surf, edgeIdealTri=None ):
     """
     Tracks ideal segments through the operation of crushing the given normal
     surface surf.
 
-    This routine returns a pair of objects:
-    (0) A list describing the ideal loops that would arise after crushing the
-        given surface (see below for a more detailed description of how the
-        ideal loops before crushing are related to the ideal loops after
-        crushing). Each such ideal loop is encoded as a list of surviving
-        edge embeddings.
-    (1) An integer counting the number of orbital compression discs that
-        would be cut along as a consequence of crushing the given surface.
+    This routine returns a list describing the ideal loops that would arise
+    after crushing the given surface (see below for a more detailed
+    description of how the ideal loops before crushing are related to the
+    ideal loops after crushing). Each such ideal loop is encoded as a pair
+    consisting of the following items:
+    (0) A list of surviving edge embeddings, appearing in order of traversal
+        around the ideal loop, and also oriented consistently with the order
+        of traversal.
+    (1) An integer indicating the orientation of the ideal loop, which takes
+        one of the following values:
+        --> +1, if the first segment in the loop has orientation +1 and all
+            other segments are oriented consistently with this.
+        --> -1, if the first segment in the loop has orientation -1 and all
+            other segments are oriented consistently with this.
+        --> 0, if the loop contains segments that are oriented
+            inconsistently.
 
     If there are no pre-existing IdealLoop objects to track, then only surf
     needs to be supplied as input to this routine. Otherwise, both surf and
@@ -237,9 +246,8 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         left topologically untouched. In particular, their orientations will
         be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
-        arcs, and each such arc may or may not survive to become a new ideal
-        loop after crushing. The orientation will be preserved for the arcs
-        that do survive.
+        arcs, and ...
+        TODO
     --> If the surface is an annulus (which, as specified above, must be
         disjoint from all pre-existing ideal loops), then crushing might
         create an entirely new ideal loop. This new loop will be assigned an
@@ -308,20 +316,46 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         # surviving arcs join together to become new ideal loops?
         splitArcs = edgeIdealTri.splitArcs(surf)
         while splitArcs:
-            newLoop = [ splitArcs.pop() ]
-            lastArcEnd, nextArc = 1, newLoop[-1].joinedArc(1)
-            while nextArc != newLoop[0]:
-                splitArcs.remove(nextArc)
-                newLoop.append(nextArc)
-                lastArcEnd, nextArc = ( 1 - nextArc.joinedEnd(lastArcEnd),
-                                       nextArc.joinedArc(lastArcEnd) )
+            currentArc = splitArcs.pop()
+            arcsInNewLoop = [currentArc]
+            newLoopOrientation = currentArc[0].orientation()
+            lastArcEnd = 1
+            currentArc = currentArc.joinedArc(1)
+            while currentArc != arcsInNewLoop[0]:
+                #TODO Need to reverse arcs which are oriented inconsistently.
+                joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
+                if joinedArcEnd == 1:
+                    # The current arc is oriented inconsistently with the
+                    # first arc in this new loop.
+                    newLoopOrientation = 0
+                splitArcs.remove(currentArc)
+                arcsInNewLoop.append(currentArc)
+                lastArcEnd = 1 - joinedArcEnd
+                currentArc = currentArc.joinedArc(lastArcEnd)
             assert lastArcEnd == 1
-            newLoops.append(newLoop)
-        #TODO
-        raise NotImplementedError()
 
-    #TODO
-    raise NotImplementedError()
+            # One ideal segment survives if and only if every segment in
+            # every ideal arc of the current loop survives.
+            newLoopEmbeddings = []
+            newLoopSurvives = True  # Until we prove otherwise.
+            for arc in arcsInNewLoop:
+                for seg in arc:
+                    survivingSeg = seg.translateAlongParallelCells(survivors)
+                    if survivingSeg is None:
+                        newLoopSurvives = False
+                        break
+                    else:
+                        newLoopEmbeddings.append(
+                                survivingSeg.survivingEmbedding() )
+                if not newLoopSurvives:
+                    break
+            if newLoopSurvives:
+                newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
+
+    #TODO Find new loops arising from real boundary.
+
+    # All done!
+    return newLoops
 
 
 #TODO Update documentation and implementation to:

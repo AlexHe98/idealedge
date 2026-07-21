@@ -48,6 +48,9 @@ class OrientedSegment:
                             vertex 1 to vertex 0.
         --> survivingEmb    An optional parameter specifying a surviving
                             embedding associated to the segment.
+
+        See the survivingEmbedding() routine for the conditions that must be
+        satisfied by the optional survivingEmb argument.
         """
         self._surface = surface
         self._edgeIndex = edgeIndex
