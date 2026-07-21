@@ -256,7 +256,7 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
     # Check that surf is of one of the required types, and also find the new
     # ideal edge embeddings that arise from the pre-existing ideal loops.
     surfType = SurfaceType.recognise(surf)
-    newLoopEmbs = []
+    newLoops = []
     survivors = OrientedSegment.survivors(surf)
     if edgeIdealTri is None:
         # No pre-existing ideal loops, so just need to check the surface.
@@ -307,6 +307,16 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
         # arcs. Which of these arcs survive after crushing, and how do the
         # surviving arcs join together to become new ideal loops?
         splitArcs = edgeIdealTri.splitArcs(surf)
+        while splitArcs:
+            newLoop = [ splitArcs.pop() ]
+            lastArcEnd, nextArc = 1, newLoop[-1].joinedArc(1)
+            while nextArc != newLoop[0]:
+                splitArcs.remove(nextArc)
+                newLoop.append(nextArc)
+                lastArcEnd, nextArc = ( 1 - nextArc.joinedEnd(lastArcEnd),
+                                       nextArc.joinedArc(lastArcEnd) )
+            assert lastArcEnd == 1
+            newLoops.append(newLoop)
         #TODO
         raise NotImplementedError()
 
