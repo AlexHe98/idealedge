@@ -333,8 +333,17 @@ def trackIdealSegments( surf, edgeIdealTri ):
     return newLoops
 
 
+#TODO How best to deal with ideal arcs which a joined to each other, and with
+#       ideal arcs arising from closing up invalid vertices?
 def idealLoopsFromRealBoundary(surf):
     """
+
+    This routine returns a list describing the new ideal arcs that would
+    arise from the real boundary after crushing the given normal surface
+    surf.
+    ... TODO ...
+    Each element of the returned list describes one of the new ideal arcs via
+    a surviving edge embedding.
     """
     #TODO Find new loops arising from real boundary.
 
