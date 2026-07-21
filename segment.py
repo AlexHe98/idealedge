@@ -55,6 +55,8 @@ class OrientedSegment:
         self._surface = surface
         self._edgeIndex = edgeIndex
         self._segPos = segPos
+        if orientation not in {1, -1}:
+            raise ValueError( "orientation must be either +1 or -1" )
         self._orientation = orientation
         if survivingEmb is None:
             self._checkedSurvivingEmb = False
@@ -63,6 +65,19 @@ class OrientedSegment:
             self._checkedSurvivingEmb = True
             self._survivingEmb = survivingEmb
         return
+
+    def reversed(self):
+        """
+        Returns a copy of this segment with the opposite orientation.
+        """
+        if self._checkedSurvivingEmb:
+            reversedSurvivingEmb = EdgeEmbedding3(
+                    survivingEmb.tetrahedron(),
+                    survivingEmb.vertices() * Perm4(1,0,3,2) )
+        else:
+            reversedSurvivingEmb = None
+        return OrientedSegment( self._surface, self._edgeIndex, self._segPos,
+                               -self._orientation, reversedSurvivingEmb )
 
     def integerData(self):
         """

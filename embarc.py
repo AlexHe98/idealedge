@@ -58,6 +58,16 @@ class EmbeddedArc:
         # This automatically handles both integer indices and slices.
         return self._segments.__getitem__(key)
 
+    def reversed(self):
+        """
+        Returns a copy of this embedded arc with the opposite orientation.
+
+        The reversed copy does not retain information about how the ends are
+        abstractly joined to other arcs.
+        """
+        return OrientedSegments(
+                [ seg.reversed() for seg in reversed(self._segments) ] )
+
     def endSegment( self, i ):
         """
         Returns the segment at end number i of this embedded arc.

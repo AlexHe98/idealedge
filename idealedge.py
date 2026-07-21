@@ -322,14 +322,15 @@ def trackIdealSegments( surf, edgeIdealTri=None ):
             lastArcEnd = 1
             currentArc = currentArc.joinedArc(1)
             while currentArc != arcsInNewLoop[0]:
-                #TODO Need to reverse arcs which are oriented inconsistently.
+                splitArcs.remove(currentArc)
                 joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
                 if joinedArcEnd == 1:
                     # The current arc is oriented inconsistently with the
                     # first arc in this new loop.
                     newLoopOrientation = 0
-                splitArcs.remove(currentArc)
-                arcsInNewLoop.append(currentArc)
+                    arcsInNewLoop.append( currentArc.reversed() )
+                else:
+                    arcsInNewLoop.append(currentArc)
                 lastArcEnd = 1 - joinedArcEnd
                 currentArc = currentArc.joinedArc(lastArcEnd)
             assert lastArcEnd == 1
