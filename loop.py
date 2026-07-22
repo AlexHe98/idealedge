@@ -12,7 +12,7 @@ from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
-from embarc import EmbeddedArc
+from chord import NormalChord   #TODO Which subclasses do we actually need?
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
