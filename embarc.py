@@ -1,32 +1,62 @@
 """
-Embedded arcs given by sequences of segments.
+Implements various types of embedded arcs in triangulations.
 """
 
 
-class EmbeddedArc:
+class NormalChord:
     """
-    An embedded arc given by a sequence of oriented segments.
+    A "chord" for a normal surface.
 
-    Typically, such arcs are constructed by splitting an embedded loop along a
-    normal surface.
+    This is an embedded arc whose endpoints lie on a normal surface S, and
+    whose interior lies in the complement of S.
 
-    Such an arc is always oriented in the sense that it will always have a
-    chosen direction of traversal. The segments in the arc are indexed in
-    order of traversal, and are all oriented in the direction of traversal.
+    This base class specifies the following basic functionality:
+    --> An embedded arc is always oriented in the sense that it will always
+        have a chosen direction of traversal.
+    --> Endpoints of embedded arcs can be abstractly joined together in
+        pairs. The main use case for such abstract joins is to indicate how
+        several embedded arcs can be connected together to form embedded
+        loops in a triangulation.
+    """
+    #TODO
+    pass
 
-    This class acts as a container of OrientedSegment objects, and therefore
-    any instance embArc of this class provides the following functionality:
-    --> (seg in embArc) is True if and only if seg is a segment in this arc
-    --> len(embArc) is the number of segments in this arc
-    --> iterating through embArc yields all the segments in order of traversal
-        along the arc
-    --> for i between 0 and (len(embArc) - 1), inclusive, embArc[i] returns
+
+class BoundaryDualChord(NormalChord):
+    """
+    A normal chord which is "dual" to a boundary edge.
+
+    This means that the chord lies entirely in the boundary of the
+    triangulation, and intersects the 1-skeleton in precisely one point (the
+    point of intersection therefore lies on a boundary edge which we can view
+    as being dual to this chord).
+    """
+    #TODO
+    pass
+
+
+class SegmentChord(NormalChord):
+    """
+    A normal chord built from a sequence of oriented segments.
+
+    Typically, segment chords are constructed by splitting an embedded loop
+    along a normal surface.
+
+    The segments in such a chord are always indexed in order of traversal,
+    and are all oriented in the direction of traversal.
+
+    In addition to implementing the basic behavious of a NormalChord, this
+    class acts as a container of OrientedSegment objects, and therefore any
+    instance segChord of this class provides the following functionality:
+    --> (seg in segChord) is True if and only if seg is a segment in this
+        chord
+    --> len(segChord) is the number of segments in this chord
+    --> iterating through segChord yields all the segments in order of traversal
+        along the chord
+    --> for i between 0 and (len(segChord) - 1), inclusive, segChord[i] returns
         the segment at index i of the arc
-
-    This class also provides functionality to abstractly join arcs together at
-    their endpoints. One use case for such joins is to indicate how arcs would
-    get merged together after crushing a normal surface.
     """
+    #TODO Rearrange all this old code using the new chord framework.
     def __init__( self, segments ):
         """
         Initialises an embedded arc consisting of the given segments.
@@ -118,7 +148,7 @@ class EmbeddedArc:
 
     def joinedArc( self, arcEnd ):
         """
-        Returns the EmbeddedArc that is joined to this arc at the given end,
+        Returns the NormalChord that is joined to this arc at the given end,
         or None if there is no such joined arc.
         """
         return self._joinedArc[arcEnd]
@@ -150,3 +180,19 @@ class EmbeddedArc:
         self._joinedArc[arcEnd] = None
         self._joinedEnd[arcEnd] = None
         return
+
+
+class InternalSegmentChord(SegmentChord):
+    """
+    A segment chord built entirely from internal segments.
+    """
+    #TODO
+    pass
+
+
+class BoundarySegmentChord(SegmentChord):
+    """
+    A segment chord built entirely from boundary segments.
+    """
+    #TODO
+    pass
