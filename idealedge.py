@@ -242,7 +242,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
         essentially rearrange how the endpoints of these arcs are joined
         together, thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
-    via a pair consisting of the following items:
+    via a triple consisting of the following items:
     (0) A list of surviving edge embeddings, appearing in order of traversal
         around the ideal loop, and also oriented consistently with the order
         of traversal.
@@ -254,6 +254,12 @@ def trackIdealSegments( surf, edgeIdealTri ):
             other segments are oriented consistently with this.
         --> 0, if the loop contains segments that are oriented
             inconsistently.
+    (2) A Boolean flag, which is:
+        --> True if the new loop consists entirely of the segments described
+            by the list of surviving edge embeddings; and
+        --> False if the surviving edge embeddings together form a properly
+            embedded arc, which needs to be augmented by an additional arc to
+            give a complete loop.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -276,18 +282,20 @@ def trackIdealSegments( surf, edgeIdealTri ):
         newLoopOrientation = currentArc[0].orientation()
         lastArcEnd = 1
         currentArc = currentArc.joinedArc(1)
-        while currentArc != arcsInNewLoop[0]:
-            splitArcs.remove(currentArc)
-            joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
-            if joinedArcEnd == 1:
-                # The current arc is oriented inconsistently with the
-                # first arc in this new loop.
-                newLoopOrientation = 0
-                arcsInNewLoop.append( currentArc.reversed() )
-            else:
-                arcsInNewLoop.append(currentArc)
-            lastArcEnd = 1 - joinedArcEnd
-            currentArc = currentArc.joinedArc(lastArcEnd)
+        isNewLoopComplete = ( currentArc is not None )
+        if isNewLoopComplete:
+            while currentArc != arcsInNewLoop[0]:
+                splitArcs.remove(currentArc)
+                joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
+                if joinedArcEnd == 1:
+                    # The current arc is oriented inconsistently with the
+                    # first arc in this new loop.
+                    newLoopOrientation = 0
+                    arcsInNewLoop.append( currentArc.reversed() )
+                else:
+                    arcsInNewLoop.append(currentArc)
+                lastArcEnd = 1 - joinedArcEnd
+                currentArc = currentArc.joinedArc(lastArcEnd)
         assert lastArcEnd == 1
 
         # One ideal segment survives if and only if every segment in
@@ -306,7 +314,8 @@ def trackIdealSegments( surf, edgeIdealTri ):
             if not newLoopSurvives:
                 break
         if newLoopSurvives:
-            newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
+            newLoops.append( ( newLoopEmbeddings, newLoopOrientation,
+                              isNewLoopComplete ) )
 
     # All done!
     return newLoops
