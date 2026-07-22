@@ -6,7 +6,6 @@ from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
 from triloops import EdgeIdealTriangulation
 from segment import OrientedSegment
 from aux.bdry import hasOnlyMinimalRealTorusBoundaryComponents
-from aux.edgeemb import AbstractEdgeEmbedding
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
@@ -259,9 +258,9 @@ def trackIdealSegments( surf, edgeIdealTri ):
         together, thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
     via a pair consisting of the following items:
-    (0) A list of surviving AbstractEdgeEmbedding objects, appearing in order
-        of traversal around the ideal loop, and also oriented consistently
-        with the order of traversal.
+    (0) A list of surviving edge embeddings, appearing in order of traversal
+        around the ideal loop, and also oriented consistently with the order
+        of traversal.
     (1) An integer indicating the orientation of the ideal loop, which takes
         one of the following values:
         --> +1, if the first segment in the loop has orientation +1 and all
@@ -324,8 +323,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
                     break
                 else:
                     newLoopEmbeddings.append(
-                            AbstractEdgeEmbedding.makeAbstract(
-                                survivingSeg.survivingEmbedding() ) )
+                            survivingSeg.survivingEmbedding() )
             if not newLoopSurvives:
                 break
         if newLoopSurvives:
@@ -345,7 +343,7 @@ def idealLoopsFromRealBoundary(surf):
     surf.
     ... TODO ...
     Each element of the returned list describes one of the new ideal arcs via
-    a surviving AbstractEdgeEmbedding object.
+    a surviving edge embedding.
     """
     #TODO Find new loops arising from real boundary.
 
