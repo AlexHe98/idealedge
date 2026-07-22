@@ -54,14 +54,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     --> A disc.
     --> An annulus with nontrivial boundary curves.
     --> A Mobius band with nontrivial boundary curve.
-    Otherwise, letting W denote the weight of surf on the pre-existing ideal
-    loops, surf should be of one of the following types:
-    --> A 2-sphere with either W == 2 or W == 0.
-    --> A disc with W == 1 and nontrivial boundary curve.
-    --> A disc with W == 0.
-    --> A projective plane with W == 1.
-    This routine raises ValueError if surf is not of one of these allowed
-    types.
+    Otherwise, edgeIdealTri.allowsCrush(surf) must be True. This routine
+    raises ValueError if surf does not satisfy these conditions.
 
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does not check this condition.
@@ -84,7 +78,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     surfType = SurfaceType.recognise(surf)
     if edgeIdealTri is None:
         # No pre-existing ideal loops, so just need to check the surface.
-        weight = 0
         if surfType == SurfaceType.ANNULUS:
             if not hasOnlyNonTrivialBoundaryCurves(surf):
                 raise ValueError( "To decompose along an annulus, both of " +
@@ -95,7 +88,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                                  "boundary curve must be nontrivial" )
         elif surfType not in { SurfaceType.SPHERE, SurfaceType.DISC }:
             raise ValueError( "With no pre-existing ideal edges, we " +
-                             "cannot decompose along {}".format(surfType) )
+                             "cannot decompose along a surface of type " +
+                             "{}".format(surfType.name) )
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -105,29 +99,20 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                                "EdgeIdealTriangulation to reference the " +
                                "same Triangulation3 object in memory" )
 
-        # EdgeIdealTriangulation always holds a nonempty collection of ideal
-        # loops. We first check the surface.
+        # Now check the surface.
         weight = edgeIdealTri.weight(surf)
-        if surfType == SurfaceType.SPHERE:
-            if weight not in {0, 2}:
-                raise ValueError( "To decompose along a 2-sphere, it must " +
-                                 "have ideal weight either 0 or 2" )
-        elif surfType == SurfaceType.DISC:
-            if weight == 1:
-                if not hasOnlyNonTrivialBoundaryCurves(surf):
-                    raise ValueError( "To decompose along a disc with " +
-                                     "ideal weight 1, its boundary curve " +
-                                     "must be nontrivial" )
-            elif weight != 0
-                raise ValueError( "To decompose along a disc, it must " +
-                                 "have ideal weight either 0 or 1" )
-        elif surfType == SurfaceType.RP3:
-            if weight != 1:
-                raise ValueError( "To decompose along a projective plane, " +
-                                 "it must have ideal weight 1" )
-        else:
-            raise ValueError( "With an edge-ideal triangulation, we " +
-                             "cannot decompose along {}".format(surfType) )
+        if surfType == SurfaceType.DISC and weight == 1:
+            # We handle this case separately to allow for more useful error
+            # messages.
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                raise ValueError( "To decompose along a disc with ideal " +
+                                 "weight 1, its boundary curve must be " +
+                                 "nontrivial" )
+        elif not edgeIdealTri.allowsCrush(surf):
+            raise ValueError( "With an edge-ideal triangulation, " +
+                             "we cannot decompose along a " +
+                             "surface of type {} ".format(surfType.name) +
+                             "with ideal weight {}".format(weight) )
 
     #TODO Decide whether to bother with allowing projective planes as input.
 
@@ -270,22 +255,16 @@ def trackIdealSegments( surf, edgeIdealTri ):
         --> 0, if the loop contains segments that are oriented
             inconsistently.
 
-    Letting W denote the weight of surf on the ideal loops in edgeIdealTri,
-    surf should be of one of the following types:
-    --> A 2-sphere with either W == 2 or W == 0.
-    --> A disc with W == 1 and nontrivial boundary curve.
-    --> A disc with W == 0.
-    --> A projective plane with W == 1.
-    Be aware that this routine does not check this requirement, nor does it
-    check any of the other pre-conditions listed below.
+    Warning:
+        This routine does not check any of the pre-conditions listed below.
 
     Pre-condition:
     --> The given surf should be a quadrilateral vertex normal surface.
-    --> The given surf should be of one of the types listed above.
     --> The ambient triangulation surf.triangulation() must either be closed
         or have minimal toroidal boundary.
     --> Both surf.triangulation() and edgeIdealTri.triangulation() must
         reference the same Triangulation3 object in memory.
+    --> edgeIdealTri.allowsCrush(surf) must be True.
     """
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
