@@ -35,11 +35,11 @@ class BoundaryDualChord(NormalChord):
     pass
 
 
-class SegmentChord(NormalChord):
+class SegmentedChord(NormalChord):
     """
     A normal chord built from a sequence of oriented segments.
 
-    Typically, segment chords are constructed by splitting an embedded loop
+    Typically, segmented chords are constructed by splitting an embedded loop
     along a normal surface.
 
     The segments in such a chord are always indexed in order of traversal,
@@ -51,10 +51,10 @@ class SegmentChord(NormalChord):
     --> (seg in segChord) is True if and only if seg is a segment in this
         chord
     --> len(segChord) is the number of segments in this chord
-    --> iterating through segChord yields all the segments in order of traversal
-        along the chord
-    --> for i between 0 and (len(segChord) - 1), inclusive, segChord[i] returns
-        the segment at index i of the arc
+    --> iterating through segChord yields all the segments in order of
+        traversal along the chord
+    --> for i between 0 and (len(segChord) - 1), inclusive, segChord[i]
+        returns the segment at index i of the arc
     """
     #TODO Rearrange all this old code using the new chord framework.
     def __init__( self, segments ):
@@ -182,17 +182,17 @@ class SegmentChord(NormalChord):
         return
 
 
-class InternalSegmentChord(SegmentChord):
+class InternalSegmentedChord(SegmentedChord):
     """
-    A segment chord built entirely from internal segments.
+    A segmented chord built entirely from internal segments.
     """
     #TODO
     pass
 
 
-class BoundarySegmentChord(SegmentChord):
+class BoundarySegmentedChord(SegmentedChord):
     """
-    A segment chord built entirely from boundary segments.
+    A segmented chord built entirely from boundary segments.
     """
     #TODO
     pass
