@@ -120,6 +120,37 @@ class BoundaryDualChord(NormalChord):
     point of intersection therefore lies on a boundary edge which we can view
     as being dual to this chord).
     """
+    def __init__( self, dualEdge, orientation ):
+        """
+        Initialises a boundary chord which is dual to the given boundary edge
+        and which has the given orientation.
+
+        The given dualEdge must be a boundary edge of a two-triangle torus
+        boundary component of a 3-manifold triangulation.
+
+        The given orientation must be:
+        --> +1 if this chord is oriented from the front to the back of the
+            embeddings of the dualEdge.
+        --> -1 if this chord is oriented from the back to the front of the
+            embeddings of the dualEdge.
+        """
+        super().__init__()  # Initialise with no other chords joined to ends.
+        self._dualEdge = dualEdge
+        self._orientation = orientation
+        return
+
+    def dualEdge(self):
+        """
+        Returns the boundary edge which is dual to this chord.
+        """
+        return self._dualEdge
+
+    def orientation(self):
+        """
+        Returns the orientaion of this boundary dual chord.
+        """
+        return self._orientation
+
     #TODO
     pass
 
@@ -134,7 +165,7 @@ class SegmentedChord(NormalChord):
     The segments in such a chord are always indexed in order of traversal,
     and are all oriented in the direction of traversal.
 
-    In addition to implementing the basic behavious of a NormalChord, this
+    In addition to providing the basic functionality of a NormalChord, this
     class acts as a container of OrientedSegment objects, and therefore any
     instance segChord of this class provides the following functionality:
     --> (seg in segChord) is True if and only if seg is a segment in this
