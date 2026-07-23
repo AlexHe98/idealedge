@@ -275,9 +275,9 @@ def trackIdealSegments( surf, edgeIdealTri ):
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
-    splitArcs = edgeIdealTri.splitArcs(surf)
-    while splitArcs:
-        currentArc = splitArcs.pop()
+    chords = edgeIdealTri.splitIntoChords(surf)
+    while chords:
+        currentArc = chords.pop()
         arcsInNewLoop = [currentArc]
         newLoopOrientation = currentArc[0].orientation()
         lastArcEnd = 1
@@ -285,7 +285,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
         isNewLoopComplete = ( currentArc is not None )
         if isNewLoopComplete:
             while currentArc != arcsInNewLoop[0]:
-                splitArcs.remove(currentArc)
+                chords.remove(currentArc)
                 joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
                 if joinedArcEnd == 1:
                     # The current arc is oriented inconsistently with the
@@ -440,7 +440,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         # The given surface splits the current oldLoop into some number of
         # arcs. Which of these arcs survive to become new ideal loops after
         # crushing?
-        for arc in oldLoop.splitArcs(surf):
+        for arc in oldLoop.splitIntoChords(surf):
             seg = arc[0]
             survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:

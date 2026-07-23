@@ -12,7 +12,7 @@ from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
-from chord import NormalChord   #TODO Which subclasses do we actually need?
+from chord import NormalChord
 
 
 #TODO Go through the entire class and its subclasses, and check what needs to
@@ -516,21 +516,21 @@ class EmbeddedLoop:
     #TODO Delete this entirely at a later date.
     def components( self, surf ):
         """
-        This routine is no longer available; use the new splitArcs() routine
-        instead.
+        This routine is no longer available; use the new splitIntoChords()
+        routine instead.
 
-        Apart from the improvement in the name, the new splitArcs() routine
-        also uses the new EmbeddedArc class to help keep track of additional
-        properties (such as loop orientation) through crushing.
+        Apart from the improvement in the name, the new splitIntoChords()
+        routine also uses the new NormalChord class to help keep track of
+        additional properties (such as loop orientation) through crushing.
         """
         raise NotImplementedError()
 
-    def splitArcs( self, surf ):
+    def splitIntoChords( self, surf ):
         """
         Splits this embedded loop along the given normal surface, and returns
-        a set containing the resulting EmbeddedArc objects.
+        a set containing the resulting NormalChord objects.
 
-        Each EmbeddedArc in the returned set will be oriented in the same
+        Each NormalChord in the returned set will be oriented in the same
         direction as this loop.
 
         If this embedded loop is disjoint from surf, then the returned set
@@ -569,7 +569,7 @@ class EmbeddedLoop:
             # one arc, and we have already found all the constituent segments
             # of this arc. All that remains is to abstractly join the two ends
             # back together.
-            onlyArc = EmbeddedArc(lastArcSegs)
+            onlyArc = NormalChord(lastArcSegs)
             onlyArc.join( 0, onlyArc, 1 )
             return {onlyArc}
 
@@ -586,7 +586,7 @@ class EmbeddedLoop:
             for segPos in range( 1, wt ):
                 # For wt >= 2, we get a sequence of short arcs given by
                 # type-2 segments.
-                arcSet.add( EmbeddedArc( [ OrientedSegment(
+                arcSet.add( NormalChord( [ OrientedSegment(
                     surf, edgeIndex, segPos, orientation ) ] ) )
 
             # We now need to find all the segments that comprise the next
@@ -611,14 +611,14 @@ class EmbeddedLoop:
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
                     splitIndex = i
-                    arcSet.add( EmbeddedArc(nextArgSegs) )
+                    arcSet.add( NormalChord(nextArgSegs) )
                     break
                 else:
                     # We are still in the middle of the current arc.
                     nextArgSegs.append(tailSeg)
 
         # Don't forget to include the last arc.
-        arcSet.add( EmbeddedArc( [ *nextArgSegs, *lastArcSegs ] ) )
+        arcSet.add( NormalChord( [ *nextArgSegs, *lastArcSegs ] ) )
         return arcSet
 
     def orientation(self):

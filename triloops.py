@@ -927,7 +927,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             return ( weight == 1 )
         return False
 
-    def splitArcs( self, surf ):
+    def splitIntoChords( self, surf ):
         """
         Returns a set containing the arcs into which the given normal surface
         surf splits the union of ideal loops.
@@ -946,9 +946,9 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         arcsByLoopIndex = []
         ans = set()
         for embLoop in self:
-            splitArcs = embLoop.splitArcs(surf)
-            arcsByLoopIndex.append(splitArcs)
-            ans.update(splitArcs)
+            chords = embLoop.splitIntoChords(surf)
+            arcsByLoopIndex.append(chords)
+            ans.update(chords)
 
         # Find arcs (if any) that will get joined together after crushing.
         incidentLoopInds = self.incidentLoopIndices(surf)
