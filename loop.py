@@ -534,16 +534,16 @@ class EmbeddedLoop:
         direction as this loop.
 
         If this embedded loop is disjoint from surf, then the returned set
-        will of course contain just a single arc. The two ends of this arc
-        will be abstractly joined with each other to indicate that no actual
-        split occurred along surf.
+        will of course contain just a single chord. The two ends of this
+        chord will be abstractly joined with each other to indicate that no
+        actual split occurred along surf.
         """
-        # We find all the arcs by simply walking around the loop. Take the
-        # first arc to be the one that begins *after* the first point at
+        # We find all the chords by simply walking around the loop. Take the
+        # first chord to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
-        # in the middle of the last arc, so we need to make sure to remember
-        # all the segments of the last arc.
-        lastArcSegs = []
+        # in the middle of the last chord, so we need to make sure to
+        # remember all the segments of the last chord.
+        lastChordSegs = []
         splitIndex = None
         for i in range( len(self) ):
             edgeIndex = self._edgeIndices[i]
@@ -552,30 +552,30 @@ class EmbeddedLoop:
             tailSeg = OrientedSegment(
                     surf, edgeIndex, 0, orientation )
             if wt > 0:
-                # We found the point at which the first arc begins.
+                # We found the point at which the first chord begins.
                 headSeg = OrientedSegment(
                         surf, edgeIndex, wt, orientation )
                 if self._tails[i] == 1:
                     tailSeg, headSeg = headSeg, tailSeg
-                lastArcSegs.append(tailSeg)
+                lastChordSegs.append(tailSeg)
                 splitIndex = i
                 break
             else:
-                # We are still in the middle of the last arc.
-                lastArcSegs.append(tailSeg)
+                # We are still in the middle of the last chord.
+                lastChordSegs.append(tailSeg)
 
         if splitIndex is None:
             # If this loop is disjoint from the surface, then there is only
-            # one arc, and we have already found all the constituent segments
-            # of this arc. All that remains is to abstractly join the two ends
-            # back together.
-            onlyArc = NormalChord(lastArcSegs)
-            onlyArc.join( 0, onlyArc, 1 )
-            return {onlyArc}
+            # one chord, and we have already found all the constituent
+            # segments of this chord. All that remains is to abstractly join
+            # the two ends back together.
+            onlyChord = NormalChord(lastChordSegs)
+            onlyChord.join( 0, onlyChord, 1 )
+            return {onlyChord}
 
-        # The given surf splits this embedded loop into multiple arcs, so we
-        # need to do a bit more work.
-        arcSet = set()
+        # The given surf splits this embedded loop into multiple chords, so
+        # we need to do a bit more work.
+        chordSet = set()
         while splitIndex is not None:
             # Abuse the fact that the following variables all persist beyond
             # the scope of the above for loop.
@@ -584,18 +584,18 @@ class EmbeddedLoop:
             #   --> edgeIndex
             orientation = headSeg.orientation()
             for segPos in range( 1, wt ):
-                # For wt >= 2, we get a sequence of short arcs given by
+                # For wt >= 2, we get a sequence of short chords given by
                 # type-2 segments.
-                arcSet.add( NormalChord( [ OrientedSegment(
+                chordSet.add( NormalChord( [ OrientedSegment(
                     surf, edgeIndex, segPos, orientation ) ] ) )
 
             # We now need to find all the segments that comprise the next
-            # (long) arc.
-            nextArgSegs = [headSeg]
+            # (long) chord.
+            nextChordSegs = [headSeg]
             continuation = splitIndex + 1
 
-            # Unless we have already returned to the last arc, we must
-            # eventually find another split point at which the next arc
+            # Unless we have already returned to the last chord, we must
+            # eventually find another split point at which the next chord
             # begins.
             splitIndex = None
             for i in range( continuation, len(self) ):
@@ -611,15 +611,15 @@ class EmbeddedLoop:
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
                     splitIndex = i
-                    arcSet.add( NormalChord(nextArgSegs) )
+                    chordSet.add( NormalChord(nextChordSegs) )
                     break
                 else:
-                    # We are still in the middle of the current arc.
-                    nextArgSegs.append(tailSeg)
+                    # We are still in the middle of the current chord.
+                    nextChordSegs.append(tailSeg)
 
-        # Don't forget to include the last arc.
-        arcSet.add( NormalChord( [ *nextArgSegs, *lastArcSegs ] ) )
-        return arcSet
+        # Don't forget to include the last chord.
+        chordSet.add( NormalChord( [ *nextChordSegs, *lastChordSegs ] ) )
+        return chordSet
 
     def orientation(self):
         """

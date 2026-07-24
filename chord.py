@@ -27,7 +27,7 @@ class NormalChord:
     --> iterating through segChord yields all the segments in order of
         traversal along the chord
     --> for i between 0 and (len(segChord) - 1), inclusive, segChord[i]
-        returns the segment at index i of the arc
+        returns the segment at index i of the chord
     """
     def __init__( self, segments ):
         """

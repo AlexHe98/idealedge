@@ -929,49 +929,50 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
 
     def splitIntoChords( self, surf ):
         """
-        Returns a set containing the arcs into which the given normal surface
-        surf splits the union of ideal loops.
+        Returns a set containing the chords into which the given normal
+        surface surf splits the union of ideal loops.
 
-        Some or all of the ends of the returned arcs will be abstractly
-        joined together in pairs to indicate how all these arcs would combine
-        to form new loops after crushing surf. Some arcs might not form new
-        loops due to their ends lying in real boundary, in which case their
-        ends will be left unjoined.
+        Some or all of the ends of the returned chords will be abstractly
+        joined together in pairs to indicate how all these chords would
+        combine to form new loops after crushing surf. Some chords might not
+        form new loops due to their ends lying in real boundary, in which
+        case their ends will be left unjoined.
 
         Precondition:
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         --> self.allowsCrush(surf) must be True.
         """
-        arcsByLoopIndex = []
+        chordsByLoopIndex = []
         ans = set()
         for embLoop in self:
             chords = embLoop.splitIntoChords(surf)
-            arcsByLoopIndex.append(chords)
+            chordsByLoopIndex.append(chords)
             ans.update(chords)
 
-        # Find arcs (if any) that will get joined together after crushing.
+        # Find chords (if any) that will get joined together after crushing.
         incidentLoopInds = self.incidentLoopIndices(surf)
         if len(incidentLoopInds) == 2:
             # From the preconditions, we may assume that surf is a 2-sphere.
             # We may also assume that each of the two incident loops has
             # weight 1 with respect to surf, which means that each such loop
-            # is split into exactly one arc; after crushing surf, the
-            # segments at the ends of the two arcs will get joined together,
-            # such that the arcs combine to form a single new loop. Note that
-            # both of the arcs will be "long arcs", so the segments at either
-            # end of each arc are guaranteed to be distinct; hence, we will
-            # have four segments that get joined to each other in two pairs.
+            # is split into exactly one chord; after crushing surf, the
+            # segments at the ends of the two chords will get joined
+            # together, such that the chords combine to form a single new
+            # loop. Note that both of the chords will be "long chords", so
+            # the segments at either end of each chord are guaranteed to be
+            # distinct; hence, we will have four segments that get joined to
+            # each other in two pairs.
             endSegments = { loopIndex: set()
                               for loopIndex in incidentLoopInds }
             segLocations = dict()
             for loopIndex in incidentLoopInds:
-                # As above, we should have exactly one arc.
-                arc = arcsByLoopIndex[loopIndex].pop()
+                # As above, we should have exactly one chord.
+                chord = chordsByLoopIndex[loopIndex].pop()
                 for endNum in range(2):
-                    seg = arc.endSegment(endNum)
+                    seg = chord.endSegment(endNum)
                     endSegments[loopIndex].add(seg)
-                    segLocations[seg] = ( arc, endNum )
+                    segLocations[seg] = ( chord, endNum )
 
             # Work out which two pairs of the endSegments will be joined
             # to each other after crushing surf.
@@ -983,22 +984,23 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
 
             # Abstractly join the two pairs of endSegments together, so that
             # we can reconstruct the new embedded loops after crushing surf.
-            myArc, myEndNum = segLocations[mySeg]
-            yourArc, yourEndNum = segLocations[yourSeg]
-            myArc.join( myEndNum, yourArc, yourEndNum )
-            myArc.join( 1 - myEndNum, yourArc, 1 - yourEndNum )
+            myChord, myEndNum = segLocations[mySeg]
+            yourChord, yourEndNum = segLocations[yourSeg]
+            myChord.join( myEndNum, yourChord, yourEndNum )
+            myChord.join( 1 - myEndNum, yourChord, 1 - yourEndNum )
 
-        # Except for an arc which is incident to surf in the case where surf
-        # is a disc, all as yet unjoined arcs will join with themselves to
-        # form a new loop.
+        # Except for an chord which is incident to surf in the case where
+        # surf is a disc, all as yet unjoined chords will join with
+        # themselves to form a new loop.
         if ( SurfaceType.recognise(surf) == SurfaceType.DISC and
             len(incidentLoopInds) == 1 ):
-            arcToAvoid = arcsByLoopIndex[ incidentLoopInds.pop() ].pop()
+            chordToAvoid = chordsByLoopIndex[ incidentLoopInds.pop() ].pop()
         else:
-            arcToAvoid = None
-        for arc in ans:
-            if ( (arc != arcToAvoid) and (arc.joinedArc(0) is None) ):
-                arc.join( 0, arc, 1 )
+            chordToAvoid = None
+        for chord in ans:
+            if ( (chord != chordToAvoid) and
+                (chord.joinedChord(0) is None) ):
+                chord.join( 0, chord, 1 )
         return ans
 
     def shorten(self):

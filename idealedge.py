@@ -237,10 +237,10 @@ def trackIdealSegments( surf, edgeIdealTri ):
         left topologically untouched. In particular, their orientations will
         be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
-        arcs. Each such arc either survives the crushing operation, or is
-        entirely destroyed by crushing. For the surviving arcs, crushing will
-        essentially rearrange how the endpoints of these arcs are joined
-        together, thereby yielding new ideal loops.
+        chords. Each such chord either survives the crushing operation, or is
+        entirely destroyed by crushing. For the surviving chords, crushing
+        will essentially rearrange how the endpoints of these chords are
+        joined together, thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
     via a triple consisting of the following items:
     (0) A list of surviving edge embeddings, appearing in order of traversal
@@ -258,8 +258,8 @@ def trackIdealSegments( surf, edgeIdealTri ):
         --> True if the new loop consists entirely of the segments described
             by the list of surviving edge embeddings; and
         --> False if the surviving edge embeddings together form a properly
-            embedded arc, which needs to be augmented by an additional arc to
-            give a complete loop.
+            embedded chord, which needs to be augmented by an additional
+            chord to give a complete loop.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -277,33 +277,33 @@ def trackIdealSegments( surf, edgeIdealTri ):
     survivors = OrientedSegment.survivors(surf)
     chords = edgeIdealTri.splitIntoChords(surf)
     while chords:
-        currentArc = chords.pop()
-        arcsInNewLoop = [currentArc]
-        newLoopOrientation = currentArc[0].orientation()
-        lastArcEnd = 1
-        currentArc = currentArc.joinedArc(1)
-        isNewLoopComplete = ( currentArc is not None )
+        currentChord = chords.pop()
+        chordsInNewLoop = [currentChord]
+        newLoopOrientation = currentChord[0].orientation()
+        lastChordEnd = 1
+        currentChord = currentChord.joinedChord(1)
+        isNewLoopComplete = ( currentChord is not None )
         if isNewLoopComplete:
-            while currentArc != arcsInNewLoop[0]:
-                chords.remove(currentArc)
-                joinedArcEnd = currentArc.joinedEnd(lastArcEnd)
-                if joinedArcEnd == 1:
-                    # The current arc is oriented inconsistently with the
-                    # first arc in this new loop.
+            while currentChord != chordsInNewLoop[0]:
+                chords.remove(currentChord)
+                joinedChordEnd = currentChord.joinedEnd(lastChordEnd)
+                if joinedChordEnd == 1:
+                    # The current chord is oriented inconsistently with the
+                    # first chord in this new loop.
                     newLoopOrientation = 0
-                    arcsInNewLoop.append( currentArc.reversed() )
+                    chordsInNewLoop.append( currentChord.reversed() )
                 else:
-                    arcsInNewLoop.append(currentArc)
-                lastArcEnd = 1 - joinedArcEnd
-                currentArc = currentArc.joinedArc(lastArcEnd)
-        assert lastArcEnd == 1
+                    chordsInNewLoop.append(currentChord)
+                lastChordEnd = 1 - joinedChordEnd
+                currentChord = currentChord.joinedChord(lastChordEnd)
+        assert lastChordEnd == 1
 
         # One ideal segment survives if and only if every segment in
-        # every ideal arc of the current loop survives.
+        # every ideal chord of the current loop survives.
         newLoopEmbeddings = []
         newLoopSurvives = True  # Until we prove otherwise.
-        for arc in arcsInNewLoop:
-            for seg in arc:
+        for chord in chordsInNewLoop:
+            for seg in chord:
                 survivingSeg = seg.translateAlongParallelCells(survivors)
                 if survivingSeg is None:
                     newLoopSurvives = False
@@ -321,17 +321,17 @@ def trackIdealSegments( surf, edgeIdealTri ):
     return newLoops
 
 
-#TODO How best to deal with ideal arcs which are joined to each other, and
-#       with ideal arcs arising from closing up invalid vertices?
+#TODO How best to deal with ideal chords which are joined to each other, and
+#       with ideal chords arising from closing up invalid vertices?
 def idealLoopsFromRealBoundary(surf):
     """
 
-    This routine returns a list describing the new ideal arcs that would
+    This routine returns a list describing the new ideal chords that would
     arise from the real boundary after crushing the given normal surface
     surf.
     ... TODO ...
-    Each element of the returned list describes one of the new ideal arcs via
-    a surviving edge embedding.
+    Each element of the returned list describes one of the new ideal chords
+    via a surviving edge embedding.
     """
     #TODO Find new loops arising from real boundary.
 
@@ -384,9 +384,9 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         left topologically untouched. In particular, their orientations will
         be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
-        arcs, and each such arc may or may not survive to become a new ideal
-        loop after crushing. The orientation will be preserved for the arcs
-        that do survive.
+        chords, and each such chord may or may not survive to become a new
+        ideal loop after crushing. The orientation will be preserved for the
+        chords that do survive.
     --> If the surface is an annulus (which, as specified above, must be
         disjoint from all pre-existing ideal loops), then crushing might
         create an entirely new ideal loop. This new loop will be assigned an
@@ -438,18 +438,18 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
             raise ValueError(msg)
 
         # The given surface splits the current oldLoop into some number of
-        # arcs. Which of these arcs survive to become new ideal loops after
-        # crushing?
-        for arc in oldLoop.splitIntoChords(surf):
-            seg = arc[0]
+        # chords. Which of these chords survive to become new ideal loops
+        # after crushing?
+        for chord in oldLoop.splitIntoChords(surf):
+            seg = chord[0]
             survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:
-                # This arc does not survive after crushing.
+                # This chord does not survive after crushing.
                 continue
 
-            # This arc survives after crushing.
+            # This chord survives after crushing.
             newLoop = [ survivingSeg.survivingEmbedding() ]
-            for seg in arc[1:]:
+            for seg in chord[1:]:
                 survivingSeg = seg.translateAlongParallelCells(survivors)
                 newLoop.append( survivingSeg.survivingEmbedding() )
             newLoopEmbs.append(newLoop)
