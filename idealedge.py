@@ -1,6 +1,7 @@
 """
 Find the ideal edges after crushing a normal surface.
 """
+from math import gcd as pythonGCD
 from regina import *
 from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
 from triloops import EdgeIdealTriangulation
@@ -275,7 +276,68 @@ def trackIdealSegments( surf, edgeIdealTri ):
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
-    chords = edgeIdealTri.splitIntoChords(surf)
+
+    # The edgeIdealTri can compute the internal chords obtained by splitting
+    # the ideal loops along the normal surface.
+    #
+    # But we might also need to track chords arising from parts of the real
+    # boundary that would get filled in after crushing. Since we have assumed
+    # that edgeIdealTri.allowsCrush(surf) is True, the only cases where surf
+    # intersects the real boundary are the following:
+    #   --> surf is a disc with ideal weight 1 and nontrivial boundary curve
+    #   --> surf is a disc with ideal weight 0 (here, the boundary curve is
+    #       allowed to be either trivial or nontrivial)
+    internalChords = edgeIdealTri.splitIntoChords(surf)
+    boundaryChords = set()
+    for bc in tri.boundaryComponents():
+        # From the pre-conditions, bc is a two-triangle torus.
+        bdryFace = bc.triangle(0)
+        normalArcs = [ surf.arcs( bdryFace.index(), v ).pythonValue()
+                      for v in range(3) ]
+        zeros = normalArcs.count(0)
+        if zeros == 3:
+            # Surface has no intersection with bc.
+            continue
+        elif zeros == 2:
+            # Boundary chord consisting of two type-1 segments.
+            #TODO
+            pass
+        elif zeros == 1:
+            # Boundary chord consisting of one type-2 segment.
+            # The segment is located on the edge of bdryFace opposite the
+            # zero normal arc coordinate.
+            v = normalArcs.index(0)
+            faceEmb = bdryFace.front()
+            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                     faceEmb.vertices()[3] }
+            tet = faceEmb.tetrahedron()
+            edgeMapping = tet.edgeMapping( Edge3.faceNumber(*endpoints) )
+            edgeIndex = tet.edge(*endpoints).index()
+            segPos = surf.arcs(
+                    bdryFace.index(),
+                    faceEmb.vertices().inverse()[
+                        edgeMapping[0] ] ).pythonValue()
+            assert segPos > 0
+
+            # Arbitrarily choose the orientation to be +1 for now. We might
+            # need to fix this later.
+            boundaryChords.add( NormalChord(
+                [ OrientedSegment(
+                    surf, edgeIndex, segPos, 1 ) ]
+                ) )
+        else:   # zeros == 0
+            # Surface is a disc with trivial boundary curve (and from the
+            # pre-conditions, the ideal weight is 0). In this case, no extra
+            # ideal edges arise from the real boundary, so there is nothing
+            # further for us to do here.
+            pass
+
+        # If we reach this point, then we have already found the boundary
+        # curve of surf, so there's no need to continue iterating through the
+        # boundary components of tri.
+        break
+
+    #TODO
     while chords:
         currentChord = chords.pop()
         chordsInNewLoop = [currentChord]
