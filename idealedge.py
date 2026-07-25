@@ -287,55 +287,103 @@ def trackIdealSegments( surf, edgeIdealTri ):
     #   --> surf is a disc with ideal weight 1 and nontrivial boundary curve
     #   --> surf is a disc with ideal weight 0 (here, the boundary curve is
     #       allowed to be either trivial or nontrivial)
+    # For discs with nontrivial boundary curve (regardless of ideal weight),
+    # we pick up a single boundary chord.
     internalChords = edgeIdealTri.splitIntoChords(surf)
-    boundaryChords = set()
-    for bc in tri.boundaryComponents():
-        # From the pre-conditions, bc is a two-triangle torus.
-        bdryFace = bc.triangle(0)
-        normalArcs = [ surf.arcs( bdryFace.index(), v ).pythonValue()
-                      for v in range(3) ]
-        zeros = normalArcs.count(0)
-        if zeros == 3:
-            # Surface has no intersection with bc.
-            continue
-        elif zeros == 2:
-            # Boundary chord consisting of two type-1 segments.
-            #TODO
-            pass
-        elif zeros == 1:
-            # Boundary chord consisting of one type-2 segment.
-            # The segment is located on the edge of bdryFace opposite the
-            # zero normal arc coordinate.
-            v = normalArcs.index(0)
+    boundaryChord = None
+    if SurfaceType.recognise(surf) == SurfaceType.DISC:
+        for bc in tri.boundaryComponents():
+            # From the pre-conditions, bc is a two-triangle torus.
+            bdryFace = bc.triangle(0)
             faceEmb = bdryFace.front()
-            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
-                                     faceEmb.vertices()[3] }
             tet = faceEmb.tetrahedron()
-            edgeMapping = tet.edgeMapping( Edge3.faceNumber(*endpoints) )
-            edgeIndex = tet.edge(*endpoints).index()
-            segPos = surf.arcs(
-                    bdryFace.index(),
-                    faceEmb.vertices().inverse()[
-                        edgeMapping[0] ] ).pythonValue()
-            assert segPos > 0
 
-            # Arbitrarily choose the orientation to be +1 for now. We might
-            # need to fix this later.
-            boundaryChords.add( NormalChord(
-                [ OrientedSegment(
-                    surf, edgeIndex, segPos, 1 ) ]
-                ) )
-        else:   # zeros == 0
-            # Surface is a disc with trivial boundary curve (and from the
-            # pre-conditions, the ideal weight is 0). In this case, no extra
-            # ideal edges arise from the real boundary, so there is nothing
-            # further for us to do here.
-            pass
+            # Does the disc intersect bc? If so, then we might need to pick up
+            # a boundary chord.
+            normalArcs = [ surf.arcs( bdryFace.index(), v ).pythonValue()
+                          for v in range(3) ]
+            zeros = normalArcs.count(0)
+            if zeros == 3:
+                # Disc has no intersection with bc.
+                continue
+            elif zeros == 2:
+                # Boundary chord consisting of two type-1 segments.
+                #
+                # The nonzero normal arc coordinate must be equal to 1, and
+                # we can choose the two segments to straddle one end of the
+                # edge of bdryFace opposite the nonzero normal arc.
+                v = normalArcs.index(1)
+                endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                         faceEmb.vertices()[3] }
+                oppEdge = tet.edge(*endpoints)
+                oppFront = oppEdge.front()
+                oppBack = oppEdge.back()
+                frontTet = oppFront.tetrahedron()
+                backTet = oppBack.tetrahedron()
+                frontEdgeEnds = [ oppFront.vertices()[0],
+                                 oppFront.vertices()[2] ]
+                backEdgeEnds = [ oppBack.vertices()[0],
+                                oppBack.vertices()[3] ]
+                frontEdgeIndex = frontTet.edge(*frontEdgeEnds).index()
+                backEdgeIndex = backTet.edge(*backEdgeEnds).index()
 
-        # If we reach this point, then we have already found the boundary
-        # curve of surf, so there's no need to continue iterating through the
-        # boundary components of tri.
-        break
+                # For now, we orient the chord from front to back, but this
+                # might need to be fixed later.
+                frontEdgeMapping = frontTet.edgeMapping(*frontEdgeEnds)
+                backEdgeMapping = backTet.edgeMapping(*backEdgeEnds)
+                if frontEdgeMapping[0] == oppFront.vertices[0]:
+                    frontSegPos = 0
+                    frontOrientation = -1
+                else:
+                    frontSegPos = surf.edgeWeight(
+                            frontEdgeIndex ).pythonValue()
+                    frontOrientation = 1
+                if backEdgeMapping[0] == oppBack.vertices[0]:
+                    backSegPos = 0
+                    backOrientation = 1
+                else:
+                    backSegPos = surf.edgeWeight(
+                            backEdgeIndex ).pythonValue()
+                    backOrientation = -1
+                frontSeg = OrientedSegment(
+                        surf, frontEdgeIndex, frontSegPos, frontOrientation )
+                backSeg = OrientedSegment(
+                        surf, backEdgeIndex, backSegPos, backOrientation )
+                boundaryChord = NormalChord( [ frontSeg, backSeg ] )
+            elif zeros == 1:
+                # Boundary chord consisting of one type-2 segment.
+                #
+                # The segment is located on the edge of bdryFace opposite the
+                # zero normal arc coordinate.
+                v = normalArcs.index(0)
+                endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                         faceEmb.vertices()[3] }
+                oppEdgeMapping = tet.edgeMapping( Edge3.faceNumber(*endpoints) )
+                oppEdgeIndex = tet.edge(*endpoints).index()
+                segPos = surf.arcs(
+                        bdryFace.index(),
+                        faceEmb.vertices().inverse()[
+                            oppEdgeMapping[0] ] ).pythonValue()
+                assert segPos > 0
+
+                # For now, we arbitrarily choose the orientation to be +1,
+                # but this might need to be fixed later.
+                boundaryChord = NormalChord( [ OrientedSegment(
+                    surf, oppEdgeIndex, segPos, 1 ) ] )
+            else:   # zeros == 0
+                # Disc has trivial boundary curve (and from the
+                # pre-conditions, the ideal weight is 0). In this case, no
+                # extra ideal edges arise from the real boundary, so there is
+                # nothing further for us to do here.
+                pass
+
+            # If we reach this point, then we have already found the boundary
+            # curve of surf, so there's no need to continue iterating through
+            # the boundary components of tri.
+            break
+
+        # End for
+    # End if
 
     #TODO
     while chords:
