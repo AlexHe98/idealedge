@@ -431,6 +431,114 @@ def trackIdealSegments( surf, edgeIdealTri ):
     return newLoops
 
 
+#TODO
+def _findBoundaryChords(surf):
+    """
+    TODO
+    """
+    boundaryChords = set()
+    for bc in surf.triangulation().boundaryComponents():
+        # From the pre-conditions, bc is a two-triangle torus.
+        bdryFace = bc.triangle(0)
+        faceEmb = bdryFace.front()
+        tet = faceEmb.tetrahedron()
+
+        # Does the surface intersect bc? If so, then we might need to pick up
+        # some boundary chords.
+        normalArcs = [ surf.arcs( bdryFace.index(), v ).pythonValue()
+                      for v in range(3) ]
+        numBdryCurves = pythonGCD(*normalArcs)
+        assert ( numBdryCurves <= 2 )   # Follows from pre-conditions
+        zeros = normalArcs.count(0)
+        if zeros == 3:
+            # Surface has no intersection with bc, so we can't pick up any
+            # new boundary chords here.
+            continue
+        if zeros == 0:
+            # Surface has a trivial boundary curve.
+            #
+            # From the pre-conditions, the surface must in fact be a disc,
+            # which means that there cannot be any boundary chords at all.
+            assert not boundaryChords
+            return boundaryChords
+
+        # Find possible boundary chord sandwiched between two parallel
+        # boundary curves.
+        if numBdryCurves == 2:
+            #TODO
+            raise NotImplementedError()
+
+        # Find possible boundary chord incident to the central faces in bc.
+        if zeros == 2:
+            # Boundary chord consisting of two type-1 segments.
+            #
+            # We can choose the two segments to straddle one end of the
+            # edge of bdryFace opposite the nonzero normal arc.
+            v = normalArcs.index(numBdryCurves)
+            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                     faceEmb.vertices()[3] }
+            oppEdge = tet.edge(*endpoints)
+            oppFront = oppEdge.front()
+            oppBack = oppEdge.back()
+            frontTet = oppFront.tetrahedron()
+            backTet = oppBack.tetrahedron()
+            frontEdgeEnds = [ oppFront.vertices()[0],
+                             oppFront.vertices()[2] ]
+            backEdgeEnds = [ oppBack.vertices()[0],
+                            oppBack.vertices()[3] ]
+            frontEdgeIndex = frontTet.edge(*frontEdgeEnds).index()
+            backEdgeIndex = backTet.edge(*backEdgeEnds).index()
+
+            # For now, we orient the chord from front to back, but this
+            # might need to be fixed later.
+            frontEdgeMapping = frontTet.edgeMapping(*frontEdgeEnds)
+            backEdgeMapping = backTet.edgeMapping(*backEdgeEnds)
+            if frontEdgeMapping[0] == oppFront.vertices[0]:
+                frontSegPos = 0
+                frontOrientation = -1
+            else:
+                frontSegPos = surf.edgeWeight(
+                        frontEdgeIndex ).pythonValue()
+                frontOrientation = 1
+            if backEdgeMapping[0] == oppBack.vertices[0]:
+                backSegPos = 0
+                backOrientation = 1
+            else:
+                backSegPos = surf.edgeWeight(
+                        backEdgeIndex ).pythonValue()
+                backOrientation = -1
+            frontSeg = OrientedSegment(
+                    surf, frontEdgeIndex, frontSegPos, frontOrientation )
+            backSeg = OrientedSegment(
+                    surf, backEdgeIndex, backSegPos, backOrientation )
+            boundaryChords.add( NormalChord( [ frontSeg, backSeg ] ) )
+        elif zeros == 1:
+            # Boundary chord consisting of one type-2 segment.
+            #
+            # The segment is located on the edge of bdryFace opposite the
+            # zero normal arc coordinate.
+            v = normalArcs.index(0)
+            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                     faceEmb.vertices()[3] }
+            oppEdgeMapping = tet.edgeMapping( Edge3.faceNumber(*endpoints) )
+            oppEdgeIndex = tet.edge(*endpoints).index()
+            segPos = surf.arcs(
+                    bdryFace.index(),
+                    faceEmb.vertices().inverse()[
+                        oppEdgeMapping[0] ] ).pythonValue()
+            assert segPos > 0
+
+            # For now, we arbitrarily choose the orientation to be +1,
+            # but this might need to be fixed later.
+            boundaryChords.add( NormalChord( [ OrientedSegment(
+                surf, oppEdgeIndex, segPos, 1 ) ] ) )
+        else:   # Impossible.
+            raise AssertionError()
+
+    # Done!
+    return boundaryChords
+
+
 #TODO How best to deal with ideal chords which are joined to each other, and
 #       with ideal chords arising from closing up invalid vertices?
 def idealLoopsFromRealBoundary(surf):
