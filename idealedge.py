@@ -465,8 +465,18 @@ def _findBoundaryChords(surf):
         # Find possible boundary chord sandwiched between two parallel
         # boundary curves.
         if numBdryCurves == 2:
-            #TODO
-            raise NotImplementedError()
+            # A boundary edge opposite a zero normal arc coordinate will
+            # always have positive weight.
+            v = normalArcs.index(0)
+            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                     faceEmb.vertices()[3] }
+            oppEdgeIndex = tet.edge(*endpoints).index()
+            segPos = 1  # Any odd segment position will do.
+
+            # For now, we arbitrarily choose the orientation to be +1,
+            # but this might need to be fixed later.
+            boundaryChords.add( NormalChord( [ OrientedSegment(
+                surf, oppEdgeIndex, segPos, 1 ) ] ) )
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
