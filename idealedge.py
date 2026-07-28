@@ -243,7 +243,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
         will essentially rearrange how the endpoints of these chords are
         joined together, thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
-    via a triple consisting of the following items:
+    via a pair consisting of the following items:
     (0) A list of surviving edge embeddings, appearing in order of traversal
         around the ideal loop, and also oriented consistently with the order
         of traversal.
@@ -255,12 +255,6 @@ def trackIdealSegments( surf, edgeIdealTri ):
             other segments are oriented consistently with this.
         --> 0, if the loop contains segments that are oriented
             inconsistently.
-    (2) A Boolean flag, which is:
-        --> True if the new loop consists entirely of the segments described
-            by the list of surviving edge embeddings; and
-        --> False if the surviving edge embeddings together form a properly
-            embedded chord, which needs to be augmented by an additional
-            chord to give a complete loop.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -291,18 +285,34 @@ def trackIdealSegments( surf, edgeIdealTri ):
     # we pick up a single boundary chord.
     internalChords = edgeIdealTri.splitIntoChords(surf)
     boundaryChords = _findBoundaryChords(surf)
+    if boundaryChords:
+        unjoinedBoundaryChord = boundaryChords.pop()
+    else:
+        unjoinedBoundaryChord = None
 
-    #TODO
-    while chords:
-        currentChord = chords.pop()
+    # Extract all the segments from the internal chords and put them together
+    # to form the new loops. If one of the internal chords has unjoined ends,
+    # then these will need to be joined to the boundary chord.
+    while internalChords:
+        currentChord = internalChords.pop()
         chordsInNewLoop = [currentChord]
         newLoopOrientation = currentChord[0].orientation()
         lastChordEnd = 1
         currentChord = currentChord.joinedChord(1)
-        isNewLoopComplete = ( currentChord is not None )
-        if isNewLoopComplete:
+        if currentChord is None:
+            # We need to join to the boundary chord.
+
+            #TODO Hard part will be to get orientation right.
+            #TODO Don't forget to set unjoinedBoundaryChord to None after
+            #       this is all done.
+            raise NotImplementedError()
+        else:
+            #TODO Check that the logic is still correct.
+
+            # Traverse the new loop, and pick up all its constituent internal
+            # chords.
             while currentChord != chordsInNewLoop[0]:
-                chords.remove(currentChord)
+                internalChords.remove(currentChord)
                 joinedChordEnd = currentChord.joinedEnd(lastChordEnd)
                 if joinedChordEnd == 1:
                     # The current chord is oriented inconsistently with the
@@ -331,8 +341,16 @@ def trackIdealSegments( surf, edgeIdealTri ):
             if not newLoopSurvives:
                 break
         if newLoopSurvives:
-            newLoops.append( ( newLoopEmbeddings, newLoopOrientation,
-                              isNewLoopComplete ) )
+            newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
+
+    #TODO If ends of the current (internal) chord aren't abstractly
+    #       joined to anything, then they need to be joined to the
+    #       boundary chord.
+    #
+    #       On the other hand, if no internal chord ever gets abstractly
+    #       joined to the boundary chord, then before we terminate we
+    #       will need to abstractly join the two ends of the boundary
+    #       chord to each other.
 
     # All done!
     return newLoops
