@@ -462,6 +462,15 @@ def _findBoundaryChords(surf):
                     surf, backEdgeIndex, backSegPos, backOrientation )
             boundaryChords.add( NormalChord( [ frontSeg, backSeg ] ) )
         elif zeros == 1:
+            #TODO For the implementation, it might be more convenient to
+            #       again use a boundary chord consisting of two type-1
+            #       segments. This makes two things easier:
+            #       (1) Figuring out how the ends of the boundary chord join
+            #           up with ends of an internal chord.
+            #       (2) Unifies the combinatorics: if we have a boundary
+            #           chord, then there is *always* a shortening available
+            #           through the newly closed up triangle face.
+
             # Boundary chord consisting of one type-2 segment.
             #
             # The segment is located on the edge of bdryFace opposite the

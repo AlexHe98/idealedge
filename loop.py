@@ -733,6 +733,11 @@ class EmbeddedLoop:
         """
         raise NotImplementedError()
 
+    #TODO For processing boundary chords, it seems useful to make a "public"
+    #       version of this routine (possibly just renaming it is enough).
+    #
+    #       Probably also want an analogous public routine in the
+    #       TriangulationWithEmbeddedLoops class.
     def _attemptRedirect( self, face ):
         r"""
         Attempts to redirect this loop across the given face.
