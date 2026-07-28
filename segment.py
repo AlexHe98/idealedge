@@ -381,6 +381,9 @@ class OrientedSegment:
         # All done!
         return ans
 
+    #TODO Generalise this to allow markedEnd to be provided as an input
+    #       argument, and thereby allow type-2 segments. This is needed, for
+    #       instance, to detect slope-reversing annuli.
     def translateAlongSurface( self, targets ):
         """
         Translates this type-1 segment along self.surface(), and if possible

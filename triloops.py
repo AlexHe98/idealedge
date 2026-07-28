@@ -927,6 +927,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             return ( weight == 1 )
         return False
 
+    #TODO Fix this so that it detects slope-reversing annuli.
     def splitIntoChords( self, surf ):
         """
         Returns a set containing the chords into which the given normal
