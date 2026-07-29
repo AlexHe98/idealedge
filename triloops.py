@@ -927,7 +927,6 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             return ( weight == 1 )
         return False
 
-    #TODO Fix this so that it detects slope-reversing annuli.
     def splitIntoChords( self, surf ):
         """
         Returns a set containing the chords into which the given normal
@@ -965,66 +964,43 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                 for incChord in chordsByLoopIndex[loopInd]:
                     incidentChords.append(incChord)
 
-            #TODO
-            targets = set()
-            for chordEnd in range(2):
-                endSeg = incidentChords[1].endSegment(chordEnd)
-                targets.add(endSeg)
-                targets.add( endSeg.reversed() )
+            #TODO Should move the below targets algorithm into a separate
+            #       function, since we will need to do this again to deal
+            #       with boundary chords.
 
-            #TODO Choose one chord to translate, and get the target segments
-            #       from the other chord.
-            raise NotImplementedError()
+            # Translate the tail of the first chord along the surface. If we
+            # encounter an end of the second chord, then the two chords
+            # should get joined together to form a single new loop;
+            # otherwise, the two chords should form two separate loops.
+            myTail = incidentChords[0].endSegment(0)
+            yourTail = incidentChords[1].endSegment(0)
+            yourHead = incidentChords[1].endSegment(1).reversed()
+            targets = { yourTail, yourHead }
+            targetSeg = myTail.translateAlongSurface( targets, 0 )
+            if targetSeg is None:
+                for i in range(2):
+                    incidentChords[i].join( 0, incidentChords[i], 1 )
+            elif targetSeg == yourTail:
+                for i in range(2):
+                    incidentChords[0].join( i, incidentChords[1], i )
+            else:   # targetSeg == yourHead
+                for i in range(2):
+                    incidentChords[0].join( i, incidentChords[1], 1 - i )
 
-        #TODO
-
-        # Find chords (if any) that will get joined together after crushing.
-        incidentLoopInds = self.incidentLoopIndices(surf)
-        if len(incidentLoopInds) == 2:
-            # From the preconditions, we may assume that surf is a 2-sphere.
-            # We may also assume that each of the two incident loops has
-            # weight 1 with respect to surf, which means that each such loop
-            # is split into exactly one chord; after crushing surf, the
-            # segments at the ends of the two chords will get joined
-            # together, such that the chords combine to form a single new
-            # loop. Note that both of the chords will be "long chords", so
-            # the segments at either end of each chord are guaranteed to be
-            # distinct; hence, we will have four segments that get joined to
-            # each other in two pairs.
-            endSegments = { loopIndex: set()
-                              for loopIndex in incidentLoopInds }
-            segLocations = dict()
-            for loopIndex in incidentLoopInds:
-                # As above, we should have exactly one chord.
-                chord = chordsByLoopIndex[loopIndex].pop()
-                for endNum in range(2):
-                    seg = chord.endSegment(endNum)
-                    endSegments[loopIndex].add(seg)
-                    segLocations[seg] = ( chord, endNum )
-
-            # Work out which two pairs of the endSegments will be joined
-            # to each other after crushing surf.
-            myLoopInd, yourLoopInd = endSegments.keys()
-            mySeg = endSegments[myLoopInd].pop()
-            yourSeg = mySeg.translateAlongSurface(
-                    endSegments[yourLoopInd] )
-            endSegments[yourLoopInd].remove(yourSeg)
-
-            # Abstractly join the two pairs of endSegments together, so that
-            # we can reconstruct the new embedded loops after crushing surf.
-            myChord, myEndNum = segLocations[mySeg]
-            yourChord, yourEndNum = segLocations[yourSeg]
-            myChord.join( myEndNum, yourChord, yourEndNum )
-            myChord.join( 1 - myEndNum, yourChord, 1 - yourEndNum )
-
-        # Except for an chord which is incident to surf in the case where
+        # Except for a chord which is incident to surf in the case where
         # surf is a disc, all as yet unjoined chords will join with
         # themselves to form a new loop.
-        if ( SurfaceType.recognise(surf) == SurfaceType.DISC and
-            len(incidentLoopInds) == 1 ):
-            chordToAvoid = chordsByLoopIndex[ incidentLoopInds.pop() ].pop()
-        else:
-            chordToAvoid = None
+        #
+        # Note that from the pre-conditions, a disc has ideal weight at most
+        # 1. So if there is a chord incident to the disc, then the ideal
+        # weight must of course be equal to 1.
+        chordToAvoid = None
+        if SurfaceType.recognise(surf) == SurfaceType.DISC:
+            for incidentLoopInd in incidentLoopWts:
+                chordToAvoid = chordsByLoopindex[incidentLoopInd].pop()
+                # The pre-conditions imply that len(incidentLoopWts) <= 1,
+                # but break out anyway just to be safe.
+                break
         for chord in ans:
             if ( (chord != chordToAvoid) and
                 (chord.joinedChord(0) is None) ):

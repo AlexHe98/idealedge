@@ -1,7 +1,7 @@
 --- Bounded orientable SFS recognition
-    --> Fix chord tracking to detect slope-reversing annuli
-        ->- Fix TriangulationWithEmbeddedLoops.splitIntoChords()
-        ->- Think about return values, and what's the best overall design
+    --> Fix chord tracking to detect fibre-reversing surfaces
+        ->- Move targets algorithm into separate function
+        ->- Double-check that tracking orientations is enough to detect fibre-reversing surfaces
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
         ->- Find deleted components arising from cycles of wedge cells
