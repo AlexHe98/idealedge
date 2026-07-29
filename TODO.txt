@@ -1,6 +1,5 @@
 --- Bounded orientable SFS recognition
     --> Fix chord tracking to detect slope-reversing annuli
-        ->- Generalise OrientedSegment.translateAlongSurface()
         ->- Fix TriangulationWithEmbeddedLoops.splitIntoChords()
         ->- Think about return values, and what's the best overall design
     --> New implementation of decomposeAlong()

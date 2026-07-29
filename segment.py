@@ -381,40 +381,75 @@ class OrientedSegment:
         # All done!
         return ans
 
-    #TODO Generalise this to allow markedEnd to be provided as an input
-    #       argument, and thereby allow type-2 segments. This is needed, for
-    #       instance, to detect slope-reversing annuli.
-    def translateAlongSurface( self, targets ):
+    def translateAlongSurface( self, targets, segmentEnd=None ):
         """
-        Translates this type-1 segment along self.surface(), and if possible
-        returns one of the given target segments onto which this segment
-        translates.
-
-        Raises ValueError if this segment is not of type 1.
+        Translates one end of this segment along self.surface(), and if
+        possible returns one of the given target segments onto which this
+        segment translates.
 
         If no target segment is reachable under such translation, then this
         routine returns None. Otherwise, this routine will return a target
         segment whose orientation is consistent with this segment's
         orientation under the translation.
 
+        The segmentEnd parameter may be optionally provided to specify which
+        of the two ends of this segment should be translated along the
+        surface. This parameter must be either:
+        --> 0, indicating the tail of this segment relative to its
+            orientation; or
+        --> 1, indicating the head of this segment relative to its
+            orientation.
+        Moreover, segmentEnd must be an end of this segment which is actually
+        incident to self.surface(). This routine raises ValueError if these
+        conditions are not satisfied.
+
+        Also, regardless of whether segmentEnd is provided, this routine
+        always raises ValueError if self.segmentType() == 0, because type-0
+        segments are never incident to the surface.
+
+        If segmentEnd is not provided, then this routine makes the following
+        choice for which end of this segment will be translated along
+        self.surface():
+        --> If this segment is type-1, then this routine chooses the unique
+            end of this segment which is incident to the surface.
+        --> If this segment is type-2, then this routine arbitrarily chooses
+            end 0 of this segment.
+
         This routine only runs membership tests on the given set of targets.
         In particular, this routine will never modify targets.
         """
-        if self.segmentType() != 1:
+        segType = self.segmentType()
+        if segType == 0:
             raise ValueError(
-                    "translateAlongSurface() requires type-1 segment" )
+                    "Type-0 segments are never incident to the surface" )
+        elif segmentEnd not in {0, 1, None}:
+            raise ValueError(
+                    "segmentEnd must be either 0 or 1" )
+        elif segType == 1:
+            # Find the end of this segment that is actually incident to
+            # self.surface().
+            if self._segPos == 0:
+                if self._orientation == 1:
+                    markedEnd = 1
+                else:   # self._orientation == -1
+                    markedEnd = 0
+            else:   # self._segPos == self.edgeWeight()
+                if self._orientation == 1:
+                    markedEnd = 0
+                else:   # self._orientation == -1
+                    markedEnd = 1
 
-        # Mark the end of this segment that is incident to self.surface().
-        if self._segPos == 0:
-            if self._orientation == 1:
-                markedEnd = 1
-            else:   # self._orientation == -1
+            # If a specific end was requested, then check that this was the
+            # correct end.
+            if (segmentEnd is not None) and (segmentEnd != markedEnd):
+                raise ValueError(
+                        "segmentEnd must be incident to the surface" )
+        else:   # segType == 2 and segmentEnd in {0, 1, None}
+            # If no end was requested, arbitrarily choose end 0.
+            if segmentEnd is None:
                 markedEnd = 0
-        else:   # self._segPos == self.edgeWeight()
-            if self._orientation == 1:
-                markedEnd = 0
-            else:   # self._orientation == -1
-                markedEnd = 1
+            else:
+                markedEnd = segmentEnd
         return self._traverseOrbit( targets,
                                    _adjacentSegmentsAlongSurface,
                                    markedEnd )
