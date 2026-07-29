@@ -314,7 +314,7 @@ class TriangulationWithEmbeddedLoops:
 
     #TODO Which of the following do we really need?
     #       --> intersects()
-    #       --> loopWeights()
+    #       --> incidentLoopWeights()
     #       --> weight()
     #       --> incidentLoopIndices()
 
@@ -331,7 +331,7 @@ class TriangulationWithEmbeddedLoops:
                 return True
         return False
 
-    def loopWeights( self, surf ):
+    def incidentLoopWeights( self, surf ):
         """
         Returns a dictionary mapping loop indices to their weights with
         respect to the given normal surface.
@@ -357,7 +357,7 @@ class TriangulationWithEmbeddedLoops:
         Precondition:
         --> The given normal surface is embedded in self.triangulation().
         """
-        return sum( self.loopWeights(surf).values() )
+        return sum( self.incidentLoopWeights(surf).values() )
 
     def incidentLoopIndices( self, surf ):
         """
@@ -367,7 +367,7 @@ class TriangulationWithEmbeddedLoops:
         Precondition:
         --> The given normal surface is embedded in self.triangulation().
         """
-        return set( self.loopWeights(surf).keys() )
+        return set( self.incidentLoopWeights(surf).keys() )
 
     def shorten(self):
         """
@@ -950,6 +950,26 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             chords = embLoop.splitIntoChords(surf)
             chordsByLoopIndex.append(chords)
             ans.update(chords)
+
+        # If the ideal weight is 2, then we might have two chords which are
+        # joined to each other after crushing.
+        #
+        # From the pre-conditions, to have ideal weight 2, surf must be a
+        # 2-sphere.
+        incidentLoopWts = self.incidentLoopWeights(surf)
+        if sum( incidentLoopWts.values() ) == 2:
+            # Ideal weight 2 implies that surf is incident to exactly 2
+            # ideal chords.
+            incidentChords = []
+            for loopInd in incidentLoopWts:
+                for incChord in chordsByLoopIndex[loopInd]:
+                    incidentChords.append(incChord)
+
+            #TODO Choose one chord to translate, and get the target segments
+            #       from the other chord.
+            raise NotImplementedError()
+
+        #TODO
 
         # Find chords (if any) that will get joined together after crushing.
         incidentLoopInds = self.incidentLoopIndices(surf)
