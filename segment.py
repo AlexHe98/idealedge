@@ -269,6 +269,42 @@ class OrientedSegment:
             return 1
         return 2
 
+    def endIncidentToSurface(self):
+        """
+        Returns an end of this segment which is incident to self.surface(),
+        or None if there is no such end.
+
+        An end of this segment is returned as either 0 or 1, which
+        respectively indicate the tail or head of this segment. In other
+        words, this segment is oriented away from end 0 and towards end 1.
+
+        The return value depends on the type of this segment (as calculated
+        by self.segmentType()):
+        --> Type 0: Neither end is incident to the surface, so this routine
+                    returns None.
+        --> Type 1: This routine returns the unique end incident to the
+                    surface.
+        --> Type 2: Both ends are incident to the surface. This routine
+                    always returns end 0 (this is an arbitrary choice).
+        """
+        segType = self.segmentType()
+        if segType == 0:
+            return None
+        elif segType == 1:
+            if self._segPos == 0:
+                if self._orientation == 1:
+                    return 1
+                else:   # self._orientation == -1
+                    return 0
+            else:   # self._segPos == self.edgeWeight()
+                if self._orientation == 1:
+                    return 0
+                else:   # self._orientation == -1
+                    return 1
+
+        # Otherwise, segType == 2.
+        return 0
+
     def _traverseOrbit( self, targets, adjacentSegments, *args ):
         """
         Returns a target segment that is reachable by traversing an "orbit" of
@@ -396,63 +432,44 @@ class OrientedSegment:
         of the two ends of this segment should be translated along the
         surface. This parameter must be either:
         --> 0, indicating the tail of this segment relative to its
-            orientation; or
+            orientation, or
         --> 1, indicating the head of this segment relative to its
-            orientation.
-        Moreover, segmentEnd must be an end of this segment which is actually
-        incident to self.surface(). This routine raises ValueError if these
-        conditions are not satisfied.
+            orientation
+        (in other words, this segment is oriented away from end 0, and
+        towards end 1). Moreover, segmentEnd must be an end of this segment
+        which is actually incident to self.surface(). This routine raises
+        ValueError if these conditions are not satisfied.
 
         Also, regardless of whether segmentEnd is provided, this routine
         always raises ValueError if self.segmentType() == 0, because type-0
         segments are never incident to the surface.
 
-        If segmentEnd is not provided, then this routine makes the following
-        choice for which end of this segment will be translated along
-        self.surface():
-        --> If this segment is type-1, then this routine chooses the unique
-            end of this segment which is incident to the surface.
-        --> If this segment is type-2, then this routine arbitrarily chooses
-            end 0 of this segment.
+        If segmentEnd is not provided, then this routine simply uses the
+        self.endIncidentToSurface() routine to choose which end of this
+        segment will be translated along self.surface().
 
         This routine only runs membership tests on the given set of targets.
         In particular, this routine will never modify targets.
         """
-        segType = self.segmentType()
-        if segType == 0:
-            raise ValueError(
-                    "Type-0 segments are never incident to the surface" )
-        elif segmentEnd not in {0, 1, None}:
+        if segmentEnd not in {0, 1, None}:
             raise ValueError(
                     "segmentEnd must be either 0 or 1" )
-        elif segType == 1:
-            # Find the end of this segment that is actually incident to
-            # self.surface().
-            if self._segPos == 0:
-                if self._orientation == 1:
-                    markedEnd = 1
-                else:   # self._orientation == -1
-                    markedEnd = 0
-            else:   # self._segPos == self.edgeWeight()
-                if self._orientation == 1:
-                    markedEnd = 0
-                else:   # self._orientation == -1
-                    markedEnd = 1
+        endIncidentToSurf = self.endIncidentToSurface()
+        if endIncidentToSurf is None:
+            raise ValueError(
+                    "Type-0 segments are never incident to the surface" )
 
-            # If a specific end was requested, then check that this was the
-            # correct end.
-            if (segmentEnd is not None) and (segmentEnd != markedEnd):
+        # If segmentEnd is provided, then use that as the endIncidentToSurf
+        # (provided that it is indeed incident to the surface).
+        if segment is not None:
+            if ( (self.segmentType() == 1) and
+                (segmentEnd != endIncidentToSurf) ):
                 raise ValueError(
                         "segmentEnd must be incident to the surface" )
-        else:   # segType == 2 and segmentEnd in {0, 1, None}
-            # If no end was requested, arbitrarily choose end 0.
-            if segmentEnd is None:
-                markedEnd = 0
-            else:
-                markedEnd = segmentEnd
+            endIncidentToSurf = segmentEnd
         return self._traverseOrbit( targets,
                                    _adjacentSegmentsAlongSurface,
-                                   markedEnd )
+                                   endIncidentToSurf )
 
     def translateAlongParallelCells( self, targets ):
         """
@@ -531,7 +548,7 @@ def _adjacentSegmentsAlongSurface( seg, markedEnd ):
         elif markedIncidence[0] == _SegmentEndIncidence.QUAD:
             includeNonParallel = True
             for adjSeg in _adjSegsAlongQuad(
-                    seg, edgeEmb, markedIncident[1], includeNonParallel ):
+                    seg, edgeEmb, markedIncidence[1], includeNonParallel ):
                 yield adjSeg
         else:
             raise ValueError(

@@ -965,6 +965,13 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
                 for incChord in chordsByLoopIndex[loopInd]:
                     incidentChords.append(incChord)
 
+            #TODO
+            targets = set()
+            for chordEnd in range(2):
+                endSeg = incidentChords[1].endSegment(chordEnd)
+                targets.add(endSeg)
+                targets.add( endSeg.reversed() )
+
             #TODO Choose one chord to translate, and get the target segments
             #       from the other chord.
             raise NotImplementedError()
