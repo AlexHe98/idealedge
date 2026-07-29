@@ -3,6 +3,43 @@ Normal chords given by sequences of oriented segments.
 """
 
 
+def pairUpChordEndsByCrushing( myChord, yourChord ):
+    """
+    Pairs up the ends of the two given chords according to how these ends
+    would become identified after crushing the normal surface that defines
+    these chords.
+
+    This routine directly modifies the given chords by performing the
+    appropriate abstract joins on their ends.
+
+    Pre-condition:
+    --> myChord and yourChord are both chords for the same normal surface.
+    --> The normal surface is two-sided, and each side of the surface is
+        incident to precisely two out of the four ends of the given chords.
+    --> For each i in {0, 1}, both myChord.joinedChord(i) and
+        yourChord.joinedChord(i) are None.
+    """
+    # Translate the tail of myChord along the surface. If we encounter an end
+    # of yourChord, then the two chords should get joined together to form a
+    # single new loop; otherwise, the two chords should be closed up to form
+    # two separate loops.
+    myTail = myChord.endSegment(0)
+    yourTail = yourChord.endSegment(0)
+    yourHead = yourChord.endSegment(1).reversed()
+    targets = { yourTail, yourHead }
+    targetSeg = myTail.translateAlongSurface( targets, 0 )
+    if targetSeg is None:
+        myChord.join( 0, myChord, 1 )
+        yourChord.join( 0, yourChord, 1 )
+    elif targetSeg == yourTail:
+        myChord.join( 0, yourChord, 0 )
+        myChord.join( 1, yourChord, 1 )
+    else:   # targetSeg == yourHead
+        myChord.join( 0, yourChord, 1 )
+        myChord.join( 1, yourChord, 0 )
+    return
+
+
 class NormalChord:
     """
     A "chord" for a normal surface.

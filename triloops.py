@@ -12,6 +12,7 @@ from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
+from chord import pairUpChordEndsByCrushing
 
 
 class TriangulationWithEmbeddedLoops:
@@ -963,29 +964,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             for loopInd in incidentLoopWts:
                 for incChord in chordsByLoopIndex[loopInd]:
                     incidentChords.append(incChord)
-
-            #TODO Should move the below targets algorithm into a separate
-            #       function, since we will need to do this again to deal
-            #       with boundary chords.
-
-            # Translate the tail of the first chord along the surface. If we
-            # encounter an end of the second chord, then the two chords
-            # should get joined together to form a single new loop;
-            # otherwise, the two chords should form two separate loops.
-            myTail = incidentChords[0].endSegment(0)
-            yourTail = incidentChords[1].endSegment(0)
-            yourHead = incidentChords[1].endSegment(1).reversed()
-            targets = { yourTail, yourHead }
-            targetSeg = myTail.translateAlongSurface( targets, 0 )
-            if targetSeg is None:
-                for i in range(2):
-                    incidentChords[i].join( 0, incidentChords[i], 1 )
-            elif targetSeg == yourTail:
-                for i in range(2):
-                    incidentChords[0].join( i, incidentChords[1], i )
-            else:   # targetSeg == yourHead
-                for i in range(2):
-                    incidentChords[0].join( i, incidentChords[1], 1 - i )
+            pairUpChordEndsByCrushing(*incidentChords)
 
         # Except for a chord which is incident to surf in the case where
         # surf is a disc, all as yet unjoined chords will join with
