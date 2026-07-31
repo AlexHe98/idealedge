@@ -3,6 +3,7 @@ Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
 from loop import IdealLoop, BoundsDisc
+from retriangulate.insert import layerOn
 try:
     import snappy
 except ModuleNotFoundError:
@@ -96,12 +97,15 @@ def reversePinch( knotComplement, packet=None ):
     # and longitude. The last step is not guaranteed to terminate in theory,
     # but it usually works pretty well in practice.
     knotComplement.minimiseVertices()
-    knotComplement.intelligentSimplify()
-    knotComplement.intelligentSimplify()
+    #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+    #       versions of Regina, equivalent functionality was provided by
+    #       Triangulation3.intelligentSimplify().
+    knotComplement.simplify()
+    knotComplement.simplify()
     knotComplement.idealToFinite()
     noSimplification = 0
     while noSimplification < 2:
-        if not knotComplement.intelligentSimplify():
+        if not knotComplement.simplify():
             noSimplification += 1
     mer, lon = knotComplement.meridianLongitude()
 
@@ -112,7 +116,7 @@ def reversePinch( knotComplement, packet=None ):
     edgeNum = emb.face()
 
     # Close up the boundary and build the IdealLoop.
-    layer = knotComplement.layerOn(mer)
+    layer = layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
     return _edgeToIdealLoop( idealEdge, packet )

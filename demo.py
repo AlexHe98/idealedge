@@ -1,16 +1,16 @@
 """
 Demo with hard diagrams of composite knots.
 """
-from sys import argv
+import sys
 import snappy
 from regina import *
-from hardknot import randomHardComposite
+from hardknot.genrand import randomHardComposite
 from decomposeknot import decompose
 
 
 if __name__ == "__main__":
     try:
-        sig = argv[1]
+        sig = sys.argv[1]
     except IndexError:
         # If no knot signature is provided, then try to randomly generate a
         # hard diagram of a composite knot.
@@ -27,6 +27,9 @@ if __name__ == "__main__":
     else:
         knot = Link.fromKnotSig(sig)
         snappyKnot = snappy.Link( knot.pdData() )
+    if len(snappyKnot.crossings) == 0:
+        print( "SnapPy simplified to 0 crossings!" )
+        sys.exit()
 
     # View the knot diagram using the PLink viewer.
     #NOTE This doesn't seem to work on all machines.

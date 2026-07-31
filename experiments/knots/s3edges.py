@@ -4,7 +4,7 @@ perform knot decomposition experiments on all the edges of these 3-spheres.
 """
 from sys import argv, stdout
 from regina import *
-from experiment import runDecompositionExperiment
+from experiments.knots.main import runDecompositionExperiment
 
 
 def decomposeS3Edges(dataset):
