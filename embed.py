@@ -55,16 +55,26 @@ def embedByFilling( knot, insertAsChild=False ):
     # If SnapPy is installed, then the filling can be done quickly and with
     # a guarantee of termination.
     if snappy:
-        knot = snappy.Link( knot.pdData() )
-        tri = snappy.exterior_to_link.mcomplex_with_link.link_triangulation(
-                knot.exterior(), add_arcs=True ).regina_triangulation()
-
-        # Last tetrahedron is the base of a layered solid torus, and the
-        # degree-3 edge in this base tetrahedron runs along the knot.
-        base = tri.tetrahedron( tri.size() - 1 )
-        lst = LayeredSolidTorus.recogniseFromBase(base)
-        idealEdge = base.edge( lst.baseEdge(3,0) )
-        return _edgeToIdealLoop( idealEdge, packet )
+        snappyKnot = snappy.Link( knot.pdData() )
+        try:
+            tri = snappy.exterior_to_link.mcomplex_with_link.link_triangulation(
+                    snappyKnot.exterior(), add_arcs=True ).regina_triangulation()
+        except ValueError as ve:
+            # Sometimes this SnapPy construction fails because
+            # Mcomplex.easy_simplify() tries to perform an illegal move.
+            if str(ve) == "Move would effect invariant tets":
+                # Fall through to the slower Regina construction.
+                pass
+            else:
+                # Some other error that we didn't anticipate.
+                raise ve
+        else:
+            # Last tetrahedron is the base of a layered solid torus, and the
+            # degree-3 edge in this base tetrahedron runs along the knot.
+            base = tri.tetrahedron( tri.size() - 1 )
+            lst = LayeredSolidTorus.recogniseFromBase(base)
+            idealEdge = base.edge( lst.baseEdge(3,0) )
+            return _edgeToIdealLoop( idealEdge, packet )
 
     # Otherwise, we must fall back to doing the filling using Regina, which
     # is not guaranteed to terminate.
