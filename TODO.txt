@@ -1,8 +1,8 @@
 --- Bounded orientable SFS recognition
-    --> Fix chord tracking to detect fibre-reversing surfaces
-        ->- Double-check that tracking orientations is enough to detect fibre-reversing surfaces
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
+            ->> Finish implementing trackIdealSegments(), and check that its overall logic is correct
+            ->> Overhaul implementation of decomposeAlong() using new trackIdealSegments()
         ->- Find deleted components arising from cycles of wedge cells
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):

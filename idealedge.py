@@ -270,6 +270,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
+    #TODO Double-check the overall logic.
 
     # The edgeIdealTri can compute the internal chords obtained by splitting
     # the ideal loops along the normal surface.
@@ -301,14 +302,11 @@ def trackIdealSegments( surf, edgeIdealTri ):
         currentChord = currentChord.joinedChord(1)
         if currentChord is None:
             # We need to join to the boundary chord.
-
-            #TODO Hard part will be to get orientation right.
-            #TODO Don't forget to set unjoinedBoundaryChord to None after
-            #       this is all done.
-            raise NotImplementedError()
+            assert unjoinedBoundaryChord is not None
+            chordsInNewLoop.append(unjoinedBoundaryChord)
+            unjoinedBoundaryChord = None
+            pairUpChordEndsByCrushing(*chordsInNewLoop)
         else:
-            #TODO Check that the logic is still correct.
-
             # Traverse the new loop, and pick up all its constituent internal
             # chords.
             while currentChord != chordsInNewLoop[0]:
@@ -343,14 +341,14 @@ def trackIdealSegments( surf, edgeIdealTri ):
         if newLoopSurvives:
             newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
 
-    #TODO If ends of the current (internal) chord aren't abstractly
-    #       joined to anything, then they need to be joined to the
-    #       boundary chord.
-    #
-    #       On the other hand, if no internal chord ever gets abstractly
-    #       joined to the boundary chord, then before we terminate we
-    #       will need to abstractly join the two ends of the boundary
-    #       chord to each other.
+    # If no internal chord ever gets abstractly joined to the boundary chord,
+    # then the two ends of the boundary chord need to be abstractly joined to
+    # each other.
+    if unjoinedBoundaryChord is not None:
+        unjoinedBoundaryChord.join( 0, unjoinedBoundaryChord, 1 )
+        for seg in unjoinedBoundaryChord:
+            #TODO Unify this with the above.
+            raise NotImplementedError()
 
     # All done!
     return newLoops
