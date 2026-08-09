@@ -1,6 +1,8 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
+            ->> Make trackIdealSegments() work for discs with edge-ideal weight 0 (i.e., join boundary chords to themselves when necessary)
+            ->> Decide how trackIdealSegments() should indicate inconsistent orientations (for detecting fibre-reversing surfaces)
             ->> Finish implementing trackIdealSegments(), and check that its overall logic is correct
             ->> Overhaul implementation of decomposeAlong() using new trackIdealSegments()
         ->- Find deleted components arising from cycles of wedge cells

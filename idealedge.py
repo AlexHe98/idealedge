@@ -226,6 +226,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
 
 
 #TODO Still need to make a final decision on the name for this routine.
+#TODO Decide how to indicate inconsistent orientations in output.
 def trackIdealSegments( surf, edgeIdealTri ):
     """
     Tracks ideal segments through the operation of crushing the given normal
@@ -238,7 +239,9 @@ def trackIdealSegments( surf, edgeIdealTri ):
         left topologically untouched. In particular, their orientations will
         be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
-        chords. Each such chord either survives the crushing operation, or is
+        ideal chords; additionally, if the surface is incident to the
+        boundary, there might be some boundary chords. Each such (ideal or
+        boundary) chord either survives the crushing operation, or is
         entirely destroyed by crushing. For the surviving chords, crushing
         will essentially rearrange how the endpoints of these chords are
         joined together, thereby yielding new ideal loops.
@@ -247,14 +250,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
     (0) A list of surviving edge embeddings, appearing in order of traversal
         around the ideal loop, and also oriented consistently with the order
         of traversal.
-    (1) An integer indicating the orientation of the ideal loop, which takes
-        one of the following values:
-        --> +1, if the first segment in the loop has orientation +1 and all
-            other segments are oriented consistently with this.
-        --> -1, if the first segment in the loop has orientation -1 and all
-            other segments are oriented consistently with this.
-        --> 0, if the loop contains segments that are oriented
-            inconsistently.
+    (1) ... TODO
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -270,7 +266,6 @@ def trackIdealSegments( surf, edgeIdealTri ):
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
-    #TODO Double-check the overall logic.
 
     # The edgeIdealTri can compute the internal chords obtained by splitting
     # the ideal loops along the normal surface.
@@ -294,9 +289,11 @@ def trackIdealSegments( surf, edgeIdealTri ):
     # Extract all the segments from the internal chords and put them together
     # to form the new loops. If one of the internal chords has unjoined ends,
     # then these will need to be joined to the boundary chord.
+    chordSequences = [] #TODO Populate this.
     while internalChords:
         currentChord = internalChords.pop()
         chordsInNewLoop = [currentChord]
+        #TODO Decide how to indicate inconsistent orientations in output.
         newLoopOrientation = currentChord[0].orientation()
         lastChordEnd = 1
         currentChord = currentChord.joinedChord(1)
@@ -325,6 +322,8 @@ def trackIdealSegments( surf, edgeIdealTri ):
 
         # One ideal segment survives if and only if every segment in
         # every ideal chord of the current loop survives.
+        #TODO Double-check this claim about surviving segments.
+        #TODO Does this also work when a boundary chord is involved?
         newLoopEmbeddings = []
         newLoopSurvives = True  # Until we prove otherwise.
         for chord in chordsInNewLoop:
@@ -347,7 +346,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
     if unjoinedBoundaryChord is not None:
         unjoinedBoundaryChord.join( 0, unjoinedBoundaryChord, 1 )
         for seg in unjoinedBoundaryChord:
-            #TODO Unify this with the above.
+            #TODO Use chordSequences list to unify this with the above.
             raise NotImplementedError()
 
     # All done!
