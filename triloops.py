@@ -899,9 +899,47 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         super().__init__(loops)
         return
 
+    def checkCrushAllowed( self, surf ):
+        """
+        Checks that we are allowed to crush this edge-ideal triangulation
+        along the given normal surface.
+
+        This routine raises ValueError if and only if self.allowsCrush()
+        returns False.
+
+        Pre-condition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        surfType = SurfaceType.recognise(surf)
+        weight = self.weight(surf)
+        if surfType == SurfaceType.SPHERE:
+            if weight in {0, 2}:
+                return
+            raise ValueError( "To crush along a 2-sphere, it must have " +
+                             "edge-ideal weight either 0 or 2" )
+        elif surfType == SurfaceType.DISC:
+            if weight == 1:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    return
+                raise ValueError( "To crush along a disc with edge-ideal " +
+                                 "weight 1, its boundary curve must be " +
+                                 "nontrivial" )
+            elif weight == 0:
+                return
+            raise ValueError( "To crush along a disc, it must have " +
+                             "edge-ideal weight either 0 or 1" )
+        elif surfType == SurfaceType.RP3:
+            if weight == 1:
+                return
+            raise ValueError( "To crush along a projective plane, it must " +
+                             "have edge-ideal weight 1" )
+        raise ValueError( "With an edge-ideal triangulation, we cannot " +
+                         "crush along {}".format(surfType) )
+
     def allowsCrush( self, surf ):
         """
-        Are we able to crush this edge-ideal triangulation along the given
+        Are we allowed to crush this edge-ideal triangulation along the given
         normal surface?
 
         Letting W denote self.weight(surf), this routine returns True if and
@@ -915,18 +953,11 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         """
-        surfType = SurfaceType.recognise(surf)
-        weight = self.weight(surf)
-        if surfType == SurfaceType.SPHERE:
-            return ( weight in {0, 2} )
-        elif surfType == SurfaceType.DISC:
-            if weight == 1:
-                return hasOnlyNonTrivialBoundaryCurves(surf)
-            else:
-                return ( weight == 0 )
-        elif surfType == SurfaceType.RP3:
-            return ( weight == 1 )
-        return False
+        try:
+            self.checkCrushAllowed(surf)
+        except ValueError:
+            return False
+        return True
 
     def splitIntoChords( self, surf ):
         """

@@ -16,9 +16,35 @@ from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
+def checkCrushAllowedInRealTriangulation(surf):
+    """
+    Checks that we are allowed to crush along the given normal surface.
+
+    This routine raises ValueError if and only if
+    realTriangulationAllowsCrush(surf) returns False.
+
+    Pre-condition:
+    --> surf.triangulation() is orientable().
+    """
+    if surfType == SurfaceType.ANNULUS:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            return
+        raise ValueError( "To crush along an annulus, both of its " +
+                         "boundary curves must be nontrivial" )
+    elif surfType == SurfaceType.MOBIUS:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            return
+        raise ValueError( "To crush along a Mobius band, its boundary " +
+                         "curve must be nontrivial" )
+    elif surfType in { SurfaceType.SPHERE, SurfaceType.DISC }:
+        return
+    raise ValueError( "With a real triangulation, we cannot crush along a " +
+                     "surface of type {}".format(surfType.name) )
+
+
 def realTriangulationAllowsCrush(surf):
     """
-    Are we able to crush along the given normal surface?
+    Are we allowed to crush along the given normal surface?
 
     This routine returns True if and only if surf is of one of the following
     types:
@@ -30,10 +56,11 @@ def realTriangulationAllowsCrush(surf):
     Pre-condition:
     --> surf.triangulation() is orientable().
     """
-    surfType = SurfaceType.recognise(surf)
-    if surfType in { SurfaceType.ANNULUS, SurfaceType.MOBIUS }:
-        return hasOnlyNonTrivialBoundaryCurves(surf)
-    return surfType in { SurfaceType.SPHERE, SurfaceType.DISC }
+    try:
+        checkCrushAllowedInRealTriangulation(surf)
+    except ValueError:
+        return False
+    return True
 
 
 #TODO Overhaul decomposeAlong() to not only return the components that
@@ -94,18 +121,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     # Check that surf is of one of the required types.
     surfType = SurfaceType.recognise(surf)
     if edgeIdealTri is None:
-        # No pre-existing ideal loops, so just need to check the surface.
-        if not realTriangulationAllowsCrush(surf):
-            if surfType in { SurfaceType.ANNULUS, SurfaceType.MOBIUS }:
-                # We handle this case separately to allow for more useful
-                # error messages.
-                raise ValueError( "To decompose along an annulus or " +
-                                 "Mobius band, every boundary curve " +
-                                 "must be nontrivial" )
-            else:
-                raise ValueError( "With no pre-existing ideal edges, we " +
-                                 "cannot decompose along a surface of " +
-                                 "type {}".format(surfType.name) )
+        checkCrushAllowedInRealTriangulation(surf)
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -114,21 +130,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                                "NormalSurface and the input " +
                                "EdgeIdealTriangulation to reference the " +
                                "same Triangulation3 object in memory" )
-
-        # Now check the surface.
-        weight = edgeIdealTri.weight(surf)
-        if surfType == SurfaceType.DISC and weight == 1:
-            # We handle this case separately to allow for more useful error
-            # messages.
-            if not hasOnlyNonTrivialBoundaryCurves(surf):
-                raise ValueError( "To decompose along a disc with ideal " +
-                                 "weight 1, its boundary curve must be " +
-                                 "nontrivial" )
-        elif not edgeIdealTri.allowsCrush(surf):
-            raise ValueError( "With an edge-ideal triangulation, " +
-                             "we cannot decompose along a " +
-                             "surface of type {} ".format(surfType.name) +
-                             "with ideal weight {}".format(weight) )
+        edgeIdealTri.checkCrushAllowed(surf)
 
     #TODO Decide whether to bother with allowing projective planes as input.
 

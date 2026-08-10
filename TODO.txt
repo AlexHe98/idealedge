@@ -1,5 +1,4 @@
 --- Bounded orientable SFS recognition
-    --> To avoid awkward error-handling, maybe refactor the "allowsCrush" routines to "checkCrushAllowed" routines, which either throw or don't throw (we can still have "allowsCrush" routines that simply catch and return False)
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
             ->> Decide whether _findBoundaryLoops() should use length-2 chords in all cases
