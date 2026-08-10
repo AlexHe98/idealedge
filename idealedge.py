@@ -16,6 +16,26 @@ from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
+def realTriangulationAllowsCrush(surf):
+    """
+    Are we able to crush along the given normal surface?
+
+    This routine returns True if and only if surf is of one of the following
+    types:
+    --> A 2-sphere.
+    --> A disc.
+    --> An annulus with nontrivial boundary curves.
+    --> A Mobius band with nontrivial boundary curve.
+
+    Pre-condition:
+    --> surf.triangulation() is orientable().
+    """
+    surfType = SurfaceType.recognise(surf)
+    if surfType in { SurfaceType.ANNULUS, SurfaceType.MOBIUS }:
+        return hasOnlyNonTrivialBoundaryCurves(surf)
+    return surfType in { SurfaceType.SPHERE, SurfaceType.DISC }
+
+
 #TODO Overhaul decomposeAlong() to not only return the components that
 #       survive crushing, but also to do the book-keeping of tracking deleted
 #       components and counting the number of orbital compressions.
@@ -50,14 +70,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     detect and silently delete some (or all, or none) of the ideal loops that
     are "trivial" in the sense that they bound embedded discs.
 
-    If there are no pre-existing ideal loops, then surf should be of one of
-    the following types:
-    --> A 2-sphere.
-    --> A disc.
-    --> An annulus with nontrivial boundary curves.
-    --> A Mobius band with nontrivial boundary curve.
-    Otherwise, edgeIdealTri.allowsCrush(surf) must be True. This routine
-    raises ValueError if surf does not satisfy these conditions.
+    If edgeIdealTri is None, then realTriangulationAllowsCrush(surf) must be
+    True. Otherwise, edgeIdealTri.allowsCrush(surf) must be True. This
+    routine raises ValueError if surf does not satisfy these conditions.
 
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does not check this condition.
@@ -80,18 +95,17 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     surfType = SurfaceType.recognise(surf)
     if edgeIdealTri is None:
         # No pre-existing ideal loops, so just need to check the surface.
-        if surfType == SurfaceType.ANNULUS:
-            if not hasOnlyNonTrivialBoundaryCurves(surf):
-                raise ValueError( "To decompose along an annulus, both of " +
-                                 "its boundary curves must be nontrivial" )
-        elif surfType == SurfaceType.MOBIUS:
-            if not hasOnlyNonTrivialBoundaryCurves(surf):
-                raise ValueError( "To decompose along a Mobius band, its " +
-                                 "boundary curve must be nontrivial" )
-        elif surfType not in { SurfaceType.SPHERE, SurfaceType.DISC }:
-            raise ValueError( "With no pre-existing ideal edges, we " +
-                             "cannot decompose along a surface of type " +
-                             "{}".format(surfType.name) )
+        if not realTriangulationAllowsCrush(surf):
+            if surfType in { SurfaceType.ANNULUS, SurfaceType.MOBIUS }:
+                # We handle this case separately to allow for more useful
+                # error messages.
+                raise ValueError( "To decompose along an annulus or " +
+                                 "Mobius band, every boundary curve " +
+                                 "must be nontrivial" )
+            else:
+                raise ValueError( "With no pre-existing ideal edges, we " +
+                                 "cannot decompose along a surface of " +
+                                 "type {}".format(surfType.name) )
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -341,9 +355,6 @@ def findNewIdealLoops( surf, edgeIdealTri ):
                 currentChord = currentChord.joinedChord(lastChordEnd)
         assert lastChordEnd == 1
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
-
-    #TODO When is it possible to have an orbital compression disc whose
-    #       boundary is given by real (rather than edge-ideal) segments?
 
     # If no internal chord ever gets abstractly joined to the boundary chord,
     # then the two ends of the boundary chord need to be abstractly joined to
