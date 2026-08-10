@@ -69,6 +69,10 @@ class OrientedSegment:
     def reversed(self):
         """
         Returns a copy of this segment with the opposite orientation.
+
+        If this segment has already cached a surviving embedding, then the
+        returned reversed segment will already have cached a corresponding
+        reversed surviving embedding.
         """
         if self._checkedSurvivingEmb:
             reversedSurvivingEmb = EdgeEmbedding3(

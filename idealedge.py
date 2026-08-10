@@ -306,34 +306,16 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     else:
         unjoinedBoundaryChord = None
 
-    #TODO Implementation needs to handle all of the following cases:
-    #       --> If there is only one chord in the loop, then the status must
-    #           be either CONSISTENT or COMPRESSED
-    #       --> If there is more than one chord in the loop, then the status
-    #           must be either CONSISTENT or INCONSISTENT
-    #
-    #       Also, if there are no surviving segments, then we should
-    #       nevertheless include an empty list to indicate that a loop was
-    #       deleted. We still need to track the status of any such deleted
-    #       loops (and it probably makes sense to compute the status before
-    #       checking whether the loop even survives).
-
-    #TODO NOTE Recall from the paper that orbits are either simple or
-    #       deformation retract to orbital compression discs. The practical
-    #       implication is that we don't need to worry about orbits which
-    #       split into multiple components after flattening (any such orbit
-    #       corresponds to an orbital compression, which we detect
-    #       independently using seg.translateAlongParallelCells()).
-
     # Extract all the segments from the internal chords and put them together
     # to form the new loops. If one of the internal chords has unjoined ends,
     # then these will need to be joined to the boundary chord.
-    chordSequences = [] #TODO Populate this.
+    #
+    # This also checks for inconsistently oriented chords.
+    chordSequences = []
     while internalChords:
         currentChord = internalChords.pop()
         chordsInNewLoop = [currentChord]
-        #TODO Use _IdealLoopStatus to indicate consistency of orientation.
-        newLoopOrientation = currentChord[0].orientation()
+        loopStatus = _IdealLoopStatus.CONSISTENT    # Until proven otherwise.
         lastChordEnd = 1
         currentChord = currentChord.joinedChord(1)
         if currentChord is None:
@@ -351,21 +333,48 @@ def findNewIdealLoops( surf, edgeIdealTri ):
                 if joinedChordEnd == 1:
                     # The current chord is oriented inconsistently with the
                     # first chord in this new loop.
-                    newLoopOrientation = 0
+                    loopStatus = _IdealLoopStatus.INCONSISTENT
                     chordsInNewLoop.append( currentChord.reversed() )
                 else:
                     chordsInNewLoop.append(currentChord)
                 lastChordEnd = 1 - joinedChordEnd
                 currentChord = currentChord.joinedChord(lastChordEnd)
         assert lastChordEnd == 1
+        chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
-        # One ideal segment survives if and only if every segment in
-        # every ideal chord of the current loop survives.
-        #TODO Double-check this claim about surviving segments.
-        #TODO Does this also work when a boundary chord is involved?
+    #TODO When is it possible to have an orbital compression disc whose
+    #       boundary is given by real (rather than edge-ideal) segments?
+
+    # If no internal chord ever gets abstractly joined to the boundary chord,
+    # then the two ends of the boundary chord need to be abstractly joined to
+    # each other.
+    if unjoinedBoundaryChord is not None:
+        unjoinedBoundaryChord.join( 0, unjoinedBoundaryChord, 1 )
+        chordSequences.append(
+                ( [unjoinedBoundaryChord], _IdealLoopStatus.CONSISTENT ) )
+
+    # Extract surviving embeddings (if any).
+    #
+    # This also checks for orbital compressions.
+    newLoops = []
+    for chordsInNewLoop, loopStatus in chordSequences:
+        # Check whether this loop is compressed away by an orbital
+        # compression disc.
+        if len(chordsInNewLoop) == 1 and len( chordsInNewLoop[0] ) == 2:
+            assert loopStatus == _IdealLoopStatus.CONSISTENT
+            mySeg, yourSeg = *chordsInNewLoop[0]
+            if ( mySeg.translateAlongParallelCells(
+                { yourSeg.reversed() } ) is not None ):
+                # We have an orbital compression disc here.
+                loopStatus = _IdealLoopStatus.COMPRESSED
+
+        # As a consequence of the pre-condition that surf is quad vertex,
+        # every orbit is either simple, or deformation retracts to an orbital
+        # compression disc. With not much work, it follows that one segment
+        # of the current loop survives if and only if every segment in every
+        # chord of the current loop survives.
         newLoopEmbeddings = []
-        #TODO Use _IdealLoopStatus to indicate whether ideal loops survive.
-        newLoopSurvives = True  # Until we prove otherwise.
+        newLoopSurvives = True  # Until proven otherwise.
         for chord in chordsInNewLoop:
             for seg in chord:
                 survivingSeg = seg.translateAlongParallelCells(survivors)
@@ -377,19 +386,7 @@ def findNewIdealLoops( surf, edgeIdealTri ):
                             survivingSeg.survivingEmbedding() )
             if not newLoopSurvives:
                 break
-        if newLoopSurvives:
-            newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
-
-    #TODO Use _IdealLoopStatus to indicate presence of orbital compressions.
-
-    # If no internal chord ever gets abstractly joined to the boundary chord,
-    # then the two ends of the boundary chord need to be abstractly joined to
-    # each other.
-    if unjoinedBoundaryChord is not None:
-        unjoinedBoundaryChord.join( 0, unjoinedBoundaryChord, 1 )
-        for seg in unjoinedBoundaryChord:
-            #TODO Use chordSequences list to unify this with the above.
-            raise NotImplementedError()
+        newLoops.append( ( newLoopEmbeddings, loopStatus ) )
 
     # All done!
     return newLoops
