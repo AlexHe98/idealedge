@@ -1,6 +1,7 @@
 """
 Find the ideal edges after crushing a normal surface.
 """
+from enum import Enum, auto
 from math import gcd as pythonGCD
 from regina import *
 from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
@@ -225,19 +226,38 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     return output
 
 
-#TODO Still need to make a final decision on the name for this routine.
-#TODO Decide how to indicate inconsistent orientations in output.
-def trackIdealSegments( surf, edgeIdealTri ):
+class _IdealLoopStatus(Enum):
     """
-    Tracks ideal segments through the operation of crushing the given normal
+    Status of a new ideal loop created by crushing a quad vertex surface.
+
+    This is one of the following:
+    COMPRESSED      Indicates that the loop consists entirely of two type-1
+                    segments which cobound an orbital compression disc, which
+                    means that the loop gets compressed away as a side-effect
+                    of crushing
+    CONSISTENT      Indicates that the loop is not compressed, and that the
+                    normal chords comprising the loop are all consistently
+                    oriented
+    INCONSISTENT    Indicates that the loop is not compressed, but includes
+                    some pair of normal chords that are inconsistently
+                    oriented
+    """
+    COMPRESSED = auto()
+    CONSISTENT = auto()
+    INCONSISTENT = auto()
+    pass
+
+
+#TODO Still need to make a final decision on the name for this routine.
+def findNewIdealLoops( surf, edgeIdealTri ):
+    """
+    Finds the new ideal loops that would arise from crushing the given normal
     surface surf.
 
-    This routine returns a list describing the new ideal loops that would
-    arise from the pre-existing ideal loops in edgeIdealTri after crushing
-    the given normal surface surf. In detail:
-    --> Pre-existing ideal loops that are disjoint from the surface will be
-        left topologically untouched. In particular, their orientations will
-        be preserved.
+    This routine returns a list describing the new ideal loops. In detail:
+    --> Pre-existing ideal loops in edgeIdealTri that are disjoint from the
+        surface will be left topologically untouched. In particular, their
+        orientations will be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
         ideal chords; additionally, if the surface is incident to the
         boundary, there might be some boundary chords. Each such (ideal or
@@ -247,10 +267,10 @@ def trackIdealSegments( surf, edgeIdealTri ):
         joined together, thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
     via a pair consisting of the following items:
-    (0) A list of surviving edge embeddings, appearing in order of traversal
-        around the ideal loop, and also oriented consistently with the order
-        of traversal.
-    (1) ... TODO
+    (0) A (possibly empty) list of surviving edge embeddings, appearing in
+        order of traversal around the ideal loop, and also oriented
+        consistently with the order of traversal.
+    (1) A status given by _IdealLoopStatus.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -286,6 +306,25 @@ def trackIdealSegments( surf, edgeIdealTri ):
     else:
         unjoinedBoundaryChord = None
 
+    #TODO Implementation needs to handle all of the following cases:
+    #       --> If there is only one chord in the loop, then the status must
+    #           be either CONSISTENT or COMPRESSED
+    #       --> If there is more than one chord in the loop, then the status
+    #           must be either CONSISTENT or INCONSISTENT
+    #
+    #       Also, if there are no surviving segments, then we should
+    #       nevertheless include an empty list to indicate that a loop was
+    #       deleted. We still need to track the status of any such deleted
+    #       loops (and it probably makes sense to compute the status before
+    #       checking whether the loop even survives).
+
+    #TODO NOTE Recall from the paper that orbits are either simple or
+    #       deformation retract to orbital compression discs. The practical
+    #       implication is that we don't need to worry about orbits which
+    #       split into multiple components after flattening (any such orbit
+    #       corresponds to an orbital compression, which we detect
+    #       independently using seg.translateAlongParallelCells()).
+
     # Extract all the segments from the internal chords and put them together
     # to form the new loops. If one of the internal chords has unjoined ends,
     # then these will need to be joined to the boundary chord.
@@ -293,7 +332,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
     while internalChords:
         currentChord = internalChords.pop()
         chordsInNewLoop = [currentChord]
-        #TODO Decide how to indicate inconsistent orientations in output.
+        #TODO Use _IdealLoopStatus to indicate consistency of orientation.
         newLoopOrientation = currentChord[0].orientation()
         lastChordEnd = 1
         currentChord = currentChord.joinedChord(1)
@@ -325,6 +364,7 @@ def trackIdealSegments( surf, edgeIdealTri ):
         #TODO Double-check this claim about surviving segments.
         #TODO Does this also work when a boundary chord is involved?
         newLoopEmbeddings = []
+        #TODO Use _IdealLoopStatus to indicate whether ideal loops survive.
         newLoopSurvives = True  # Until we prove otherwise.
         for chord in chordsInNewLoop:
             for seg in chord:
@@ -339,6 +379,8 @@ def trackIdealSegments( surf, edgeIdealTri ):
                 break
         if newLoopSurvives:
             newLoops.append( ( newLoopEmbeddings, newLoopOrientation ) )
+
+    #TODO Use _IdealLoopStatus to indicate presence of orbital compressions.
 
     # If no internal chord ever gets abstractly joined to the boundary chord,
     # then the two ends of the boundary chord need to be abstractly joined to
