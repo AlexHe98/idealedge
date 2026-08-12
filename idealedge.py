@@ -6,6 +6,7 @@ from math import gcd as pythonGCD
 from regina import *
 from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
 from triloops import EdgeIdealTriangulation
+from chord import pairUpChordEndsByCrushing
 from segment import OrientedSegment
 from aux.bdry import hasOnlyMinimalRealTorusBoundaryComponents
 from aux.tetrenum import tetRenumbering
@@ -307,25 +308,10 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     tri = surf.triangulation()
     newLoops = []   # We populate and return this list.
     survivors = OrientedSegment.survivors(surf)
-
-    # The edgeIdealTri can compute the internal chords obtained by splitting
-    # the ideal loops along the normal surface.
-    #
-    # But we might also need to track chords arising from parts of the real
-    # boundary that would get filled in after crushing. Since we have assumed
-    # that edgeIdealTri.allowsCrush(surf) is True, the only cases where surf
-    # intersects the real boundary are the following:
-    #   --> surf is a disc with ideal weight 1 and nontrivial boundary curve
-    #   --> surf is a disc with ideal weight 0 (here, the boundary curve is
-    #       allowed to be either trivial or nontrivial)
-    # For discs with nontrivial boundary curve (regardless of ideal weight),
-    # we pick up a single boundary chord.
+    #TODO Do we allow edgeIdealTri to be None in this function, or handle
+    #       that case in a separate function?
     internalChords = edgeIdealTri.splitIntoChords(surf)
     boundaryChords = _findBoundaryChords(surf)
-    if boundaryChords:
-        unjoinedBoundaryChord = boundaryChords.pop()
-    else:
-        unjoinedBoundaryChord = None
 
     # Extract all the segments from the internal chords and put them together
     # to form the new loops. If one of the internal chords has unjoined ends,
@@ -337,39 +323,49 @@ def findNewIdealLoops( surf, edgeIdealTri ):
         currentChord = internalChords.pop()
         chordsInNewLoop = [currentChord]
         loopStatus = _IdealLoopStatus.CONSISTENT    # Until proven otherwise.
-        lastChordEnd = 1
+        currentTailEnd = currentChord.joinedEnd(1)
         currentChord = currentChord.joinedChord(1)
         if currentChord is None:
-            # We need to join to the boundary chord.
-            assert unjoinedBoundaryChord is not None
-            chordsInNewLoop.append(unjoinedBoundaryChord)
-            unjoinedBoundaryChord = None
-            pairUpChordEndsByCrushing(*chordsInNewLoop)
+            # From the pre-conditions, surf must be a disc with edge-ideal
+            # weight 1, and we must have found the unique internal chord
+            # which needs to be joined with the unique boundary chord.
+            assert len(boundaryChords) == 1
+            bdryChord = boundaryChords.pop()
+            pairUpChordEndsByCrushing( chordsInNewLoop[0], bdryChord )
+
+            # The current choice of orientation on the boundary chord is
+            # arbitrary and meaningless. We re-orient (if necessary) to
+            # ensure that the orientation is consistent with the pre-existing
+            # internal chord.
+            if chordsInNewLoop[0].joinedEnd(0) == 0:
+                chordsInNewLoop.append( bdryChord.reversed() )
+            else:
+                chordsInNewLoop.append(bdryChord)
         else:
             # Traverse the new loop, and pick up all its constituent internal
             # chords.
             while currentChord != chordsInNewLoop[0]:
                 internalChords.remove(currentChord)
-                joinedChordEnd = currentChord.joinedEnd(lastChordEnd)
-                if joinedChordEnd == 1:
+                if currentTailEnd == 1:
                     # The current chord is oriented inconsistently with the
                     # first chord in this new loop.
                     loopStatus = _IdealLoopStatus.INCONSISTENT
                     chordsInNewLoop.append( currentChord.reversed() )
                 else:
                     chordsInNewLoop.append(currentChord)
-                lastChordEnd = 1 - joinedChordEnd
-                currentChord = currentChord.joinedChord(lastChordEnd)
-        assert lastChordEnd == 1
+                currentHeadEnd = 1 - currentTailEnd
+
+                # Move on to the next chord in the loop.
+                currentTailEnd = currentChord.joinedEnd(currentTailEnd)
+                currentChord = currentChord.joinedChord(currentTailEnd)
+            assert currentTailEnd == 0  # Tail of the first chord
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
-    # If no internal chord ever gets abstractly joined to the boundary chord,
-    # then the two ends of the boundary chord need to be abstractly joined to
-    # each other.
-    if unjoinedBoundaryChord is not None:
-        unjoinedBoundaryChord.join( 0, unjoinedBoundaryChord, 1 )
-        chordSequences.append(
-                ( [unjoinedBoundaryChord], _IdealLoopStatus.CONSISTENT ) )
+    #TODO What about chords that still remain in the boundaryChords set? If
+    #       edgeIdealTri is not None, then I think we can just throw these
+    #       away (this is the case where we crushed a disc with edge-ideal
+    #       weight 0, and hence don't obtain a new ideal loop from the
+    #       (unique) boundary chord).
 
     # Extract surviving embeddings (if any).
     #
@@ -426,6 +422,9 @@ def _findBoundaryChords(surf):
     containing a vertex of surf.triangulation(), it is guaranteed that the
     corresponding boundary chord will be chosen to consist of two type-1
     segments (in other words, the chord will have length 2).
+
+    Observe that the total number of returned boundary chords is therefore
+    equal to the number of boundary components of surf.
 
     The ends of the returned chords are never abstractly joined to any other
     chords. The orientations on the returned chords are chosen arbitrarily.
