@@ -137,6 +137,11 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #TODO Make a final decision on how to deal with trivial loops, and then
     #       check that trivial loops are actually dealt with as intended.
 
+    #TODO Don't forget that whenever we close up an invalid boundary
+    #       2-sphere, our length-2 boundary chord construction ensures that
+    #       we can always shorten/redirect/whatever our ideal loop along the
+    #       newly closed-up triangular face.
+
     # Find where the new ideal loops will be after crushing.
     #
     #NOTE The newIdealLoopEmbs() requires, and will check, that the given
@@ -373,6 +378,11 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     for chordsInNewLoop, loopStatus in chordSequences:
         # Check whether this loop is compressed away by an orbital
         # compression disc.
+        #
+        # For detecting orbital compression discs bounded by real (as opposed
+        # to edge-ideal) boundary edges, this check is sufficient because of
+        # the promise made in _findBoundaryChords() that we use chords of
+        # length 2 whenever possible.
         if len(chordsInNewLoop) == 1 and len( chordsInNewLoop[0] ) == 2:
             assert loopStatus == _IdealLoopStatus.CONSISTENT
             mySeg, yourSeg = *chordsInNewLoop[0]
@@ -410,8 +420,15 @@ def _findBoundaryChords(surf):
     Returns a set consisting of boundary chords induced by the given normal
     surface.
 
+    Consider the collection of boundary annuli given by cutting boundary tori
+    along boundary curves of surf. The returned set will contain exactly one
+    boundary chord spanning each such boundary annulus. For boundary annuli
+    containing a vertex of surf.triangulation(), it is guaranteed that the
+    corresponding boundary chord will be chosen to consist of two type-1
+    segments (in other words, the chord will have length 2).
+
     The ends of the returned chords are never abstractly joined to any other
-    chords.
+    chords. The orientations on the returned chords are chosen arbitrarily.
 
     In the particular case where surf is disjoint from the real boundary of
     its ambient triangulation, this routine returns the empty set.
@@ -461,17 +478,15 @@ def _findBoundaryChords(surf):
             oppEdgeIndex = tet.edge(*endpoints).index()
             segPos = 1  # Any odd segment position will do.
 
-            # For now, we arbitrarily choose the orientation to be +1,
-            # but this might need to be fixed later.
+            # Arbitrarily choose the orientation to be +1.
             boundaryChords.add( NormalChord( [ OrientedSegment(
                 surf, oppEdgeIndex, segPos, 1 ) ] ) )
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
-            # Boundary chord consisting of two type-1 segments.
-            #
-            # We can choose the two segments to straddle one end of the
-            # edge of bdryFace opposite the nonzero normal arc.
+            # Take the boundary chord to consist of two type-1 segments
+            # straddling one end (say, end 0) of the edge of bdryFace
+            # opposite the *nonzero* normal arc.
             v = normalArcs.index(numBdryCurves)
             endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
                                      faceEmb.vertices()[3] }
@@ -487,8 +502,9 @@ def _findBoundaryChords(surf):
             frontEdgeIndex = frontTet.edge(*frontEdgeEnds).index()
             backEdgeIndex = backTet.edge(*backEdgeEnds).index()
 
-            # For now, we orient the chord from front to back, but this
-            # might need to be fixed later.
+            # Arbitrarily choose to orient the chord from front to back
+            # (i.e., orient front segment towards the vertex, and back
+            # segment away from the vertex).
             frontEdgeMapping = frontTet.edgeMapping(*frontEdgeEnds)
             backEdgeMapping = backTet.edgeMapping(*backEdgeEnds)
             if frontEdgeMapping[0] == oppFront.vertices[0]:
@@ -511,33 +527,45 @@ def _findBoundaryChords(surf):
                     surf, backEdgeIndex, backSegPos, backOrientation )
             boundaryChords.add( NormalChord( [ frontSeg, backSeg ] ) )
         elif zeros == 1:
-            #TODO It would be much better to use a boundary chord consisting
-            #       of two type-1 segments. This makes two things easier:
-            #       (1) We can always use such boundary chords to detect
-            #           orbital compressions.
-            #       (2) Unifies the combinatorics: If we have a boundary
-            #           chord, then there is *always* a shortening available
-            #           through the newly closed up triangle face.
-
-            # Boundary chord consisting of one type-2 segment.
-            #
-            # The segment is located on the edge of bdryFace opposite the
-            # zero normal arc coordinate.
+            # Take the boundary chord to consist of two type-1 segments
+            # straddling the vertex at which we have the *zero* normal arc.
             v = normalArcs.index(0)
-            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
-                                     faceEmb.vertices()[3] }
-            oppEdgeMapping = tet.edgeMapping( Edge3.faceNumber(*endpoints) )
-            oppEdgeIndex = tet.edge(*endpoints).index()
-            segPos = surf.arcs(
-                    bdryFace.index(),
-                    faceEmb.vertices().inverse()[
-                        oppEdgeMapping[0] ] ).pythonValue()
-            assert segPos > 0
+            segmentsInChord = []
+            firstSegment = True
+            for other in range(3):
+                if other == v:
+                    continue
+                endpoints = { faceEmb.vertices()[v],
+                             faceEmb.vertices()[other] }
+                segEdgeMapping = tet.edgeMapping(
+                        Edge3.faceNumber(*endpoints) )
+                segEdgeIndex = tet.edge(*endpoints).index()
+                segEdgeWeight = surf.edgeWeight(segEdgeIndex).pythonValue()
+                if firstSegment:
+                    # Orient towards the vertex. This ensures that the
+                    # orientation matches the direction of traversal through
+                    # the chord.
+                    if segEdgeMapping[0] == faceEmb.vertices()[v]:
+                        segPos = 0
+                        segOrientation = -1
+                    else:
+                        segPos = segEdgeWeight
+                        segOrientation = 1
 
-            # For now, we arbitrarily choose the orientation to be +1,
-            # but this might need to be fixed later.
-            boundaryChords.add( NormalChord( [ OrientedSegment(
-                surf, oppEdgeIndex, segPos, 1 ) ] ) )
+                    # The next segment we encounter (obviously) won't be the
+                    # first.
+                    firstSegment = False
+                else:
+                    # Orient away from the vertex.
+                    if segEdgeMapping[0] == faceEmb.vertices()[v]:
+                        segPos = 0
+                        segOrientation = 1
+                    else:
+                        segPos = segEdgeWeight
+                        segOrientation = -1
+                segmentsInChord.append( OrientedSegment(
+                    surf, segEdgeIndex, segPos, segOrientation ) )
+            boundaryChords.add( NormalChord(segmentsInChord) )
         else:   # Impossible.
             raise AssertionError()
 

@@ -1,7 +1,6 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
-            ->> Make _findBoundaryLoops() use length-2 chords wherever possible
             ->> Should findNewIdealLoops() also handle the case with no pre-existing ideal loops?
             ->> Check that findNewIdealLoops() is correct (e.g., that it correctly handles orbital compression discs with real boundary)
             ->> Overhaul implementation of decomposeAlong() using new findNewIdealLoops()
