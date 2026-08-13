@@ -370,6 +370,7 @@ def findNewIdealLoops( surf, edgeIdealTri ):
                 currentTailEnd = currentChord.joinedEnd(currentTailEnd)
                 currentChord = currentChord.joinedChord(currentTailEnd)
             assert currentTailEnd == 0  # Tail of the first chord
+        #TODO Use new routine to detect orbital compressions here?
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
     #TODO What about chords that still remain in the boundaryChords set? If
@@ -383,6 +384,7 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     # This also checks for orbital compressions.
     newLoops = []
     for chordsInNewLoop, loopStatus in chordSequences:
+        #TODO Replace this orbital compression detection with new routine?
         # Check whether this loop is compressed away by an orbital
         # compression disc.
         #
@@ -584,6 +586,24 @@ def _findBoundaryChords(surf):
 
     # Done!
     return boundaryChords
+
+
+def _boundsOrbitalCompressionDisc(chord):
+    """
+    Does the given normal chord bound an orbital compression disc?
+    """
+    if len(chord) != 2:
+        return False
+    for seg in chord:
+        if seg.segmentType() != 1:
+            return False
+
+    # We are looking at a normal chord built precisely from two type-1
+    # segments. From the definition, this chord bounds an orbital compression
+    # disc if and only if the two segments belong to the same type-1 orbit.
+    mySeg, yourSeg = *chords
+    return ( mySeg.translateAlongParallelCells(
+        { yourSeg.reversed() } ) is not None )
 
 
 #TODO How best to deal with ideal chords which are joined to each other, and
