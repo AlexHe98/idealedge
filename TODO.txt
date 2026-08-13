@@ -1,10 +1,9 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
-            ->> Make a separate version of findNewIdealLoops() which handles the case with no pre-existing ideal loops
-            ->> Check that findNewIdealLoops() is correct (e.g., that it correctly handles orbital compression discs with real boundary)
-            ->> Possibly need to rename findNewIdealLoops()
-            ->> Overhaul implementation of decomposeAlong() using new findNewIdealLoops()
+            ->> Replace findNewIdealLoops() and newIdealLoopEmbs() with: buildNewLoopsFromIdealChords(), buildNewLoopsFromBoundaryChords(), and possibly one other helper routine for extracting surviving edge embeddings (is this the right way to structure/organise things?)
+            ->> Check that we correctly detect orbital compressions
+            ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords
         ->- Find deleted components arising from cycles of wedge cells
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
@@ -18,7 +17,7 @@
         ->- Update usage in the following main files:
             ->> decomposeknot.py
             ->> idealedge.py
-                >-- Replace newIdealLoopEmbs() with more general findNewIdealLoops() routine
+                >-- Replace newIdealLoopEmbs() with the new and more general routines for building loops from chords
                     >-> Decide if the renaming is necessary, or if it's better to just replace the old implementation with the new, more general one
                 >-- Overhaul implementation of decomposeAlong()
                 >-- Update usage of decomposeAlong() both in this and in other files

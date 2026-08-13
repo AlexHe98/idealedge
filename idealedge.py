@@ -119,11 +119,14 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                          "triangulation only has real boundary components " +
                          "that are two-triangle tori" )
 
-    #TODO Have two separate versions of findNewIdealLoops() depending on
-    #       whether we have pre-existing ideal loops. Or maybe it makes more
-    #       sense to branch just a smaller part of this: instead of returning
-    #       lists of surviving edge embeddings, maybe just return lists of
-    #       chords?
+    #TODO Make new buildNewLoopsFromIdealChords() and
+    #       buildNewLoopsFromBoundaryChords() routines.
+    #
+    #       There's still a question about whether extracting surviving edge
+    #       embeddings should happen inside or outside these new routines.
+    #
+    #       Possibly the answer is to do this *outside*, provided we can
+    #       detect orbital compressions *inside*.
 
     # Check that surf is of one of the required types.
     surfType = SurfaceType.recognise(surf)
