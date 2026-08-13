@@ -119,6 +119,12 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                          "triangulation only has real boundary components " +
                          "that are two-triangle tori" )
 
+    #TODO Have two separate versions of findNewIdealLoops() depending on
+    #       whether we have pre-existing ideal loops. Or maybe it makes more
+    #       sense to branch just a smaller part of this: instead of returning
+    #       lists of surviving edge embeddings, maybe just return lists of
+    #       chords?
+
     # Check that surf is of one of the required types.
     surfType = SurfaceType.recognise(surf)
     if edgeIdealTri is None:
@@ -315,7 +321,9 @@ def findNewIdealLoops( surf, edgeIdealTri ):
 
     # Extract all the segments from the internal chords and put them together
     # to form the new loops. If one of the internal chords has unjoined ends,
-    # then these will need to be joined to the boundary chord.
+    # then these will need to be joined to the boundary chord (which is
+    # unique if it exists, since the pre-conditions ensure that the only case
+    # where we have a boundary chord is when surf is a disc).
     #
     # This also checks for inconsistently oriented chords.
     chordSequences = []
@@ -398,6 +406,9 @@ def findNewIdealLoops( surf, edgeIdealTri ):
             for seg in chord:
                 survivingSeg = seg.translateAlongParallelCells(survivors)
                 if survivingSeg is None:
+                    # The current new loop doesn't survive, so we immediately
+                    # break out and add an empty collection of surviving
+                    # embeddings to the newLoops list.
                     newLoopSurvives = False
                     break
                 else:

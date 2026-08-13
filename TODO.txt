@@ -1,8 +1,9 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
-            ->> Should findNewIdealLoops() also handle the case with no pre-existing ideal loops?
+            ->> Make a separate version of findNewIdealLoops() which handles the case with no pre-existing ideal loops
             ->> Check that findNewIdealLoops() is correct (e.g., that it correctly handles orbital compression discs with real boundary)
+            ->> Possibly need to rename findNewIdealLoops()
             ->> Overhaul implementation of decomposeAlong() using new findNewIdealLoops()
         ->- Find deleted components arising from cycles of wedge cells
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
