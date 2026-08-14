@@ -327,8 +327,6 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     # then these will need to be joined to the boundary chord (which is
     # unique if it exists, since the pre-conditions ensure that the only case
     # where we have a boundary chord is when surf is a disc).
-    #
-    # This also checks for inconsistently oriented chords.
     chordSequences = []
     while internalChords:
         currentChord = internalChords.pop()
@@ -370,7 +368,15 @@ def findNewIdealLoops( surf, edgeIdealTri ):
                 currentTailEnd = currentChord.joinedEnd(currentTailEnd)
                 currentChord = currentChord.joinedChord(currentTailEnd)
             assert currentTailEnd == 0  # Tail of the first chord
-        #TODO Use new routine to detect orbital compressions here?
+
+        # Check whether this loop is compressed away by an orbital
+        # compression disc.
+        if ( len(chordsInNewLoop) == 1 and
+            _boundsOrbitalCompressionDisc( chordsInNewLoop[0] ) ):
+            assert loopStatus == _IdealLoopStatus.CONSISTENT
+            loopStatus = _IdealLoopStatus.COMPRESSED
+
+        # Done with this loop.
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
     #TODO What about chords that still remain in the boundaryChords set? If
@@ -380,26 +386,8 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     #       (unique) boundary chord).
 
     # Extract surviving embeddings (if any).
-    #
-    # This also checks for orbital compressions.
     newLoops = []
     for chordsInNewLoop, loopStatus in chordSequences:
-        #TODO Replace this orbital compression detection with new routine?
-        # Check whether this loop is compressed away by an orbital
-        # compression disc.
-        #
-        # For detecting orbital compression discs bounded by real (as opposed
-        # to edge-ideal) boundary edges, this check is sufficient because of
-        # the promise made in _findBoundaryChords() that we use chords of
-        # length 2 whenever possible.
-        if len(chordsInNewLoop) == 1 and len( chordsInNewLoop[0] ) == 2:
-            assert loopStatus == _IdealLoopStatus.CONSISTENT
-            mySeg, yourSeg = *chordsInNewLoop[0]
-            if ( mySeg.translateAlongParallelCells(
-                { yourSeg.reversed() } ) is not None ):
-                # We have an orbital compression disc here.
-                loopStatus = _IdealLoopStatus.COMPRESSED
-
         # As a consequence of the pre-condition that surf is quad vertex,
         # every orbit is either simple, or deformation retracts to an orbital
         # compression disc. With not much work, it follows that one segment
