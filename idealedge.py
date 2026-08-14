@@ -142,6 +142,10 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                                "same Triangulation3 object in memory" )
         edgeIdealTri.checkCrushAllowed(surf)
 
+    #TODO Use the survivors computed below to run
+    #       _extractSurvivingEmbeddings()
+    survivors = OrientedSegment.survivors(surf)
+
     #TODO Decide whether to bother with allowing projective planes as input.
 
     #TODO Make a final decision on how to deal with trivial loops, and then
@@ -280,27 +284,26 @@ class _IdealLoopStatus(Enum):
 
 
 #TODO Still need to make a final decision on the name for this routine.
-def findNewIdealLoops( surf, edgeIdealTri ):
+def buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     """
-    Finds the new ideal loops that would arise from crushing the given normal
-    surface surf.
+    Uses the ideal chords to build the new ideal loops that would arise from
+    crushing the given normal surface surf.
 
     This routine returns a list describing the new ideal loops. In detail:
     --> Pre-existing ideal loops in edgeIdealTri that are disjoint from the
         surface will be left topologically untouched. In particular, their
         orientations will be preserved.
     --> Ideal loops that intersect the surface will be split into multiple
-        ideal chords; additionally, if the surface is incident to the
-        boundary, there might be some boundary chords. Each such (ideal or
-        boundary) chord either survives the crushing operation, or is
-        entirely destroyed by crushing. For the surviving chords, crushing
-        will essentially rearrange how the endpoints of these chords are
-        joined together, thereby yielding new ideal loops.
+        ideal chords; additionally, if the surface is a disc, then there
+        might be a single boundary chord. Each such (ideal or boundary) chord
+        either survives the crushing operation, or is entirely destroyed by
+        crushing. For the surviving chords, crushing will essentially
+        rearrange how the endpoints of these chords are joined together,
+        thereby yielding new ideal loops.
     Each element of the returned list describes one of the new ideal loops
     via a pair consisting of the following items:
-    (0) A (possibly empty) list of surviving edge embeddings, appearing in
-        order of traversal around the ideal loop, and also oriented
-        consistently with the order of traversal.
+    (0) A list of normal chords, appearing in order of traversal around the
+        new loop, and also oriented consistently with the order of traversal.
     (1) A status given by _IdealLoopStatus.
 
     Warning:
@@ -315,29 +318,23 @@ def findNewIdealLoops( surf, edgeIdealTri ):
     --> edgeIdealTri.allowsCrush(surf) must be True.
     """
     tri = surf.triangulation()
-    newLoops = []   # We populate and return this list.
-    survivors = OrientedSegment.survivors(surf)
-    #TODO Do we allow edgeIdealTri to be None in this function, or handle
-    #       that case in a separate function?
-    internalChords = edgeIdealTri.splitIntoChords(surf)
+    idealChords = edgeIdealTri.splitIntoChords(surf)
     boundaryChords = _findBoundaryChords(surf)
 
-    # Extract all the segments from the internal chords and put them together
-    # to form the new loops. If one of the internal chords has unjoined ends,
-    # then these will need to be joined to the boundary chord (which is
-    # unique if it exists, since the pre-conditions ensure that the only case
-    # where we have a boundary chord is when surf is a disc).
+    # Put the ideal chords together to form the new loops. If one of the
+    # ideal chords has unjoined ends, then these ends will need to be joined
+    # to the ends of the (unique) boundary chord.
     chordSequences = []
-    while internalChords:
-        currentChord = internalChords.pop()
+    while idealChords:
+        currentChord = idealChords.pop()
         chordsInNewLoop = [currentChord]
         loopStatus = _IdealLoopStatus.CONSISTENT    # Until proven otherwise.
         currentTailEnd = currentChord.joinedEnd(1)
         currentChord = currentChord.joinedChord(1)
         if currentChord is None:
             # From the pre-conditions, surf must be a disc with edge-ideal
-            # weight 1, and we must have found the unique internal chord
-            # which needs to be joined with the unique boundary chord.
+            # weight 1, and we must have found the unique ideal chord which
+            # needs to be joined with the unique boundary chord.
             assert len(boundaryChords) == 1
             bdryChord = boundaryChords.pop()
             pairUpChordEndsByCrushing( chordsInNewLoop[0], bdryChord )
@@ -345,16 +342,16 @@ def findNewIdealLoops( surf, edgeIdealTri ):
             # The current choice of orientation on the boundary chord is
             # arbitrary and meaningless. We re-orient (if necessary) to
             # ensure that the orientation is consistent with the pre-existing
-            # internal chord.
+            # ideal chord.
             if chordsInNewLoop[0].joinedEnd(0) == 0:
                 chordsInNewLoop.append( bdryChord.reversed() )
             else:
                 chordsInNewLoop.append(bdryChord)
         else:
-            # Traverse the new loop, and pick up all its constituent internal
+            # Traverse the new loop, and pick up all its constituent ideal
             # chords.
             while currentChord != chordsInNewLoop[0]:
-                internalChords.remove(currentChord)
+                idealChords.remove(currentChord)
                 if currentTailEnd == 1:
                     # The current chord is oriented inconsistently with the
                     # first chord in this new loop.
@@ -379,40 +376,36 @@ def findNewIdealLoops( surf, edgeIdealTri ):
         # Done with this loop.
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
-    #TODO What about chords that still remain in the boundaryChords set? If
-    #       edgeIdealTri is not None, then I think we can just throw these
-    #       away (this is the case where we crushed a disc with edge-ideal
-    #       weight 0, and hence don't obtain a new ideal loop from the
-    #       (unique) boundary chord).
-
-    # Extract surviving embeddings (if any).
-    newLoops = []
-    for chordsInNewLoop, loopStatus in chordSequences:
-        # As a consequence of the pre-condition that surf is quad vertex,
-        # every orbit is either simple, or deformation retracts to an orbital
-        # compression disc. With not much work, it follows that one segment
-        # of the current loop survives if and only if every segment in every
-        # chord of the current loop survives.
-        newLoopEmbeddings = []
-        newLoopSurvives = True  # Until proven otherwise.
-        for chord in chordsInNewLoop:
-            for seg in chord:
-                survivingSeg = seg.translateAlongParallelCells(survivors)
-                if survivingSeg is None:
-                    # The current new loop doesn't survive, so we immediately
-                    # break out and add an empty collection of surviving
-                    # embeddings to the newLoops list.
-                    newLoopSurvives = False
-                    break
-                else:
-                    newLoopEmbeddings.append(
-                            survivingSeg.survivingEmbedding() )
-            if not newLoopSurvives:
-                break
-        newLoops.append( ( newLoopEmbeddings, loopStatus ) )
-
     # All done!
-    return newLoops
+    return chordSequences
+
+
+#TODO
+def _extractSurvivingEmbeddings( chordSequence, survivors ):
+    """
+    """
+    # As a consequence of the pre-condition that surf is quad vertex,
+    # every orbit is either simple, or deformation retracts to an orbital
+    # compression disc. With not much work, it follows that one segment
+    # of the current loop survives if and only if every segment in every
+    # chord of the current loop survives.
+    newLoopEmbeddings = []
+    newLoopSurvives = True  # Until proven otherwise.
+    for chord in chordSequence:
+        for seg in chord:
+            survivingSeg = seg.translateAlongParallelCells(survivors)
+            if survivingSeg is None:
+                # The current new loop doesn't survive, so we immediately
+                # break out and add an empty collection of surviving
+                # embeddings to the newLoops list.
+                newLoopSurvives = False
+                break
+            else:
+                newLoopEmbeddings.append(
+                        survivingSeg.survivingEmbedding() )
+        if not newLoopSurvives:
+            break
+    return newLoopEmbeddings
 
 
 def _findBoundaryChords(surf):
