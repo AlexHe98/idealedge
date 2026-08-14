@@ -146,6 +146,15 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #       _extractSurvivingEmbeddings()
     survivors = OrientedSegment.survivors(surf)
 
+    #TODO The comment below justifies the implementation of the helper
+    #       routine _extractSurvivingEmbeddings()
+
+    # As a consequence of the pre-condition that surf is quad vertex,
+    # every orbit is either simple, or deformation retracts to an orbital
+    # compression disc. With not much work, it follows that one segment
+    # of the current loop survives if and only if every segment in every
+    # chord of the current loop survives.
+
     #TODO Decide whether to bother with allowing projective planes as input.
 
     #TODO Make a final decision on how to deal with trivial loops, and then
@@ -380,31 +389,30 @@ def buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     return chordSequences
 
 
-#TODO
 def _extractSurvivingEmbeddings( chordSequence, survivors ):
     """
+    Translates the sequence of normal chords along parallel cells to obtain a
+    sequence of surviving edge embeddings.
+
+    This routine returns a (possibly empty) list of edge embeddings, where
+    each such edge embedding is given by calling seg.survivingEmbedding(),
+    for some OrientedSegment seg in the given set of survivors.
+
+    Pre-condition:
+    --> If some segment of some chord in chordSequence translates along
+        parallel cells to a surviving segment, then the same holds for all
+        such segments.
     """
-    # As a consequence of the pre-condition that surf is quad vertex,
-    # every orbit is either simple, or deformation retracts to an orbital
-    # compression disc. With not much work, it follows that one segment
-    # of the current loop survives if and only if every segment in every
-    # chord of the current loop survives.
     newLoopEmbeddings = []
-    newLoopSurvives = True  # Until proven otherwise.
     for chord in chordSequence:
         for seg in chord:
             survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:
-                # The current new loop doesn't survive, so we immediately
-                # break out and add an empty collection of surviving
-                # embeddings to the newLoops list.
-                newLoopSurvives = False
-                break
-            else:
-                newLoopEmbeddings.append(
-                        survivingSeg.survivingEmbedding() )
-        if not newLoopSurvives:
-            break
+                # Using the pre-condition, we may conclude that the entire
+                # loop doesn't survive.
+                return []
+            newLoopEmbeddings.append(
+                    survivingSeg.survivingEmbedding() )
     return newLoopEmbeddings
 
 
