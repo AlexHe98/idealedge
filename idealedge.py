@@ -119,8 +119,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                          "triangulation only has real boundary components " +
                          "that are two-triangle tori" )
 
-    #TODO Make new buildNewLoopsFromIdealChords() and
-    #       buildNewLoopsFromBoundaryChords() routines.
+    #TODO Make new _buildNewLoopsFromIdealChords() and
+    #       _buildNewLoopsFromBoundaryChords() routines.
     #
     #       There's still a question about whether extracting surviving edge
     #       embeddings should happen inside or outside these new routines.
@@ -292,8 +292,36 @@ class _IdealLoopStatus(Enum):
     pass
 
 
-#TODO Still need to make a final decision on the name for this routine.
-def buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
+def _buildNewLoopsFromBoundaryChords(surf):
+    """
+    Uses boundary chords to build the new ideal loops that would arise from
+    crushing the given normal surface surf.
+
+    This routine returns a list, each of whose elements describes a new ideal
+    loop via a pair consisting of the following items:
+    (0) A list of boundary chords, appearing in order of traversal around the
+        new loop, and also oriented consistently with the order of traversal.
+    (1) A status given by _IdealLoopStatus.
+
+    Warning:
+        This routine does not check any of the pre-conditions listed below.
+
+    Pre-condition:
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> The ambient triangulation surf.triangulation() must have nonempty
+        minimal toroidal boundary.
+    --> realTriangulationAllowsCrush(surf) must be True.
+    """
+    tri = surf.triangulation()
+    boundaryChords = _findBoundaryChords(surf)
+
+    # Put the boundary chords together to form the new loops.
+    chordSequences = []
+    #TODO
+    raise NotImplementedError()
+
+
+def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     """
     Uses the ideal chords to build the new ideal loops that would arise from
     crushing the given normal surface surf.
