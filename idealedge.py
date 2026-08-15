@@ -15,69 +15,63 @@ from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
+#TODO Maybe move supporting classes and routines into a different file.
 
 
-#TODO Figure out how best to unify this with the "checkCrush...()" routine
-def isCandidateVerticalSurface(surf):
+class SurfaceToCrushInSuspectedSFS(Enum):
     """
-    Is the given normal surface a candidate to be vertical annulus or Mobius
-    band in a Seifert fibred space?
+    An enumeration of various surfaces that can be crushed in a suspected
+    real (not edge-ideal) triangulation of a bounded orientable Seifert
+    fibred space (SFS).
 
-    This routine returns True if and only if surf is an annulus or Mobius
-    band such that every boundary curve is nontrivial.
+    This enumeration includes the following types of surfaces:
+    --> VERTICAL        If the ambient triangulation is a bounded orientable
+                        SFS, then the surface is a candidate to be a vertical
+                        annulus or Mobius band. In other words, the surface
+                        is an annulus or Mobius band such that every boundary
+                        curve is nontrivial.
+    --> MERIDIONAL      If the ambient triangulation is a bounded orientable
+                        SFS, then the surface must form a meridional disc for
+                        a solid torus. In other words, the surface is a disc
+                        whose boundary curve is nontrivial.
+    --> BOUNDS_BALL     If the ambient triangulation is a bounded orientable
+                        SFS, then the surface must bound a 3-ball. In other
+                        words, either the surface is a 2-sphere, or it is a
+                        disc whose boundary curve is trivial.
     """
-    if ( SurfaceType.recognise(surf) not in
-        { SurfaceType.ANNULUS, SurfaceType.MOBIUS } ):
-        return False
-    return hasOnlyNonTrivialBoundaryCurves(surf)
+    VERTICAL = auto()
+    MERIDIONAL = auto()
+    BOUNDS_BALL = auto()
 
+    @classmethod
+    def recognise( cls, surface ):
+        """
+        Recognises the given surface as a SurfaceToCrushInSuspectedSFS, or
+        returns a string describing why the surface cannot be crushed.
 
-def checkCrushAllowedInRealTriangulation(surf):
-    """
-    Checks that we are allowed to crush along the given normal surface.
-
-    This routine raises ValueError if and only if
-    realTriangulationAllowsCrush(surf) returns False.
-
-    Pre-condition:
-    --> surf.triangulation() is orientable().
-    """
-    surfType = SurfaceType.recognise(surf)
-    if surfType == SurfaceType.ANNULUS:
-        if hasOnlyNonTrivialBoundaryCurves(surf):
-            return
-        raise ValueError( "To crush along an annulus, both of its " +
-                         "boundary curves must be nontrivial" )
-    elif surfType == SurfaceType.MOBIUS:
-        if hasOnlyNonTrivialBoundaryCurves(surf):
-            return
-        raise ValueError( "To crush along a Mobius band, its boundary " +
-                         "curve must be nontrivial" )
-    elif surfType in { SurfaceType.SPHERE, SurfaceType.DISC }:
-        return
-    raise ValueError( "With a real triangulation, we cannot crush along a " +
-                     "surface of type {}".format(surfType.name) )
-
-
-def realTriangulationAllowsCrush(surf):
-    """
-    Are we allowed to crush along the given normal surface?
-
-    This routine returns True if and only if surf is of one of the following
-    types:
-    --> A 2-sphere.
-    --> A disc.
-    --> An annulus with nontrivial boundary curves.
-    --> A Mobius band with nontrivial boundary curve.
-
-    Pre-condition:
-    --> surf.triangulation() is orientable().
-    """
-    try:
-        checkCrushAllowedInRealTriangulation(surf)
-    except ValueError:
-        return False
-    return True
+        Pre-condition:
+        --> Every boundary component of surface.triangulation() is a real
+            two-triangle torus
+        """
+        surfType = SurfaceType.recognise(surface)
+        if surfType == SurfaceType.ANNULUS:
+            if hasOnlyNonTrivialBoundaryCurves(surface):
+                return cls.VERTICAL
+            return ( "To crush along an annulus, both of its boundary " +
+                    "curves must be nontrivial" )
+        elif surfType == SurfaceType.MOBIUS:
+            if hasOnlyNonTrivialBoundaryCurves(surface):
+                return cls.VERTICAL
+            return ( "To crush along a Mobius band, its boundary curve " +
+                    "must be nontrivial" )
+        elif surfType == SurfaceType.SPHERE:
+            return cls.BOUNDS_BALL
+        elif surfType == SurfaceType.DISC:
+            if hasOnlyNonTrivialBoundaryCurves(surface):
+                return cls.MERIDIONAL
+            return cls.BOUNDS_BALL
+        return ( "With a real triangulation, we cannot crush along a " +
+                "surface of type {}".format(surfType.name) )
 
 
 #TODO Overhaul decomposeAlong() to not only return the components that
@@ -102,21 +96,22 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     instance of EdgeIdealTriangulation that tracks all of the pre-existing
     IdealLoop objects.
 
-    This routine might (but is not guaranteed to) detect that some ideal loops
-    are "trivial" in the sense that they bound embedded discs. This routine
-    handles such a trivial ideal loop L in one of two ways:
+    This routine might (but is not guaranteed to) detect that some ideal
+    loops are "trivial" in the sense that they bound embedded discs. This
+    routine handles such a trivial ideal loop L in one of two ways:
     --> If L is the only ideal loop in its ambient triangulation, then this
         routine will silently delete L.
-    --> Otherwise, if there are other ideal loops in the ambient triangulation
-        of L, then this routine will raise BoundsDisc.
+    --> Otherwise, if there are other ideal loops in the ambient
+        triangulation of L, then this routine will raise BoundsDisc.
 
     A side-effect of this routine is that it might (but is not guaranteed to)
     detect and silently delete some (or all, or none) of the ideal loops that
     are "trivial" in the sense that they bound embedded discs.
 
-    If edgeIdealTri is None, then realTriangulationAllowsCrush(surf) must be
-    True. Otherwise, edgeIdealTri.allowsCrush(surf) must be True. This
-    routine raises ValueError if surf does not satisfy these conditions.
+    If edgeIdealTri is None, then SurfaceToCrushInSuspectedSFS.recognise(surf)
+    must return an instance of SurfaceToCrushInSuspectedSFS. Otherwise,
+    edgeIdealTri.allowsCrush(surf) must be True. This routine raises
+    ValueError if surf does not satisfy these conditions.
 
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does not check this condition.
@@ -147,7 +142,11 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     # Check that surf is of one of the required types.
     surfType = SurfaceType.recognise(surf)
     if edgeIdealTri is None:
-        checkCrushAllowedInRealTriangulation(surf)
+        crushCase = SurfaceToCrushInSuspectedSFS.recognise(surf)
+        if isinstance( crushCase, str ):
+            raise ValueError(crushCase)
+        #TODO Use the crushCase to determine how to proceed (e.g., whether
+        #       we need to look for new ideal loops).
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -326,7 +325,8 @@ def _buildNewLoopsFromBoundaryChords(surf):
     --> The given surf should be a quadrilateral vertex normal surface.
     --> The ambient triangulation surf.triangulation() must have nonempty
         minimal toroidal boundary.
-    --> realTriangulationAllowsCrush(surf) must be True.
+    --> SurfaceToCrushInSuspectedSFS.recognise(surf) must be
+        SurfaceToCrushInSuspectedSFS.VERTICAL.
     """
     tri = surf.triangulation()
     boundaryChords = _findBoundaryChords(surf)
@@ -636,7 +636,7 @@ def _boundsOrbitalCompressionDisc(chord):
     # We are looking at a normal chord built precisely from two type-1
     # segments. From the definition, this chord bounds an orbital compression
     # disc if and only if the two segments belong to the same type-1 orbit.
-    mySeg, yourSeg = *chords
+    mySeg, yourSeg = chords
     return ( mySeg.translateAlongParallelCells(
         { yourSeg.reversed() } ) is not None )
 
