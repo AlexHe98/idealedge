@@ -130,23 +130,22 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                          "triangulation only has real boundary components " +
                          "that are two-triangle tori" )
 
-    #TODO Make new _buildNewLoopsFromIdealChords() and
-    #       _buildNewLoopsFromBoundaryChords() routines.
-    #
-    #       There's still a question about whether extracting surviving edge
-    #       embeddings should happen inside or outside these new routines.
-    #
-    #       Possibly the answer is to do this *outside*, provided we can
-    #       detect orbital compressions *inside*.
-
-    # Check that surf is of one of the required types.
-    surfType = SurfaceType.recognise(surf)
+    # Compute the sequences of chords which will become new ideal loops (if
+    # any) after crushing surf. Along the way, we also check that we are
+    # actually allowed to crush surf.
     if edgeIdealTri is None:
         crushCase = SurfaceToCrushInSuspectedSFS.recognise(surf)
         if isinstance( crushCase, str ):
+            # Not allowed to crush.
             raise ValueError(crushCase)
-        #TODO Use the crushCase to determine how to proceed (e.g., whether
-        #       we need to look for new ideal loops).
+        elif crushCase == SurfaceToCrushInSuspectedSFS.VERTICAL:
+            # We have boundary chords which piece together to form new ideal
+            # loops after crushing.
+            chordSequences = _buildNewLoopsFromBoundaryChords(surf)
+        else:
+            # We are crushing a 2-sphere or disc, so we don't pick up any new
+            # ideal loops after crushing.
+            chordSequences = []
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -156,19 +155,29 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                                "EdgeIdealTriangulation to reference the " +
                                "same Triangulation3 object in memory" )
         edgeIdealTri.checkCrushAllowed(surf)
+        chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
-    #TODO Use the survivors computed below to run
-    #       _extractSurvivingEmbeddings()
+    # Convert chord sequences into sequences of surviving edge embeddings.
+    newLoops = []
+    numOrbitalCompressions = 0
+    foundInconsistentLoop = False
     survivors = OrientedSegment.survivors(surf)
+    for chordsInNewLoop, loopStatus in chordSequences:
+        if loopStatus == _IdealLoopStatus.COMPRESSED:
+            numOrbitalCompressions += 1
+        elif loopStatus == _IdealLoopStatus.INCONSISTENT:
+            foundInconsistentLoop = True
 
-    #TODO The comment below justifies the implementation of the helper
-    #       routine _extractSurvivingEmbeddings()
-
-    # As a consequence of the pre-condition that surf is quad vertex,
-    # every orbit is either simple, or deformation retracts to an orbital
-    # compression disc. With not much work, it follows that one segment
-    # of the current loop survives if and only if every segment in every
-    # chord of the current loop survives.
+        # As a consequence of the pre-condition that surf is quad vertex,
+        # every orbit is either simple, or deformation retracts to an orbital
+        # compression disc. With not much work, it follows that for any new
+        # loop L, one segment of L survives if and only if every segment in
+        # every chord of L survives. In other words, the pre-condition for
+        # _extractSurvivingEmbeddings() is satisfied.
+        survivingEmbs = _extractSurvivingEmbeddings(
+                chordsInNewLoop, survivors )
+        if survivingEmbs:
+            newLoops.append(survivingEmbs)
 
     #TODO Decide whether to bother with allowing projective planes as input.
 
@@ -472,6 +481,9 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     each such edge embedding is given by calling seg.survivingEmbedding(),
     for some OrientedSegment seg in the given set of survivors.
 
+    This routine only runs membership tests on the given set of survivors.
+    In particular, this routine will never modify the survivors set.
+
     Pre-condition:
     --> If some segment of some chord in chordSequence translates along
         parallel cells to a surviving segment, then the same holds for all
@@ -667,21 +679,6 @@ def _boundsOrbitalCompressionDisc(chord):
     mySeg, yourSeg = chords
     return ( mySeg.translateAlongParallelCells(
         { yourSeg.reversed() } ) is not None )
-
-
-#TODO How best to deal with ideal chords which are joined to each other, and
-#       with ideal chords arising from closing up invalid vertices?
-def idealLoopsFromRealBoundary(surf):
-    """
-
-    This routine returns a list describing the new ideal chords that would
-    arise from the real boundary after crushing the given normal surface
-    surf.
-    ... TODO ...
-    Each element of the returned list describes one of the new ideal chords
-    via a surviving edge embedding.
-    """
-    #TODO Find new loops arising from real boundary.
 
 
 #TODO Update documentation and implementation to:
