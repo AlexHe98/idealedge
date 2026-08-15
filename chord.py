@@ -56,6 +56,9 @@ class NormalChord:
     main use case for such abstract joins is to indicate how several normal
     chords can be connected together to form abstract loops.
 
+    Equality of normal chords is determined purely by their location in
+    memory.
+
     This class also acts as a container of OrientedSegment objects. Any
     instance segChord of this class provides the following functionality:
     --> (seg in segChord) is True if and only if seg is a segment in this

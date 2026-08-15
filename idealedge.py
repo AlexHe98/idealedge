@@ -332,11 +332,39 @@ def _buildNewLoopsFromBoundaryChords(surf):
     boundaryChords = _findBoundaryChords(surf)
 
     # Put the boundary chords together to form the new loops. From the
-    # pre-conditions, surf has at most 2 boundary curves, and hence we have
-    # at most 2 boundary chords in total.
+    # pre-conditions, the total number of boundary chords is equal to the
+    # number of boundary curves of surf, which is either 1 or 2.
     chordSequences = []
-    #TODO
-    raise NotImplementedError()
+    if len(boundaryChords) == 2:
+        myChord, yourChord = boundaryChords
+        pairUpChordEndsByCrushing( myChord, yourChord )
+        if myChord.joinedChord(0) == yourChord:
+            # The two boundary chords join together to form a single loop.
+            # Assuming that surf is indeed quad vertex, this implies that the
+            # loop definitely does not bound an orbital compression disc.
+            chordsInNewLoop = [myChord]
+            if myChord.joinedEnd(0) == 0:
+                chordsInNewLoop.append( yourChord.reversed() )
+            else:
+                chordsInNewLoop.append(yourChord)
+            chordSequences.append(
+                    ( chordsInNewLoop, _IdealLoopStatus.CONSISTENT ) )
+            return chordSequences
+
+    # At this point, we know that each boundary chord simply joins with
+    # itself to form its own loop.
+    #
+    # In this case, it is necessary to check for orbital compression discs.
+    # Because _findBoundaryChords() returns length-2 boundary chords whenever
+    # possible, we know that if an orbital compression disc D exists, then we
+    # will have a boundary chord which bounds D.
+    for bdryChord in boundaryChords:
+        if _boundsOrbitalCompressionDisc(bdryChord):
+            loopStatus = _IdealLoopStatus.COMPRESSED
+        else:
+            loopStatus = _IdealLoopStatus.CONSISTENT
+        chordSequences.append( ( [bdryChord], loopStatus ) )
+    return chordSequences
 
 
 def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
