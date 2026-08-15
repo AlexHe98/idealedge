@@ -17,6 +17,21 @@ from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
 
 
+#TODO Figure out how best to unify this with the "checkCrush...()" routine
+def isCandidateVerticalSurface(surf):
+    """
+    Is the given normal surface a candidate to be vertical annulus or Mobius
+    band in a Seifert fibred space?
+
+    This routine returns True if and only if surf is an annulus or Mobius
+    band such that every boundary curve is nontrivial.
+    """
+    if ( SurfaceType.recognise(surf) not in
+        { SurfaceType.ANNULUS, SurfaceType.MOBIUS } ):
+        return False
+    return hasOnlyNonTrivialBoundaryCurves(surf)
+
+
 def checkCrushAllowedInRealTriangulation(surf):
     """
     Checks that we are allowed to crush along the given normal surface.
@@ -27,6 +42,7 @@ def checkCrushAllowedInRealTriangulation(surf):
     Pre-condition:
     --> surf.triangulation() is orientable().
     """
+    surfType = SurfaceType.recognise(surf)
     if surfType == SurfaceType.ANNULUS:
         if hasOnlyNonTrivialBoundaryCurves(surf):
             return
@@ -315,7 +331,9 @@ def _buildNewLoopsFromBoundaryChords(surf):
     tri = surf.triangulation()
     boundaryChords = _findBoundaryChords(surf)
 
-    # Put the boundary chords together to form the new loops.
+    # Put the boundary chords together to form the new loops. From the
+    # pre-conditions, surf has at most 2 boundary curves, and hence we have
+    # at most 2 boundary chords in total.
     chordSequences = []
     #TODO
     raise NotImplementedError()
