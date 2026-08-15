@@ -3,6 +3,9 @@
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
             ->> Double-check that we correctly detect orbital compressions
             ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords
+        ->- Close up invalid boundary 2-spheres
+            ->> Make shortening/redirecting across a single triangle "public"
+            ->> We are guaranteed to be able to shorten/redirect across the newly closed-up triangle, so perform this move
         ->- Find deleted components arising from cycles of wedge cells
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):

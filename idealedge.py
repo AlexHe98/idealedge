@@ -77,6 +77,7 @@ class SurfaceToCrushInSuspectedSFS(Enum):
 #TODO Overhaul decomposeAlong() to not only return the components that
 #       survive crushing, but also to do the book-keeping of tracking deleted
 #       components and counting the number of orbital compressions.
+#TODO Update documentation to reflect the overhaul.
 #TODO Update usage for new output format.
 def decomposeAlong( surf, edgeIdealTri=None ):
     """
@@ -165,6 +166,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     for chordsInNewLoop, loopStatus in chordSequences:
         if loopStatus == _IdealLoopStatus.COMPRESSED:
             numOrbitalCompressions += 1
+
+            # Loop is compressed away, so no need to add it to the newLoops.
+            continue
         elif loopStatus == _IdealLoopStatus.INCONSISTENT:
             foundInconsistentLoop = True
 
@@ -179,27 +183,16 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         if survivingEmbs:
             newLoops.append(survivingEmbs)
 
-    #TODO Decide whether to bother with allowing projective planes as input.
-
-    #TODO Make a final decision on how to deal with trivial loops, and then
-    #       check that trivial loops are actually dealt with as intended.
-
-    #TODO Don't forget that whenever we close up an invalid boundary
-    #       2-sphere, our length-2 boundary chord construction ensures that
-    #       we can always shorten/redirect/whatever our ideal loop along the
-    #       newly closed-up triangular face.
+    #TODO Track deleted components given by cycles of wedge cells (a.k.a.
+    #       non-surviving triangular orbits).
 
     # Find where the new ideal loops will be after crushing.
-    #
-    #NOTE The newIdealLoopEmbs() requires, and will check, that the given
-    #       surface is of one of the allowed types.
-    loopEmbSeqsInOldTri = newIdealLoopEmbs( surf, oldLoops )
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
               if tetHasQuads( surf, tet.index() ) ]
     tetIndicesAfterCrush = tetRenumbering(doomed)
     crushed = surf.crush()
     loopEmbSeqs = []
-    for oldEmbSequence in loopEmbSeqsInOldTri:
+    for oldEmbSequence in newLoops:
         embSequence = []
         for oldEmb in oldEmbSequence:
             crushedTet = crushed.tetrahedron(
@@ -207,6 +200,11 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             embSequence.append( EdgeEmbedding3(
                 crushedTet, oldEmb.vertices() ) )
         loopEmbSeqs.append(embSequence)
+
+    #TODO Close up invalid boundary 2-spheres. Don't forget that because our
+    #       boundary chord construction gives length-2 chords whenever
+    #       possible, we can always shorten/redirect/whatever our ideal loop
+    #       along the newly closed-up triangular face.
 
     # Split crushed into its components.
     if crushed.isConnected():
@@ -266,17 +264,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                 orientation = 1
             else:
                 orientation = -1
-
-            # Note that we could have a degenerate loop.
-            try:
-                loop = IdealLoop( edgeList, orientation )
-            except NotLoop:
-                #TODO Is ignoring these the right thing to do?
-
-                # Ignore degenerate loop.
-                continue
-            else:
-                loops.append(loop)
+            loops.append( IdealLoop( edgeList, orientation ) )
 
         # If we have any loops at all, then package them all together as a
         # single EdgeIdealTriangulation. Otherwise, just add an ordinary
