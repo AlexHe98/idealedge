@@ -161,6 +161,12 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #TODO Update below to use new auxiliary boundary chords given by the
     #       _findBoundaryChords() routine.
 
+    #TODO We need the length-2 boundary chords to ensure that we detect
+    #       orbital compressions. But once we have crushed and closed up,
+    #       surely we can directly replace the two edges arising from each
+    #       such boundary chord with the single edge around which we did the
+    #       closing up (rather than building the loop and then shortening).
+
     # Convert chord sequences into sequences of surviving edge embeddings.
     # Along the way, we also find the boundary chords which will, after
     # crushing, be incident to pinched boundary 2-spheres that need to be
@@ -515,24 +521,39 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
 #       type-2).
 def _findBoundaryChords(surf):
     """
-    Returns a set consisting of boundary chords induced by the given normal
-    surface.
+    Returns a set describing the boundary chords induced by the given normal
+    surface surf.
 
     Consider the collection of boundary annuli given by cutting boundary tori
-    along boundary curves of surf. The returned set will contain exactly one
-    boundary chord spanning each such boundary annulus. For boundary annuli
-    containing a vertex of surf.triangulation(), it is guaranteed that the
-    corresponding boundary chord will be chosen to consist of two type-1
-    segments (in other words, the chord will have length 2).
+    along boundary curves of surf. The returned set will describe exactly one
+    boundary chord spanning each such boundary annulus. In detail, each item
+    of the set will be a pair consisting of the following:
+    (0) A boundary chord spanning the corresponding boundary annulus.
+    (1) Either an auxiliary boundary chord which carries information about
+        how pinched boundary 2-spheres in the crushed triangulation should be
+        closed up to give new ideal edges, or None if no such closing up is
+        required.
 
     Observe that the total number of returned boundary chords is therefore
-    equal to the number of boundary components of surf.
+    equal to the number of boundary components of surf. In particular, if
+    surf is disjoint from the real boundary of its ambient triangulation,
+    this routine will return an empty set.
 
-    The ends of the returned chords are never abstractly joined to any other
-    chords. The orientations on the returned chords are chosen arbitrarily.
+    For a boundary annulus containing a vertex of surf.triangulation(), the
+    spanning boundary chord will be chosen to consist of two type-1 segments
+    that meet at said vertex (in particular, the chord will have length 2),
+    and there will always be an auxiliary boundary chord consisting entirely
+    of a segment of either:
+    --> type 0, if a layering needs to be performed prior to closing up; or
+    --> type 2, if the closing up can be performed without layering.
+    For any other boundary annulus, the spanning boundary chord is
+    (necessarily) built entirely from a single type-2 segment, and there is
+    no auxiliary boundary chord.
 
-    In the particular case where surf is disjoint from the real boundary of
-    its ambient triangulation, this routine returns the empty set.
+    The spanning chords will never have their ends abstractly joined to any
+    other chords. Each auxiliary chord will have its two ends abstractly
+    joined to each other. The orientations on all the returned chords are
+    chosen arbitrarily.
 
     Pre-condition:
     --> The given surf should be either a 2-sphere, projective plane, disc,
@@ -541,6 +562,7 @@ def _findBoundaryChords(surf):
     --> The ambient triangulation surf.triangulation() should have minimal
         toroidal boundary.
     """
+    #TODO Overhaul implementation to match the updated documentation.
     boundaryChords = set()
     for bc in surf.triangulation().boundaryComponents():
         # From the pre-conditions, bc is a two-triangle torus.
