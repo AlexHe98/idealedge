@@ -193,8 +193,8 @@ class OrientedSegment:
 
         In detail, if e is the edge containing this segment, then the segment
         incident to vertex 0 of e is in position 0, and then subsequent
-        segments along e are numbered in increasing order; the last segment is
-        then incident to vertex 1, and is in position self.edgeWeight().
+        segments along e are numbered in increasing order; the last segment
+        is then incident to vertex 1, and is in position self.edgeWeight().
         """
         return self._segPos
 

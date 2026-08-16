@@ -1,6 +1,7 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
+            ->> Close up pinched boundary 2-spheres
             ->> Double-check that we correctly detect orbital compressions
             ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords
         ->- Close up invalid boundary 2-spheres

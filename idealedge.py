@@ -158,7 +158,13 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         edgeIdealTri.checkCrushAllowed(surf)
         chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
+    #TODO Update below to use new auxiliary boundary chords given by the
+    #       _findBoundaryChords() routine.
+
     # Convert chord sequences into sequences of surviving edge embeddings.
+    # Along the way, we also find the boundary chords which will, after
+    # crushing, be incident to pinched boundary 2-spheres that need to be
+    # closed up.
     newLoops = []
     numOrbitalCompressions = 0
     foundInconsistentLoop = False
@@ -180,8 +186,15 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         # _extractSurvivingEmbeddings() is satisfied.
         survivingEmbs = _extractSurvivingEmbeddings(
                 chordsInNewLoop, survivors )
-        if survivingEmbs:
-            newLoops.append(survivingEmbs)
+        if not survivingEmbs:
+            continue
+        newLoops.append(survivingEmbs)
+
+        # Does this surviving loop include any boundary chords which will be
+        # incident to pinched boundary 2-spheres after crushing?
+        for chord in chordsInNewLoop:
+            #TODO
+            raise NotImplementedError()
 
     #TODO Track deleted components given by cycles of wedge cells (a.k.a.
     #       non-surviving triangular orbits).
@@ -469,8 +482,8 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     each such edge embedding is given by calling seg.survivingEmbedding(),
     for some OrientedSegment seg in the given set of survivors.
 
-    This routine only runs membership tests on the given set of survivors.
-    In particular, this routine will never modify the survivors set.
+    This routine will never modify the given chordSequence and the given set
+    of survivors.
 
     Pre-condition:
     --> If some segment of some chord in chordSequence translates along
@@ -480,6 +493,8 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     newLoopEmbeddings = []
     for chord in chordSequence:
         for seg in chord:
+            # Note that OrientedSegment.translateAlongParallelCells()
+            # promises to never modify survivors.
             survivingSeg = seg.translateAlongParallelCells(survivors)
             if survivingSeg is None:
                 # Using the pre-condition, we may conclude that the entire
@@ -490,6 +505,14 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     return newLoopEmbeddings
 
 
+#TODO It would probably be convenient for this helper routine to identify how
+#       to close up the pinched boundary 2-spheres, since it pretty much
+#       constructs all the data needed to do so. For this, I think it makes
+#       sense to include auxiliary boundary chords in the output, which
+#       indicate the location of the closing up (we can determine whether or
+#       not we need to layer before closing up by checking whether the
+#       (unique) segment in the auxiliary boundary chord is type-0 or
+#       type-2).
 def _findBoundaryChords(surf):
     """
     Returns a set consisting of boundary chords induced by the given normal
@@ -557,8 +580,9 @@ def _findBoundaryChords(surf):
             segPos = 1  # Any odd segment position will do.
 
             # Arbitrarily choose the orientation to be +1.
-            boundaryChords.add( NormalChord( [ OrientedSegment(
-                surf, oppEdgeIndex, segPos, 1 ) ] ) )
+            bdryChord = NormalChord(
+                    [ OrientedSegment( surf, oppEdgeIndex, segPos, 1 ) ] )
+            boundaryChords.add(bdryChord)
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
@@ -603,7 +627,8 @@ def _findBoundaryChords(surf):
                     surf, frontEdgeIndex, frontSegPos, frontOrientation )
             backSeg = OrientedSegment(
                     surf, backEdgeIndex, backSegPos, backOrientation )
-            boundaryChords.add( NormalChord( [ frontSeg, backSeg ] ) )
+            bdryChord = NormalChord( [ frontSeg, backSeg ] )
+            boundaryChords.add(bdryChord)
         elif zeros == 1:
             # Take the boundary chord to consist of two type-1 segments
             # straddling the vertex at which we have the *zero* normal arc.
@@ -643,7 +668,8 @@ def _findBoundaryChords(surf):
                         segOrientation = -1
                 segmentsInChord.append( OrientedSegment(
                     surf, segEdgeIndex, segPos, segOrientation ) )
-            boundaryChords.add( NormalChord(segmentsInChord) )
+            bdryChord = NormalChord(segmentsInChord)
+            boundaryChords.add(bdryChord)
         else:   # Impossible.
             raise AssertionError()
 
