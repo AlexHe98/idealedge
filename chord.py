@@ -44,13 +44,9 @@ class NormalChord:
     """
     A "chord" for a normal surface.
 
-    Here, a "chord" means an embedded curve built from a sequence of oriented
-    segments, such that the endpoints of the curve (if any) lie on a normal
-    surface S, and the interior of the curve lies in the complement of S.
-
-    Typically, a normal chord will be an arc whose endpoints lie on S, which
-    is the motivation for the name "chord". However, we also allow normal
-    chords to be given by closed loops disjoint from S.
+    Here, a "chord" means an embedded arc built from a sequence of oriented
+    segments, such that the endpoints of the arc lie on a normal surface S,
+    and the interior of the arc lies in the complement of S.
 
     A normal chord is always oriented in the sense that it will always have a
     chosen direction of traversal. The segments in the chord are indexed in

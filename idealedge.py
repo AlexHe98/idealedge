@@ -158,7 +158,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         edgeIdealTri.checkCrushAllowed(surf)
         chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
-    #TODO Update below to use new auxiliary boundary chords given by the
+    #TODO Update below to use new auxiliary boundary segments given by the
     #       _findBoundaryChords() routine.
 
     #TODO We need the length-2 boundary chords to ensure that we detect
@@ -323,6 +323,7 @@ class _IdealLoopStatus(Enum):
     pass
 
 
+#TODO Update using new implementation of _findBoundaryChords().
 def _buildNewLoopsFromBoundaryChords(surf):
     """
     Uses boundary chords to build the new ideal loops that would arise from
@@ -383,6 +384,7 @@ def _buildNewLoopsFromBoundaryChords(surf):
     return chordSequences
 
 
+#TODO Update using new implementation of _findBoundaryChords().
 def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     """
     Uses the ideal chords to build the new ideal loops that would arise from
@@ -514,11 +516,10 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
 #TODO It would probably be convenient for this helper routine to identify how
 #       to close up the pinched boundary 2-spheres, since it pretty much
 #       constructs all the data needed to do so. For this, I think it makes
-#       sense to include auxiliary boundary chords in the output, which
+#       sense to include auxiliary boundary segments in the output, which
 #       indicate the location of the closing up (we can determine whether or
 #       not we need to layer before closing up by checking whether the
-#       (unique) segment in the auxiliary boundary chord is type-0 or
-#       type-2).
+#       auxiliary segment is type-0 or type-2).
 def _findBoundaryChords(surf):
     """
     Returns a set describing the boundary chords induced by the given normal
@@ -526,34 +527,35 @@ def _findBoundaryChords(surf):
 
     Consider the collection of boundary annuli given by cutting boundary tori
     along boundary curves of surf. The returned set will describe exactly one
-    boundary chord spanning each such boundary annulus. In detail, each item
-    of the set will be a pair consisting of the following:
-    (0) A boundary chord spanning the corresponding boundary annulus.
-    (1) Either an auxiliary boundary chord which carries information about
-        how pinched boundary 2-spheres in the crushed triangulation should be
-        closed up to give new ideal edges, or None if no such closing up is
-        required.
+    boundary chord spanning each such boundary annulus.
 
-    Observe that the total number of returned boundary chords is therefore
-    equal to the number of boundary components of surf. In particular, if
-    surf is disjoint from the real boundary of its ambient triangulation,
-    this routine will return an empty set.
+    The total number of returned boundary chords is therefore equal to the
+    number of boundary components of surf. In particular, if surf is disjoint
+    from the real boundary of its ambient triangulation, then this routine
+    will return an empty set.
+
+    In detail, each item of the returned set will be a pair consisting of the
+    following:
+    (0) A boundary chord spanning the corresponding boundary annulus.
+    (1) Either an auxiliary boundary segment which carries information about
+        how the corresponding pinched boundary 2-sphere in the crushed
+        triangulation should be closed up to give a new ideal edge, or None
+        if no such closing up is required.
 
     For a boundary annulus containing a vertex of surf.triangulation(), the
     spanning boundary chord will be chosen to consist of two type-1 segments
     that meet at said vertex (in particular, the chord will have length 2),
-    and there will always be an auxiliary boundary chord consisting entirely
-    of a segment of either:
+    and there will always be an auxiliary boundary segment which is either:
     --> type 0, if a layering needs to be performed prior to closing up; or
     --> type 2, if the closing up can be performed without layering.
+
     For any other boundary annulus, the spanning boundary chord is
     (necessarily) built entirely from a single type-2 segment, and there is
-    no auxiliary boundary chord.
+    no auxiliary boundary segment.
 
-    The spanning chords will never have their ends abstractly joined to any
-    other chords. Each auxiliary chord will have its two ends abstractly
-    joined to each other. The orientations on all the returned chords are
-    chosen arbitrarily.
+    The spanning boundary chords will never have their ends abstractly joined
+    to any other chords. The orientations on the boundary chords and the
+    auxiliary segments will all be chosen arbitrarily.
 
     Pre-condition:
     --> The given surf should be either a 2-sphere, projective plane, disc,
