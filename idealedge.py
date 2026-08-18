@@ -167,6 +167,10 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #       such boundary chord with the single edge around which we did the
     #       closing up (rather than building the loop and then shortening).
 
+    #TODO If the auxiliary segment is type-0, then we need to layer before
+    #       closing up. Otherwise, if the auxiliary segment is type-2, we can
+    #       immediately close up without layering.
+
     # Convert chord sequences into sequences of surviving edge embeddings.
     # Along the way, we also find the boundary chords which will, after
     # crushing, be incident to pinched boundary 2-spheres that need to be
@@ -513,13 +517,6 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     return newLoopEmbeddings
 
 
-#TODO It would probably be convenient for this helper routine to identify how
-#       to close up the pinched boundary 2-spheres, since it pretty much
-#       constructs all the data needed to do so. For this, I think it makes
-#       sense to include auxiliary boundary segments in the output, which
-#       indicate the location of the closing up (we can determine whether or
-#       not we need to layer before closing up by checking whether the
-#       auxiliary segment is type-0 or type-2).
 def _findBoundaryChords(surf):
     """
     Returns a set describing the boundary chords induced by the given normal
@@ -546,8 +543,8 @@ def _findBoundaryChords(surf):
     spanning boundary chord will be chosen to consist of two type-1 segments
     that meet at said vertex (in particular, the chord will have length 2),
     and there will always be an auxiliary boundary segment which is either:
-    --> type 0, if a layering needs to be performed prior to closing up; or
-    --> type 2, if the closing up can be performed without layering.
+    --> type-0, if a layering needs to be performed prior to closing up; or
+    --> type-2, if the closing up can be performed without layering.
 
     For any other boundary annulus, the spanning boundary chord is
     (necessarily) built entirely from a single type-2 segment, and there is
@@ -564,7 +561,6 @@ def _findBoundaryChords(surf):
     --> The ambient triangulation surf.triangulation() should have minimal
         toroidal boundary.
     """
-    #TODO Overhaul implementation to match the updated documentation.
     boundaryChords = set()
     for bc in surf.triangulation().boundaryComponents():
         # From the pre-conditions, bc is a two-triangle torus.
@@ -592,31 +588,32 @@ def _findBoundaryChords(surf):
             assert not boundaryChords
             return boundaryChords
 
-        # Find possible boundary chord sandwiched between two parallel
+        # Find possible type-2 boundary chord sandwiched between two parallel
         # boundary curves.
         if numBdryCurves == 2:
             # A boundary edge opposite a zero normal arc coordinate will
             # always have positive weight.
             v = normalArcs.index(0)
-            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+            oppEndpoints = {0,1,2,3} - { faceEmb.vertices()[v],
                                      faceEmb.vertices()[3] }
-            oppEdgeIndex = tet.edge(*endpoints).index()
+            oppEdgeIndex = tet.edge(*oppEndpoints).index()
             segPos = 1  # Any odd segment position will do.
 
-            # Arbitrarily choose the orientation to be +1.
+            # Arbitrarily choose the orientation to be +1. We have no
+            # auxiliary boundary segment.
             bdryChord = NormalChord(
                     [ OrientedSegment( surf, oppEdgeIndex, segPos, 1 ) ] )
-            boundaryChords.add(bdryChord)
+            boundaryChords.add( ( bdryChord, None ) )
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
-            # Take the boundary chord to consist of two type-1 segments
-            # straddling one end (say, end 0) of the edge of bdryFace
-            # opposite the *nonzero* normal arc.
+            # Let e denote the edge of bdryFace opposite the nonzero normal
+            # arc. Take the spanning boundary chord to consist of two type-1
+            # segments stradding one end (say, end 0) of e.
             v = normalArcs.index(numBdryCurves)
-            endpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+            oppEndpoints = {0,1,2,3} - { faceEmb.vertices()[v],
                                      faceEmb.vertices()[3] }
-            oppEdge = tet.edge(*endpoints)
+            oppEdge = tet.edge(*oppEndpoints)
             oppFront = oppEdge.front()
             oppBack = oppEdge.back()
             frontTet = oppFront.tetrahedron()
@@ -631,8 +628,10 @@ def _findBoundaryChords(surf):
             # Arbitrarily choose to orient the chord from front to back
             # (i.e., orient front segment towards the vertex, and back
             # segment away from the vertex).
-            frontEdgeMapping = frontTet.edgeMapping(*frontEdgeEnds)
-            backEdgeMapping = backTet.edgeMapping(*backEdgeEnds)
+            frontEdgeMapping = frontTet.edgeMapping(
+                    Edge3.faceNumber(*frontEdgeEnds) )
+            backEdgeMapping = backTet.edgeMapping(
+                    Edge3.faceNumber(*backEdgeEnds) )
             if frontEdgeMapping[0] == oppFront.vertices[0]:
                 frontSegPos = 0
                 frontOrientation = -1
@@ -652,10 +651,15 @@ def _findBoundaryChords(surf):
             backSeg = OrientedSegment(
                     surf, backEdgeIndex, backSegPos, backOrientation )
             bdryChord = NormalChord( [ frontSeg, backSeg ] )
-            boundaryChords.add(bdryChord)
+
+            # Take the auxiliary segment to be the type-0 segment given by e
+            # itself. Arbitrarily choose orientation +1.
+            auxSeg = OrientedSegment( surf, oppEdge.index(), 0, 1 )
+            boundaryChords.add( ( bdryChord, auxSeg ) )
         elif zeros == 1:
-            # Take the boundary chord to consist of two type-1 segments
-            # straddling the vertex at which we have the *zero* normal arc.
+            # Let v denote the vertex of bdryFace at which we have the zero
+            # normal arc. Take the spanning boundary chord to consist of two
+            # type-1 segments straddling v.
             v = normalArcs.index(0)
             segmentsInChord = []
             firstSegment = True
@@ -693,7 +697,17 @@ def _findBoundaryChords(surf):
                 segmentsInChord.append( OrientedSegment(
                     surf, segEdgeIndex, segPos, segOrientation ) )
             bdryChord = NormalChord(segmentsInChord)
-            boundaryChords.add(bdryChord)
+
+            # Take the auxiliary segment to be a type-2 segment in the edge
+            # of bdryFace opposite v. Arbitrarily choose orientation +1.
+            oppEndpoints = {0,1,2,3} - { faceEmb.vertices()[v],
+                                     faceEmb.vertices()[3] }
+            oppEdgeIndex = tet.edge(*oppEndpoints).index()
+            oppEdgeMapping = tet.edgeMapping(
+                    Edge3.faceNumber(*oppEndpoints) )
+            auxSegPos = normalArcs[ faceEmb.inverse()[ oppEdgeMapping[0] ] ]
+            auxSeg = OrientedSegment( surf, oppEdgeIndex, auxSegPos, 1 )
+            boundaryChords.add( ( bdryChord, auxSeg ) )
         else:   # Impossible.
             raise AssertionError()
 
