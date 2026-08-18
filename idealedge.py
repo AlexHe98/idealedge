@@ -353,7 +353,6 @@ def _buildNewLoopsFromBoundaryChords(surf):
     --> SurfaceToCrushInSuspectedSFS.recognise(surf) must be
         SurfaceToCrushInSuspectedSFS.VERTICAL.
     """
-    #TODO Use doLayer()!
     tri = surf.triangulation()
     boundaryChords = _findBoundaryChords(surf)
 

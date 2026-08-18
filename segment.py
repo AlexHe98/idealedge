@@ -46,8 +46,7 @@ class OrientedSegment:
                             the ambient edge, and -1 if it is oriented from
                             vertex 1 to vertex 0.
 
-        Initially, no value will be cached for self.survivingEmbedding(), and
-        self.doLayer() will be False.
+        Initially, no value will be cached for self.survivingEmbedding().
         """
         self._surface = surface
         self._edgeIndex = edgeIndex
@@ -59,7 +58,6 @@ class OrientedSegment:
         # Internal values that we might compute and cache.
         self._isSurvivingEmbCached = False
         self._survivingEmb = None
-        self._doLayer = False
         return
 
     def reversed(self):
@@ -69,9 +67,6 @@ class OrientedSegment:
         If this segment has already cached a surviving embedding, then the
         returned reversed segment will already have cached a corresponding
         reversed surviving embedding.
-
-        Similarly, the returned reversed segment will also preserve the value
-        of doLayer().
         """
         revSeg = OrientedSegment(
                 self._surface, self._edgeIndex, self._segPos,
@@ -86,37 +81,7 @@ class OrientedSegment:
                 revSeg._setSurvivingEmb( EdgeEmbedding3(
                     se.tetrahedron(),
                     se.vertices() * Perm4(1, 0, 3, 2) ) )
-        revSeg._doLayer = self._doLayer
         return revSeg
-
-    def doLayer(self):
-        """
-        Returns a Boolean flag which is intended to indicate whether this is
-        a boundary segment which should be layered across after crushing
-        self.surface().
-
-        This routine should always return False if this segment does not lie
-        entirely in the boundary of self.triangulation().
-        """
-        return self._doLayer
-
-    def setDoLayer(self):
-        """
-        Sets doLayer() to True.
-
-        Raises ValueError if this is not a boundary segment.
-        """
-        if not self.edge().isBoundary():
-            raise ValueError( "setDoLayer() requires a boundary segment" )
-        self._doLayer = True
-        return
-
-    def unsetDoLayer(self):
-        """
-        Sets doLayer() to False.
-        """
-        self._doLayer = False
-        return
 
     def integerData(self):
         """
