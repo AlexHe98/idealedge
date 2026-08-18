@@ -187,6 +187,16 @@ class OrientedSegment:
         """
         return self.triangulation().edge( self._edgeIndex )
 
+    def isBoundary(self):
+        """
+        Determines if this segment lies entirely on the boundary of the
+        ambient triangulation.
+
+        Returns:
+            True if and only if this segment lies on the boundary.
+        """
+        return self.edge().isBoundary()
+
     def segmentPosition(self):
         """
         Returns the position of this segment along the ambient edge.
