@@ -26,8 +26,7 @@ class OrientedSegment:
     after crushing S, the segment seg will become identified with the entirety
     of the edge corresponding to this surviving embedding.
     """
-    def __init__( self,
-                 surface, edgeIndex, segPos, orientation, survivingEmb=None ):
+    def __init__( self, surface, edgeIndex, segPos, orientation ):
         """
         Initialises an oriented segment with the given data.
 
@@ -46,11 +45,9 @@ class OrientedSegment:
                             segment is oriented from vertex 0 to vertex 1 of
                             the ambient edge, and -1 if it is oriented from
                             vertex 1 to vertex 0.
-        --> survivingEmb    An optional parameter specifying a surviving
-                            embedding associated to the segment.
 
-        See the survivingEmbedding() routine for the conditions that must be
-        satisfied by the optional survivingEmb argument.
+        Initially, no value will be cached for self.survivingEmbedding(), and
+        self.doLayer() will be False.
         """
         self._surface = surface
         self._edgeIndex = edgeIndex
@@ -58,12 +55,11 @@ class OrientedSegment:
         if orientation not in {1, -1}:
             raise ValueError( "orientation must be either +1 or -1" )
         self._orientation = orientation
-        if survivingEmb is None:
-            self._checkedSurvivingEmb = False
-            self._survivingEmb = None
-        else:
-            self._checkedSurvivingEmb = True
-            self._survivingEmb = survivingEmb
+
+        # Internal values that we might compute and cache.
+        self._isSurvivingEmbCached = False
+        self._survivingEmb = None
+        self._doLayer = False
         return
 
     def reversed(self):
@@ -73,15 +69,54 @@ class OrientedSegment:
         If this segment has already cached a surviving embedding, then the
         returned reversed segment will already have cached a corresponding
         reversed surviving embedding.
+
+        Similarly, the returned reversed segment will also preserve the value
+        of doLayer().
         """
-        if self._checkedSurvivingEmb:
-            reversedSurvivingEmb = EdgeEmbedding3(
-                    survivingEmb.tetrahedron(),
-                    survivingEmb.vertices() * Perm4(1,0,3,2) )
-        else:
-            reversedSurvivingEmb = None
-        return OrientedSegment( self._surface, self._edgeIndex, self._segPos,
-                               -self._orientation, reversedSurvivingEmb )
+        revSeg = OrientedSegment(
+                self._surface, self._edgeIndex, self._segPos,
+                -self._orientation )
+
+        # Don't forget to transfer cached values.
+        if self._isSurvivingEmbCached:
+            se = self._survivingEmb
+            if se is None:
+                revSeg._setSurvivingEmb(None)
+            else:
+                revSeg._setSurvivingEmb( EdgeEmbedding3(
+                    se.tetrahedron(),
+                    se.vertices() * Perm4(1, 0, 3, 2) ) )
+        revSeg._doLayer = self._doLayer
+        return revSeg
+
+    def doLayer(self):
+        """
+        Returns a Boolean flag which is intended to indicate whether this is
+        a boundary segment which should be layered across after crushing
+        self.surface().
+
+        This routine should always return False if this segment does not lie
+        entirely in the boundary of self.triangulation().
+        """
+        return self._doLayer
+
+    def setDoLayer(self):
+        """
+        Sets doLayer() to True.
+
+        Raises ValueError if this is not a boundary segment.
+        """
+        if not self.edge().isBoundary():
+            raise ValueError( "setDoLayer() requires a boundary segment" )
+        self._doLayer = True
+        return
+
+    def unsetDoLayer(self):
+        """
+        Sets doLayer() to False.
+        """
+        self._doLayer = False
+        return
 
     def integerData(self):
         """
@@ -207,6 +242,17 @@ class OrientedSegment:
         """
         return self._orientation
 
+    def _setSurvivingEmbedding( self, survivingEmb ):
+        """
+        Internal routine for setting the surviving embedding.
+
+        See the survivingEmbedding() routine for the conditions that must be
+        satisfied by the given survivingEmb.
+        """
+        self._isSurvivingEmbCached = True
+        self._survivingEmb = survivingEmb
+        return
+
     def survivingEmbedding(self):
         """
         Returns a surviving edge embedding associated to this segment, or None
@@ -225,11 +271,11 @@ class OrientedSegment:
         The result of this routine is cached internally, so repeated calls to
         this routine will be fast and give identical results.
         """
-        if self._checkedSurvivingEmb:
+        if self._isSurvivingEmbCached:
             return self._survivingEmb
 
         # Check whether a surviving embedding exists.
-        self._checkedSurvivingEmb = True
+        self._isSurvivingEmbCached = True
         self._survivingEmb = None   # Just in case default isn't set properly.
         for emb in self.edge().embeddings():
             tet = emb.tetrahedron()

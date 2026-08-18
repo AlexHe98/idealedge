@@ -171,6 +171,10 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #       closing up. Otherwise, if the auxiliary segment is type-2, we can
     #       immediately close up without layering.
 
+    #TODO When we translate from chords to edge embeddings, it might make
+    #       sense to have pairs (emb, doLayer), where doLayer is a Boolean
+    #       flag indicating whether we need to layer first.
+
     # Convert chord sequences into sequences of surviving edge embeddings.
     # Along the way, we also find the boundary chords which will, after
     # crushing, be incident to pinched boundary 2-spheres that need to be
@@ -189,11 +193,11 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             foundInconsistentLoop = True
 
         # As a consequence of the pre-condition that surf is quad vertex,
-        # every orbit is either simple, or deformation retracts to an orbital
-        # compression disc. With not much work, it follows that for any new
-        # loop L, one segment of L survives if and only if every segment in
-        # every chord of L survives. In other words, the pre-condition for
-        # _extractSurvivingEmbeddings() is satisfied.
+        # together with the fact this new loop is not compressed away by an
+        # orbital compression disc, we know that every segment of this loop
+        # must be simple. It follows that one segment of this loop survives
+        # if and only if every segment survives. In other words, the
+        # pre-condition for _extractSurvivingEmbeddings() is satisfied.
         survivingEmbs = _extractSurvivingEmbeddings(
                 chordsInNewLoop, survivors )
         if not survivingEmbs:
@@ -349,6 +353,7 @@ def _buildNewLoopsFromBoundaryChords(surf):
     --> SurfaceToCrushInSuspectedSFS.recognise(surf) must be
         SurfaceToCrushInSuspectedSFS.VERTICAL.
     """
+    #TODO Use doLayer()!
     tri = surf.triangulation()
     boundaryChords = _findBoundaryChords(surf)
 
