@@ -131,10 +131,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                          "triangulation only has real boundary components " +
                          "that are two-triangle tori" )
 
-    #TODO Replace _buildNewLoopsFrom...() routines with
-    #       _getNewLoopSegmentsFrom...() routines, which return lists of
-    #       OrientedSegment objects, instead of lists of NormalChord objects.
-
     # Compute the sequences of chords which will become new ideal loops (if
     # any) after crushing surf. Along the way, we also check that we are
     # actually allowed to crush surf.
@@ -335,16 +331,16 @@ class _IdealLoopStatus(Enum):
     pass
 
 
-def _getNewLoopSegmentsFromBoundaryChords(surf):
+#TODO Update using new implementation of _findBoundaryChords().
+def _buildNewLoopsFromBoundaryChords(surf):
     """
-    Uses boundary chords to compute OrientedSegment sequences which describe
-    the new ideal loops that would arise from crushing the given normal
-    surface surf.
+    Uses boundary chords to build the new ideal loops that would arise from
+    crushing the given normal surface surf.
 
-    In detail, this routine returns a list, each of whose elements describes
-    a new ideal loop via a pair consisting of the following items:
-    (0) A list of OrientedSegment objects, appearing in order of traversal
-        around the new loop.
+    This routine returns a list, each of whose elements describes a new ideal
+    loop via a pair consisting of the following items:
+    (0) A list of boundary chords, appearing in order of traversal around the
+        new loop, and also oriented consistently with the order of traversal.
     (1) A status given by _IdealLoopStatus.
 
     Warning:
@@ -363,31 +359,22 @@ def _getNewLoopSegmentsFromBoundaryChords(surf):
     # Put the boundary chords together to form the new loops. From the
     # pre-conditions, the total number of boundary chords is equal to the
     # number of boundary curves of surf, which is either 1 or 2.
-    segmentSequences = []
+    chordSequences = []
     if len(boundaryChords) == 2:
-        segsInNewLoop = []
         myChord, yourChord = boundaryChords
         pairUpChordEndsByCrushing( myChord, yourChord )
         if myChord.joinedChord(0) == yourChord:
             # The two boundary chords join together to form a single loop.
             # Assuming that surf is indeed quad vertex, this implies that the
             # loop definitely does not bound an orbital compression disc.
-            myAuxSeg = boundaryChords[myChord]
-            if myAuxSeg is None:
-                segsInNewLoop.extend(myChord)
+            chordsInNewLoop = [myChord]
+            if myChord.joinedEnd(0) == 0:
+                chordsInNewLoop.append( yourChord.reversed() )
             else:
-                segsInNewLoop.append(myAuxSeg)
-            yourAuxSeg = boundaryChords[yourChord]
-            if yourAuxSeg is None:
-                if myChord.joinedEnd(0) == 0:
-                    segsInNewLoop.extend( yourChord.reversed() )
-                else:
-                    segsInNewLoop.extend(yourChord)
-            else:
-                segsInNewLoop.append(yourAuxSeg)
-            segmentSequences.append(
-                    ( segsInNewLoop, _IdealLoopStatus.CONSISTENT ) )
-            return segmentSequences
+                chordsInNewLoop.append(yourChord)
+            chordSequences.append(
+                    ( chordsInNewLoop, _IdealLoopStatus.CONSISTENT ) )
+            return chordSequences
 
     # At this point, we know that each boundary chord simply joins with
     # itself to form its own loop.
@@ -401,35 +388,32 @@ def _getNewLoopSegmentsFromBoundaryChords(surf):
             loopStatus = _IdealLoopStatus.COMPRESSED
         else:
             loopStatus = _IdealLoopStatus.CONSISTENT
-        segmentSequences.append( ( list(bdryChord), loopStatus ) )
-    return segmentSequences
+        chordSequences.append( ( [bdryChord], loopStatus ) )
+    return chordSequences
 
 
-def _getNewLoopSegmentsFromIdealChords( surf, edgeIdealTri ):
+#TODO Update using new implementation of _findBoundaryChords().
+def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     """
-    Uses the ideal chords to compute OrientedSegment sequences which describe
-    the new ideal loops that would arise from crushing the given normal
-    surface surf.
+    Uses the ideal chords to build the new ideal loops that would arise from
+    crushing the given normal surface surf.
 
-    In detail, this routine returns a list, each of whose elements describes
-    a new ideal loop via a pair consisting of the following items:
-    (0) A list of OrientedSegment objects, appearing in order of traversal
-        around the new loop, and such that the first segment in the list is
-        oriented consistently with the order of traversal.
-    (1) A status given by _IdealLoopStatus.
-
-    The new ideal loops in the returned list are related to the old ideal
-    loops in edgeIdealTri as follows:
-    --> Old ideal loops that are disjoint from the surface will be left
-        topologically untouched. In particular, their orientations will be
-        preserved.
-    --> Old ideal loops that intersect the surface will be split into multiple
+    This routine returns a list describing the new ideal loops. In detail:
+    --> Pre-existing ideal loops in edgeIdealTri that are disjoint from the
+        surface will be left topologically untouched. In particular, their
+        orientations will be preserved.
+    --> Ideal loops that intersect the surface will be split into multiple
         ideal chords; additionally, if the surface is a disc, then there
         might be a single boundary chord. Each such (ideal or boundary) chord
         either survives the crushing operation, or is entirely destroyed by
         crushing. For the surviving chords, crushing will essentially
         rearrange how the endpoints of these chords are joined together,
         thereby yielding new ideal loops.
+    Each element of the returned list describes one of the new ideal loops
+    via a pair consisting of the following items:
+    (0) A list of normal chords, appearing in order of traversal around the
+        new loop, and also oriented consistently with the order of traversal.
+    (1) A status given by _IdealLoopStatus.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -449,64 +433,60 @@ def _getNewLoopSegmentsFromIdealChords( surf, edgeIdealTri ):
     # Put the ideal chords together to form the new loops. If one of the
     # ideal chords has unjoined ends, then these ends will need to be joined
     # to the ends of the (unique) boundary chord.
-    segmentSequences = []
+    chordSequences = []
     while idealChords:
-        firstChord = idealChords.pop()
-        segsInNewLoop = list(firstChord)
+        currentChord = idealChords.pop()
+        chordsInNewLoop = [currentChord]
         loopStatus = _IdealLoopStatus.CONSISTENT    # Until proven otherwise.
-        currentTailEnd = firstChord.joinedEnd(1)
-        currentChord = firstChord.joinedChord(1)
+        currentTailEnd = currentChord.joinedEnd(1)
+        currentChord = currentChord.joinedChord(1)
         if currentChord is None:
             # From the pre-conditions, surf must be a disc with edge-ideal
             # weight 1, and we must have found the unique ideal chord which
             # needs to be joined with the unique boundary chord.
             assert len(boundaryChords) == 1
-            bdryChord, auxSeg = boundaryChords.popitem()
-            if auxSeg is None:
-                pairUpChordEndsByCrushing( firstChord, bdryChord )
+            bdryChord = boundaryChords.pop()
+            pairUpChordEndsByCrushing( chordsInNewLoop[0], bdryChord )
 
-                # The current choice of orientation on bdryChord is arbitrary
-                # and meaningless. We re-orient (if necessary) to ensure that
-                # the orientation is consistent with the pre-existing ideal
-                # chord.
-                if firstChord.joinedEnd(0) == 0:
-                    segsInNewLoop.extend( bdryChord.reversed() )
-                else:
-                    segsInNewLoop.extend(bdryChord)
+            # The current choice of orientation on the boundary chord is
+            # arbitrary and meaningless. We re-orient (if necessary) to
+            # ensure that the orientation is consistent with the pre-existing
+            # ideal chord.
+            if chordsInNewLoop[0].joinedEnd(0) == 0:
+                chordsInNewLoop.append( bdryChord.reversed() )
             else:
-                segsInNewLoop.append(auxSeg)
+                chordsInNewLoop.append(bdryChord)
         else:
             # Traverse the new loop, and pick up all its constituent ideal
             # chords.
-            while currentChord != firstChord:
+            while currentChord != chordsInNewLoop[0]:
                 idealChords.remove(currentChord)
                 if currentTailEnd == 1:
                     # The current chord is oriented inconsistently with the
                     # first chord in this new loop.
                     loopStatus = _IdealLoopStatus.INCONSISTENT
-                    segsInNewLoop.extend( currentChord.reversed() )
+                    chordsInNewLoop.append( currentChord.reversed() )
                 else:
-                    segsInNewLoop.extend(currentChord)
+                    chordsInNewLoop.append(currentChord)
                 currentHeadEnd = 1 - currentTailEnd
 
                 # Move on to the next chord in the loop.
                 currentTailEnd = currentChord.joinedEnd(currentTailEnd)
                 currentChord = currentChord.joinedChord(currentTailEnd)
-            assert currentChord == firstChord
-            assert currentTailEnd == 0  # Tail of firstChord
+            assert currentTailEnd == 0  # Tail of the first chord
 
         # Check whether this loop is compressed away by an orbital
         # compression disc.
-        if ( len(segsInNewLoop) == 2 and
-            _boundsOrbitalCompressionDisc(firstChord) ):
+        if ( len(chordsInNewLoop) == 1 and
+            _boundsOrbitalCompressionDisc( chordsInNewLoop[0] ) ):
             assert loopStatus == _IdealLoopStatus.CONSISTENT
             loopStatus = _IdealLoopStatus.COMPRESSED
 
         # Done with this loop.
-        segmentSequences.append( ( segsInNewLoop, loopStatus ) )
+        chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
     # All done!
-    return segmentSequences
+    return chordSequences
 
 
 def _extractSurvivingEmbeddings( chordSequence, survivors ):
@@ -541,6 +521,12 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     return newLoopEmbeddings
 
 
+#TODO Need to be more careful with boundary chord orientations: If we have
+#   two such chords, then we *must* make sure to choose their orientations in
+#   a consistent fashion.
+#
+#   This might also mean that it makes more sense to get rid of the auxiliary
+#   segments after all.
 def _findBoundaryChords(surf):
     """
     Returns a dictionary describing the boundary chords induced by the given
