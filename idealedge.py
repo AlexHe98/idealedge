@@ -366,32 +366,27 @@ def _buildNewLoopsFromBoundaryChords(surf):
         pairUpChordEndsByCrushing( myChord, yourChord )
         if myChord.joinedChord(0) == yourChord:
             # The two boundary chords join together to form a single loop.
-            # Assuming that surf is indeed quad vertex, this implies that the
-            # loop definitely does not bound an orbital compression disc.
+            # This means that surf is an annulus which either is
+            # slope-reversing or spans two distinct boundary tori. From the
+            # pre-condition that surf is quad-vertex, together with the
+            # promises made by _findBoundaryChords(), we know that:
+            #   (a) the loop is not compressed away by an orbital compression
+            #       disc; and
+            #   (b) surf is slope-reversing if and only if one of the two
+            #       boundary chords has length 1.
             chordsInNewLoop = [myChord]
-            if myChord.joinedEnd(0) == 0:
+            chordOrientationsDisagree = ( myChord.joinedEnd(0) == 0 )
+            if chordOrientationsDisagree:
                 chordsInNewLoop.append( yourChord.reversed() )
             else:
                 chordsInNewLoop.append(yourChord)
-
-            #TODO With more careful tracking of boundary chord orientations,
-            #   we could probably do some sanity-checking here.
-
-            # Although the orientations on the boundary loops were chosen
-            # arbitrarily, we could have chosen them to be consistent if and
-            # only if surf was not a slope-reversing annulus. Rather than
-            # directly tracking orientations, the following combinatorial
-            # shortcut is enough to detect slope-reversing annuli.
-            #
-            # Because we are in the case where two boundary chords join to
-            # make one new ideal loop, surf is an annulus which either is
-            # slope-reversing or spans two distinct boundary tori. The
-            # promises made by _findBoundaryChords() ensure that we are in
-            # the slope-reversing case if and only if one of the two boundary
-            # chords has length 1.
             if ( len(myChord) == 1 or len(yourChord) == 1 ):
+                assert chordOrientationsDisagree
                 loopStatus = _IdealLoopStatus.INCONSISTENT
             else:
+                # In this case, we are joining two boundary chords from two
+                # different boundary tori, so the choices of orientations on
+                # the two chords are arbitrary and meaningless.
                 loopStatus = _IdealLoopStatus.CONSISTENT
             chordSequences.append( ( chordsInNewLoop, loopStatus ) )
             return chordSequences
