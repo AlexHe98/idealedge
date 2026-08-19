@@ -575,6 +575,8 @@ def _findBoundaryChords(surf):
     --> The ambient triangulation surf.triangulation() should have minimal
         toroidal boundary.
     """
+    if not surf.hasRealBoundary():
+        return set()
     boundaryChords = set()
     for bc in surf.triangulation().boundaryComponents():
         # From the pre-conditions, bc is a two-triangle torus.
@@ -586,9 +588,6 @@ def _findBoundaryChords(surf):
         # some boundary chords.
         normalArcs = [ surf.arcs( bdryFace.index(), v ).pythonValue()
                       for v in range(3) ]
-        numBdryCurves = pythonGCD(*normalArcs)
-        assert numBdryCurves <= 2, \
-                "Failed pre-condition: Too many boundary curves"
         zeros = normalArcs.count(0)
         if zeros == 3:
             # Surface has no intersection with bc, so we can't pick up any
@@ -601,25 +600,12 @@ def _findBoundaryChords(surf):
             # which means that there cannot be any boundary chords at all.
             assert not boundaryChords
             return boundaryChords
+        numBdryCurves = pythonGCD(*normalArcs)
+        assert numBdryCurves <= 2, \
+                "Failed pre-condition: Too many boundary curves"
 
-        # Find possible type-2 boundary chord sandwiched between two parallel
-        # boundary curves.
-        if numBdryCurves == 2:
-            # A boundary edge opposite a zero normal arc coordinate will
-            # always have positive weight.
-            v = normalArcs.index(0)
-            oppEndpoints = {0,1,2,3} - { faceEmb.vertices()[v],
-                                     faceEmb.vertices()[3] }
-            oppEdgeIndex = tet.edge(*oppEndpoints).index()
-            segPos = 1  # Any odd segment position will do.
-
-            #TODO Orientation needs to be chosen to be consistent with the
-            #   other boundary chord, so we can't just be arbitrary here.
-
-            # Arbitrarily choose the orientation to be +1.
-            bdryChord = NormalChord(
-                    [ OrientedSegment( surf, oppEdgeIndex, segPos, 1 ) ] )
-            boundaryChords.add(bdryChord)
+        #TODO There might be a nice way to unify part of the (zeros == 2) and
+        #   (zeros == 1) cases.
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
@@ -666,8 +652,22 @@ def _findBoundaryChords(surf):
                     surf, frontEdgeIndex, frontSegPos, frontOrientation )
             backSeg = OrientedSegment(
                     surf, backEdgeIndex, backSegPos, backOrientation )
-            bdryChord = NormalChord( [ frontSeg, backSeg ] )
-            boundaryChords.add(bdryChord)
+            centralBdryChord = NormalChord( [ frontSeg, backSeg ] )
+            boundaryChords.add(centralBdryChord)
+
+            # If surf has two boundary curves in bc, then we also have
+            # another boundary chord given by a single type-2 segment.
+            if numBdryCurves == 2:
+                # To make it easy to fulfil the promise that the chord
+                # orientations are consistent, we simply choose a segment in
+                # the same edge as either frontSeg or backSeg.
+                parallelBdryChord = NormalChord( [ OrientedSegment(
+                    surf, backEdgeIndex, 1, backOrientation ) ] )
+                boundaryChords.add(parallelBdryChord)
+
+                # We have already found two boundary chords, which (from the
+                # pre-conditions) is the maximum possible.
+                return boundaryChords
         elif zeros == 1:
             # Let v denote the vertex of bdryFace at which we have the zero
             # normal arc. Take the spanning boundary chord to consist of two
@@ -708,8 +708,27 @@ def _findBoundaryChords(surf):
                         segOrientation = -1
                 segmentsInChord.append( OrientedSegment(
                     surf, segEdgeIndex, segPos, segOrientation ) )
-            bdryChord = NormalChord(segmentsInChord)
-            boundaryChords.add(bdryChord)
+            centralBdryChord = NormalChord(segmentsInChord)
+            boundaryChords.add(centralBdryChord)
+
+            # If surf has two boundary curves in bc, then we also have
+            # another boundary chord given by a single type-2 segment in the
+            # edge of bdryFace opposite v.
+            if numBdryCurves == 2:
+                # To make it easy to fulfil the promise that the chord
+                # orientations are consistent, we simply choose a segment in
+                # the same edge as one of the segments in centralBdryChord.
+                #
+                # For this, we abuse the fact that the segEdgeIndex and
+                # segOrientation variables persist beyond the scope of the
+                # above loop.
+                parallelBdryChord = NormalChord( [ OrientedSegment(
+                    surf, segEdgeIndex, 1, segOrientation ) ] )
+                boundaryChords.add(parallelBdryChord)
+
+                # We have already found two boundary chords, which (from the
+                # pre-conditions) is the maximum possible.
+                return boundaryChords
         else:   # Impossible.
             raise AssertionError()
 
