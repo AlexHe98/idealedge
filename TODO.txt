@@ -1,6 +1,5 @@
 --- Bounded orientable SFS recognition
     --> New implementation of decomposeAlong()
-        ->- Make _findBoundaryChords() track orientations correctly for boundary loops lying in the same boundary torus
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
             ->> Double-check that we correctly detect orbital compressions
             ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords

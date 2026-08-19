@@ -604,10 +604,7 @@ def _findBoundaryChords(surf):
         assert numBdryCurves <= 2, \
                 "Failed pre-condition: Too many boundary curves"
 
-        #TODO There might be a nice way to unify part of the (zeros == 2) and
-        #   (zeros == 1) cases.
-
-        # Find possible boundary chord incident to the central faces in bc.
+        # Find boundary chord incident to the central faces in bc.
         if zeros == 2:
             # Let e denote the edge of bdryFace opposite the nonzero normal
             # arc. Take the spanning boundary chord to consist of two type-1
@@ -653,21 +650,6 @@ def _findBoundaryChords(surf):
             backSeg = OrientedSegment(
                     surf, backEdgeIndex, backSegPos, backOrientation )
             centralBdryChord = NormalChord( [ frontSeg, backSeg ] )
-            boundaryChords.add(centralBdryChord)
-
-            # If surf has two boundary curves in bc, then we also have
-            # another boundary chord given by a single type-2 segment.
-            if numBdryCurves == 2:
-                # To make it easy to fulfil the promise that the chord
-                # orientations are consistent, we simply choose a segment in
-                # the same edge as either frontSeg or backSeg.
-                parallelBdryChord = NormalChord( [ OrientedSegment(
-                    surf, backEdgeIndex, 1, backOrientation ) ] )
-                boundaryChords.add(parallelBdryChord)
-
-                # We have already found two boundary chords, which (from the
-                # pre-conditions) is the maximum possible.
-                return boundaryChords
         elif zeros == 1:
             # Let v denote the vertex of bdryFace at which we have the zero
             # normal arc. Take the spanning boundary chord to consist of two
@@ -709,28 +691,26 @@ def _findBoundaryChords(surf):
                 segmentsInChord.append( OrientedSegment(
                     surf, segEdgeIndex, segPos, segOrientation ) )
             centralBdryChord = NormalChord(segmentsInChord)
-            boundaryChords.add(centralBdryChord)
-
-            # If surf has two boundary curves in bc, then we also have
-            # another boundary chord given by a single type-2 segment in the
-            # edge of bdryFace opposite v.
-            if numBdryCurves == 2:
-                # To make it easy to fulfil the promise that the chord
-                # orientations are consistent, we simply choose a segment in
-                # the same edge as one of the segments in centralBdryChord.
-                #
-                # For this, we abuse the fact that the segEdgeIndex and
-                # segOrientation variables persist beyond the scope of the
-                # above loop.
-                parallelBdryChord = NormalChord( [ OrientedSegment(
-                    surf, segEdgeIndex, 1, segOrientation ) ] )
-                boundaryChords.add(parallelBdryChord)
-
-                # We have already found two boundary chords, which (from the
-                # pre-conditions) is the maximum possible.
-                return boundaryChords
         else:   # Impossible.
             raise AssertionError()
+        boundaryChords.add(centralBdryChord)
+
+        # If surf has two boundary curves in bc, then we also have another
+        # boundary chord spanning a boundary annulus built entirely from
+        # parallel faces. Such a boundary chord necessarily consists entirely
+        # of a single type-2 segment.
+        if numBdryCurves == 2:
+            # To make it easy to fulfil the promise that the chord
+            # orientations are consistent, we simply choose a segment in the
+            # same edge as one of the segments already in centralBdryChord.
+            centralSeg = centralBdryChord[0]
+            parallelBdryChord = NormalChord( [ OrientedSegment(
+                surf, centralSeg.edgeIndex(), 1, centralSeg.orientation() ) ] )
+            boundaryChords.add(parallelBdryChord)
+
+            # We have already found two boundary chords, which (from the
+            # pre-conditions) is the maximum possible.
+            break
 
     # Done!
     return boundaryChords
