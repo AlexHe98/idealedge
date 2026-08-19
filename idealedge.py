@@ -158,9 +158,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         edgeIdealTri.checkCrushAllowed(surf)
         chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
-    #TODO Update below to use new auxiliary boundary chords given by the
-    #       _findBoundaryChords() routine.
-
     #TODO We need the length-2 boundary chords to both:
     #   (a) ensure that we detect orbital compressions, and
     #   (b) facilitate detecting slope-reversing annuli without needing to
@@ -180,6 +177,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #   closing up, or immediately close up across the third edge.
 
     # Convert chord sequences into sequences of surviving edge embeddings.
+    #TODO
     # Along the way, we also find the boundary chords which will, after
     # crushing, be incident to pinched boundary 2-spheres that need to be
     # closed up.
@@ -335,14 +333,13 @@ class _IdealLoopStatus(Enum):
     pass
 
 
-#TODO Update using new implementation of _findBoundaryChords().
 def _buildNewLoopsFromBoundaryChords(surf):
     """
     Uses boundary chords to build the new ideal loops that would arise from
     crushing the given normal surface surf.
 
-    This routine returns a list, each of whose elements describes a new ideal
-    loop via a pair consisting of the following items:
+    In detail, this routine returns a list, each of whose elements describes
+    a new ideal loop via a pair consisting of the following items:
     (0) A list of boundary chords, appearing in order of traversal around the
         new loop, and also oriented consistently with the order of traversal.
     (1) A status given by _IdealLoopStatus.
@@ -396,28 +393,29 @@ def _buildNewLoopsFromBoundaryChords(surf):
     return chordSequences
 
 
-#TODO Update using new implementation of _findBoundaryChords().
 def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     """
     Uses the ideal chords to build the new ideal loops that would arise from
     crushing the given normal surface surf.
 
-    This routine returns a list describing the new ideal loops. In detail:
-    --> Pre-existing ideal loops in edgeIdealTri that are disjoint from the
-        surface will be left topologically untouched. In particular, their
-        orientations will be preserved.
-    --> Ideal loops that intersect the surface will be split into multiple
-        ideal chords; additionally, if the surface is a disc, then there
-        might be a single boundary chord. Each such (ideal or boundary) chord
-        either survives the crushing operation, or is entirely destroyed by
-        crushing. For the surviving chords, crushing will essentially
-        rearrange how the endpoints of these chords are joined together,
-        thereby yielding new ideal loops.
-    Each element of the returned list describes one of the new ideal loops
-    via a pair consisting of the following items:
+    In detail, this routine returns a list, each of whose elements describes
+    a new ideal loop via a pair consisting of the following items:
     (0) A list of normal chords, appearing in order of traversal around the
         new loop, and also oriented consistently with the order of traversal.
     (1) A status given by _IdealLoopStatus.
+
+    The new ideal loops described by the returned list are related to the old
+    ideal loops in edgeIdealTri as follows:
+    --> Old ideal loops that are disjoint from the surface will be left
+        topologically untouched. In particular, their orientations will be
+        preserved.
+    --> Old ideal loops that intersect the surface will be split into
+        multiple ideal chords; additionally, if the surface is a disc, then
+        there might be a single boundary chord. Each such (ideal or boundary)
+        chord either survives the crushing operation, or is entirely
+        destroyed by crushing. For the surviving chords, crushing will
+        essentially rearrange how the endpoints of these chords are joined
+        together, thereby yielding new ideal loops.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
