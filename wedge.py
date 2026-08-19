@@ -5,6 +5,7 @@ In the context of a Seifert fibre space with (some component of the) boundary
 given by an ideal loop, such lost components correspond to a lost fibre of
 multiplicity 3.
 """
+from enum import Enum, auto
 from regina import *
 from aux.quad import tetQuadType
 #TODO What about non-surviving triangular orbits which go from boundary to

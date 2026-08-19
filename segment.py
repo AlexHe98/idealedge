@@ -141,15 +141,17 @@ class OrientedSegment:
                 survivingSegPos = cls._survivingSegmentPosition(
                         tet, vertexPerm, surface )
 
-                # Include both +1 and -1 orientations.
-                survivorSet.add(
-                        cls( surface, edgeInd, survivingSegPos,
-                            1, EdgeEmbedding3(
-                                tet, vertexPerm ) ) )
-                survivorSet.add(
-                        cls( surface, edgeInd, survivingSegPos,
-                            -1, EdgeEmbedding3(
-                                tet, vertexPerm * Perm4(1,0,3,2) ) ) )
+                # Surviving segment with +1 orientation.
+                survivingSeg = cls( surface, edgeInd, survivingSegPos, 1 )
+                survivingSeg._setSurvivingEmbedding( EdgeEmbedding3(
+                    tet, vertexPerm ) )
+                survivorSet.add(survivingSeg)
+
+                # Surviving segment with -1 orientation.
+                survivingSeg = cls( surface, edgeInd, survivingSegPos, -1 )
+                survivingSeg._setSurvivingEmbedding( EdgeEmbedding3(
+                    tet, vertexPerm * Perm4(1, 0, 3, 2) ) )
+                survivorSet.add(survivingSeg)
         return survivorSet
 
     @staticmethod
