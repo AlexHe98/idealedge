@@ -15,6 +15,7 @@ from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
+from wedge import wedgeCycleCounts
 #TODO Maybe move supporting classes and routines into a different file.
 
 
@@ -158,6 +159,43 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         edgeIdealTri.checkCrushAllowed(surf)
         chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
+    # Convert chord sequences into sequences of surviving edge embeddings.
+    newLoops = []
+    numOrbitalCompressions = 0
+    numNonSurvivingLoops = 0
+    foundInconsistentLoop = False
+    survivors = OrientedSegment.survivors(surf)
+    for chordsInNewLoop, loopStatus in chordSequences:
+        if loopStatus == _IdealLoopStatus.COMPRESSED:
+            numOrbitalCompressions += 1
+            # Loop is compressed away, so no need to add it to the newLoops.
+            continue
+        elif loopStatus == _IdealLoopStatus.INCONSISTENT:
+            foundInconsistentLoop = True
+
+        # As a consequence of the pre-condition that surf is quad vertex,
+        # together with the fact this new loop is not compressed away by an
+        # orbital compression disc, we know that every segment of this loop
+        # must be simple. It follows that one segment of this loop survives
+        # if and only if every segment survives. In other words, the
+        # pre-condition for _extractSurvivingEmbeddings() is satisfied.
+        survivingEmbs = _extractSurvivingEmbeddings(
+                chordsInNewLoop, survivors )
+        if survivingEmbs:
+            newLoops.append(survivingEmbs)
+        else:
+            numNonSurvivingLoops += 1
+
+    # Count deleted components arising from non-surviving triangular orbits.
+
+    #TODO Track deleted components given by cycles of wedge cells (a.k.a.
+    #   non-surviving triangular orbits).
+    #
+    #   Sanity check: we should always have at least as many non-surviving
+    #   triangular orbits as we have non-surviving loops. Anyway, we need to
+    #   count the number of non-surviving loops so that we can distinguish
+    #   lost fibres (in particular, (1,0)-fibres) from lost S^3 pieces.
+
     #TODO We need the length-2 boundary chords to both:
     #   (a) ensure that we detect orbital compressions, and
     #   (b) facilitate detecting slope-reversing annuli without needing to
@@ -175,45 +213,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #   included in the loop. Depending on the combinatorics of the pinched
     #   boundary 2-sphere, we then either layer over the third edge before
     #   closing up, or immediately close up across the third edge.
-
-    # Convert chord sequences into sequences of surviving edge embeddings.
-    #TODO
-    # Along the way, we also find the boundary chords which will, after
-    # crushing, be incident to pinched boundary 2-spheres that need to be
-    # closed up.
-    newLoops = []
-    numOrbitalCompressions = 0
-    foundInconsistentLoop = False
-    survivors = OrientedSegment.survivors(surf)
-    for chordsInNewLoop, loopStatus in chordSequences:
-        if loopStatus == _IdealLoopStatus.COMPRESSED:
-            numOrbitalCompressions += 1
-
-            # Loop is compressed away, so no need to add it to the newLoops.
-            continue
-        elif loopStatus == _IdealLoopStatus.INCONSISTENT:
-            foundInconsistentLoop = True
-
-        # As a consequence of the pre-condition that surf is quad vertex,
-        # together with the fact this new loop is not compressed away by an
-        # orbital compression disc, we know that every segment of this loop
-        # must be simple. It follows that one segment of this loop survives
-        # if and only if every segment survives. In other words, the
-        # pre-condition for _extractSurvivingEmbeddings() is satisfied.
-        survivingEmbs = _extractSurvivingEmbeddings(
-                chordsInNewLoop, survivors )
-        if not survivingEmbs:
-            continue
-        newLoops.append(survivingEmbs)
-
-        # Does this surviving loop include any boundary chords which will be
-        # incident to pinched boundary 2-spheres after crushing?
-        for chord in chordsInNewLoop:
-            #TODO
-            raise NotImplementedError()
-
-    #TODO Track deleted components given by cycles of wedge cells (a.k.a.
-    #       non-surviving triangular orbits).
 
     # Find where the new ideal loops will be after crushing.
     doomed = [ tet for tet in surf.triangulation().tetrahedra()

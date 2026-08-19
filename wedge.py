@@ -7,19 +7,48 @@ multiplicity 3.
 """
 from regina import *
 from aux.quad import tetQuadType
+#TODO What about non-surviving triangular orbits which go from boundary to
+#   boundary (and hence give deleted 3-ball components)?
 
 
-#TODO To avoid confusion, call these "cycles" of wedge cells instead.
-def wedgeLoops(surf):
+class NonSurvivingTriangularOrbit(Enum):
     """
-    Detects loops of wedge cells induced by the given normal surface.
+    An enumeration of topological types of non-surviving triangular orbits.
+    """
+    BALL = auto()
+    SPHERE = auto()
+    L31 = auto()
+    FIBRE_TRIVIAL = auto()
+    FIBRE_PLUS = auto()
+    FIBRE_MINUS = auto()
+    pass
 
-    This routine returns a list of such loops, each of which is encoded as a
+
+def wedgeCycleCounts(surf):
+    """
+    Counts the number of cycles of wedge cells of each twist type.
+
+    In detail, this routine returns a dictionary R with keys in {0, +1, -1},
+    such that for each key k, R[k] counts the number of wedge cycles with
+    twist type k. As in the wedgeCycles() routine, twist type 0 indicates a
+    cycle with no twist, and +1 or -1 indicates a cycle with a twist.
+    """
+    ans = { 0: 0, 1: 0, -1: 0 }
+    for _, twist in wedgeCycles(surf):
+        ans[twist] += 1
+    return ans
+
+
+def wedgeCycles(surf):
+    """
+    Detects cycles of wedge cells induced by the given normal surface.
+
+    This routine returns a list of such cycles, each of which is encoded as a
     pair (R,T), where:
-    --> R is a single wedge cell in the loop, chosen as a representative for
-        the entire loop.
-    --> T is 0 if the loop has no twist, and either +1 or -1 if the loop has
-        a twist.
+    --> R is a single wedge cell in the cycle, chosen as a representative for
+        the entire cycle.
+    --> T is 0 if the cycle has no twist, and either +1 or -1 if the cycle
+        has a twist.
 
     We have exactly two wedge cells per tetrahedron intersecting surf in a
     positive number of quads. Each wedge cell is encoded as a pair (i,s),
@@ -31,7 +60,7 @@ def wedgeLoops(surf):
 
     The sign of the twist is determined relative to the vertex labelling of
     the tetrahedron containing the representative wedge cell. Thus, in an
-    oriented triangulation, wedge loops with the same sign will twist in the
+    oriented triangulation, wedge cycles with the same sign will twist in the
     same direction.
     """
     tri = surf.triangulation()
@@ -90,7 +119,7 @@ def wedgeLoops(surf):
                         ( eOrder[i][1-ii], wedge )
 
     # Traverse all wedge cells.
-    loops = set()
+    cycleSet = set()
     while wedgePerms:
         startWedge, endPerm = wedgePerms.popitem()
         startTeti, currentFace, referenceVertex = startWedge
@@ -98,17 +127,17 @@ def wedgeLoops(surf):
         vertPerm = Perm4()
 
         # Traverse until one of the following occurs:
-        #   --> We return to the start (in which case we have found a loop of
-        #       wedge cells).
+        #   --> We return to the start (in which case we have found a cycle
+        #       of wedge cells).
         #   --> We reach a wedge cell that we already previously traversed
-        #       (in which case we do not have a loop of wedge cells).
+        #       (in which case we do not have a cycle of wedge cells).
         #   --> We reach a tetrahedron with no wedge cells (in which case we
-        #       again do not have a loop of wedge cells).
+        #       again do not have a cycle of wedge cells).
         while True:
             # Traverse across face gluing.
             adjTet = currentTet.adjacentTetrahedron(currentFace)
             if adjTet is None:
-                # No adjacent tet, so definitely not traversing a loop of
+                # No adjacent tet, so definitely not traversing a cycle of
                 # wedge cells.
                 break
             adjTeti = adjTet.index()
@@ -119,26 +148,26 @@ def wedgeLoops(surf):
             # Have we reached a new wedge cell?
             if adjTeti not in wedgeAdjacencies:
                 # No wedge cells in adjTet, and hence we are not traversing
-                # a loop of wedge cells.
+                # a cycle of wedge cells.
                 break
             currentFace, adjWedge = wedgeAdjacencies[adjTet.index()][adjFace]
 
             # Have we already previously traversed the new wedge cell? If so,
             # then either:
-            #   --> we have returned to the start of a loop of wedge cells;
+            #   --> we have returned to the start of a cycle of wedge cells;
             #       or
-            #   --> we are not traversing a loop of wedge cells.
+            #   --> we are not traversing a cycle of wedge cells.
             if adjWedge not in wedgePerms:
-                # If we are back to the start of a loop, then use the
-                # twistSign dictionary to determine which direction this loop
-                # twists.
+                # If we are back to the start of a cycle, then use the
+                # twistSign dictionary to determine which direction this
+                # cycle twists.
                 if adjWedge == startWedge:
                     vertPerm = endPerm * vertPerm
-                    loopSign = twistSign[startWedge][
+                    cycleSign = twistSign[startWedge][
                             vertPerm[referenceVertex] ]
-                    loops.add( ( startWedge, loopSign ) )
+                    cycleSet.add( ( startWedge, cycleSign ) )
 
-                # Regardless of whether or not we had a loop, there is no
+                # Regardless of whether or not we had a cycle, there is no
                 # further traversal we can do.
                 break
 
@@ -148,4 +177,4 @@ def wedgeLoops(surf):
             currentTet = adjTet
 
     # All done!
-    return loops
+    return cycleSet

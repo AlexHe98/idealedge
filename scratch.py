@@ -7,7 +7,7 @@ from regina import *
 from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
-from wedge import wedgeLoops
+from wedge import wedgeCycles
 from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
@@ -127,7 +127,7 @@ def crushAnnuli( surfaces, threshold=30 ):
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
         crushedName = "Crushed #{}".format(surfNum)
-        for _, twist in wedgeLoops(surf):
+        for _, twist in wedgeCycles(surf):
             if twist != 0:
                 crushedName += " (Lost (3,{}))".format(twist)
         #NOTE Crushing preserves orientation.
@@ -732,7 +732,7 @@ def decomposeAlongSpheres(idealLoop):
 
             # See what happens if we crush.
             lostFibres = ""
-            for _, twist in wedgeLoops(sphere):
+            for _, twist in wedgeCycles(sphere):
                 if twist != 0:
                     lostFibres += " Lost (3,{}).".format(twist)
             if lostFibres:
