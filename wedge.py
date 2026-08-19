@@ -1,9 +1,5 @@
 """
-Traverse wedge cells to detect lost L(3,1) components.
-
-In the context of a Seifert fibre space with (some component of the) boundary
-given by an ideal loop, such lost components correspond to a lost fibre of
-multiplicity 3.
+Find non-surviving triangular orbits by traversing wedge cells.
 """
 from enum import Enum, auto
 from regina import *
@@ -12,61 +8,58 @@ from aux.quad import tetQuadType
 #   boundary (and hence give deleted 3-ball components)?
 
 
-class NonSurvivingTriangularOrbit(Enum):
+class NonSurvivingTriangularOrbitType(Enum):
     """
-    An enumeration of topological types of non-surviving triangular orbits.
+    An enumeration of types of non-surviving triangular orbits.
+
+    In detail, we have the following possible types:
+    --> BOUNDARY        A triangular orbit whose core fibre forms an arc with
+                        both endpoints lying in real boundary.
+    --> TRIVIAL_CYCLE   A triangular orbit whose core fibre forms a loop with
+                        no twist.
+    --> TWIST_PLUS      A triangular orbit whose core fibre forms a loop with
+                        a twist. The sign of the twist is +1, as determined
+                        by the orientation of some tetrahedron incident to
+                        the orbit.
+    --> TWIST_MINUS     A triangular orbit whose core fibre forms a loop with
+                        a twist. The sign of the twist is -1, as determined
+                        by the orientation of some tetrahedron incident to
+                        the orbit.
+    As defined, the signs of the twists depend on the chosen tetrahedron.
+    Thus, these signs are most meaningful when we are working with an
+    oriented triangulation.
     """
-    BALL = auto()
-    SPHERE = auto()
-    L31 = auto()
-    FIBRE_TRIVIAL = auto()
-    FIBRE_PLUS = auto()
-    FIBRE_MINUS = auto()
+    BOUNDARY = auto()
+    TRIVIAL_CYCLE = auto()
+    TWIST_PLUS = auto()
+    TWIST_MINUS = auto()
     pass
 
 
-def wedgeCycleCounts(surf):
+def nonSurvivingTriangularOrbitCounts(surf):
     """
-    Counts the number of cycles of wedge cells of each twist type.
+    Counts the number of non-surviving triangular orbits of each possible
+    type.
 
-    In detail, this routine returns a dictionary R with keys in {0, +1, -1},
-    such that for each key k, R[k] counts the number of wedge cycles with
-    twist type k. As in the wedgeCycles() routine, twist type 0 indicates a
-    cycle with no twist, and +1 or -1 indicates a cycle with a twist.
+    In detail, this routine returns a dictionary N with keys given by the
+    NonSurvivingTriangularOrbitType enumeration, such that for each key k,
+    N[k] counts the number of non-surviving triangular orbits of type k.
+
+    Pre-condition:
+    --> surf.triangulation() is oriented.
     """
-    ans = { 0: 0, 1: 0, -1: 0 }
-    for _, twist in wedgeCycles(surf):
-        ans[twist] += 1
-    return ans
-
-
-def wedgeCycles(surf):
-    """
-    Detects cycles of wedge cells induced by the given normal surface.
-
-    This routine returns a list of such cycles, each of which is encoded as a
-    pair (R,T), where:
-    --> R is a single wedge cell in the cycle, chosen as a representative for
-        the entire cycle.
-    --> T is 0 if the cycle has no twist, and either +1 or -1 if the cycle
-        has a twist.
-
-    We have exactly two wedge cells per tetrahedron intersecting surf in a
-    positive number of quads. Each wedge cell is encoded as a pair (i,s),
-    where:
-    --> i is the index of the tetrahedron containing the wedge cell; and
-    --> s is 0 if the wedge cell is incident to edge q of tetrahedron i,
-        where q is the quad type, and 1 if the wedge cell is incident to edge
-        5-q of tetrahedron i.
-
-    The sign of the twist is determined relative to the vertex labelling of
-    the tetrahedron containing the representative wedge cell. Thus, in an
-    oriented triangulation, wedge cycles with the same sign will twist in the
-    same direction.
-    """
+    OrbitType = NonSurvivingTriangularOrbitType
     tri = surf.triangulation()
 
     # Find all wedge cells.
+    #
+    # We have exactly two wedge cells per tetrahedron intersecting surf in a
+    # positive number of quads. Each wedge cell is encoded as a pair (i,s),
+    # where:
+    #   --> i is the index of the tetrahedron containing the wedge cell; and
+    #   --> s is 0 if the wedge cell is incident to edge q of tetrahedron i,
+    #       where q is the quad type, and 1 if the wedge cell is incident to
+    #       edge 5-q of tetrahedron i.
     wedgePerms = dict()         # Map wedge cells to vertex permutations.
     wedgeAdjacencies = dict()
     twistSign = dict()
@@ -119,8 +112,13 @@ def wedgeCycles(surf):
                 wedgeAdjacencies[teti][eOrder[i][ii]] =\
                         ( eOrder[i][1-ii], wedge )
 
+    #TODO Need to track wedge cells incident to boundary.
+
     # Traverse all wedge cells.
-    cycleSet = set()
+    orbitCounts = { OrbitType.BOUNDARY: 0,
+                   OrbitType.TRIVIAL_CYCLE: 0,
+                   OrbitType.TWIST_PLUS: 0,
+                   OrbitType.TWIST_MINUS: 0 }
     while wedgePerms:
         startWedge, endPerm = wedgePerms.popitem()
         startTeti, currentFace, referenceVertex = startWedge
@@ -166,7 +164,12 @@ def wedgeCycles(surf):
                     vertPerm = endPerm * vertPerm
                     cycleSign = twistSign[startWedge][
                             vertPerm[referenceVertex] ]
-                    cycleSet.add( ( startWedge, cycleSign ) )
+                    if cycleSign == 1:
+                        orbitCounts[ OrbitType.TWIST_PLUS ] += 1
+                    elif cycleSign == -1:
+                        orbitCounts[ OrbitType.TWIST_MINUS ] += 1
+                    else:   # cycleSign == 0
+                        orbitCounts[ OrbitType.TRIVIAL_MINUS ] += 1
 
                 # Regardless of whether or not we had a cycle, there is no
                 # further traversal we can do.
@@ -178,4 +181,4 @@ def wedgeCycles(surf):
             currentTet = adjTet
 
     # All done!
-    return cycleSet
+    return orbitCounts

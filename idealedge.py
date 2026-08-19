@@ -75,6 +75,20 @@ class SurfaceToCrushInSuspectedSFS(Enum):
                 "surface of type {}".format(surfType.name) )
 
 
+class ComponentDeletedByCrushing(Enum):
+    """
+    An enumeration of components that are deleted by crushing because they
+    arise from non-surviving triangular orbits.
+    """
+    BALL = auto()
+    SPHERE = auto()
+    L31 = auto()
+    FIBRE_TRIVIAL = auto()
+    FIBRE_PLUS = auto()
+    FIBRE_MINUS = auto()
+    pass
+
+
 #TODO Overhaul decomposeAlong() to not only return the components that
 #       survive crushing, but also to do the book-keeping of tracking deleted
 #       components and counting the number of orbital compressions.

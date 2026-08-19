@@ -12,6 +12,7 @@ from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
+#TODO Replace wedgeCycles() with nonSurvivingTriangularOrbitCounts()
 
 
 #TODO meridian() is never used anywhere. Just delete it?
