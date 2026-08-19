@@ -158,22 +158,26 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         edgeIdealTri.checkCrushAllowed(surf)
         chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
 
-    #TODO Update below to use new auxiliary boundary segments given by the
+    #TODO Update below to use new auxiliary boundary chords given by the
     #       _findBoundaryChords() routine.
 
-    #TODO We need the length-2 boundary chords to ensure that we detect
-    #       orbital compressions. But once we have crushed and closed up,
-    #       surely we can directly replace the two edges arising from each
-    #       such boundary chord with the single edge around which we did the
-    #       closing up (rather than building the loop and then shortening).
+    #TODO We need the length-2 boundary chords to both:
+    #   (a) ensure that we detect orbital compressions, and
+    #   (b) facilitate detecting slope-reversing annuli without needing to
+    #       track orientations of boundary chords.
+    #   But once we have crushed and closed up, surely we can directly
+    #   replace the two edges arising from each such boundary chord with the
+    #   single edge around which we did the closing up (rather than building
+    #   the loop and then shortening).
 
-    #TODO If the auxiliary segment is type-0, then we need to layer before
-    #       closing up. Otherwise, if the auxiliary segment is type-2, we can
-    #       immediately close up without layering.
-
-    #TODO When we translate from chords to edge embeddings, it might make
-    #       sense to have pairs (emb, doLayer), where doLayer is a Boolean
-    #       flag indicating whether we need to layer first.
+    #TODO In the crushed triangulations, we need to close up whenever we see
+    #   an ideal edge which is still boundary. Because such boundary edges
+    #   must have come from a length-2 boundary chord, the ideal loop must
+    #   contain two such edges in a row, and we close up the corresponding
+    #   pinched boundary 2-sphere by examining the third edge which isn't
+    #   included in the loop. Depending on the combinatorics of the pinched
+    #   boundary 2-sphere, we then either layer over the third edge before
+    #   closing up, or immediately close up across the third edge.
 
     # Convert chord sequences into sequences of surviving edge embeddings.
     # Along the way, we also find the boundary chords which will, after
@@ -521,49 +525,30 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     return newLoopEmbeddings
 
 
-#TODO Need to be more careful with boundary chord orientations: If we have
-#   two such chords, then we *must* make sure to choose their orientations in
-#   a consistent fashion.
-#
-#   This might also mean that it makes more sense to get rid of the auxiliary
-#   segments after all.
 def _findBoundaryChords(surf):
     """
-    Returns a dictionary describing the boundary chords induced by the given
-    normal surface surf.
+    Returns a set consisting of boundary chords induced by the given normal
+    surface surf.
 
     Consider the collection of boundary annuli given by cutting boundary tori
-    along boundary curves of surf. The returned dictionary will contain
-    exactly one boundary chord spanning each such boundary annulus.
+    along boundary curves of surf. The returned set will contain exactly one
+    boundary chord spanning each such boundary annulus.
 
     The total number of returned boundary chords is therefore equal to the
     number of boundary components of surf. In particular, if surf is disjoint
     from the real boundary of its ambient triangulation, then this routine
-    will return an empty dictionary.
-
-    In detail, the keys of the returned dictionary will be precisely the set
-    of boundary chords spanning the boundary annuli. Each such boundary chord
-    will be mapped to either:
-    --> an auxiliary boundary segment which carries information about how the
-        corresponding pinched boundary 2-sphere in the crushed triangulation
-        should be closed up to give a new ideal edge; or
-    --> None if no such closing up is required.
+    will return an empty set.
 
     For a boundary annulus containing a vertex of surf.triangulation(), the
     spanning boundary chord will be chosen to consist of two type-1 segments
-    that meet at said vertex (in particular, the chord will have length 2),
-    and returned dictionary will always map this chord to an auxiliary
-    boundary segment which is either:
-    --> type-0, if a layering needs to be performed prior to closing up; or
-    --> type-2, if the closing up can be performed without layering.
+    that meet at said vertex (in particular, the chord will have length 2).
 
     For any other boundary annulus, the spanning boundary chord is
-    (necessarily) built entirely from a single type-2 segment, and the
-    returned dictionary will always map this chord to None.
+    (necessarily) built entirely from a single type-2 segment.
 
     The spanning boundary chords will never have their ends abstractly joined
-    to any other chords. The orientations on the boundary chords and the
-    auxiliary segments will all be chosen arbitrarily.
+    to any other chords. The orientations on the boundary chords will all be
+    chosen arbitrarily.
 
     Pre-condition:
     --> The given surf should be either a 2-sphere, projective plane, disc,
@@ -572,7 +557,7 @@ def _findBoundaryChords(surf):
     --> The ambient triangulation surf.triangulation() should have minimal
         toroidal boundary.
     """
-    boundaryChords = dict()
+    boundaryChords = set()
     for bc in surf.triangulation().boundaryComponents():
         # From the pre-conditions, bc is a two-triangle torus.
         bdryFace = bc.triangle(0)
@@ -610,11 +595,10 @@ def _findBoundaryChords(surf):
             oppEdgeIndex = tet.edge(*oppEndpoints).index()
             segPos = 1  # Any odd segment position will do.
 
-            # Arbitrarily choose the orientation to be +1. We have no
-            # auxiliary boundary segment.
+            # Arbitrarily choose the orientation to be +1.
             bdryChord = NormalChord(
                     [ OrientedSegment( surf, oppEdgeIndex, segPos, 1 ) ] )
-            boundaryChords[bdryChord] = None
+            boundaryChords.add(bdryChord)
 
         # Find possible boundary chord incident to the central faces in bc.
         if zeros == 2:
@@ -662,11 +646,7 @@ def _findBoundaryChords(surf):
             backSeg = OrientedSegment(
                     surf, backEdgeIndex, backSegPos, backOrientation )
             bdryChord = NormalChord( [ frontSeg, backSeg ] )
-
-            # Take the auxiliary segment to be the type-0 segment given by e
-            # itself. Arbitrarily choose orientation +1.
-            boundaryChords[bdryChord] = OrientedSegment(
-                    surf, oppEdge.index(), 0, 1 )
+            boundaryChords.add(bdryChord)
         elif zeros == 1:
             # Let v denote the vertex of bdryFace at which we have the zero
             # normal arc. Take the spanning boundary chord to consist of two
@@ -708,17 +688,7 @@ def _findBoundaryChords(surf):
                 segmentsInChord.append( OrientedSegment(
                     surf, segEdgeIndex, segPos, segOrientation ) )
             bdryChord = NormalChord(segmentsInChord)
-
-            # Take the auxiliary segment to be a type-2 segment in the edge
-            # of bdryFace opposite v. Arbitrarily choose orientation +1.
-            oppEndpoints = {0,1,2,3} - { faceEmb.vertices()[v],
-                                     faceEmb.vertices()[3] }
-            oppEdgeIndex = tet.edge(*oppEndpoints).index()
-            oppEdgeMapping = tet.edgeMapping(
-                    Edge3.faceNumber(*oppEndpoints) )
-            auxSegPos = normalArcs[ faceEmb.inverse()[ oppEdgeMapping[0] ] ]
-            boundaryChords[bdryChord] = OrientedSegment(
-                    surf, oppEdgeIndex, auxSegPos, 1 )
+            boundaryChords.add(bdryChord)
         else:   # Impossible.
             raise AssertionError()
 
