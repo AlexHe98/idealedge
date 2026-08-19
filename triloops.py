@@ -966,9 +966,13 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
 
         Some or all of the ends of the returned chords will be abstractly
         joined together in pairs to indicate how all these chords would
-        combine to form new loops after crushing surf. Some chords might not
-        form new loops due to their ends lying in real boundary, in which
-        case their ends will be left unjoined.
+        combine to form new loops after crushing surf. If a chord has its
+        ends left unjoined, that indicates that the chord forms a properly
+        embedded arc (in other words, its ends lie in real boundary, rather
+        than joining up with other chords to form a loop).
+
+        Each NormalChord in the returned set will be oriented in the same
+        direction as the IdealLoop which contains the chord.
 
         Precondition:
         --> self.triangulation() is orientable.

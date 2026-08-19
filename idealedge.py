@@ -373,8 +373,27 @@ def _buildNewLoopsFromBoundaryChords(surf):
                 chordsInNewLoop.append( yourChord.reversed() )
             else:
                 chordsInNewLoop.append(yourChord)
-            chordSequences.append(
-                    ( chordsInNewLoop, _IdealLoopStatus.CONSISTENT ) )
+
+            #TODO With more careful tracking of boundary chord orientations,
+            #   we could probably do some sanity-checking here.
+
+            # Although the orientations on the boundary loops were chosen
+            # arbitrarily, we could have chosen them to be consistent if and
+            # only if surf was not a slope-reversing annulus. Rather than
+            # directly tracking orientations, the following combinatorial
+            # shortcut is enough to detect slope-reversing annuli.
+            #
+            # Because we are in the case where two boundary chords join to
+            # make one new ideal loop, surf is an annulus which either is
+            # slope-reversing or spans two distinct boundary tori. The
+            # promises made by _findBoundaryChords() ensure that we are in
+            # the slope-reversing case if and only if one of the two boundary
+            # chords has length 1.
+            if ( len(myChord) == 1 or len(yourChord) == 1 ):
+                loopStatus = _IdealLoopStatus.INCONSISTENT
+            else:
+                loopStatus = _IdealLoopStatus.CONSISTENT
+            chordSequences.append( ( chordsInNewLoop, loopStatus ) )
             return chordSequences
 
     # At this point, we know that each boundary chord simply joins with
@@ -479,10 +498,10 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
 
         # Check whether this loop is compressed away by an orbital
         # compression disc.
-        if ( len(chordsInNewLoop) == 1 and
-            _boundsOrbitalCompressionDisc( chordsInNewLoop[0] ) ):
+        if len(chordsInNewLoop) == 1:
             assert loopStatus == _IdealLoopStatus.CONSISTENT
-            loopStatus = _IdealLoopStatus.COMPRESSED
+            if _boundsOrbitalCompressionDisc( chordsInNewLoop[0] ):
+                loopStatus = _IdealLoopStatus.COMPRESSED
 
         # Done with this loop.
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
@@ -545,8 +564,9 @@ def _findBoundaryChords(surf):
     (necessarily) built entirely from a single type-2 segment.
 
     The spanning boundary chords will never have their ends abstractly joined
-    to any other chords. The orientations on the boundary chords will all be
-    chosen arbitrarily.
+    to any other chords. Orientations will be chosen arbitrarily, subject to
+    the constraint that boundary chords lying in the same boundary torus are
+    oriented consistently with each other.
 
     Pre-condition:
     --> The given surf should be either a 2-sphere, projective plane, disc,
@@ -592,6 +612,9 @@ def _findBoundaryChords(surf):
                                      faceEmb.vertices()[3] }
             oppEdgeIndex = tet.edge(*oppEndpoints).index()
             segPos = 1  # Any odd segment position will do.
+
+            #TODO Orientation needs to be chosen to be consistent with the
+            #   other boundary chord, so we can't just be arbitrary here.
 
             # Arbitrarily choose the orientation to be +1.
             bdryChord = NormalChord(
