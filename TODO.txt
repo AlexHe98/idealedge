@@ -1,6 +1,4 @@
 --- Bounded orientable SFS recognition
-    --> Update wedge cell computations to account for non-surviving triangular orbits corresponding to deleted 3-balls
-        ->- Update usage
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
             ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords

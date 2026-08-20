@@ -7,12 +7,12 @@ from regina import *
 from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
 from pinch import drillMeridian
-from wedge import wedgeCycles
+from wedge import NonSurvivingTriangularOrbitType as OrbitType
+from wedge import nonSurvivingTriangularOrbitCounts as orbitCounts
 from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
-#TODO Replace wedgeCycles() with nonSurvivingTriangularOrbitCounts()
 
 
 #TODO meridian() is never used anywhere. Just delete it?
@@ -128,9 +128,14 @@ def crushAnnuli( surfaces, threshold=30 ):
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
         crushedName = "Crushed #{}".format(surfNum)
-        for _, twist in wedgeCycles(surf):
-            if twist != 0:
-                crushedName += " (Lost (3,{}))".format(twist)
+        deletedOrbitCounts = orbitCounts(surf)
+        twists = []
+        for _ in range( deletedOrbitCounts[ OrbitType.TWIST_PLUS ] ):
+            twists.append(1)
+        for _ in range( deletedOrbitCounts[ OrbitType.TWIST_MINUS ] ):
+            twists.append(-1)
+        for twist in twists:
+            crushedName += " (Lost (3,{}))".format(twist)
         #NOTE Crushing preserves orientation.
         tri = PacketOfTriangulation3( surf.crush() )
         try:
@@ -733,9 +738,14 @@ def decomposeAlongSpheres(idealLoop):
 
             # See what happens if we crush.
             lostFibres = ""
-            for _, twist in wedgeCycles(sphere):
-                if twist != 0:
-                    lostFibres += " Lost (3,{}).".format(twist)
+            deletedOrbitCounts = orbitCounts(surf)
+            twists = []
+            for _ in range( deletedOrbitCounts[ OrbitType.TWIST_PLUS ] ):
+                twists.append(1)
+            for _ in range( deletedOrbitCounts[ OrbitType.TWIST_MINUS ] ):
+                twists.append(-1)
+            for twist in twists:
+                lostFibres += " Lost (3,{}).".format(twist)
             if lostFibres:
                 print( lostFibres[1:] )
             #TODO Update usage to account for extra book-keeping.
