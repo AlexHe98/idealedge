@@ -235,7 +235,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         deletedComponentCounts[ DelComp.SPHERE ] =\
                 ( deletedOrbitCounts[ OrbitType.TRIVIAL_CYCLE ] )
 
-    # Find where the new ideal loops will be after crushing.
+    # Find where the new ideal loops will be after first crushing, and then
+    # closing up pinched boundary 2-spheres.
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
               if tetHasQuads( surf, tet.index() ) ]
     tetIndicesAfterCrush = tetRenumbering(doomed)
@@ -243,11 +244,35 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     loopEmbSeqs = []
     for oldEmbSequence in newLoops:
         embSequence = []
-        for oldEmb in oldEmbSequence:
+        i = 0
+        while i < len(oldEmbSequence):
+            oldEmb = oldEmbSequence[i]
             crushedTet = crushed.tetrahedron(
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
-            embSequence.append( EdgeEmbedding3(
-                crushedTet, oldEmb.vertices() ) )
+            crushedEdge = crushedTet.edge( oldEmb.edge() )
+            if crushedEdge.isBoundary():
+                # We should have two consecutive boundary edges. After
+                # layering (if necessary) and closing up, we replace these
+                # two edges with a single edge.
+                i += 1
+                assert i < len(oldEmbSequence)
+                front = crushedEdge.front()
+                back = crushedEdge.back()
+                if ( front.tetrahedron().triangle( front.vertices()[3] ) ==
+                    back.tetrahedron().triangle( back.vertices()[2] ) ):
+                    # Need to do a layering before closing up.
+                    #TODO
+                    raise NotImplementedError()
+                else:
+                    # No layering needed before closing up.
+                    #TODO
+                    raise NotImplementedError()
+                #TODO
+                raise NotImplementedError()
+            else:
+                newEmb = EdgeEmbedding3( crushedTet, oldEmb.vertices() )
+            embSequence.append(newEmb)
+            i += 1
         loopEmbSeqs.append(embSequence)
 
     #TODO We need the length-2 boundary chords to both:
