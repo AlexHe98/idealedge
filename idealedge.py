@@ -15,7 +15,8 @@ from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from aux.surface import isSphere, isAnnulus, countIncidentBoundaries
 from aux.looperror import NotLoop
 from retriangulate.insert import layerOn
-from wedge import wedgeCycleCounts
+from wedge import NonSurvivingTriangularOrbitType as OrbitType
+from wedge import nonSurvivingTriangularOrbitCounts as orbitCounts
 #TODO Maybe move supporting classes and routines into a different file.
 
 
@@ -200,15 +201,40 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         else:
             numNonSurvivingLoops += 1
 
+    #TODO Check this.
     # Count deleted components arising from non-surviving triangular orbits.
+    deletedOrbitCounts = orbitCounts(surf)
+    DelComp = ComponentDeletedByCrushing
+    deletedComponentCounts = {
+            DelComp.BALL: deletedOrbitCounts[OrbitType.BOUNDARY] }
+    if numNonSurvivingLoops:
+        # From the pre-condition that surf is quad vertex, every wedge cycle
+        # with a twist corresponds to a deleted fibre of multiplicity 3.
+        deletedComponentCounts[ DelComp.L31 ] = 0
+        twistPlus = deletedOrbitCounts[ OrbitType.TWIST_PLUS ]
+        twistMinus = deletedOrbitCounts[ OrbitType.TWIST_MINUS ]
+        deletedComponentCounts[ DelComp.FIBRE_PLUS ] = twistPlus
+        deletedComponentCounts[ DelComp.FIBRE_MINUS ] = twistMinus
 
-    #TODO Track deleted components given by cycles of wedge cells (a.k.a.
-    #   non-surviving triangular orbits).
-    #
-    #   Sanity check: we should always have at least as many non-surviving
-    #   triangular orbits as we have non-surviving loops. Anyway, we need to
-    #   count the number of non-surviving loops so that we can distinguish
-    #   lost fibres (in particular, (1,0)-fibres) from lost S^3 pieces.
+        # The number of deleted 3-spheres, vs deleted fibres of multiplicity
+        # 1, is then determined by numNonSurvivingLoops.
+        trivFibres = numNonSurvivingLoops - twistPlus - twistMinus
+        assert trivFibres >= 0
+        deletedComponentCounts[ DelComp.FIBRE_TRIVIAL ] = trivFibres
+        delSpheres = ( deletedOrbitCounts[
+            OrbitType.TRIVIAL_CYCLE ] - trivFibres )
+        assert delSpheres >= 0
+        deletedComponentCounts[ DelComp.SPHERE ] = delSpheres
+    else:
+        # No deleted fibres.
+        deletedComponentCounts[ DelComp.FIBRE_PLUS ] = 0
+        deletedComponentCounts[ DelComp.FIBRE_MINUS ] = 0
+        deletedComponentCounts[ DelComp.FIBRE_TRIVIAL ] = 0
+        deletedComponentCounts[ DelComp.L31 ] =\
+                ( deletedOrbitCounts[ OrbitType.TWIST_PLUS ] +
+                 deletedOrbitCounts[ OrbitType.TWIST_MINUS ] )
+        deletedComponentCounts[ DelComp.SPHERE ] =\
+                ( deletedOrbitCounts[ OrbitType.TRIVIAL_CYCLE ] )
 
     #TODO We need the length-2 boundary chords to both:
     #   (a) ensure that we detect orbital compressions, and
