@@ -738,7 +738,7 @@ def decomposeAlongSpheres(idealLoop):
 
             # See what happens if we crush.
             lostFibres = ""
-            deletedOrbitCounts = orbitCounts(surf)
+            deletedOrbitCounts = orbitCounts(sphere)
             twists = []
             for _ in range( deletedOrbitCounts[ OrbitType.TWIST_PLUS ] ):
                 twists.append(1)
