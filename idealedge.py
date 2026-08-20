@@ -201,7 +201,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         else:
             numNonSurvivingLoops += 1
 
-    #TODO Check this.
     # Count deleted components arising from non-surviving triangular orbits.
     deletedOrbitCounts = orbitCounts(surf)
     DelComp = ComponentDeletedByCrushing
@@ -236,6 +235,21 @@ def decomposeAlong( surf, edgeIdealTri=None ):
         deletedComponentCounts[ DelComp.SPHERE ] =\
                 ( deletedOrbitCounts[ OrbitType.TRIVIAL_CYCLE ] )
 
+    # Find where the new ideal loops will be after crushing.
+    doomed = [ tet for tet in surf.triangulation().tetrahedra()
+              if tetHasQuads( surf, tet.index() ) ]
+    tetIndicesAfterCrush = tetRenumbering(doomed)
+    crushed = surf.crush()
+    loopEmbSeqs = []
+    for oldEmbSequence in newLoops:
+        embSequence = []
+        for oldEmb in oldEmbSequence:
+            crushedTet = crushed.tetrahedron(
+                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+            embSequence.append( EdgeEmbedding3(
+                crushedTet, oldEmb.vertices() ) )
+        loopEmbSeqs.append(embSequence)
+
     #TODO We need the length-2 boundary chords to both:
     #   (a) ensure that we detect orbital compressions, and
     #   (b) facilitate detecting slope-reversing annuli without needing to
@@ -253,21 +267,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     #   included in the loop. Depending on the combinatorics of the pinched
     #   boundary 2-sphere, we then either layer over the third edge before
     #   closing up, or immediately close up across the third edge.
-
-    # Find where the new ideal loops will be after crushing.
-    doomed = [ tet for tet in surf.triangulation().tetrahedra()
-              if tetHasQuads( surf, tet.index() ) ]
-    tetIndicesAfterCrush = tetRenumbering(doomed)
-    crushed = surf.crush()
-    loopEmbSeqs = []
-    for oldEmbSequence in newLoops:
-        embSequence = []
-        for oldEmb in oldEmbSequence:
-            crushedTet = crushed.tetrahedron(
-                    tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
-            embSequence.append( EdgeEmbedding3(
-                crushedTet, oldEmb.vertices() ) )
-        loopEmbSeqs.append(embSequence)
 
     #TODO Close up invalid boundary 2-spheres. Don't forget that because our
     #       boundary chord construction gives length-2 chords whenever
