@@ -1,8 +1,5 @@
 --- Bounded orientable SFS recognition
-    --> New implementation of decomposeAlong()
-        ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
-            ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords
-        ->- Find deleted components arising from cycles of wedge cells
+    --> New implementation of decomposeAlong(), see below
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> decomposeknotsig.py
@@ -15,10 +12,9 @@
         ->- Update usage in the following main files:
             ->> decomposeknot.py
             ->> idealedge.py
-                >-- Replace newIdealLoopEmbs() with the new and more general routines for building loops from chords
-                    >-> Decide if the renaming is necessary, or if it's better to just replace the old implementation with the new, more general one
-                >-- Overhaul implementation of decomposeAlong()
-                >-- Update usage of decomposeAlong() both in this and in other files
+                >-- Document the extra bookkeeping that is now done in decomposeAlong(), and figure out the most helpful way to return this bookkeeping data (just use a dictionary?)
+                >-- Figure out what decomposeAlong() should do if simplification raises BoundsDisc
+                >-- Update usage of decomposeAlong() both in this and in other files (especially in scratch.py and decomposeknot.py)
                 >-- Make sure knot factorisation continues to work with the overhauled decomposeAlong()
             ->> triloops.py (this is probably already fine, but double-check)
             ->> loop.py
