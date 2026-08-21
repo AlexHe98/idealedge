@@ -6,6 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong
 from loop import IdealLoop, BoundsDisc
+from triloops import EdgeIdealTriangulation
 from knotted import isKnotted, knownHyperbolic
 from embed import loopPacket, reversePinch, embedByFilling, embedFromDiagram
 from aux.surface import isSphere
@@ -371,7 +372,8 @@ def _enumerateParallel( oldLoop, tracker ):
         if wt != 0 and wt != 2:
             continue
         #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong( sphere, [oldLoop] )
+        decomposed = decomposeAlong(
+                sphere, EdgeIdealTriangulation( [oldLoop] ) )
         newLoops = []
         for decomposedLoops in decomposed:
             if decomposedLoops:
@@ -442,7 +444,8 @@ def _indefiniteEnumerate( receiver, sender ):
         if wt != 0 and wt != 2:
             continue
         #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong( sphere, [loop] )
+        decomposed = decomposeAlong(
+                sphere, EdgeIdealTriangulation( [loop] ) )
         newBlueprints = []
         for decomposedLoops in decomposed:
             if decomposedLoops:
@@ -508,7 +511,8 @@ def _enumerateSerial( oldLoop, tracker ):
         if wt != 0 and wt != 2:
             continue
         #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong( sphere, [oldLoop] )
+        decomposed = decomposeAlong(
+                sphere, EdgeIdealTriangulation( [oldLoop] ) )
         newLoops = []
         for decomposedLoops in decomposed:
             if decomposedLoops:

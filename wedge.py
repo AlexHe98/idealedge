@@ -150,7 +150,7 @@ def nonSurvivingTriangularOrbitCounts(surf):
                 elif cycleSign == -1:
                     orbitCounts[ OrbitType.TWIST_MINUS ] += 1
                 else:   # cycleSign == 0
-                    orbitCounts[ OrbitType.TRIVIAL_MINUS ] += 1
+                    orbitCounts[ OrbitType.TRIVIAL_CYCLE ] += 1
                 foundCycle = True
                 break
 

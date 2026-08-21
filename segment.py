@@ -478,7 +478,7 @@ class OrientedSegment:
 
         # If segmentEnd is provided, then use that as the endIncidentToSurf
         # (provided that it is indeed incident to the surface).
-        if segment is not None:
+        if segmentEnd is not None:
             if ( (self.segmentType() == 1) and
                 (segmentEnd != endIncidentToSurf) ):
                 raise ValueError(

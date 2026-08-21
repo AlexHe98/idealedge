@@ -251,7 +251,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
             crushedEdge = crushedTet.edge( oldEmb.edge() )
             crushedEdgeMapping = crushedTet.edgeMapping( oldEmb.edge() )
-            tail = crushedEdgeMapping.inverse()[ oldEmb[0] ]
+            tail = crushedEdgeMapping.inverse()[ oldEmb.vertices()[0] ]
             head = 1 - tail
             if crushedEdge.isBoundary():
                 # Because of the promises made by _findBoundaryChords(), we
@@ -789,7 +789,7 @@ def _boundsOrbitalCompressionDisc(chord):
     # We are looking at a normal chord built precisely from two type-1
     # segments. From the definition, this chord bounds an orbital compression
     # disc if and only if the two segments belong to the same type-1 orbit.
-    mySeg, yourSeg = chords
+    mySeg, yourSeg = chord
     return ( mySeg.translateAlongParallelCells(
         { yourSeg.reversed() } ) is not None )
 

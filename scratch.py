@@ -6,6 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
 from loop import IdealLoop, BoundsDisc
+from triloops import EdgeIdealTriangulation
 from pinch import drillMeridian
 from wedge import NonSurvivingTriangularOrbitType as OrbitType
 from wedge import nonSurvivingTriangularOrbitCounts as orbitCounts
@@ -13,22 +14,6 @@ from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
-
-
-#TODO meridian() is never used anywhere. Just delete it?
-def meridian( tri, edgeIndex ):
-    """
-    Drills out an edge loop e (corresponding to the given triangulation and
-    edge index), and returns the resulting TriangulationWithBoundaryLoops,
-    which will have a single BoundaryLoop corresponding to the meridian of the
-    drilled loop.
-
-    Pre-condition:
-    --> The edge given by tri.edge(edgeIndex) must lie entirely in the
-        interior of tri, and the two endpoints of this edge must be
-        identified.
-    """
-    return drillMeridian( IdealLoop( [ tri.edge(edgeIndex) ] ) )
 
 
 #TODO Make this more general.
@@ -635,68 +620,6 @@ def fibreParams( surf, merEdgeIndex ):
     return ( merWt, q )
 
 
-def crushSpheres( surfaces, idealEdgeIndex, threshold=30 ):
-    """
-    """
-    results = Container( "Decompose along 2-spheres" )
-    surfaces.insertChildLast(results)
-    for surfNum, surf in enumerate(surfaces):
-        if not isSphere(surf):
-            continue
-        try:
-            #TODO This needs to be updated.
-            #TODO Update usage to account for extra book-keeping.
-            pieces = decomposeAlong( surf, {idealEdgeIndex} )
-        except ValueError:
-            continue
-        container = Container( "Decompose along #{}".format(surfNum) )
-        results.insertChildLast(container)
-        for i, piece in enumerate(pieces):
-            tri = PacketOfTriangulation3( piece[0] )
-            loops = piece[1]
-            tri.setLabel( "Component #{}: {}".format(
-                i, loops ) )
-            container.insertChildLast(tri)
-
-            # Is tri a 3-sphere?
-            if ( tri.knowsSphere() or tri.size() < threshold ):
-                if tri.isSphere():
-                    name = "S3"
-                else:
-                    name = "Not S3"
-            else:
-                name = "Not recognised"
-            tri.setLabel( tri.label() + ": {}".format(name) )
-
-            # Build drilled 3-manifold.
-            drilled = PacketOfTriangulation3(tri)
-            drilled.setLabel( tri.adornedLabel(
-                "Pinched ideal edges" ) )
-            tri.insertChildLast(drilled)
-            for t, e in loops:
-                drilled.pinchEdge( drilled.tetrahedron(t).edge(e) )
-                drilled.simplify()
-                drilled.simplify()
-
-                # Is drilled a solid torus?
-                if ( drilled.knowsSolidTorus() or
-                        drilled.size() < threshold ):
-                    if drilled.isSolidTorus():
-                        name = "Ideal solid torus"
-                    else:
-                        name = "Ideal, not solid torus"
-                else:
-                    name = "Ideal, not recognised"
-                drilled.setLabel(
-                        drilled.label() + ": {}".format(name) )
-            #TODO
-            pass
-        #TODO
-        pass
-    #TODO
-    return
-
-
 def decomposeAlongSpheres(idealLoop):
     """
     Returns a list of ideal loops given by repeatedly decomposing the given
@@ -749,7 +672,8 @@ def decomposeAlongSpheres(idealLoop):
             if lostFibres:
                 print( lostFibres[1:] )
             #TODO Update usage to account for extra book-keeping.
-            decomposed = decomposeAlong( sphere, [oldLoop] )
+            decomposed = decomposeAlong(
+                    sphere, EdgeIdealTriangulation( [oldLoop] ) )
             for newLoops in decomposed:
                 if newLoops:
                     # We are guaranteed to have len(newLoops) == 1.
