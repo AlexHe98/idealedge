@@ -90,40 +90,24 @@ class ComponentDeletedByCrushing(Enum):
     pass
 
 
-#TODO Overhaul decomposeAlong() to not only return the components that
-#       survive crushing, but also to do the book-keeping of tracking deleted
-#       components and counting the number of orbital compressions.
-#TODO Update documentation to reflect the overhaul.
-#TODO Update usage for new output format.
 def decomposeAlong( surf, edgeIdealTri=None ):
     """
-    Decomposes along surf, and returns a list of the resulting components.
+    Uses crushing to decompose along surf.
 
-    In detail, each item in the returned list will be instance of either
-    EdgeIdealTriangulation or Triangulation3. The underlying triangulations
-    will just be the components that result from crushing surf.triangulation()
-    along surf. If there are any EdgeIdealTriangulation objects in the
-    returned list, then the IdealLoop objects that are embedded in these
-    triangulations indicate loops that should be drilled out to obtain
-    topologically useful 3-manifolds obtained by decomposing along surf.
-
-    If there are no pre-existing IdealLoop objects to track, then only surf
-    needs to be supplied as input to this routine. Otherwise, both surf and
-    edgeIdealTri should be supplied, in which case edgeIdealTri should be an
-    instance of EdgeIdealTriangulation that tracks all of the pre-existing
-    IdealLoop objects.
-
-    This routine might (but is not guaranteed to) detect that some ideal
-    loops are "trivial" in the sense that they bound embedded discs. This
-    routine handles such a trivial ideal loop L in one of two ways:
-    --> If L is the only ideal loop in its ambient triangulation, then this
-        routine will silently delete L.
-    --> Otherwise, if there are other ideal loops in the ambient
-        triangulation of L, then this routine will raise BoundsDisc.
-
-    A side-effect of this routine is that it might (but is not guaranteed to)
-    detect and silently delete some (or all, or none) of the ideal loops that
-    are "trivial" in the sense that they bound embedded discs.
+    This routine returns a tuple consisting of the following items:
+    (0) A list of triangulated components resulting from this decomposition.
+        Each element of this list will be an instance of either
+        EdgeIdealTriangulation or Regina's Triangulation3. Note that this
+        routine does *not* attempt to simplify the triangulations in this
+        list.
+    (1) A non-negative integer counting the number of orbital compression
+        discs that were cut along as a consequence of crushing.
+    (2) A dictionary mapping each case K of ComponentDeletedByCrushing to a
+        non-negative integer counting the number of components of type K
+        which arise from non-surviving triangular orbits, and which are
+        therefore deleted as a consequence of crushing.
+    (3) A Boolean flag which is True if and only if surf is either a
+        slope-reversing annulus or a fibre-reversing 2-sphere.
 
     If edgeIdealTri is None, then SurfaceToCrushInSuspectedSFS.recognise(surf)
     must return an instance of SurfaceToCrushInSuspectedSFS. Otherwise,
@@ -131,7 +115,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     ValueError if surf does not satisfy these conditions.
 
     We also require surf to be a quadrilateral vertex normal surface, but
-    this routine does not check this condition.
+    this routine does *not* check this condition.
 
     Precondition
     --> The given surf should be a quadrilateral vertex normal surface.
@@ -298,8 +282,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             i += 1
         loopEmbSeqs.append(embSequence)
 
-    #TODO Check the following, and update if necessary.
-
     # Split crushed into its components.
     if crushed.isConnected():
         components = [crushed]
@@ -336,7 +318,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             compLoopInfo[compi].append(singleLoopInfo)
 
     # Use compLoopInfo to find the ideal loops in each component.
-    output = []
+    triList = []
     for compi in range( crushed.countComponents() ):
         tri = components[compi]
         loopInfo = compLoopInfo[compi]
@@ -362,18 +344,15 @@ def decomposeAlong( surf, edgeIdealTri=None ):
 
         # If we have any loops at all, then package them all together as a
         # single EdgeIdealTriangulation. Otherwise, just add an ordinary
-        # Triangulation3 to the output list.
-        #
-        #TODO Consider simplifying before adding to the output list. But this
-        #       requires deciding how this routine should behave if
-        #       simplification raises BoundsDisc.
+        # Triangulation3 to the triList.
         if loops:
-            output.append( EdgeIdealTriangulation(loops) )
+            triList.append( EdgeIdealTriangulation(loops) )
         else:
-            output.append(tri)
+            triList.append(tri)
 
     # All done!
-    return output
+    return ( triList, numOrbitalCompressions, deletedComponentCounts,
+            foundInconsistentLoop )
 
 
 class _IdealLoopStatus(Enum):

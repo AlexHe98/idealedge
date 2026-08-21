@@ -627,6 +627,8 @@ def decomposeAlongSpheres(idealLoop):
     """
     # Repeatedly crush along spheres that intersect the ideal loop at most
     # twice.
+    #TODO Update toProcess to store EdgeIdealTriangulation objects rather
+    #   than IdealLoop objects.
     toProcess = [idealLoop]
     decomposedLoops = []
     while toProcess:
@@ -671,13 +673,17 @@ def decomposeAlongSpheres(idealLoop):
                 lostFibres += " Lost (3,{}).".format(twist)
             if lostFibres:
                 print( lostFibres[1:] )
-            #TODO Update usage to account for extra book-keeping.
-            decomposed = decomposeAlong(
+            #TODO Update usage to:
+            #   --> use the extra book-keeping data
+            #   --> perform simplification
+            #   --> use EdgeIdealTriangulation objects directly, instead of
+            #       extracting IdealLoop objects
+            decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
                     sphere, EdgeIdealTriangulation( [oldLoop] ) )
-            for newLoops in decomposed:
-                if newLoops:
-                    # We are guaranteed to have len(newLoops) == 1.
-                    toProcess.append( newLoops[0] )
+            for newEdgeIdealTri in decomposed:
+                if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
+                    # We are guaranteed to have len(newEdgeIdealTri) == 1.
+                    toProcess.append( newEdgeIdealTri[0] )
 
             # Found and crushed a suitable sphere, so stop enumerating.
             break

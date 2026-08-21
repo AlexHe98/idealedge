@@ -371,14 +371,18 @@ def _enumerateParallel( oldLoop, tracker ):
         wt = oldLoop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
-        #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong(
+        #TODO Update usage to:
+        #   --> use the extra book-keeping data
+        #   --> perform simplification
+        #   --> use EdgeIdealTriangulation objects directly, instead of
+        #       extracting IdealLoop objects
+        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
                 sphere, EdgeIdealTriangulation( [oldLoop] ) )
         newLoops = []
-        for decomposedLoops in decomposed:
-            if decomposedLoops:
-                # We are guaranteed to have len(decomposedLoops) == 1.
-                newLoops.append( decomposedLoops[0] )
+        for newEdgeIdealTri in decomposed:
+            if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
+                # We are guaranteed to have len(newEdgeIdealTri) == 1.
+                newLoops.append( newEdgeIdealTri[0] )
 
         # Clean up child processes before returning.
         alternateProcess.terminate()
@@ -443,15 +447,19 @@ def _indefiniteEnumerate( receiver, sender ):
         wt = loop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
-        #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong(
+        #TODO Update usage to:
+        #   --> use the extra book-keeping data
+        #   --> perform simplification
+        #   --> use EdgeIdealTriangulation objects directly, instead of
+        #       extracting IdealLoop objects
+        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
                 sphere, EdgeIdealTriangulation( [loop] ) )
         newBlueprints = []
-        for decomposedLoops in decomposed:
-            if decomposedLoops:
-                # We are guaranteed to have len(decomposedLoops) == 1.
+        for newEdgeIdealTri in decomposed:
+            if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
+                # We are guaranteed to have len(newEdgeIdealTri) == 1.
                 newBlueprints.append(
-                        decomposedLoops[0].blueprint() )
+                        newEdgeIdealTri[0].blueprint() )
         sender.send(
                 ( newBlueprints, attempts, searches, tri.size() ) )
         return
@@ -510,14 +518,18 @@ def _enumerateSerial( oldLoop, tracker ):
         wt = oldLoop.weight(sphere)
         if wt != 0 and wt != 2:
             continue
-        #TODO Update usage to account for extra book-keeping.
-        decomposed = decomposeAlong(
+        #TODO Update usage to:
+        #   --> use the extra book-keeping data
+        #   --> perform simplification
+        #   --> use EdgeIdealTriangulation objects directly, instead of
+        #       extracting IdealLoop objects
+        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
                 sphere, EdgeIdealTriangulation( [oldLoop] ) )
         newLoops = []
-        for decomposedLoops in decomposed:
-            if decomposedLoops:
-                # We are guaranteed to have len(decomposedLoops) == 1.
-                newLoops.append( decomposedLoops[0] )
+        for newEdgeIdealTri in decomposed:
+            if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
+                # We are guaranteed to have len(newEdgeIdealTri) == 1.
+                newLoops.append( newEdgeIdealTri[0] )
         return newLoops
 
 
