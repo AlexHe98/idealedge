@@ -1,17 +1,8 @@
 --- Bounded orientable SFS recognition
-    --> Update knot factorisation (also see below)
-        ->- This should be done now, but double-check that all necessary files have been updated, and also update the TODO list below
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
-            ->> decomposeknotsig.py
-            ->> demo.py
-            ->> wedge.py
-            ->> knotted.py
             ->> scratch.py
-            ->> experiments/knots/main.py
-            ->> embed.py
         ->- Update usage in the following main files:
-            ->> decomposeknot.py
             ->> idealedge.py
                 >-- Update usage of decomposeAlong() both in this and in other files (especially in scratch.py and decomposeknot.py)
                     >-> Users need to handle the bookkeeping data
@@ -19,9 +10,8 @@
                 >-- Make sure knot factorisation continues to work with the overhauled decomposeAlong()
             ->> triloops.py (this is probably already fine, but double-check)
             ->> loop.py
-        ->- Remove old simplification routines
-        ->- Update usage in knot factorisation algorithm
-        ->- Make sure to actually track orientation of embedded loops
+        ->- Remove old simplification routines (this should no longer break knot factorisation)
+    --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
     --> etc
     --> Update README.md
 --- Test suites

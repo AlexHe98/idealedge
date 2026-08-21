@@ -570,12 +570,12 @@ def decomposeUsingAnnulus( knot, tracker=False, insertAsChild=False ):
     Decomposes the given knot into prime pieces, represented as 3-spheres
     in which the prime knots are embedded as ideal loops.
 
-    Unlike the decompose() routine, which works exclusively with ideal loops,
-    the first step of this routine is to search for a quadrilateral vertex
-    normal annulus in a triangulation of the knot exterior. If such an
-    annulus exists, then crushing the annulus produces edge-ideal
-    triangulations, and thereafter this routine also works entirely with
-    ideal loops.
+    Unlike the decompose() routine, which works exclusively with edge-ideal
+    triangulations, the first step of this routine is to search for a
+    quadrilateral vertex normal annulus in a triangulation of the knot
+    exterior. If such an annulus exists, then crushing the annulus produces
+    edge-ideal triangulations, and thereafter this routine also works
+    entirely with edge-ideal triangulations.
 
     The given knot should be provided as an instance of Regina's Link or
     PacketOfLink.

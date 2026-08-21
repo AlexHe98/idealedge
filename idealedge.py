@@ -773,9 +773,7 @@ def _boundsOrbitalCompressionDisc(chord):
         { yourSeg.reversed() } ) is not None )
 
 
-#TODO Update documentation and implementation to:
-#       --> use the new TriangulationWithEmbeddedLoops class, and
-#       --> account for the extra cases that arise from SFS recognition.
+#TODO Replace all usage of this with the new routines above.
 def newIdealLoopEmbs( surf, oldLoops=[] ):
     """
     Returns surviving edge embeddings which describe the ideal loops after
@@ -834,9 +832,6 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.
     """
-    #TODO Update the checks below to allow for the extra cases that arise in
-    #       the context of bounded SFS recognition.
-
     # The given surf must be either a 2-sphere or an annulus. Moreover:
     # - In the 2-sphere case, we allow one of the ideal loops to have
     #   nonempty intersection with the surface.
@@ -909,19 +904,11 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         if survivingSeg is not None:
             newLoopEmbs.append( [ survivingSeg.survivingEmbedding() ] )
 
-    #TODO If we crushed an annulus, it would probably be useful to use
-    #   fillIdealEdges() to include additional ideal loops obtained by filling
-    #   in pinched 2-sphere boundary components.
-    #
-    #   If/when we implement this functionality, we will need to document the
-    #   possibility that we could create an additional new ideal loop. We
-    #   should probably also note that this would come at the cost of
-    #   introducing a new tetrahedron.
-
     # Done!
     return newLoopEmbs
 
 
+#TODO Replace all usage of this with the new routines above.
 def fillIdealEdges( tri, endpoints ):
     """
     Fills in two-triangle boundary 2-spheres of tri that have a symmetric pair

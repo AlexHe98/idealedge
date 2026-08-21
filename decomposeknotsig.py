@@ -9,7 +9,6 @@ from decomposeknot import decompose
 if __name__ == "__main__":
     # Run decompose() with the verbose option.
     print()
-    #TODO Update usage.
     primes = decompose( Link.fromKnotSig( argv[1] ), True )
     if len(primes) == 0:
         print( "Unknot!" )
@@ -17,6 +16,6 @@ if __name__ == "__main__":
         print( "Found 1 prime:" )
     else:
         print( "Found {} primes:".format( len(primes) ) )
-    for i, loop in enumerate(primes):
+    for i, edgeIdealPrimeKnot in enumerate(primes):
         print( "    Drilled iso sig for prime #{}: {}".format(
-            i, loop.drill().isoSig() ) )
+            i, edgeIdealPrimeKnot.drill().isoSig() ) )

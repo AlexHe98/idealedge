@@ -5,9 +5,7 @@ from sys import argv, stdout
 from regina import *
 from decomposeknot import decompose, KnotDecompositionTracker
 from loop import IdealLoop
-
-
-#TODO Replace IdealLoop with EdgeIdealTriangulation.
+from triloops import EdgeIdealTriangulation
 
 
 def extractFilenames(nameFile):
@@ -78,7 +76,7 @@ def runDecompositionExperiment( knotIterator, slowCoefficient=2 ):
     The given iterator should supply pairs of the form (S, K), where:
     --> S is a string giving a knot name; and
     --> K is a knot, represented as a Regina Link object, a Regina Edge3
-        object, or an ideal loop.
+        object, or an edge-ideal triangulation.
     """
     # Only want to keep the slow cases.
     slowKnots, slowTimes, timedOut, knotCount, totalTime = _experimentImpl(
@@ -146,7 +144,8 @@ def _experimentImpl( knotIterator, slowCoefficient ):
         print( "-"*len(name) )
 
         # Scale timeout time with the size of the knot representation.
-        if isinstance( knot, IdealLoop ) or isinstance( knot, Edge3 ):
+        if ( isinstance( knot, EdgeIdealTriangulation ) or
+            isinstance( knot, Edge3 ) ):
             # Take size = number of tetrahedra in the ambient triangulation.
             timeoutParam = knot.triangulation().size()
         else:
@@ -166,9 +165,9 @@ def _experimentImpl( knotIterator, slowCoefficient ):
             print( "Found 1 prime:" )
         else:
             print( "Found {} primes:".format( len(primes) ) )
-        for i, loop in enumerate(primes):
+        for i, edgeIdealPrimeKnot in enumerate(primes):
             print( "    Drilled iso sig for prime #{}: {}".format(
-                i, loop.drill().isoSig() ) )
+                i, edgeIdealPrimeKnot.drill().isoSig() ) )
 
         # Store elapsed time for post-processing.
         times.append( tracker.elapsed() )
