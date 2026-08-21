@@ -23,17 +23,20 @@ else:
 #TODO Replace IdealLoop with EdgeIdealTriangulation.
 
 
-def knownHyperbolic(loop):
+def knownHyperbolic(edgeIdealTri):
     """
-    Is the given ideal loop known to represent a hyperbolic knot?
+    Is the given edge-ideal triangulation known to represent a hyperbolic
+    knot?
 
-    The given loop must be embedded in a triangulation of the 3-sphere. Under
-    this assumption, if this routine returns True, then the loop is
-    guaranteed to be a hyperbolic knot, and is therefore guaranteed to be a
-    nontrivial prime knot; otherwise, if this routine returns False, then we
-    have no guarantee about whether or not the loop is a hyperbolic knot.
+    If this routine returns True, then the edge-ideal triangulation is
+    guaranteed to represent a hyperbolic knot (and hence a nontrivial prime
+    knot); otherwise, if this routine returns False, then we have no
+    guarantee about whether or not the knot is hyperbolic.
+
+    Pre-condition:
+    --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
     """
-    drilled = loop.drill()
+    drilled = edgeIdealTri.drill()
     spt = SnapPeaTriangulation(drilled)
     probablyHyperbolic = False
     attempts = 0
@@ -60,17 +63,20 @@ def knownHyperbolic(loop):
     return ( probablyHyperbolic and spt.hasStrictAngleStructure() )
 
 
-def isKnotted( loop, tracker=None ):
+def isKnotted( edgeIdealTri, tracker=None ):
     """
-    Is the given ideal loop nontrivially knotted?
+    Does the given edge-ideal triangulation represent a nontrivial knot?
 
-    This routine can be run with an optional DecompositionTracker. The
+    This routine can be run with an optional KnotDecompositionTracker. The
     intended use case is when a larger decomposition routine needs to track
     progress while running isKnotted() as a subroutine. Thus, this routine
     assumes that tracker.start() has already been called, and it is
     guaranteed that this routine will never call tracker.finish().
+
+    Pre-condition:
+    --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
     """
-    drilled = loop.drill()
+    drilled = edgeIdealTri.drill()
     if _serial:
         return _isKnottedSerial( drilled, tracker )
     else:
@@ -230,6 +236,7 @@ def _isKnottedSerial( drilled, tracker ):
     return isNontrivial
 
 
+#TODO Do we still need this?
 def surgery0(oldLoop):
     """
     Constructs a new ideal loop given by 0/1 Dehn surgery on the given ideal

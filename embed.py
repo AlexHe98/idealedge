@@ -3,6 +3,7 @@ Embed a knot as an ideal loop in a triangulation of the 3-sphere.
 """
 from regina import *
 from loop import IdealLoop, BoundsDisc
+from triloops import EdgeIdealTriangulation
 from retriangulate.insert import layerOn
 try:
     import snappy
@@ -10,30 +11,27 @@ except ModuleNotFoundError:
     snappy = False
 
 
-#TODO Replace IdealLoop with EdgeIdealTriangulation.
-
-
-def loopPacket(loop):
+def loopPacket(edgeIdealTri):
     """
-    Returns a packet of the triangulation containing the given loop, with an
-    ideal triangulation of the drilled 3-manifold as a child.
+    Returns a packet of the ambient triangulation of the given edgeIdealTri,
+    with an ideal triangulation of the drilled 3-manifold as a child.
     """
-    drilled = PacketOfTriangulation3( loop.drill() )
+    drilled = PacketOfTriangulation3( edgeIdealTri.drill() )
     drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
-    packet = PacketOfTriangulation3( loop.triangulation() )
+    packet = PacketOfTriangulation3( edgeIdealTri.triangulation() )
     packet.insertChildLast(drilled)
     return packet
 
 
 def embedByFilling( knot, insertAsChild=False ):
     """
-    Uses a 1/0 Dehn surgery to embed the given knot as an ideal loop in a
-    triangulation of the 3-sphere.
+    Uses a 1/0 Dehn surgery to construct an edge-ideal triangulation in which
+    the given knot is embedded as an ideal loop.
 
     If insertAsChild is True and the given knot is an instance of
     PacketOfLink, then this routine will run loopPacket() on the constructed
-    ideal loop, and then insert the resulting packet as a child of the given
-    knot packet. This feature is switched off by default.
+    edge-ideal triangulation, and then insert the resulting packet as a child
+    of the given knot packet. This feature is switched off by default.
 
     This routine is mainly designed to work with *nontrivial* knots, although
     it does not check nontriviality directly. If this routine does happen to
@@ -46,10 +44,11 @@ def embedByFilling( knot, insertAsChild=False ):
     algorithm that guarantees to terminate.
 
     Returns:
-        The constructed ideal loop.
+        An edge-ideal triangulation containing the ideal loop.
     """
     if knot.countComponents() > 1:
-        raise ValueError( "Can only embed knots in a triangulation." )
+        raise ValueError( "embedByFilling() requires a knot, not a " +
+                         "multi-component link" )
     if insertAsChild and isinstance( knot, PacketOfLink ):
         packet = knot
     else:
@@ -67,7 +66,7 @@ def embedByFilling( knot, insertAsChild=False ):
         base = tri.tetrahedron( tri.size() - 1 )
         lst = LayeredSolidTorus.recogniseFromBase(base)
         idealEdge = base.edge( lst.baseEdge(3,0) )
-        return _edgeToIdealLoop( idealEdge, packet )
+        return _edgeToEdgeIdealTri( idealEdge, packet )
 
     # Otherwise, we must fall back to doing the filling using Regina, which
     # is not guaranteed to terminate.
@@ -77,12 +76,12 @@ def embedByFilling( knot, insertAsChild=False ):
 
 def reversePinch( knotComplement, packet=None ):
     """
-    Builds an ideal loop representing the same knot as the given ideal
-    triangulation.
+    Builds an edge-ideal triangulation representing the same knot as the given
+    ideal triangulation.
 
     If the optional packet is supplied, then this routine will run
-    loopPacket() on the constructed ideal loop, and then insert the resulting
-    packet as a child of the given packet.
+    loopPacket() on the constructed edge-ideal triangulation, and then insert
+    the resulting packet as a child of the given packet.
 
     This routine is mainly designed to work with *nontrivial* knots, although
     it does not check nontriviality directly. If this routine does happen to
@@ -94,7 +93,7 @@ def reversePinch( knotComplement, packet=None ):
         triangulation, and is not guaranteed to terminate.
 
     Returns:
-        The constructed ideal loop.
+        The constructed edge-ideal triangulation.
     """
     # Triangulate the exterior with boundary edges appearing as the meridian
     # and longitude. The last step is not guaranteed to terminate in theory,
@@ -118,20 +117,21 @@ def reversePinch( knotComplement, packet=None ):
     tet = emb.tetrahedron()
     edgeNum = emb.face()
 
-    # Close up the boundary and build the IdealLoop.
+    # Close up the boundary and build the EdgeIdealTriangulation.
     layer = layerOn(mer)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
-    return _edgeToIdealLoop( idealEdge, packet )
+    return _edgeToEdgeIdealTri( idealEdge, packet )
 
 
-def _edgeToIdealLoop( idealEdge, packet ):
+def _edgeToEdgeIdealTri( idealEdge, packet ):
     """
-    Constructs the ideal loop represented by the given edge.
+    Constructs the edge-ideal triangulation with the given edge as the only
+    ideal loop.
 
     If the optional packet is supplied, then this routine will run
-    loopPacket() on the constructed ideal loop, and then insert the resulting
-    packet as a child of the given packet.
+    loopPacket() on the constructed edge-ideal triangulation, and then insert
+    the resulting packet as a child of the given packet.
 
     This routine is mainly designed to work with *nontrivial* knots, although
     it does not check nontriviality directly. If this routine does happen to
@@ -140,35 +140,36 @@ def _edgeToIdealLoop( idealEdge, packet ):
     Warning:
     --> This routine modifies the triangulation containing the given edge.
     """
-    loop = IdealLoop( [idealEdge] )
+    edgeIdealTri = EdgeIdealTriangulation( [ IdealLoop( [idealEdge] ) ] )
     noSimplification = 0
     while noSimplification < 2:
-        if not loop.simplify():     # Might raise BoundsDisc.
+        if not edgeIdealTri.simplify(): # Might raise BoundsDisc.
             noSimplification += 1
     if packet is not None:
-        child = loopPacket(loop)
+        child = loopPacket(edgeIdealTri)
         child.setLabel( packet.adornedLabel(
             "Embedded as edge {}".format( idealEdge.index() ) ) )
         packet.insertChildLast(child)
-    return loop
+    return edgeIdealTri
 
 
 def embedFromDiagram( knot, simplify=True ):
     """
-    Uses a planar diagram to embed the given knot as an ideal loop in a
-    triangulation of the 3-sphere.
+    Uses a planar diagram to construct an edge-ideal triangulation in which
+    the given knot is embedded as an ideal loop.
 
     If simplify is True (the default), then this routine will try to simplify
-    the constructed ideal loop before returning. Otherwise, if simplify is
-    False, then this routine will return an ideal loop embedded in a
-    triangulation of size 25 times the number of crossings in the given knot.
+    the constructed edge-ideal triangulation before returning. Otherwise, if
+    simplify is False, this routine will return an edge-ideal triangulation
+    such that the number of tetrahedra is 9 times the number of crossings in
+    the given knot.
 
     This routine is mainly designed to work with *nontrivial* knots, although
     it does not check nontriviality directly. If this routine does happen to
     detect that the given knot is trivial, then it will raise BoundsDisc.
 
     Returns:
-        The constructed ideal loop.
+        The constructed edge-ideal triangulation.
     """
     if knot.countComponents() > 1:
         raise ValueError( "Can only embed knots in a triangulation." )
@@ -219,14 +220,16 @@ def embedFromDiagram( knot, simplify=True ):
         currentCrossing = ( nextCrossing[0], (2 + nextCrossing[1]) % 4 )
         if currentCrossing == firstCrossing:
             # All done!
-            loop = IdealLoop(edges)
+            edgeIdealTri = EdgeIdealTriangulation( [ IdealLoop(edges) ] )
             if simplify:
                 noSimplification = 0
                 while noSimplification < 2:
-                    if not loop.simplify():     # Might raise BoundsDisc.
+                    if not edgeIdealTri.simplify(): # Might raise BoundsDisc.
                         noSimplification += 1
-            return loop
+            return edgeIdealTri
         strand = crossingToStrand[currentCrossing]
+    raise AssertionError(
+            "embedFromDiagram() should never reach this point" )
 
 
 class CrossingGadget:
@@ -238,6 +241,8 @@ class CrossingGadget:
         """
         Creates a new crossing gadget and inserts it into the given
         triangulation.
+
+        This creates exactly 9 new tetrahedra in tri.
         """
         # Tetrahedron 0:        Central tetrahedron
         # Tetrahedra 1 to 4:    Cone tetrahedra

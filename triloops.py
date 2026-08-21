@@ -899,6 +899,27 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         super().__init__(loops)
         return
 
+    def drill(self):
+        """
+        Returns an ideal triangulation of the 3-manifold given by drilling
+        out all the loops in this edge-ideal triangulation.
+        """
+        drilled = Triangulation3( self._tri )
+        drillEmbeddings = []
+        for loop in self:
+            drillEmbeddings.extend(
+                    embeddingsFromEdgeIndices( drilled, loop ) )
+        for emb in drillEmbeddings:
+            drilled.pinchEdge(
+                    emb.tetrahedron().edge( emb.edge() ) )
+        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+        #       versions of Regina, equivalent functionality was provided by
+        #       Triangulation3.intelligentSimplify().
+        drilled.simplify()
+        drilled.minimiseVertices()
+        drilled.simplify()
+        return drilled
+
     def checkCrushAllowed( self, surf ):
         """
         Checks that we are allowed to crush this edge-ideal triangulation
@@ -1420,7 +1441,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             relabelling = twoThree(
                     self._tri.triangle(
                         RandomEngine.rand( self._tri.countTriangles() ) ),
-                    self._edgeLabs() )
+                    self._edgeLab() )
             if relabelling is not None:
                 self._setFromRelab(relabelling)
 

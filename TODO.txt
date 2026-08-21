@@ -1,7 +1,6 @@
 --- Bounded orientable SFS recognition
     --> Update knot factorisation (also see below)
-        ->- Replace IdealLoop objects with EdgeIdealTriangulation objects
-        ->- Make sure documentation and implementation are updated accordingly and remain correct
+        ->- This should be done now, but double-check that all necessary files have been updated, and also update the TODO list below
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> decomposeknotsig.py

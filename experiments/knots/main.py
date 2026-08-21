@@ -3,7 +3,7 @@ Perform knot decomposition experiments in bulk.
 """
 from sys import argv, stdout
 from regina import *
-from decomposeknot import decompose, DecompositionTracker
+from decomposeknot import decompose, KnotDecompositionTracker
 from loop import IdealLoop
 
 
@@ -152,7 +152,7 @@ def _experimentImpl( knotIterator, slowCoefficient ):
         else:
             # Take size = number of crossings in the diagram.
             timeoutParam = knot.size()
-        tracker = DecompositionTracker( True, timeoutParam )
+        tracker = KnotDecompositionTracker( True, timeoutParam )
         try:
             primes = decompose( knot, tracker )
         except TimeoutError as timeout:

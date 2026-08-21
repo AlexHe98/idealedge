@@ -1306,6 +1306,7 @@ class IdealLoop(EmbeddedLoop):
         super().__init__( edges, orientation )
         return
 
+    #TODO Do we still need this routine?
     def drill(self):
         """
         Returns an ideal triangulation of the 3-manifold given by drilling
