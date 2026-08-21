@@ -10,7 +10,8 @@
                 >-- Make sure knot factorisation continues to work with the overhauled decomposeAlong()
             ->> triloops.py (this is probably already fine, but double-check)
             ->> loop.py
-        ->- Remove old simplification routines (this should no longer break knot factorisation)
+    --> Clean up EmbeddedLoop class and subclasses
+        ->- Update usage (e.g. constructors) to track orientation!
     --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
     --> etc
     --> Update README.md
