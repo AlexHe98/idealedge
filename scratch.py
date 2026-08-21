@@ -237,6 +237,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         invIdEdge.index() ) )
 
                 # Have we isolated a single exceptional fibre?
+                #TODO For SFS bookkeeping, we need to track orientations.
                 invIdLoop = IdealLoop( [invIdEdge] )
                 try:
                     # The meridian of the ideal loop is a candidate for a
@@ -404,6 +405,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                     idTeti, idVer = idEdgeInfo
                     ide = comp.tetrahedron(idTeti).edge(
                             idVer[0], idVer[1] )
+                    #TODO For SFS bookkeeping, we need to track orientations.
                     idLoop = IdealLoop( [ide] )
                     if usingPackets:
                         comp.setLabel( comp.adornedLabel(

@@ -4,19 +4,12 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Boundary loops on triangulations with real boundary.
 """
 from regina import *
-#TODO Check what imports are still needed after we're done refactoring.
 from aux.looperror import NotLoop, BoundsDisc
 from aux.edgeemb import edgesFromEmbeddings, edgeOrientationFromEmbedding
-from aux.edgeemb import embeddingsFromEdgeIndices
-from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from retriangulate.insert import snapEdge, layerOn
-from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
 from chord import NormalChord
 
 
-#TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
-#   make sure that they track orientations (if necessary).
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -183,42 +176,6 @@ class EmbeddedLoop:
                 return None
         return lastVert
 
-    def setFromEdgeEmbeddings( self, edgeEmbeddings, orientation=0 ):
-        """
-        Sets this embedded loop using the given list of edge embeddings.
-
-        The elements in edgeEmbeddings must all be EdgeEmbedding3 objects
-        referencing tetrahedra in the same Triangulation3 object.
-
-        If the optional orientation argument is not supplied, then the
-        embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge
-            embeddings should be oriented from vertex 0 to vertex 1 (here,
-            vertex numbers are with respect to the edge embedding, which might
-            differ from the vertex numbers of the underlying edge if the
-            ambient triangulation has been modified since the edge embedding
-            was constructed);
-        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
-            or
-        --> 0 if this routine should be allowed to choose an arbitrary
-            orientation.
-
-        Raises NotLoop if the given list of edges does not form an embedded
-        closed loop, or if the order of the edges in the given list does not
-        match the order in which the edges appear in the loop.
-
-        Precondition:
-        --> The given list of edge embeddings is nonempty.
-        --> The given edge embeddings must all reference tetrahedra belonging
-            to the same 3-manifold triangulation.
-        """
-        self.setFromEdges(
-                edgesFromEmbeddings(edgeEmbeddings),
-                edgeOrientationFromEmbedding(
-                    edgeEmbeddings[0], orientation ) )
-        return
-
     @classmethod
     def fromEdgeEmbeddings( cls, edgeEmbeddings, orientation=0 ):
         """
@@ -253,56 +210,6 @@ class EmbeddedLoop:
         return cls( edgesFromEmbeddings(edgeEmbeddings),
                    edgeOrientationFromEmbedding(
                        edgeEmbeddings[0], orientation ) )
-
-    #TODO Delete this entirely at a later date.
-    def setFromLightweight( self, sig, edgeLocations ):
-        """
-        This routine is no longer available; use the new setFromBlueprint()
-        routine instead.
-
-        The old "lightweight description" consisted of an isomorphism
-        signature and a list of edge locations. Unlike the new "picklable
-        blueprint", this did not keep track of the orientation of the
-        embedded loop, and only provided enough information to reconstruct
-        the ambient triangulation up to combinatorial isomorphism.
-        """
-        raise NotImplementedError( "Use setFromBlueprint() instead." )
-
-    def setFromBlueprint( self, triEncoding, edgeIndices, orientation ):
-        """
-        Sets this embedded loop using a picklable blueprint, as constructed
-        by EmbeddedLoop.blueprint().
-        """
-        self.setFromEdges(
-                self._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
-        return
-
-    @classmethod
-    def fromBlueprint( cls, triEncoding, edgeIndices, orientation ):
-        """
-        Constructs an embedded loop using a picklable blueprint, as
-        constructed by EmbeddedLoop.blueprint().
-        """
-        return cls(
-                cls._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
-
-    @staticmethod
-    def _edgesFromBlueprint( triEncoding, edgeIndices ):
-        tri = Triangulation3.tightDecoding(triEncoding)
-        return [ tri.edge(ei) for ei in edgeIndices ]
-
-    def _edgeLab(self):
-        """
-        Returns an EdgeLabelling that only tracks the edges involved in this
-        embedded loop.
-        """
-        return EdgeLabelling(
-                self._tri,
-                { ei: self._tri.edge(ei).front() for ei in self } )
 
     def _setFromRelab( self, relab ):
         """
@@ -420,36 +327,6 @@ class EmbeddedLoop:
                 return False
         return True
 
-    #TODO Delete this entirely at a later date.
-    def lightweightDescription(self):
-        """
-        This routine is no longer available; use the new blueprint() routine
-        instead.
-
-        The old "lightweight description" consisted of an isomorphism
-        signature and a list of edge locations. Unlike the new "picklable
-        blueprint", this did not keep track of the orientation of the
-        embedded loop, and only provided enough information to reconstruct
-        the ambient triangulation up to combinatorial isomorphism.
-        """
-        raise NotImplementedError( "Use blueprint() instead." )
-
-    def blueprint(self):
-        """
-        Returns a picklable blueprint for this embedded loop.
-
-        In detail, this routine returns a triple (T,E,O), where:
-        --> T is Regina's tight encoding of self.triangulation().
-        --> E is (a copy of) the list of edge indices given by this embedded
-            loop, as returned by self.edgeIndices().
-        --> O is the orientation of this embedded loop, as returned by
-            self.orientation()
-        The returned blueprint can be used, via the setFromBlueprint()
-        routine, to build a clone of this embedded loop.
-        """
-        return ( self._tri.tightEncoding(), self.edgeIndices(),
-                self.orientation() )
-
     def intersects( self, surf ):
         """
         Returns True if and only if this embedded loop has nonempty
@@ -479,18 +356,6 @@ class EmbeddedLoop:
     #TODO Want a way to test disjointness of pairs of loops. A generalisable
     #   solution would be a commonVertices(otherLoop) routine, but do we want
     #   something whose name more obviously corresponds to this use case?
-
-    #TODO Delete this entirely at a later date.
-    def components( self, surf ):
-        """
-        This routine is no longer available; use the new splitIntoChords()
-        routine instead.
-
-        Apart from the improvement in the name, the new splitIntoChords()
-        routine also uses the new NormalChord class to help keep track of
-        additional properties (such as loop orientation) through crushing.
-        """
-        raise NotImplementedError()
 
     def splitIntoChords( self, surf ):
         """
@@ -774,7 +639,6 @@ class EmbeddedLoop:
         return True
 
 
-#TODO Update class documentation to mention tracking of orientation.
 class IdealLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded ideal loop in the interior
@@ -786,14 +650,18 @@ class IdealLoop(EmbeddedLoop):
     disc). This class raises BoundsDisc whenever such a failure occurs.
 
     A core feature of this class is that it effectively stores a list of edge
-    *indices* corresponding to the edges of the ideal loop. Thus, for any
-    instance loop of this class, the following functionality is available:
+    *indices* corresponding to the edges of the ideal loop; moreover, the
+    order that these edge indices appear in the list corresponds to an
+    orientation on the loop. Thus, for any instance loop of this class, the
+    following functionality is available:
     --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
         edge in the loop
     --> len(loop) is the number of edges in the loop
+    --> iterating through the loop yields all the edge indices in an order
+        that matches the loop's orientation
     --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
-        index of the ith edge in the loop
-    --> iterating through the loop yields all the edge indices in order
+        index of the ith edge in the loop, and again the order matches the
+        loop's orientation
     """
     def __init__( self, edges=None, orientation=0 ):
         """
@@ -831,25 +699,6 @@ class IdealLoop(EmbeddedLoop):
         """
         super().__init__( edges, orientation )
         return
-
-    #TODO Do we still need this routine?
-    def drill(self):
-        """
-        Returns an ideal triangulation of the 3-manifold given by drilling
-        out this loop.
-        """
-        drilled = Triangulation3( self._tri )
-        drillEmbeddings = embeddingsFromEdgeIndices( drilled, self )
-        for emb in drillEmbeddings:
-            drilled.pinchEdge(
-                    emb.tetrahedron().edge( emb.edge() ) )
-        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
-        #       versions of Regina, equivalent functionality was provided by
-        #       Triangulation3.intelligentSimplify().
-        drilled.simplify()
-        drilled.minimiseVertices()
-        drilled.simplify()
-        return drilled
 
     def shorten(self):
         """
@@ -892,7 +741,6 @@ class IdealLoop(EmbeddedLoop):
         return
 
 
-#TODO Update class documentation to mention tracking of orientation.
 class BoundaryLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded loop on the boundary of a
@@ -904,14 +752,18 @@ class BoundaryLoop(EmbeddedLoop):
     disc). This class raises BoundsDisc whenever such a failure occurs.
 
     A core feature of this class is that it effectively stores a list of edge
-    *indices* corresponding to the edges of the boundary loop. Thus, for any
-    instance loop of this class, the following functionality is available:
+    *indices* corresponding to the edges of the boundary loop; moreover, the
+    order that these edge indices appear in the list corresponds to an
+    orientation on the loop. Thus, for any instance loop of this class, the
+    following functionality is available:
     --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
         edge in the loop
     --> len(loop) is the number of edges in the loop
+    --> iterating through the loop yields all the edge indices in an order
+        that matches the loop's orientation
     --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
-        index of the ith edge in the loop
-    --> iterating through the loop yields all the edge indices in order
+        index of the ith edge in the loop, and again the order matches the
+        loop's orientation
     """
     def __init__( self, edges=None, orientation=0 ):
         """
