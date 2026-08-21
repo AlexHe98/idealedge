@@ -250,6 +250,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             crushedTet = crushed.tetrahedron(
                     tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
             crushedEdge = crushedTet.edge( oldEmb.edge() )
+            crushedEdgeMapping = crushedTet.edgeMapping( oldEmb.edge() )
+            tail = crushedEdgeMapping.inverse()[ oldEmb[0] ]
+            head = 1 - tail
             if crushedEdge.isBoundary():
                 # We should have two consecutive boundary edges. After
                 # layering (if necessary) and closing up, we replace these
@@ -261,6 +264,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                 if ( front.tetrahedron().triangle( front.vertices()[3] ) ==
                     back.tetrahedron().triangle( back.vertices()[2] ) ):
                     # Need to do a layering before closing up.
+                    layerEdge = front.tetrahedron().edge(
+                            front.vertices()[head], back.vertices()[head] )
+                    layerTet = layerOn(layerEdge)
                     #TODO
                     raise NotImplementedError()
                 else:
