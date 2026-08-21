@@ -1,5 +1,7 @@
 --- Bounded orientable SFS recognition
-    --> New implementation of decomposeAlong(), see below
+    --> Update knot factorisation (also see below)
+        ->- Replace IdealLoop objects with EdgeIdealTriangulation objects
+        ->- Make sure documentation and implementation are updated accordingly and remain correct
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> decomposeknotsig.py
@@ -12,8 +14,6 @@
         ->- Update usage in the following main files:
             ->> decomposeknot.py
             ->> idealedge.py
-                >-- Document the extra bookkeeping that is now done in decomposeAlong(), and figure out the most helpful way to return this bookkeeping data (just use a dictionary?)
-                >-- Figure out what decomposeAlong() should do if simplification raises BoundsDisc
                 >-- Update usage of decomposeAlong() both in this and in other files (especially in scratch.py and decomposeknot.py)
                     >-> Users need to handle the bookkeeping data
                     >-> If simplification is desired, users need to handle this themselves

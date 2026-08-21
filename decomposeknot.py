@@ -23,12 +23,17 @@ else:
 
 def decompose( knot, tracker=False, insertAsChild=False ):
     """
-    Decomposes the given knot into prime pieces, represented as 3-spheres
-    in which the prime knots are embedded as ideal loops.
+    Decomposes the given knot into prime summands, represented as edge-ideal
+    triangulations.
+
+    In detail, this routine returns a list of EdgeIdealTriangulation objects,
+    each of which is a 3-sphere with one of the prime summands embedded as an
+    IdealLoop.
 
     The given knot is allowed to be encoded in various ways:
-    --> It could be an instance of IdealLoop, in which case it is assumed
-        that the triangulation containing this loop is a 3-sphere.
+    --> It could be an instance of EdgeIdealTriangulation, in which case it
+        is assumed that this consists of a 3-sphere triangulation containing
+        exactly one IdealLoop.
     --> It could be an instance of Regina's Edge3, in which case it is
         assumed that the endpoints of this edge are identified, and that the
         triangulation containing this edge is a 3-sphere.
@@ -62,6 +67,7 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     computation as descendents of the given knot packet. This feature is also
     switched off by default.
     """
+    #TODO Update implementation.
     if isinstance( tracker, DecompositionTracker ):
         verbose = tracker.isVerbose()
     else:
@@ -120,40 +126,40 @@ def decompose( knot, tracker=False, insertAsChild=False ):
         #       prime knot.
         #   --> The input knot is given by composing all of the knots
         #       represented in toProcess and primes.
-        oldLoop = toProcess.pop()
-        tracker.newLoop(oldLoop)
-        if knownHyperbolic(oldLoop):
+        oldEdgeIdealTri = toProcess.pop()
+        tracker.newLoop(oldEdgeIdealTri)
+        if knownHyperbolic(oldEdgeIdealTri):
             # Hyperbolic knots are nontrivial and prime.
-            primes.append(oldLoop)
+            primes.append(oldEdgeIdealTri)
             tracker.foundHyperbolic()
             continue
 
         # Search for a suitable quadrilateral vertex normal 2-sphere to
-        # crush. If no such 2-sphere exists, then the oldLoop is prime.
-        # Otherwise, crushing this 2-sphere decomposes the oldLoop into a
+        # crush. If no such 2-sphere exists, then the oldEdgeIdealTri is prime.
+        # Otherwise, crushing this 2-sphere decomposes the oldEdgeIdealTri into a
         # collection of simpler newLoops.
         if _serial:
             try:
-                newLoops = _enumerateSerial( oldLoop, tracker )
+                newLoops = _enumerateSerial( oldEdgeIdealTri, tracker )
             except BoundsDisc:
-                # The oldLoop is unknotted.
+                # The oldEdgeIdealTri is unknotted.
                 tracker.knownPrime(False)
                 continue
             msg = None
         else:
             try:
-                newLoops, msg = _enumerateParallel( oldLoop, tracker )
+                newLoops, msg = _enumerateParallel( oldEdgeIdealTri, tracker )
             except BoundsDisc:
-                # The oldLoop is unknotted.
+                # The oldEdgeIdealTri is unknotted.
                 tracker.knownPrime(False)
                 continue
         if newLoops is None:
-            # The oldLoop is prime! However, we only care about the case
+            # The oldEdgeIdealTri is prime! However, we only care about the case
             # where this prime is nontrivial.
             tracker.unknownPrime(msg)
-            isNontrivial = isKnotted( oldLoop, tracker )
+            isNontrivial = isKnotted( oldEdgeIdealTri, tracker )
             if isNontrivial:
-                primes.append(oldLoop)
+                primes.append(oldEdgeIdealTri)
             tracker.knownPrime(isNontrivial)
         else:
             toProcess.extend(newLoops)
@@ -277,15 +283,15 @@ def _runDiagram( knotSig, sender ):
     return
 
 
-def _enumerateParallel( oldLoop, tracker ):
+def _enumerateParallel( oldEdgeIdealTri, tracker ):
     # Searching for quadrilateral vertex normal 2-spheres can be very slow.
-    # However, if the oldLoop is a composite knot, then in practice we find
+    # However, if the oldEdgeIdealTri is a composite knot, then in practice we find
     # that we can "usually" find the desired 2-sphere very quickly. Thus,
-    # when the enumeration takes a long time for the given oldLoop, it is
+    # when the enumeration takes a long time for the given oldEdgeIdealTri, it is
     # often helpful to randomise the loop and attempt the enumeration on the
     # new loop.
-    blueprint = oldLoop.blueprint()
-    tri = oldLoop.triangulation()
+    blueprint = oldEdgeIdealTri.blueprint()
+    tri = oldEdgeIdealTri.triangulation()
 
     # Set up a child process to repeatedly randomise the given ideal loop,
     # and send the randomised loops to another child process that runs
@@ -305,10 +311,10 @@ def _enumerateParallel( oldLoop, tracker ):
     enumeration = TreeEnumeration( tri, NS_QUAD )
     msg = "Main enumeration succeeded."
     while True:
-        # Has the randomiseProcess determined that the oldLoop is unknotted?
+        # Has the randomiseProcess determined that the oldEdgeIdealTri is unknotted?
         if not randomiseProcess.is_alive():
             # Make sure to clean up child processes before raising BoundsDisc
-            # to indicate that the oldLoop is unknotted.
+            # to indicate that the oldEdgeIdealTri is unknotted.
             alternateProcess.terminate()
             randomiseProcess.join()
             alternateProcess.join()
@@ -354,7 +360,7 @@ def _enumerateParallel( oldLoop, tracker ):
             if not isSphere(sphere):
                 continue
         else:
-            # No suitable 2-sphere means oldLoop is prime.
+            # No suitable 2-sphere means oldEdgeIdealTri is prime.
             # Clean up child processes before returning.
             alternateProcess.terminate()
             randomiseProcess.terminate()
@@ -362,13 +368,13 @@ def _enumerateParallel( oldLoop, tracker ):
             randomiseProcess.join()
             return ( None, msg )
 
-        # We only want 2-spheres that intersect the oldLoop in either exactly
+        # We only want 2-spheres that intersect the oldEdgeIdealTri in either exactly
         # 0 points or exactly 2 points, since crushing such a 2-sphere has
         # one of the following effects:
         #   --> simplifies the triangulation containing the ideal loop;
-        #   --> decomposes the oldLoop into two simpler knots; or
-        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
-        wt = oldLoop.weight(sphere)
+        #   --> decomposes the oldEdgeIdealTri into two simpler knots; or
+        #   --> (if oldEdgeIdealTri is unknotted) destroys all traces of the loop.
+        wt = oldEdgeIdealTri.weight(sphere)
         if wt != 0 and wt != 2:
             continue
         #TODO Update usage to:
@@ -377,7 +383,7 @@ def _enumerateParallel( oldLoop, tracker ):
         #   --> use EdgeIdealTriangulation objects directly, instead of
         #       extracting IdealLoop objects
         decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                sphere, EdgeIdealTriangulation( [oldLoop] ) )
+                sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
         newLoops = []
         for newEdgeIdealTri in decomposed:
             if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
@@ -466,17 +472,17 @@ def _indefiniteEnumerate( receiver, sender ):
     return
 
 
-def _enumerateSerial( oldLoop, tracker ):
+def _enumerateSerial( oldEdgeIdealTri, tracker ):
     # Searching for quadrilateral vertex normal 2-spheres can be very slow.
-    # However, if the oldLoop is a composite knot, then in practice we find
+    # However, if the oldEdgeIdealTri is a composite knot, then in practice we find
     # that we can "usually" find the desired 2-sphere very quickly. Thus,
-    # when the enumeration takes a long time for the given oldLoop, it is
+    # when the enumeration takes a long time for the given oldEdgeIdealTri, it is
     # often helpful to randomise the loop and attempt the enumeration on the
     # new loop.
     #
     # Unlike in _enumerateParallel(), here we implement the above idea in a
     # single-threaded fashion.
-    tri = oldLoop.triangulation()
+    tri = oldEdgeIdealTri.triangulation()
     enumeration = TreeEnumeration( tri, NS_QUAD )
     while True:
         if tracker.hasStalled():
@@ -485,11 +491,11 @@ def _enumerateSerial( oldLoop, tracker ):
             # simplify this triangulation, and to restart the surface
             # enumeration on a smaller triangulation.
             tracker.report( None, "Try to simplify." )
-            simpLoop = oldLoop.clone()
+            simpLoop = oldEdgeIdealTri.clone()
             simpLoop.randomise()    # Might raise BoundsDisc.
             if simpLoop.triangulation().size() < tri.size():
-                oldLoop.setFromLoop( simpLoop, False )
-                tri = oldLoop.triangulation()
+                oldEdgeIdealTri.setFromLoop( simpLoop, False )
+                tri = oldEdgeIdealTri.triangulation()
                 enumeration = TreeEnumeration( tri, NS_QUAD )
                 beforeReport = "Simplified to {} tetrahedra.".format(
                         tri.size() )
@@ -506,16 +512,16 @@ def _enumerateSerial( oldLoop, tracker ):
             if not isSphere(sphere):
                 continue
         else:
-            # No suitable 2-sphere means oldLoop is prime.
+            # No suitable 2-sphere means oldEdgeIdealTri is prime.
             return None
 
-        # We only want 2-spheres that intersect the oldLoop in either exactly
+        # We only want 2-spheres that intersect the oldEdgeIdealTri in either exactly
         # 0 points or exactly 2 points, since crushing such a 2-sphere has
         # one of the following effects:
         #   --> simplifies the triangulation containing the ideal loop;
-        #   --> decomposes the oldLoop into two simpler knots; or
-        #   --> (if oldLoop is unknotted) destroys all traces of the loop.
-        wt = oldLoop.weight(sphere)
+        #   --> decomposes the oldEdgeIdealTri into two simpler knots; or
+        #   --> (if oldEdgeIdealTri is unknotted) destroys all traces of the loop.
+        wt = oldEdgeIdealTri.weight(sphere)
         if wt != 0 and wt != 2:
             continue
         #TODO Update usage to:
@@ -524,7 +530,7 @@ def _enumerateSerial( oldLoop, tracker ):
         #   --> use EdgeIdealTriangulation objects directly, instead of
         #       extracting IdealLoop objects
         decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                sphere, EdgeIdealTriangulation( [oldLoop] ) )
+                sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
         newLoops = []
         for newEdgeIdealTri in decomposed:
             if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
