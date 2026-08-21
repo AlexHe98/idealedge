@@ -254,9 +254,10 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             tail = crushedEdgeMapping.inverse()[ oldEmb[0] ]
             head = 1 - tail
             if crushedEdge.isBoundary():
-                # We should have two consecutive boundary edges. After
-                # layering (if necessary) and closing up, we replace these
-                # two edges with a single edge.
+                # Because of the promises made by _findBoundaryChords(), we
+                # should have two consecutive boundary edges. After layering
+                # (if necessary) and closing up, we replace these two edges
+                # with a single edge.
                 i += 1
                 assert i < len(oldEmbSequence)
                 front = crushedEdge.front()
@@ -265,44 +266,39 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                     back.tetrahedron().triangle( back.vertices()[2] ) ):
                     # Need to do a layering before closing up.
                     layerEdge = front.tetrahedron().edge(
-                            front.vertices()[head], back.vertices()[head] )
+                            front.vertices()[head], front.vertices()[2] )
                     layerTet = layerOn(layerEdge)
-                    #TODO
-                    raise NotImplementedError()
+                    closedEdge = layerTet.edge(5)
+                    closedHead = layerTet.edgeMapping(5).inverse()[
+                            front.tetrahedron().adjacentFace(
+                                front.vertices()[3] ) ]
                 else:
                     # No layering needed before closing up.
-                    #TODO
-                    raise NotImplementedError()
-                #TODO
-                raise NotImplementedError()
+                    closedEdgeNum = Edge3.faceNumber(
+                            front.vertices()[tail], front.vertices()[2] )
+                    closedEdge = front.tetrahedron().edge(closedEdgeNum)
+                    closedEdgeMapping = front.tetrahedron().edgeMapping(
+                            closedEdgeNum )
+                    closedHead = front.tetrahedron().edgeMapping(
+                            closedEdgeNum ).inverse()[ front.vertices()[2] ]
+
+                # Perform the closing up.
+                closedEdge.front().tetrahedron().join(
+                        closedEdge.front().vertices()[3],
+                        closedEdge.back().tetrahedron(),
+                        closedEdge.back().vertices() * Perm4(2, 3) *
+                        closedEdge.front().vertices().inverse() )
+                if closedHead == 0:
+                    newEmb = closedEdge.front() * Perm4(1, 0, 3, 2)
+                else:
+                    newEmb = closedEdge.front()
             else:
                 newEmb = EdgeEmbedding3( crushedTet, oldEmb.vertices() )
             embSequence.append(newEmb)
             i += 1
         loopEmbSeqs.append(embSequence)
 
-    #TODO We need the length-2 boundary chords to both:
-    #   (a) ensure that we detect orbital compressions, and
-    #   (b) facilitate detecting slope-reversing annuli without needing to
-    #       track orientations of boundary chords.
-    #   But once we have crushed and closed up, surely we can directly
-    #   replace the two edges arising from each such boundary chord with the
-    #   single edge around which we did the closing up (rather than building
-    #   the loop and then shortening).
-
-    #TODO In the crushed triangulations, we need to close up whenever we see
-    #   an ideal edge which is still boundary. Because such boundary edges
-    #   must have come from a length-2 boundary chord, the ideal loop must
-    #   contain two such edges in a row, and we close up the corresponding
-    #   pinched boundary 2-sphere by examining the third edge which isn't
-    #   included in the loop. Depending on the combinatorics of the pinched
-    #   boundary 2-sphere, we then either layer over the third edge before
-    #   closing up, or immediately close up across the third edge.
-
-    #TODO Close up invalid boundary 2-spheres. Don't forget that because our
-    #       boundary chord construction gives length-2 chords whenever
-    #       possible, we can always shorten/redirect/whatever our ideal loop
-    #       along the newly closed-up triangular face.
+    #TODO Check the following, and update if necessary.
 
     # Split crushed into its components.
     if crushed.isConnected():

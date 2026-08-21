@@ -2,8 +2,6 @@
     --> New implementation of decomposeAlong()
         ->- Use NormalChord to give unified tracking of both pre-existing ideal segments and newly-filled ideal edges
             ->> Overhaul implementation of decomposeAlong() using the new routines for building loops from chords
-        ->- Close up pinched boundary 2-spheres
-            ->> Either shorten new ideal loops by directly substituting boundary segments after crushing (preferred option at this stage), or make shortening/redirecting across a single triangle "public"
         ->- Find deleted components arising from cycles of wedge cells
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
