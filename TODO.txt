@@ -2,6 +2,7 @@
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> scratch.py
+                >-- Replace manual crushing with decomposeAlong()
         ->- Update usage in the following main files:
             ->> idealedge.py
                 >-- Update usage of decomposeAlong() both in this and in other files (especially in scratch.py and decomposeknot.py)

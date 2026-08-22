@@ -531,8 +531,8 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
                 currentHeadEnd = 1 - currentTailEnd
 
                 # Move on to the next chord in the loop.
-                currentTailEnd = currentChord.joinedEnd(currentTailEnd)
-                currentChord = currentChord.joinedChord(currentTailEnd)
+                currentTailEnd = currentChord.joinedEnd(currentHeadEnd)
+                currentChord = currentChord.joinedChord(currentHeadEnd)
             assert currentTailEnd == 0  # Tail of the first chord
 
         # Check whether this loop is compressed away by an orbital

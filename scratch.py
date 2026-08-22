@@ -5,6 +5,7 @@ from sys import argv
 from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
+from idealedge import ComponentDeletedByCrushing as DelComp
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
 from pinch import drillMeridian
@@ -109,6 +110,8 @@ def crushAnnuli( surfaces, threshold=30 ):
 #        thin = surf.isThinEdgeLink()
 #        if thin[0] is None:
 #            thinAdorn = ""
+
+        #TODO Replace manual crushing with decomposeAlong().
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
@@ -238,12 +241,13 @@ def crushAnnuli( surfaces, threshold=30 ):
 
                 # Have we isolated a single exceptional fibre?
                 #TODO For SFS bookkeeping, we need to track orientations.
-                invIdLoop = IdealLoop( [invIdEdge] )
+                invEdgeIdealTri = EdgeIdealTriangulation(
+                        [ IdealLoop( [invIdEdge] ) ] )
                 try:
                     # The meridian of the ideal loop is a candidate for a
                     # regular fibre.
                     #NOTE Drilling preserves orientation.
-                    triWithMeridian = drillMeridian(invIdLoop)
+                    triWithMeridian = drillMeridian( invEdgeIdealTri[0] )
                 except BoundsDisc:
                     # The meridian bounds a disc "on the outside", so the
                     # filled triangulation must have been S2 x S1. In
@@ -309,12 +313,14 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # single fibre.
                         # Continue by decomposing along spheres.
                         name = "Decomposed into fibres: "
-                        decomposedLoops = decomposeAlongSpheres(invIdLoop)
-                        for newLoop in decomposedLoops:
+                        decomposedList = decomposeAlongSpheres(
+                                invEdgeIdealTri )
+                        for newEdgeIdealTri in decomposedList:
                             # We should be able to drill and get Seifert
                             # fibre parameters.
                             try:
-                                newTriWithMeridian = drillMeridian(newLoop)
+                                newTriWithMeridian = drillMeridian(
+                                        newEdgeIdealTri[0] )
                             except BoundsDisc:
                                 name += "N/A (S2 x S1); "
                             else:
@@ -406,7 +412,8 @@ def crushAnnuli( surfaces, threshold=30 ):
                     ide = comp.tetrahedron(idTeti).edge(
                             idVer[0], idVer[1] )
                     #TODO For SFS bookkeeping, we need to track orientations.
-                    idLoop = IdealLoop( [ide] )
+                    edgeIdealTri = EdgeIdealTriangulation(
+                            [ IdealLoop( [ide] ) ] )
                     if usingPackets:
                         comp.setLabel( comp.adornedLabel(
                             "Ideal edge {}".format( ide.index() ) ) )
@@ -417,7 +424,7 @@ def crushAnnuli( surfaces, threshold=30 ):
                         # The meridian of the ideal loop is a candidate for an
                         # exceptional fibre.
                         #NOTE Drilling preserves orientation.
-                        triWithMeridian = drillMeridian(idLoop)
+                        triWithMeridian = drillMeridian( edgeIdealTri[0] )
                     except BoundsDisc:
                         # The meridian bounds a disc "on the outside", so the
                         # filled triangulation must have been S2 x S1. In
@@ -484,12 +491,14 @@ def crushAnnuli( surfaces, threshold=30 ):
                             # single fibre.
                             # Continue by decomposing along spheres.
                             name = "Decomposed into fibres: "
-                            decomposedLoops = decomposeAlongSpheres(idLoop)
-                            for newLoop in decomposedLoops:
+                            decomposedList = decomposeAlongSpheres(
+                                    edgeIdealTri )
+                            for newEdgeIdealTri in decomposedList:
                                 # We should be able to drill and get Seifert
                                 # fibre parameters.
                                 try:
-                                    newTriWithMeridian = drillMeridian(newLoop)
+                                    newTriWithMeridian = drillMeridian(
+                                            newEdgeIdealTri[0] )
                                 except BoundsDisc:
                                     name += "N/A (S2 x S1); "
                                 else:
@@ -622,7 +631,7 @@ def fibreParams( surf, merEdgeIndex ):
     return ( merWt, q )
 
 
-def decomposeAlongSpheres(idealLoop):
+def decomposeAlongSpheres(edgeIdealTri):
     """
     Returns a list of ideal loops given by repeatedly decomposing the given
     ideal loop along spheres that intersect the ideal loop twice.
@@ -631,11 +640,11 @@ def decomposeAlongSpheres(idealLoop):
     # twice.
     #TODO Update toProcess to store EdgeIdealTriangulation objects rather
     #   than IdealLoop objects.
-    toProcess = [idealLoop]
-    decomposedLoops = []
+    toProcess = [edgeIdealTri]
+    decomposedList = []
     while toProcess:
-        oldLoop = toProcess.pop()
-        tri = oldLoop.triangulation()
+        oldEdgeIdealTri = toProcess.pop()
+        tri = oldEdgeIdealTri.triangulation()
 
         # Search for a suitable sphere to crush.
         enumeration = TreeEnumeration( tri, NS_QUAD )
@@ -647,12 +656,12 @@ def decomposeAlongSpheres(idealLoop):
                     continue
             else:
                 # No suitable 2-sphere means that we're done with the current
-                # oldLoop.
-                decomposedLoops.append(oldLoop)
+                # oldEdgeIdealTri.
+                decomposedList.append(oldEdgeIdealTri)
                 break
 
             # Does the sphere intersect the ideal loop at most twice?
-            wt = oldLoop.weight(sphere)
+            wt = oldEdgeIdealTri.weight(sphere)
             if wt != 2:
                 #TODO Actually do something with the following cases.
                 if wt == 0:
@@ -664,35 +673,40 @@ def decomposeAlongSpheres(idealLoop):
                 continue
 
             # See what happens if we crush.
-            lostFibres = ""
-            deletedOrbitCounts = orbitCounts(sphere)
+            decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
+                    sphere, oldEdgeIdealTri )
             twists = []
-            for _ in range( deletedOrbitCounts[ OrbitType.TWIST_PLUS ] ):
+            for _ in range( delComps[ DelComp.FIBRE_PLUS ] ):
                 twists.append(1)
-            for _ in range( deletedOrbitCounts[ OrbitType.TWIST_MINUS ] ):
+            for _ in range( delComps[ DelComp.FIBRE_MINUS ] ):
                 twists.append(-1)
+            lostFibres = ""
             for twist in twists:
                 lostFibres += " Lost (3,{}).".format(twist)
             if lostFibres:
                 print( lostFibres[1:] )
+            if inconsistent:
+                print( "vvvvvvvvvvvvvvvvvvvv" )
+                print( "NON-ORIENTABLE BASE!" )
+                print( "^^^^^^^^^^^^^^^^^^^^" )
             #TODO Update usage to:
-            #   --> use the extra book-keeping data
-            #   --> perform simplification
-            #   --> use EdgeIdealTriangulation objects directly, instead of
-            #       extracting IdealLoop objects
-            decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                    sphere, EdgeIdealTriangulation( [oldLoop] ) )
+            #   --> use numOrbCuts (number of orbital compressions)
             for newEdgeIdealTri in decomposed:
                 if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
-                    # We are guaranteed to have len(newEdgeIdealTri) == 1.
-                    toProcess.append( newEdgeIdealTri[0] )
+                    try:
+                        newEdgeIdealTri.simplify()
+                    except BoundsDisc:
+                        #TODO
+                        print( "Loop bounds disc!" )
+                    else:
+                        toProcess.append(newEdgeIdealTri)
 
             # Found and crushed a suitable sphere, so stop enumerating.
             break
 
     # If we reach this point, then we have decomposed as far as possible, and
     # everything remaining has no suitable spheres.
-    return decomposedLoops
+    return decomposedList
 
 
 def recogniseSummands( tri, threshold=40 ):
