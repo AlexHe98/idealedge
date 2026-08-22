@@ -6,7 +6,7 @@ from math import gcd as pythonGCD
 from regina import *
 from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
 from triloops import EdgeIdealTriangulation
-from chord import pairUpChordEndsByCrushing
+from chord import pairUpChordEndsByCrushing, NormalChord
 from segment import OrientedSegment
 from aux.bdry import hasOnlyMinimalRealTorusBoundaryComponents
 from aux.tetrenum import tetRenumbering
@@ -238,6 +238,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             tail = crushedEdgeMapping.inverse()[ oldEmb.vertices()[0] ]
             head = 1 - tail
             if crushedEdge.isBoundary():
+                #TODO Suspect there is a bug with closing up.
+
                 # Because of the promises made by _findBoundaryChords(), we
                 # should have two consecutive boundary edges. After layering
                 # (if necessary) and closing up, we replace these two edges
@@ -273,7 +275,10 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                         closedEdge.back().vertices() * Perm4(2, 3) *
                         closedEdge.front().vertices().inverse() )
                 if closedHead == 0:
-                    newEmb = closedEdge.front() * Perm4(1, 0, 3, 2)
+                    newEmb = EdgeEmbedding3(
+                            closedEdge.front().tetrahedron(),
+                            closedEdge.front().vertices() *
+                            Perm4(1, 0, 3, 2) )
                 else:
                     newEmb = closedEdge.front()
             else:
@@ -670,14 +675,14 @@ def _findBoundaryChords(surf):
                     Edge3.faceNumber(*frontEdgeEnds) )
             backEdgeMapping = backTet.edgeMapping(
                     Edge3.faceNumber(*backEdgeEnds) )
-            if frontEdgeMapping[0] == oppFront.vertices[0]:
+            if frontEdgeMapping[0] == oppFront.vertices()[0]:
                 frontSegPos = 0
                 frontOrientation = -1
             else:
                 frontSegPos = surf.edgeWeight(
                         frontEdgeIndex ).pythonValue()
                 frontOrientation = 1
-            if backEdgeMapping[0] == oppBack.vertices[0]:
+            if backEdgeMapping[0] == oppBack.vertices()[0]:
                 backSegPos = 0
                 backOrientation = 1
             else:

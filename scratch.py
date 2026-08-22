@@ -6,6 +6,7 @@ from timeit import default_timer
 from regina import *
 from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
 from idealedge import ComponentDeletedByCrushing as DelComp
+from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
 from pinch import drillMeridian
@@ -67,7 +68,117 @@ def filledHomology(annulus):
     return AbelianGroup( MatrixInt(presentation) )
 
 
-#TODO Experiment with crushing Mobius bands as well.
+def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
+    """
+    Crushes all candidate vertical surfaces in the given list of quad vertex
+    normal surfaces.
+
+    This routine prints details of the crushed triangulations.
+
+    This routine attempts to identify the topology of the manifold that
+    results from crushing. The main strategy is to simplify and attempt
+    combinatorial recognition. Additionally, whenever this routine encounters
+    a component whose number of tetrahedra is strictly less than the
+    threshold (default 30), it will also use more computationally intensive
+    recognition algorithms involving normal surfaces.
+
+    Pre-condition:
+    --> Every boundary component of the ambient triangulation must be a
+        two-triangle torus.
+    """
+    start = default_timer()
+    annulusCount = 0
+    for surfNum, surf in enumerate(surfaces):
+        if CandidateSurface.recognise(surf) != CandidateSurface.VERTICAL:
+            continue
+        thin = surf.isThinEdgeLink()
+        if thin[0] is not None:
+            # Don't bother with thin edge links.
+            continue
+        annulusCount += 1
+        print()
+        print( "Time: {:.6f}. Crush #{}.".format(
+            default_timer() - start, surfNum) )
+
+        # Crush this candidate vertical surface.
+        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(surf)
+        twists = []
+        for _ in range( delComps[ DelComp.FIBRE_PLUS ] ):
+            twists.append(1)
+        for _ in range( delComps[ DelComp.FIBRE_MINUS ] ):
+            twists.append(-1)
+        crushedDesc = "Crushed #{}".format(surfNum)
+        if not surf.isOrientable():
+            crushedDesc += " Lost (2,1)."
+        for twist in twists:
+            crushedDesc += " Lost (3,{}).".format(twist)
+        print(crushedDesc)
+        if inconsistent:
+            print( "--------------------" )
+            print( "NON-ORIENTABLE BASE!" )
+            print( "--------------------" )
+        #TODO Use numOrbCuts (number of orbital compressions).
+        #TODO Update filledHomology() and use it for sanity checking.
+        for edgeIdealTri in decomposed:
+            if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
+                try:
+                    edgeIdealTri.simplify()
+                except BoundsDisc:
+                    #TODO
+                    print( "Loop bounds disc!" )
+                else:
+                    # Try to identify the topology of edgeIdealTri.
+                    decomposedDesc = "Decomposed into fibres: "
+                    decomposedList = decomposeAlongSpheres(
+                            invEdgeIdealTri )
+                    for newEdgeIdealTri in decomposedList:
+                        if len(newEdgeIdealTri) != 1:
+                            decomposedDesc +=\
+                                    "N/A (piece w/ {} loops)".format(
+                                            len(newEdgeIdealTri) )
+                            continue
+
+                        # We should be able to drill and get Seifert fibre
+                        # parameters.
+                        try:
+                            newTriWithMeridian = drillMeridian(
+                                    newEdgeIdealTri[0] )
+                        except BoundsDisc:
+                            decomposedDesc += "N/A (S2 x S1); "
+                        else:
+                            newTriWithMeridian.minimiseBoundary()
+                            newTriWithMeridian.simplify()
+                            newTriWithMeridian.simplify()
+
+                            # There is only one BoundaryLoop, corresponding
+                            # to the meridian. Also, because we minimised the
+                            # boundary, the meridian is guaranteed to be
+                            # given by a single edge.
+                            newMerEdgeIndex = newTriWithMeridian[0][0]
+                            newSurf = newTriWithMeridian.triangulation().nonTrivialSphereOrDisc()
+                            if newSurf is None:
+                                decomposedDesc += "N/A (no disc); "
+                            elif newSurf.eulerChar() == 2:
+                                decomposedDesc += "unknown (found sphere); "
+                            else:
+                                decomposedDesc += "({},{}); ".format(
+                                        *fibreParams( newSurf, newMerEdgeIndex ) )
+
+                    # Format decomposedDesc correctly.
+                    decomposedDesc = decomposedDesc[:-2]
+                    print( "    " + name )
+                # End of try-except-else
+            else:
+                print( "Component with no loops!" )
+        # End of loop through decomposed list.
+
+    # All done!
+    print()
+    print( "Time: {:.6f}. All done!".format(
+        default_timer() - start ) )
+    return
+
+
 def crushAnnuli( surfaces, threshold=30 ):
     """
     Crushes all annuli in the given list of normal surfaces.
@@ -110,8 +221,6 @@ def crushAnnuli( surfaces, threshold=30 ):
 #        thin = surf.isThinEdgeLink()
 #        if thin[0] is None:
 #            thinAdorn = ""
-
-        #TODO Replace manual crushing with decomposeAlong().
 
         # Crush, and find the ideal edge amongst the components of the
         # resulting triangulation.
@@ -689,8 +798,7 @@ def decomposeAlongSpheres(edgeIdealTri):
                 print( "vvvvvvvvvvvvvvvvvvvv" )
                 print( "NON-ORIENTABLE BASE!" )
                 print( "^^^^^^^^^^^^^^^^^^^^" )
-            #TODO Update usage to:
-            #   --> use numOrbCuts (number of orbital compressions)
+            #TODO Use numOrbCuts (number of orbital compressions).
             for newEdgeIdealTri in decomposed:
                 if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
                     try:
@@ -803,4 +911,4 @@ if __name__ == "__main__":
     #       replaced with NormalCoords.Quad and NormalList.Vertex,
     #       respectively.
     surfaces = NormalSurfaces( tri, NormalCoords.Quad, NormalList.Vertex )
-    crushAnnuli(surfaces)
+    crushCandidateVerticalSurfaces(surfaces)

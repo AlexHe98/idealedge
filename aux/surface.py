@@ -2,6 +2,7 @@
 Auxiliary classes and functions for normal surfaces.
 """
 from enum import Enum, auto
+from regina import *
 
 
 class SurfaceType(Enum):
