@@ -1,6 +1,6 @@
 --- Bounded orientable SFS recognition
+    --> Is there something missing in the current logic for testing non-orientability of the base surface?
     --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
-        ->- Fix bug (suspect that it's in the closing up part of decomposeAlong(), since knot factorisation works correctly)
         ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
             ->> scratch.py
                 >-- Replace manual crushing with decomposeAlong()

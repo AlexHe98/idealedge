@@ -129,8 +129,7 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
                 else:
                     # Try to identify the topology of edgeIdealTri.
                     decomposedDesc = "Decomposed into fibres: "
-                    decomposedList = decomposeAlongSpheres(
-                            invEdgeIdealTri )
+                    decomposedList = decomposeAlongSpheres(edgeIdealTri)
                     for newEdgeIdealTri in decomposedList:
                         if len(newEdgeIdealTri) != 1:
                             decomposedDesc +=\
@@ -166,7 +165,7 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
 
                     # Format decomposedDesc correctly.
                     decomposedDesc = decomposedDesc[:-2]
-                    print( "    " + name )
+                    print( "    " + decomposedDesc )
                 # End of try-except-else
             else:
                 print( "Component with no loops!" )

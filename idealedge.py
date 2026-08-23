@@ -269,18 +269,19 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                             closedEdgeNum ).inverse()[ front.vertices()[2] ]
 
                 # Perform the closing up.
-                closedEdge.front().tetrahedron().join(
-                        closedEdge.front().vertices()[3],
-                        closedEdge.back().tetrahedron(),
-                        closedEdge.back().vertices() * Perm4(2, 3) *
-                        closedEdge.front().vertices().inverse() )
+                edgeFront = closedEdge.front()
+                edgeBack = closedEdge.back()
+                edgeFront.tetrahedron().join(
+                        edgeFront.vertices()[3],
+                        edgeBack.tetrahedron(),
+                        edgeBack.vertices() * Perm4(2, 3) *
+                        edgeFront.vertices().inverse() )
                 if closedHead == 0:
                     newEmb = EdgeEmbedding3(
-                            closedEdge.front().tetrahedron(),
-                            closedEdge.front().vertices() *
-                            Perm4(1, 0, 3, 2) )
+                            edgeFront.tetrahedron(),
+                            edgeFront.vertices() * Perm4(1, 0, 3, 2) )
                 else:
-                    newEmb = closedEdge.front()
+                    newEmb = edgeFront
             else:
                 newEmb = EdgeEmbedding3( crushedTet, oldEmb.vertices() )
             embSequence.append(newEmb)
