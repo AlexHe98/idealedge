@@ -1,20 +1,12 @@
 --- Bounded orientable SFS recognition
-    --> Is there something missing in the current logic for testing non-orientability of the base surface?
-    --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
-        ->- Update usage in following supporting files (these all contain occurrences of "[lL]oop"):
-            ->> scratch.py
-                >-- Replace manual crushing with decomposeAlong()
-        ->- Update usage in the following main files:
-            ->> idealedge.py
-                >-- Update usage of decomposeAlong() both in this and in other files (especially in scratch.py and decomposeknot.py)
-                    >-> Users need to handle the bookkeeping data
-                    >-> If simplification is desired, users need to handle this themselves
-                >-- Make sure knot factorisation continues to work with the overhauled decomposeAlong()
-            ->> triloops.py (this is probably already fine, but double-check)
-    --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
+    --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
+        ->- Is there something missing in the current logic for testing non-orientability of the base surface?
+    --> Adapt the experimental code in scratch.py to implement the real algorithm
     --> etc
     --> Update README.md
---- Should EmbeddedLoop provide a method to test disjointness with another EmbeddedLoop?
+--- Cleaning up
+    --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
+    --> Should EmbeddedLoop provide a method to test disjointness with another EmbeddedLoop?
 --- Test suites
     --> OrientedSegment
     --> TriangulationWithEmbeddedLoops
