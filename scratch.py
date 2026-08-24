@@ -223,7 +223,7 @@ def decomposeAlongSpheres(edgeIdealTri):
         tri = oldEdgeIdealTri.triangulation()
 
         # Search for a suitable sphere to crush.
-        enumeration = TreeEnumeration( tri, NS_QUAD )
+        enumeration = TreeEnumeration( tri, NormalCoords.Quad )
         while True:
             # Get the next 2-sphere.
             if enumeration.next():

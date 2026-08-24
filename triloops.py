@@ -1292,7 +1292,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             if len(iloop) == 1:
                 continue
 
-            # We can shorten iloop by snapping of its edges. Here, we
+            # We can shorten iloop by snapping one of its edges. Here, we
             # choose the last edge of iloop.
             data = self._edgeEmbeddingsData( remove={ iloop[-1] } )
             return ( self._tri.edge( iloop[-1] ), data )

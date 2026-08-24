@@ -1,4 +1,5 @@
 --- Bounded orientable SFS recognition
+    --> Overhaul how loops and edge-ideal triangulations are reconstructed from edge embeddings, by using vertex permutations instead of an orientation number to track loop orientations
     --> Test orientation-tracking for segments and chords
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
         ->- Is there something missing in the current logic for testing non-orientability of the base surface?

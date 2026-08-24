@@ -62,7 +62,7 @@ class OrientedSegment:
 
     def __repr__(self):
         return "OrientedSegment({}, {}, {}, {})".format(
-                repr(self._surface), self._edgeIndex, self._segPos,
+                "NormalSurface(...)", self._edgeIndex, self._segPos,
                 self._orientation )
 
     def reversed(self):
