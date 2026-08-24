@@ -370,6 +370,8 @@ class EmbeddedLoop:
         chord will be abstractly joined with each other to indicate that no
         actual split occurred along surf.
         """
+        #TODO Identify and fix the bug in this routine.
+
         # We find all the chords by simply walking around the loop. Take the
         # first chord to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
@@ -451,6 +453,10 @@ class EmbeddedLoop:
 
         # Don't forget to include the last chord.
         chordSet.add( NormalChord( [ *nextChordSegs, *lastChordSegs ] ) )
+        #TODO TEST
+        print( "Expected #segs: {}. Actual #segs: {}.".format(
+            len(self) + self.weight(surf),
+            sum( [ len(chord) for chord in chordSet ] ) ) )
         return chordSet
 
     def orientation(self):

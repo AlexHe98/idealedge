@@ -1,6 +1,7 @@
 --- Bounded orientable SFS recognition
     --> Bug fixes
         ->- Why does scratch.py sometimes raise NotLoop if we do not run EdgeIdealTriangulation().simplify()?
+            ->> Fix EmbeddedLoop.splitIntoChords()
         ->- Fix the shorten(), ..., simplify() pipeline in EdgeIdealTriangulation so that it tracks loop orientations correctly
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
         ->- Is there something missing in the current logic for testing non-orientability of the base surface?

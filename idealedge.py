@@ -342,7 +342,13 @@ def decomposeAlong( surf, edgeIdealTri=None ):
                 orientation = 1
             else:
                 orientation = -1
-            loops.append( IdealLoop( edgeList, orientation ) )
+            #TODO TEST
+            print( [ [e.vertex(0).index(),e.vertex(1).index()] for e in edgeList ] )
+            try:
+                loops.append( IdealLoop( edgeList, orientation ) )
+            except NotLoop as e:
+                print( "NOT_LOOP! {}".format(e) )
+#            loops.append( IdealLoop( edgeList, orientation ) )
 
         # If we have any loops at all, then package them all together as a
         # single EdgeIdealTriangulation. Otherwise, just add an ordinary
