@@ -122,7 +122,9 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
         for edgeIdealTri in decomposed:
             if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
                 try:
-                    edgeIdealTri.simplify()
+                    #TODO TEST
+                    edgeIdealTri.simplifyMonotonic()
+#                    edgeIdealTri.simplify()
                 except BoundsDisc:
                     #TODO
                     print( "Loop bounds disc!" )
@@ -269,11 +271,8 @@ def decomposeAlongSpheres(edgeIdealTri):
             for newEdgeIdealTri in decomposed:
                 if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
                     try:
-                        #TODO Figure out why we sometimes get NotLoop if we
-                        #   do not run the full simplification.
-                        #TODO Figure out why the shorten(), ..., simplify()
-                        #   pipeline breaks the orientation tracking.
-                        pass
+                        #TODO TEST
+                        newEdgeIdealTri.simplifyMonotonic()
 #                        newEdgeIdealTri.simplify()
                     except BoundsDisc:
                         #TODO
