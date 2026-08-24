@@ -1,5 +1,7 @@
 --- Bounded orientable SFS recognition
-    --> Test orientation-tracking for segments and chords
+    --> Bug fixes
+        ->- Why does scratch.py sometimes raise NotLoop if we do not run EdgeIdealTriangulation().simplify()?
+        ->- Fix the shorten(), ..., simplify() pipeline in EdgeIdealTriangulation so that it tracks loop orientations correctly
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
         ->- Is there something missing in the current logic for testing non-orientability of the base surface?
     --> Adapt the experimental code in scratch.py to implement the real algorithm

@@ -269,7 +269,12 @@ def decomposeAlongSpheres(edgeIdealTri):
             for newEdgeIdealTri in decomposed:
                 if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
                     try:
-                        newEdgeIdealTri.simplify()
+                        #TODO Figure out why we sometimes get NotLoop if we
+                        #   do not run the full simplification.
+                        #TODO Figure out why the shorten(), ..., simplify()
+                        #   pipeline breaks the orientation tracking.
+                        newEdgeIdealTri.minimiseVertices()
+#                        newEdgeIdealTri.simplify()
                     except BoundsDisc:
                         #TODO
                         print( "Loop bounds disc!" )
