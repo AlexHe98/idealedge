@@ -78,6 +78,9 @@ class TriangulationWithEmbeddedLoops:
         self._loops = list(loops)
         self._tri = self._loops[0].triangulation()
         return
+    
+    def __repr__(self):
+        return "{}({})".format( type(self).__name__, self._loops )
 
     def clone(self):
         """

@@ -60,6 +60,11 @@ class OrientedSegment:
         self._survivingEmb = None
         return
 
+    def __repr__(self):
+        return "OrientedSegment({}, {}, {}, {})".format(
+                repr(self._surface), self._edgeIndex, self._segPos,
+                self._orientation )
+
     def reversed(self):
         """
         Returns a copy of this segment with the opposite orientation.

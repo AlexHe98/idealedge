@@ -238,8 +238,6 @@ def decomposeAlong( surf, edgeIdealTri=None ):
             tail = crushedEdgeMapping.inverse()[ oldEmb.vertices()[0] ]
             head = 1 - tail
             if crushedEdge.isBoundary():
-                #TODO Suspect there is a bug with closing up.
-
                 # Because of the promises made by _findBoundaryChords(), we
                 # should have two consecutive boundary edges. After layering
                 # (if necessary) and closing up, we replace these two edges

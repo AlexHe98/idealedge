@@ -102,6 +102,9 @@ class NormalChord:
     def __getitem__( self, key ):
         # This automatically handles both integer indices and slices.
         return self._segments.__getitem__(key)
+    
+    def __repr__(self):
+        return "NormalChord({})".format( list(self) )
 
     def reversed(self):
         """

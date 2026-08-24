@@ -1,4 +1,5 @@
 --- Bounded orientable SFS recognition
+    --> Test orientation-tracking for segments and chords
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
         ->- Is there something missing in the current logic for testing non-orientability of the base surface?
     --> Adapt the experimental code in scratch.py to implement the real algorithm
