@@ -597,7 +597,7 @@ class EmbeddedLoop:
 
             # We now need to find all the segments that comprise the next
             # (long) arc.
-            nextArgSegs = [headSeg]
+            nextArcSegs = [headSeg]
             continuation = splitIndex + 1
 
             # Unless we have already returned to the last arc, we must
@@ -616,15 +616,16 @@ class EmbeddedLoop:
                             surf, edgeIndex, wt, orientation )
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
+                    nextArcSegs.append(tailSeg)
                     splitIndex = i
-                    arcs.append( EmbeddedArc(nextArgSegs) )
+                    arcs.append( EmbeddedArc(nextArcSegs) )
                     break
                 else:
                     # We are still in the middle of the current arc.
-                    nextArgSegs.append(tailSeg)
+                    nextArcSegs.append(tailSeg)
 
         # Don't forget to include the last arc.
-        arcs.append( EmbeddedArc( [ *nextArgSegs, *lastArcSegs ] ) )
+        arcs.append( EmbeddedArc( [ *nextArcSegs, *lastArcSegs ] ) )
         return arcs
 
     def orientation(self):
