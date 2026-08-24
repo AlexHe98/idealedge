@@ -249,18 +249,6 @@ def decomposeAlongSpheres(edgeIdealTri):
                 continue
 
             # See what happens if we crush.
-            #TODO BEGIN TEST
-            triTest = oldEdgeIdealTri.triangulation()
-            test = []
-            for loopTest in oldEdgeIdealTri:
-                test.append([])
-                for iTest in range( len(loopTest) ):
-                    test[-1].append( [
-                        triTest.edge( loopTest[iTest] ).vertex( loopTest._tails[iTest] ).index(),
-                        triTest.edge( loopTest[iTest] ).vertex( 1 - loopTest._tails[iTest] ).index() ] )
-            print( "Running decomposeAlong() with wt={} and loop vertices={}".format(
-                wt, test ) )
-            #TODO END TEST
             decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
                     sphere, oldEdgeIdealTri )
             twists = []
