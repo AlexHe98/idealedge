@@ -155,6 +155,13 @@ class EmbeddedLoop:
         # possible to check whether two loops are disjoint.
         self._vertIndices = set()
 
+    def __str__(self):
+        return "Edge indices {}, Orientation {}".format(
+                self._edgeIndices, self.orientation() )
+
+    def __repr__(self):
+        return "<loop.{}: {}>".format( type(self).__name__, str(self) )
+
     def _traverse( self, edges, firstVert ):
         lastVert = firstVert
         for edge in edges:
