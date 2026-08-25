@@ -694,6 +694,11 @@ def twoZero( edge, edgeLab=None ):
 
         # Go through the embeddings of e := tet.edge( emb.edge() ), and
         # look for a tetrahedron that survives the 2-0 move.
+        mapping = tet.edgeMapping( emb.edge() )
+        if mapping[0] == emb.vertices()[0]:
+            fixOrientation = Perm4()
+        else:
+            fixOrientation = Perm4(1, 0, 3, 2)
         found = False
         for otherEmb in tet.edge( emb.edge() ).embeddings():
             oldTetInd = otherEmb.tetrahedron().index()
@@ -701,17 +706,10 @@ def twoZero( edge, edgeLab=None ):
                 continue
 
             # This one survives!
-            #
-            # If otherEmb.vertices() induces the opposite orientation on e to
-            # the one given by emb.vertices(), then we will need to flip the
-            # orientation.
             found = True
-            otherVer = otherEmb.vertices()
-            if otherVer[0] == emb.vertices()[0]:
-                newVertPerm = otherVer
-            else:
-                newVertPerm = otherVer * Perm4(1,0,3,2)
-            newEdgeLocations[edgeInd] = ( newIndex[oldTetInd], newVertPerm )
+            newEdgeLocations[edgeInd] = (
+                    newIndex[oldTetInd],
+                    otherEmb.vertices() * fixOrientation )
             break
         if found:
             continue

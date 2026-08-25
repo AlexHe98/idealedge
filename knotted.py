@@ -1,8 +1,9 @@
 """
-Tests whether an ideal loop is nontrivially knotted.
+Tests whether an edge-ideal triangulation represents a nontrivial knot.
 """
 from regina import *
 from loop import IdealLoop
+from triloops import EdgeIdealTriangulation
 from retriangulate.insert import layerOn
 from aux.surface import isSphere
 try:
@@ -20,17 +21,20 @@ else:
     _serial = False
 
 
-def knownHyperbolic(loop):
+def knownHyperbolic(edgeIdealTri):
     """
-    Is the given ideal loop known to represent a hyperbolic knot?
+    Is the given edge-ideal triangulation known to represent a hyperbolic
+    knot?
 
-    The given loop must be embedded in a triangulation of the 3-sphere. Under
-    this assumption, if this routine returns True, then the loop is
-    guaranteed to be a hyperbolic knot, and is therefore guaranteed to be a
-    nontrivial prime knot; otherwise, if this routine returns False, then we
-    have no guarantee about whether or not the loop is a hyperbolic knot.
+    If this routine returns True, then the edge-ideal triangulation is
+    guaranteed to represent a hyperbolic knot (and hence a nontrivial prime
+    knot); otherwise, if this routine returns False, then we have no
+    guarantee about whether or not the knot is hyperbolic.
+
+    Pre-condition:
+    --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
     """
-    drilled = loop.drill()
+    drilled = edgeIdealTri.drill()
     spt = SnapPeaTriangulation(drilled)
     probablyHyperbolic = False
     attempts = 0
@@ -57,17 +61,20 @@ def knownHyperbolic(loop):
     return ( probablyHyperbolic and spt.hasStrictAngleStructure() )
 
 
-def isKnotted( loop, tracker=None ):
+def isKnotted( edgeIdealTri, tracker=None ):
     """
-    Is the given ideal loop nontrivially knotted?
+    Does the given edge-ideal triangulation represent a nontrivial knot?
 
-    This routine can be run with an optional DecompositionTracker. The
+    This routine can be run with an optional KnotDecompositionTracker. The
     intended use case is when a larger decomposition routine needs to track
     progress while running isKnotted() as a subroutine. Thus, this routine
     assumes that tracker.start() has already been called, and it is
     guaranteed that this routine will never call tracker.finish().
+
+    Pre-condition:
+    --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
     """
-    drilled = loop.drill()
+    drilled = edgeIdealTri.drill()
     if _serial:
         return _isKnottedSerial( drilled, tracker )
     else:
@@ -227,14 +234,16 @@ def _isKnottedSerial( drilled, tracker ):
     return isNontrivial
 
 
-def surgery0(oldLoop):
+#TODO Do we still need this?
+def surgery0(oldEdgeIdealTri):
     """
-    Constructs a new ideal loop given by 0/1 Dehn surgery on the given ideal
-    loop.
+    Constructs a new edge-ideal triangulation given by 0/1 Dehn surgery on
+    the given edge-ideal triangulation.
 
-    If the oldLoop is embedded in the 3-sphere, then it is unknotted if and
-    only if there is an embedded 2-sphere intersecting the new ideal loop in
-    exactly one point.
+    The given oldEdgeIdealTri must contain exactly one ideal loop. If the
+    ambient triangulation is a 3-sphere, then the loop is unknotted if and
+    only if the returned triangulation contains an embedded 2-sphere
+    intersecting the newly-constructed ideal loop in exactly one point.
 
     This routine might raise BoundsDisc.
 
@@ -243,12 +252,12 @@ def surgery0(oldLoop):
         the desired triangulation, and is not guaranteed to terminate.
 
     Returns:
-        The newly constructed ideal loop.
+        The newly-constructed edge-ideal triangulation.
     """
     # Triangulate the exterior with boundary edges appearing as the meridian
     # and longitude. The last step is not guaranteed to terminate in theory,
     # but it should be fine in practice.
-    tri = oldLoop.drill()
+    tri = oldEdgeIdealTri.drill()
     tri.idealToFinite()
     #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
     #       versions of Regina, equivalent functionality was provided by
@@ -263,13 +272,13 @@ def surgery0(oldLoop):
     tet = emb.tetrahedron()
     edgeNum = emb.face()
 
-    # Close up the boundary and build the new IdealLoop.
+    # Close up the boundary and build the new EdgeIdealTriangulation.
     #
-    # newLoop.simplify() might raise BoundsDisc.
+    # newEdgeIdealTri.simplify() might raise BoundsDisc.
     layer = layerOn(lon)
     layer.join( 0, layer, Perm4(0,1) )
     idealEdge = tet.edge(edgeNum)
-    newLoop = IdealLoop( [idealEdge] )
-    newLoop.simplify()
-    newLoop.simplify()
-    return newLoop
+    newEdgeIdealTri = EdgeIdealTriangulation( [ IdealLoop( [idealEdge] ) ] )
+    newEdgeIdealTri.simplify()
+    newEdgeIdealTri.simplify()
+    return newEdgeIdealTri

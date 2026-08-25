@@ -1,10 +1,11 @@
---- Bounded SFS recognition
-    --> Replace usage of EmbeddedLoop with TriangulationWithEmbeddedLoops
-        ->- Remove old simplification routines
-        ->- Update usage in knot factorisation algorithm
-        ->- Make sure to actually track orientation of embedded loops
+--- Bounded orientable SFS recognition
+    --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
+    --> Adapt the experimental code in scratch.py to implement the real algorithm
     --> etc
     --> Update README.md
+--- Cleaning up
+    --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
+    --> Should EmbeddedLoop provide a method to test disjointness with another EmbeddedLoop?
 --- Test suites
     --> OrientedSegment
     --> TriangulationWithEmbeddedLoops
@@ -12,7 +13,11 @@
     --> etc
 --- Update to use Regina 7.4
     --> Check for places where updates haven't been applied yet
+--- Update in preparation for Regina 8.0, but without breaking backward compatibility
+    --> Use Link.fromSig() instead of Link.fromKnotSig()
+    --> Use neoSig(), but fall back on old routines if this function doesn't exist
 --- Reorganise source files to reduce clutter
+--- Tidy up imports
 --- Tidy up documentation
     --> Preconditions
 --- The SnapPy construction in embedByFilling() sometimes raises ValueError for the knot sig below.

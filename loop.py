@@ -4,29 +4,12 @@ Embedded loops in a 3-manifold triangulation, which play two main roles:
 --> Boundary loops on triangulations with real boundary.
 """
 from regina import *
-#TODO Check what imports are still needed after we're done refactoring.
 from aux.looperror import NotLoop, BoundsDisc
 from aux.edgeemb import edgesFromEmbeddings, edgeOrientationFromEmbedding
-from aux.edgeemb import embeddingsFromEdgeIndices
-from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
-from retriangulate.insert import snapEdge, layerOn
-from retriangulate.edgelabel import EdgeLabelling
 from segment import OrientedSegment
-from embarc import EmbeddedArc
+from chord import NormalChord
 
 
-#TODO Go through the entire class and its subclasses, and check what needs to
-#   be modified to track orientations.
-#TODO Find all uses of the "setFrom" routines, and see how the usage needs to
-#   be modified to track orientations.
-#TODO Find all uses of the IdealLoop() or BoundaryLoop() constructors, and
-#   make sure that they track orientations (if necessary).
-#
-#TODO Definitely need to introduce functionality to track multiple ideal
-#   loops, but what about boundary loops?
-#TODO Will need to update usage everywhere.
-#
-#TODO Is it still useful to have IdealLoop and BoundaryLoop subclasses?
 class EmbeddedLoop:
     """
     A sequence of edges representing an embedded loop in a 3-manifold
@@ -172,6 +155,13 @@ class EmbeddedLoop:
         # possible to check whether two loops are disjoint.
         self._vertIndices = set()
 
+    def __str__(self):
+        return "Edge indices {}, Orientation {}".format(
+                self._edgeIndices, self.orientation() )
+
+    def __repr__(self):
+        return "<loop.{}: {}>".format( type(self).__name__, str(self) )
+
     def _traverse( self, edges, firstVert ):
         lastVert = firstVert
         for edge in edges:
@@ -192,65 +182,6 @@ class EmbeddedLoop:
                 self._reset()
                 return None
         return lastVert
-
-    #TODO If inheriting, then rename to setAsCloneOf(), and update usage.
-    def setFromLoop( self, loop, copyTri=True ):
-        """
-        Sets this embedded loop to be a clone of the given loop.
-
-        If copyTri is True (the default), then this embedded loop will be
-        embedded in a copy of the triangulation containing the given loop.
-        Otherwise, if copyTri is False, then this embedded loop will be
-        embedded in the same triangulation as the given loop.
-
-        The orientation of the cloned loop is guaranteed to match the
-        orientation of the given loop.
-        """
-        if copyTri:
-            tri = Triangulation3( loop.triangulation() )
-        else:
-            tri = loop.triangulation()
-        edges = []
-        for ei in loop:
-            edges.append( tri.edge(ei) )
-        self.setFromEdges( edges, loop.orientation() )
-        return
-
-    def setFromEdgeEmbeddings( self, edgeEmbeddings, orientation=0 ):
-        """
-        Sets this embedded loop using the given list of edge embeddings.
-
-        The elements in edgeEmbeddings must all be EdgeEmbedding3 objects
-        referencing tetrahedra in the same Triangulation3 object.
-
-        If the optional orientation argument is not supplied, then the
-        embedded loop will be assigned an arbitrary orientation. Otherwise,
-        the supplied orientation must be one of the following:
-        --> +1 if the first edge described by the given list of edge
-            embeddings should be oriented from vertex 0 to vertex 1 (here,
-            vertex numbers are with respect to the edge embedding, which might
-            differ from the vertex numbers of the underlying edge if the
-            ambient triangulation has been modified since the edge embedding
-            was constructed);
-        --> -1 if the first edge should be oriented from vertex 1 to vertex 0;
-            or
-        --> 0 if this routine should be allowed to choose an arbitrary
-            orientation.
-
-        Raises NotLoop if the given list of edges does not form an embedded
-        closed loop, or if the order of the edges in the given list does not
-        match the order in which the edges appear in the loop.
-
-        Precondition:
-        --> The given list of edge embeddings is nonempty.
-        --> The given edge embeddings must all reference tetrahedra belonging
-            to the same 3-manifold triangulation.
-        """
-        self.setFromEdges(
-                edgesFromEmbeddings(edgeEmbeddings),
-                edgeOrientationFromEmbedding(
-                    edgeEmbeddings[0], orientation ) )
-        return
 
     @classmethod
     def fromEdgeEmbeddings( cls, edgeEmbeddings, orientation=0 ):
@@ -286,56 +217,6 @@ class EmbeddedLoop:
         return cls( edgesFromEmbeddings(edgeEmbeddings),
                    edgeOrientationFromEmbedding(
                        edgeEmbeddings[0], orientation ) )
-
-    #TODO Delete this entirely at a later date.
-    def setFromLightweight( self, sig, edgeLocations ):
-        """
-        This routine is no longer available; use the new setFromBlueprint()
-        routine instead.
-
-        The old "lightweight description" consisted of an isomorphism
-        signature and a list of edge locations. Unlike the new "picklable
-        blueprint", this did not keep track of the orientation of the
-        embedded loop, and only provided enough information to reconstruct
-        the ambient triangulation up to combinatorial isomorphism.
-        """
-        raise NotImplementedError( "Use setFromBlueprint() instead." )
-
-    def setFromBlueprint( self, triEncoding, edgeIndices, orientation ):
-        """
-        Sets this embedded loop using a picklable blueprint, as constructed
-        by EmbeddedLoop.blueprint().
-        """
-        self.setFromEdges(
-                self._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
-        return
-
-    @classmethod
-    def fromBlueprint( cls, triEncoding, edgeIndices, orientation ):
-        """
-        Constructs an embedded loop using a picklable blueprint, as
-        constructed by EmbeddedLoop.blueprint().
-        """
-        return cls(
-                cls._edgesFromBlueprint(
-                    triEncoding, edgeIndices ),
-                orientation )
-
-    @staticmethod
-    def _edgesFromBlueprint( triEncoding, edgeIndices ):
-        tri = Triangulation3.tightDecoding(triEncoding)
-        return [ tri.edge(ei) for ei in edgeIndices ]
-
-    def _edgeLab(self):
-        """
-        Returns an EdgeLabelling that only tracks the edges involved in this
-        embedded loop.
-        """
-        return EdgeLabelling(
-                self._tri,
-                { ei: self._tri.edge(ei).front() for ei in self } )
 
     def _setFromRelab( self, relab ):
         """
@@ -453,36 +334,6 @@ class EmbeddedLoop:
                 return False
         return True
 
-    #TODO Delete this entirely at a later date.
-    def lightweightDescription(self):
-        """
-        This routine is no longer available; use the new blueprint() routine
-        instead.
-
-        The old "lightweight description" consisted of an isomorphism
-        signature and a list of edge locations. Unlike the new "picklable
-        blueprint", this did not keep track of the orientation of the
-        embedded loop, and only provided enough information to reconstruct
-        the ambient triangulation up to combinatorial isomorphism.
-        """
-        raise NotImplementedError( "Use blueprint() instead." )
-
-    def blueprint(self):
-        """
-        Returns a picklable blueprint for this embedded loop.
-
-        In detail, this routine returns a triple (T,E,O), where:
-        --> T is Regina's tight encoding of self.triangulation().
-        --> E is (a copy of) the list of edge indices given by this embedded
-            loop, as returned by self.edgeIndices().
-        --> O is the orientation of this embedded loop, as returned by
-            self.orientation()
-        The returned blueprint can be used, via the setFromBlueprint()
-        routine, to build a clone of this embedded loop.
-        """
-        return ( self._tri.tightEncoding(), self.edgeIndices(),
-                self.orientation() )
-
     def intersects( self, surf ):
         """
         Returns True if and only if this embedded loop has nonempty
@@ -513,39 +364,25 @@ class EmbeddedLoop:
     #   solution would be a commonVertices(otherLoop) routine, but do we want
     #   something whose name more obviously corresponds to this use case?
 
-    #TODO Delete this entirely at a later date.
-    def components( self, surf ):
-        """
-        This routine is no longer available; use the new splitArcs() routine
-        instead.
-
-        Apart from the improvement in the name, the new splitArcs() routine
-        also uses the new EmbeddedArc class to help keep track of additional
-        properties (such as loop orientation) through crushing.
-        """
-        raise NotImplementedError()
-
-    def splitArcs( self, surf ):
+    def splitIntoChords( self, surf ):
         """
         Splits this embedded loop along the given normal surface, and returns
-        a list containing the resulting EmbeddedArc objects.
+        a set containing the resulting NormalChord objects.
 
-        Each EmbeddedArc in the returned list will be oriented in the same
-        direction as this loop. However, the order of the EmbeddedArc objects
-        in the returned list might not match the order that they would appear
-        as we traverse this loop.
+        Each NormalChord in the returned set will be oriented in the same
+        direction as this loop.
 
-        If this embedded loop is disjoint from surf, then the returned list
-        will of course contain just a single arc. The two ends of this arc
-        will be abstractly joined with each other to indicate that no actual
-        split occurred along surf.
+        If this embedded loop is disjoint from surf, then the returned set
+        will of course contain just a single chord. The two ends of this
+        chord will be abstractly joined with each other to indicate that no
+        actual split occurred along surf.
         """
-        # We find all the arcs by simply walking around the loop. Take the
-        # first arc to be the one that begins *after* the first point at
+        # We find all the chords by simply walking around the loop. Take the
+        # first chord to be the one that begins *after* the first point at
         # which this loop gets split by the given surf. Thus, our walk starts
-        # in the middle of the last arc, so we need to make sure to remember
-        # all the segments of the last arc.
-        lastArcSegs = []
+        # in the middle of the last chord, so we need to make sure to
+        # remember all the segments of the last chord.
+        lastChordSegs = []
         splitIndex = None
         for i in range( len(self) ):
             edgeIndex = self._edgeIndices[i]
@@ -554,30 +391,30 @@ class EmbeddedLoop:
             tailSeg = OrientedSegment(
                     surf, edgeIndex, 0, orientation )
             if wt > 0:
-                # We found the point at which the first arc begins.
+                # We found the point at which the first chord begins.
                 headSeg = OrientedSegment(
                         surf, edgeIndex, wt, orientation )
                 if self._tails[i] == 1:
                     tailSeg, headSeg = headSeg, tailSeg
-                lastArcSegs.append(tailSeg)
+                lastChordSegs.append(tailSeg)
                 splitIndex = i
                 break
             else:
-                # We are still in the middle of the last arc.
-                lastArcSegs.append(tailSeg)
+                # We are still in the middle of the last chord.
+                lastChordSegs.append(tailSeg)
 
         if splitIndex is None:
             # If this loop is disjoint from the surface, then there is only
-            # one arc, and we have already found all the constituent segments
-            # of this arc. All that remains is to abstractly join the two ends
-            # back together.
-            onlyArc = EmbeddedArc(lastArcSegs)
-            onlyArc.join( 0, onlyArc, 1 )
-            return [onlyArc]
+            # one chord, and we have already found all the constituent
+            # segments of this chord. All that remains is to abstractly join
+            # the two ends back together.
+            onlyChord = NormalChord(lastChordSegs)
+            onlyChord.join( 0, onlyChord, 1 )
+            return {onlyChord}
 
-        # The given surf splits this embedded loop into multiple arcs, so we
-        # need to do a bit more work.
-        arcs = []
+        # The given surf splits this embedded loop into multiple chords, so
+        # we need to do a bit more work.
+        chordSet = set()
         while splitIndex is not None:
             # Abuse the fact that the following variables all persist beyond
             # the scope of the above for loop.
@@ -586,22 +423,18 @@ class EmbeddedLoop:
             #   --> edgeIndex
             orientation = headSeg.orientation()
             for segPos in range( 1, wt ):
-                # For wt >= 2, we get a sequence of short arcs given by
+                # For wt >= 2, we get a sequence of short chords given by
                 # type-2 segments.
-                #
-                # If orientation == -1 and wt > 2, then this will add new
-                # arcs in the "wrong" order, but this is fine since we never
-                # promised the "right" order anyway.
-                arcs.append( EmbeddedArc( [ OrientedSegment(
+                chordSet.add( NormalChord( [ OrientedSegment(
                     surf, edgeIndex, segPos, orientation ) ] ) )
 
             # We now need to find all the segments that comprise the next
-            # (long) arc.
-            nextArcSegs = [headSeg]
+            # (long) chord.
+            nextChordSegs = [headSeg]
             continuation = splitIndex + 1
 
-            # Unless we have already returned to the last arc, we must
-            # eventually find another split point at which the next arc
+            # Unless we have already returned to the last chord, we must
+            # eventually find another split point at which the next chord
             # begins.
             splitIndex = None
             for i in range( continuation, len(self) ):
@@ -616,17 +449,19 @@ class EmbeddedLoop:
                             surf, edgeIndex, wt, orientation )
                     if self._tails[i] == 1:
                         tailSeg, headSeg = headSeg, tailSeg
-                    nextArcSegs.append(tailSeg)
+                    nextChordSegs.append(tailSeg)
                     splitIndex = i
-                    arcs.append( EmbeddedArc(nextArcSegs) )
+                    chordSet.add( NormalChord(nextChordSegs) )
                     break
                 else:
-                    # We are still in the middle of the current arc.
-                    nextArcSegs.append(tailSeg)
+                    # We are still in the middle of the current chord.
+                    nextChordSegs.append(tailSeg)
 
-        # Don't forget to include the last arc.
-        arcs.append( EmbeddedArc( [ *nextArcSegs, *lastArcSegs ] ) )
-        return arcs
+        # Don't forget to include the last chord.
+        chordSet.add( NormalChord( [ *nextChordSegs, *lastChordSegs ] ) )
+        assert ( sum( [ len(chord) for chord in chordSet ] ) ==
+                len(self) + self.weight(surf) )
+        return chordSet
 
     def orientation(self):
         """
@@ -670,17 +505,6 @@ class EmbeddedLoop:
         # Switch head and tail for each edge of this loop.
         self._tails = [ 1 - i for i in self._tails ]
         return
-
-    #TODO Old routines to remove later. (Lots of usage and documentation will
-    #   probably need to be updated after these are all removed.)
-    #       --> minimiseBoundary()
-    #       --> _findBoundaryMove()
-    #       --> Most (or all?) other simplification routines that only touch
-    #           the ambient triangulation.
-
-    #TODO There is usage of setFromEdgeEmbeddings() that doesn't track
-    #       orientation. But since we're likely going to delete this usage
-    #       anyway, we can probably just ignore this.
 
     def shorten(self):
         """
@@ -824,433 +648,7 @@ class EmbeddedLoop:
         self.setFromEdges( newEdges, newOrientation )
         return True
 
-    def minimiseBoundary(self):
-        """
-        Ensures that the triangulation containing this embedded loop has the
-        smallest possible number of boundary triangles, potentially adding
-        tetrahedra to do this.
 
-        The default implementation of this routine requires the following
-        subroutines, which are *not* fully implemented by default:
-        --> shorten()
-        --> _findBoundaryMove()
-        Thus, subclasses that require this routine must either:
-        --> override this routine; or
-        --> supply suitable implementations for all of the aforementioned
-            subroutines.
-
-        A side-effect of calling this routine is that it will shorten this
-        embedded loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> Every 2-sphere boundary component will have exactly two triangles
-            and three vertices.
-        --> Every projective plane boundary component will have exactly two
-            triangles and two vertices.
-        --> Every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves and/or layerings on self.triangulation().
-        In particular, this routine never creates new vertices, and it never
-        creates a non-vertex-linking normal disc or 2-sphere if there was not
-        one before.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseBoundary().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) every boundary component of the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Simplify the boundary of self._tri to use as few triangles as
-        # possible.
-        changed = False
-        while True:
-            # Shorten this loop to minimise the number of special cases.
-            if self.shorten():  # Might raise BoundsDisc.
-                changed = True
-
-            # Is there a move we can perform to reduce the number of boundary
-            # triangles?
-            moveDetails = self._findBoundaryMove()
-            if moveDetails is None:
-                # At this point, all boundary components must be minimal.
-                return changed
-            changed = True
-            edge, doLayer, newEdgeIndices = moveDetails
-
-            # Make sure we will be able to find the edges that form the loop
-            # after performing the move.
-            edgeEmbeddings = embeddingsFromEdgeIndices(
-                    self._tri, newEdgeIndices )
-
-            # Perform the move, and then update this loop. We can safely
-            # assume that the close book move is legal, so no need to check
-            # before performing.
-            if doLayer:
-                edge = layerOn(edge).edge(5)
-            self._tri.closeBook( edge, False, True )
-            self.setFromEdgeEmbeddings(edgeEmbeddings)
-        return
-
-    def _findBoundaryMove(self):
-        """
-        Returns details of a boundary move that simplifies the boundary of
-        self.triangulation(), or None if the boundary is already minimal.
-
-        In detail, in the case where the boundary is not yet minimal, this
-        routine guarantees to find a move that reduces the number of boundary
-        triangles by two (without changing the topology of this loop). The
-        return value will be a tuple that describes this move using the
-        following data:
-        (0) A boundary edge e on which to perform the move.
-        (1) A boolean indicating whether we need to layer across e. If this
-            is True, then the move we perform will be to first layer across
-            e, and then perform a close book move on the newly layered edge.
-            Otherwise, the move will simply be a close book move on e.
-        (2) A list of edge indices describing a sequence of edges (in the
-            current triangulation) such that, after performing the move, this
-            edge sequence becomes a loop that is topologically equivalent to
-            this loop.
-
-        The EmbeddedLoop base class does not implement this routine, so
-        subclasses that require this routine must provide an implementation.
-        """
-        raise NotImplementedError()
-
-    def minimiseVertices(self):
-        """
-        Ensures that the triangulation containing this embedded loop has the
-        smallest possible number of vertices for the 3-manifold that it
-        represents, potentially adding tetrahedra to do this.
-
-        The default implementation of this routine requires the following
-        subroutines, which are *not* fully implemented by default:
-        --> shorten()
-        --> minimiseBoundary()
-        --> _findSnapEdge()
-        Thus, subclasses that require this routine must either:
-        --> override this routine; or
-        --> supply suitable implementations for the aforementioned
-            subroutines.
-
-        A side-effect of calling this routine is that it will shorten this
-        embedded loop if possible.
-
-        If this loop bounds a disc, then this routine might (but is not
-        guaranteed to) raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> If the ambient triangulation is closed, then it will have
-            precisely one vertex.
-        --> If the ambient triangulation has real boundary, then:
-            --- either there will be no internal vertices, or there will be
-                exactly one internal vertex if this embedded loop is required
-                to remain entirely in the interior of the triangulation;
-            --- every 2-sphere boundary component will have exactly two
-                triangles and three vertices;
-            --- every projective plane boundary component will have exactly
-                two triangles and two vertices;
-            --- every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves, layerings and/or snap edge moves on
-            self.triangulation().
-        In particular, this routine never creates new vertices.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseVertices().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) the number of vertices in the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Start by minimising the boundary.
-        changed = self.minimiseBoundary()   # Might raise BoundsDisc.
-
-        # All that remains now is to remove internal vertices.
-        # We do not currently have an implementation of collapseEdge() that
-        # keeps track of how edges get relabelled after the move, so we rely
-        # entirely on the snapEdge() routine.
-        while True:
-            # Shorten this loop to minimise the number of special cases.
-            if self.shorten():  # Might raise BoundsDisc.
-                changed = True
-
-            # Is there a snap edge move we can perform to reduce the number
-            # of vertices?
-            moveDetails = self._findSnapEdge()
-            if moveDetails is None:
-                # At this point, there are no more unnecessary internal
-                # vertices.
-                return changed
-            changed = True
-            edge, newEdgeIndices = moveDetails
-
-            # Make sure we will be able to find the edges that form the loop
-            # after performing the move.
-            edgeEmbeddings = embeddingsFromEdgeIndices(
-                    self._tri, newEdgeIndices )
-
-            # Perform the snap, and then update this ideal loop. We can
-            # assume that the snap is legal, so can perform without checking.
-            snapEdge( edge, False, True )
-            self.setFromEdgeEmbeddings(edgeEmbeddings)
-        return
-
-    def _findSnapEdge(self):
-        """
-        Returns details of a snap edge move that can be used to reduce the
-        number of vertices in self.triangulation(), or None if the number of
-        vertices is already minimal.
-
-        In detail, in the case where the number of vertices is not yet
-        minimal, this routine returns a tuple consisting of the following:
-        (0) An edge on which a snap edge move can be performed.
-        (1) A list of edge indices describing a sequence of edges (in the
-            current triangulation) such that, after performing the move, this
-            edge sequence becomes a loop that is topologically equivalent to
-            this loop.
-
-        The EmbeddedLoop base class does not implement this routine, so
-        subclasses that require this routine must provide an implementation.
-
-        Pre-condition:
-        --> This loop cannot be shortened.
-        --> If the ambient triangulation has real boundary, then this
-            boundary has already been minimised.
-        """
-        raise NotImplementedError()
-
-    def _simplifyMonotonicImpl( self, include32 ):
-        """
-        Uses 2-0 edge, 2-1 edge, and (optionally) 3-2 moves to monotonically
-        reduce the number of tetrahedra in the ambient triangulation, while
-        leaving this embedded loop untouched.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum() and
-        SnapPea's check_for_cancellation().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        changed = False     # Has anything changed ever?    (Return value.)
-        changedNow = True   # Did we just change something? (Loop control.)
-        while True:
-            changedNow = False
-            edgeLab = self._edgeLab()
-            for edge in self._tri.edges():
-                # Make sure to leave the embedded loop untouched.
-                if edge.index() in self:
-                    continue
-
-                # If requested, try a 3-2 move.
-                if include32:
-                    relabelling = threeTwo( edge, edgeLab )
-                    if relabelling is not None:
-                        changedNow = True
-                        changed = True
-                        break
-
-                # Try a 2-0 edge move.
-                # This move can destroy the loop if it bounds a disc.
-                relabelling = twoZero( edge, edgeLab )
-                if relabelling is not None:
-                    changedNow = True
-                    changed = True
-                    break
-
-                # Try a 2-1 edge move.
-                # This move can destroy the loop if it bounds a disc.
-                relabelling = twoOne( edge, 0, edgeLab )
-                if relabelling is not None:
-                    changedNow = True
-                    changed = True
-                    break
-                relabelling = twoOne( edge, 1, edgeLab )
-                if relabelling is not None:
-                    changedNow = True
-                    changed = True
-                    break
-
-            # Did we improve the triangulation? If so, then we need to update
-            # the details of the loop, and then check whether we can make
-            # further improvements.
-            if changedNow:
-                try:
-                    # If we destroyed the loop, then this will raise NotLoop.
-                    self._setFromRelab(relabelling)
-                except NotLoop:
-                    # As noted above, the loop can only get destroyed if it
-                    # bounds a disc.
-                    raise BoundsDisc()
-            else:
-                break
-
-        # Nothing further we can do.
-        return changed
-
-    def simplifyMonotonic(self):
-        """
-        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
-        the number of tetrahedra in the ambient triangulation, while leaving
-        this embedded loop untouched.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Include 3-2 moves.
-        # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(True)
-
-    def simplify(self):
-        """
-        Attempts to simplify this embedded loop.
-
-        This routine uses minimiseVertices() and simplifyMonotonic(), in
-        combination with random 4-4 moves that leave this loop untouched.
-
-        Note that the subroutine minimiseVertices() is *not* fully implemented
-        by default. Thus, subclasses that require this routine must either:
-        --> override this routine; or
-        --> supply an implementation for minimiseVertices().
-        In the latter case, see the documentation for minimiseVertices() for
-        details on the behaviour that must be implemented.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplify().
-
-        Warning:
-            --> Running this routine multiple times on the same loop may
-                return different results, since the implementation makes
-                random decisions.
-
-        Returns:
-            True if and only if this loop was successfully simplified.
-            Otherwise, this loop will not be modified at all.
-        """
-        RandomEngine.reseedWithHardware()
-
-        # Work with a clone so that we can roll back changes if we are not
-        # able to reduce the number of tetrahedra.
-        tempLoop = self.clone()
-        tempTri = tempLoop.triangulation()
-
-        # Start by minimising vertices. This will probably increase the
-        # number of tetrahedra if the number of vertices is not already
-        # minimal, but hopefully the monotonic simplification saves us.
-        #
-        # Might raise BoundsDisc.
-        tempLoop.minimiseVertices()
-        tempLoop.simplifyMonotonic()
-
-        # Use random 4-4 moves until it feels like even this is not helping
-        # us make any further progress.
-        #
-        # In detail, we keep track of a cap on the number of consecutive 4-4
-        # moves that we are allowed to perform without successfully
-        # simplifying the triangulation. We give up whenever we reach or
-        # exceed this cap. The cap is scaled up based on our "perseverance".
-        fourFourAttempts = 0
-        fourFourCap = 0
-        perseverance = 5        # Hard-coded value copied from Regina.
-        while True:
-            # Find all available 4-4 moves.
-            fourFourAvailable = []
-            for edge in tempTri.edges():
-                if edge.index() in tempLoop:
-                    # We do not want to touch the embedded loop.
-                    continue
-                for axis in range(2):
-                    #NOTE Triangulation3.has44( e, ax ) was introduced in
-                    #       Regina 7.4. In older versions of Regina,
-                    #       equivalent functionality (checking eligibility of
-                    #       the move, but not performing it) was provided by
-                    #
-                    #           Triangulation3.fourFourMove(
-                    #               e, ax, True, False ).
-                    if tempTri.has44( edge, axis ):
-                        fourFourAvailable.append( ( edge, axis ) )
-
-            # Is it worthwhile to continue attempting 4-4 moves?
-            availableCount = len(fourFourAvailable)
-            if fourFourCap < perseverance * availableCount:
-                fourFourCap = perseverance * availableCount
-            if fourFourAttempts >= fourFourCap:
-                break
-
-            # Perform a random 4-4 move, and see if this is enough to help us
-            # simplify the triangulation.
-            #
-            # simplifyMonotonic() might raise BoundsDisc.
-            fourFourChoice = fourFourAvailable[
-                    RandomEngine.rand(availableCount) ]
-            relabelling = fourFour( *fourFourChoice, tempLoop._edgeLab() )
-            tempLoop._setFromRelab(relabelling)
-            if tempLoop.simplifyMonotonic():
-                # We successfully simplified!
-                # Start all over again.
-                fourFourAttempts = 0
-                fourFourCap = 0
-            else:
-                fourFourAttempts += 1
-
-        # If simplification was successful (either by reducing the number of
-        # tetrahedra, or failing that by reducing the number of vertices
-        # without increasing the number of tetrahedra), then sync this
-        # embedded loop with the now-simpler tempLoop.
-        tri = self.triangulation()
-        simplified = ( tempTri.size() < tri.size() or
-                ( tempTri.size() == tri.size() and
-                    tempTri.countVertices() < tri.countVertices() ) )
-        if simplified:
-            self.setFromLoop(tempLoop)
-        return simplified
-
-
-#TODO Update class documentation to mention tracking of orientation.
 class IdealLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded ideal loop in the interior
@@ -1262,14 +660,18 @@ class IdealLoop(EmbeddedLoop):
     disc). This class raises BoundsDisc whenever such a failure occurs.
 
     A core feature of this class is that it effectively stores a list of edge
-    *indices* corresponding to the edges of the ideal loop. Thus, for any
-    instance loop of this class, the following functionality is available:
+    *indices* corresponding to the edges of the ideal loop; moreover, the
+    order that these edge indices appear in the list corresponds to an
+    orientation on the loop. Thus, for any instance loop of this class, the
+    following functionality is available:
     --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
         edge in the loop
     --> len(loop) is the number of edges in the loop
+    --> iterating through the loop yields all the edge indices in an order
+        that matches the loop's orientation
     --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
-        index of the ith edge in the loop
-    --> iterating through the loop yields all the edge indices in order
+        index of the ith edge in the loop, and again the order matches the
+        loop's orientation
     """
     def __init__( self, edges=None, orientation=0 ):
         """
@@ -1307,24 +709,6 @@ class IdealLoop(EmbeddedLoop):
         """
         super().__init__( edges, orientation )
         return
-
-    def drill(self):
-        """
-        Returns an ideal triangulation of the 3-manifold given by drilling
-        out this loop.
-        """
-        drilled = Triangulation3( self._tri )
-        drillEmbeddings = embeddingsFromEdgeIndices( drilled, self )
-        for emb in drillEmbeddings:
-            drilled.pinchEdge(
-                    emb.tetrahedron().edge( emb.edge() ) )
-        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
-        #       versions of Regina, equivalent functionality was provided by
-        #       Triangulation3.intelligentSimplify().
-        drilled.simplify()
-        drilled.minimiseVertices()
-        drilled.simplify()
-        return drilled
 
     def shorten(self):
         """
@@ -1366,313 +750,7 @@ class IdealLoop(EmbeddedLoop):
                 yield emb.tetrahedron().triangle( emb.vertices()[3] )
         return
 
-    def minimiseBoundary(self):
-        """
-        Ensures that the triangulation containing this ideal loop has the
-        smallest possible number of boundary triangles, potentially adding
-        tetrahedra to do this.
 
-        A side-effect of calling this routine is that it will shorten this
-        ideal loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> Every 2-sphere boundary component will have exactly two triangles
-            and three vertices.
-        --> Every projective plane boundary component will have exactly two
-            triangles and two vertices.
-        --> Every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves and/or layerings on self.triangulation().
-        In particular, this routine never creates new vertices, and it never
-        creates a non-vertex-linking normal disc or 2-sphere if there was not
-        one before.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseBoundary().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) every boundary component of the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Can use the default implementation provided we supply an
-        # implementation for _findBoundaryMove().
-        return super().minimiseBoundary()
-
-    def _findBoundaryMove(self):
-        # Precondition:
-        #   --> This loop cannot be shortened.
-
-        # Find a boundary component that is not yet minimal.
-        for bc in self._tri.boundaryComponents():
-            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
-                # Current boundary component is already minimal.
-                continue
-
-            # First try to find a close book move, which does not increase
-            # the number of tetrahedra.
-            for edge in bc.edges():
-                if self._tri.closeBook( edge, True, False ):
-                    return ( edge,
-                            False,  # Close book without layering.
-                            self._edgeIndices )
-
-            # We could not find a close book move.
-            # In this case, because bc is non-minimal, there must be a
-            # boundary edge e that joins two distinct vertices, and we can
-            # simplify bc by layering across e and then performing a close
-            # book move on the newly layered edge.
-            for edge in bc.edges():
-                if edge.vertex(0) == edge.vertex(1):
-                    continue
-
-                # The layering is illegal if this edge is incident to the
-                # same boundary triangle F on both sides (rather than two
-                # distinct triangles). But in that scenario, F forms a disc,
-                # and there must be a close book move available on the edge b
-                # that forms the boundary of this disc. Thus, when we reach
-                # this point in the code, we can guarantee that the layering
-                # is legal.
-                return ( edge,
-                        True,   # Layer before performing close book.
-                        self._edgeIndices )
-
-            # We should never reach this point.
-            raise RuntimeError(
-                    "_findBoundaryMove() failed unexpectedly." )
-
-        # If we fell out of the boundary component loop, then all boundary
-        # components are minimal.
-        return None
-
-    def minimiseVertices(self):
-        """
-        Ensures that the triangulation containing this ideal loop has the
-        smallest possible number of vertices for the 3-manifold that it
-        represents, potentially adding tetrahedra to do this.
-
-        A side-effect of calling this routine is that it will shorten this
-        ideal loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> If the ambient triangulation is closed, then it will have
-            precisely one vertex.
-        --> If the ambient triangulation has real boundary, then:
-            --- there will be exactly one internal vertex;
-            --- every 2-sphere boundary component will have exactly two
-                triangles and three vertices;
-            --- every projective plane boundary component will have exactly
-                two triangles and two vertices;
-            --- every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves, layerings and/or snap edge moves on
-            self.triangulation().
-        In particular, this routine never creates new vertices.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseVertices().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) the number of vertices in the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Can use the default implementation provided we supply an
-        # implementation for _findSnapEdge().
-        return super().minimiseVertices()
-
-    def _findSnapEdge(self):
-        # Precondition:
-        #   --> This loop cannot be shortened.
-        #   --> The boundary of self._tri has been minimised.
-
-        # Find a suitable edge on which to perform a snap edge move. We
-        # minimise the number of special cases by prioritising edges
-        # belonging to the ideal loop.
-        if len(self) > 1:
-            # This loop is supposed to lie entirely in the interior of the
-            # ambient triangulation, so it should be legal to snap any edge
-            # of this loop; here, we choose the last edge in the loop.
-            #
-            # It is safe to directly modify self._edgeIndices since this will
-            # need to be updated anyway.
-            lastEdgeIndex = self._edgeIndices.pop()
-            return ( self._tri.edge(lastEdgeIndex), self._edgeIndices )
-        else:
-            # At this point, this loop is one-vertex and the boundary has
-            # been minimised, but there might still be some other internal
-            # vertices that we can remove.
-            for edge in self._tri.edges():
-                if not snapEdge( edge, True, False ):
-                    # Snap edge is not legal.
-                    continue
-
-                # The snap edge move is legal, but we only want to perform
-                # this move if it will remove an internal vertex that is not
-                # incident to this ideal loop.
-                for i in range(2):
-                    v = edge.vertex(i)
-                    if v.isBoundary() or v.index() in self._vertIndices:
-                        continue
-
-                    # We can use this snap edge move to remove v!
-                    return ( edge, self._edgeIndices )
-        return
-
-    def simplifyBasic(self):
-        """
-        Uses 2-0 edge and 2-1 edge moves to monotonically reduce the number
-        of tetrahedra in the ambient triangulation, while leaving this ideal
-        loop untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify() and
-        simplifyMonotonic() routines.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from SnapPea's check_for_cancellation().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Do not include 3-2 moves.
-        # Might raise BoundsDisc.
-        return self._simplifyMonotonicImpl(False)
-
-    def simplifyMonotonic(self):
-        """
-        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
-        number of tetrahedra in the ambient triangulation, while leaving this
-        ideal loop untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify()
-        routine.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Just use the default implementation.
-        # Might raise BoundsDisc.
-        return super().simplifyMonotonic()
-
-    def simplify(self):
-        """
-        Attempts to simplify this ideal loop.
-
-        This routine uses minimiseVertices() and simplifyMonotonic(), in
-        combination with random 4-4 moves that leave this loop untouched.
-        
-        Although this routine works very well most of the time, it can
-        occasionally get stuck in a "well" that can only be escaped by
-        increasing the number of tetrahedra. In such cases, it might be
-        useful to try to escape using the randomise() routine.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplify().
-
-        Warning:
-            --> Running this routine multiple times on the same loop may
-                return different results, since the implementation makes
-                random decisions.
-
-        Returns:
-            True if and only if this loop was successfully simplified.
-            Otherwise, this loop will not be modified at all.
-        """
-        # We have implemented the minimiseVertices() routine, so we can just
-        # use the default implementation.
-        return super().simplify()
-
-    def randomise(self):
-        """
-        Attempts to randomly retriangulate this ideal loop.
-
-        This routine works by performing lots of random 2-3 moves, before
-        attempting to simplify the ambient triangulation again. As such, it
-        is often useful for escaping "wells" when the simplify() routine gets
-        stuck.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from SnapPea's randomize_triangulation().
-        """
-        RandomEngine.reseedWithHardware()
-        randomisation = 4       # Hard-coded value copied from SnapPea.
-        origSize = self._tri.size()
-        count = randomisation * origSize
-        while count > 0:
-            count -= 1
-
-            # Attempt a random 2-3 move.
-            relabelling = twoThree(
-                    self._tri.triangle(
-                        RandomEngine.rand( self._tri.countTriangles() ) ),
-                    self._edgeLab() )
-            if relabelling is not None:
-                self._setFromRelab(relabelling)
-
-                # Try to force future random 2-3 moves to make "interesting"
-                # changes.
-                self.simplifyBasic()    # Might raise BoundsDisc.
-                if self._tri.size() < origSize:
-                    # We already succeeded in escaping the well, so we might
-                    # as well terminate early.
-                    break
-
-        # Finish up by simplifying. The built-in randomness should hopefully
-        # take us somewhere new.
-        self.simplify()     # Might raise BoundsDisc.
-        return
-
-
-#TODO Update class documentation to mention tracking of orientation.
 class BoundaryLoop(EmbeddedLoop):
     """
     A sequence of edges representing an embedded loop on the boundary of a
@@ -1684,14 +762,18 @@ class BoundaryLoop(EmbeddedLoop):
     disc). This class raises BoundsDisc whenever such a failure occurs.
 
     A core feature of this class is that it effectively stores a list of edge
-    *indices* corresponding to the edges of the boundary loop. Thus, for any
-    instance loop of this class, the following functionality is available:
+    *indices* corresponding to the edges of the boundary loop; moreover, the
+    order that these edge indices appear in the list corresponds to an
+    orientation on the loop. Thus, for any instance loop of this class, the
+    following functionality is available:
     --> (e in loop) is True if and only if loop.triangulation().edge(e) is an
         edge in the loop
     --> len(loop) is the number of edges in the loop
+    --> iterating through the loop yields all the edge indices in an order
+        that matches the loop's orientation
     --> for i between 0 and (len(loop) - 1), inclusive, loop[i] returns the
-        index of the ith edge in the loop
-    --> iterating through the loop yields all the edge indices in order
+        index of the ith edge in the loop, and again the order matches the
+        loop's orientation
     """
     def __init__( self, edges=None, orientation=0 ):
         """
@@ -1784,267 +866,3 @@ class BoundaryLoop(EmbeddedLoop):
             if bFace != fFace:
                 yield bFace
         return
-
-    def minimiseBoundary(self):
-        """
-        Ensures that the triangulation containing this boundary loop has the
-        smallest possible number of boundary triangles, potentially adding
-        tetrahedra to do this.
-
-        A side-effect of calling this routine is that it will shorten this
-        boundary loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> Every 2-sphere boundary component will have exactly two triangles
-            and three vertices.
-        --> Every projective plane boundary component will have exactly two
-            triangles and two vertices.
-        --> Every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves and/or layerings on self.triangulation().
-        In particular, this routine never creates new vertices, and it never
-        creates a non-vertex-linking normal disc or 2-sphere if there was not
-        one before.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseBoundary().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) every boundary component of the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Can use the default implementation provided we supply an
-        # implementation for _findBoundaryMove().
-        return super().minimiseBoundary()
-
-    def _findBoundaryMove(self):
-        # Exceptions:
-        #   --> Might raise BoundsDisc.
-        #
-        # Precondition:
-        #   --> This loop cannot be shortened.
-
-        # Prioritise moves that reduce the length of this boundary loop. If
-        # possible, use close book moves so that we do not introduce too many
-        # new tetrahedra.
-        if len(self) > 1 and self.boundaryComponent().countTriangles() > 2:
-            # Try to find a close book move.
-            if len(self) > 2:
-                for edge in self.boundaryComponent().edges():
-                    # Check eligibility of close book move, but do *not*
-                    # perform yet.
-                    if not self._tri.closeBook( edge, True, False ):
-                        continue
-
-                    # Does this close book move reduce the length?
-                    ftet = edge.front().tetrahedron()
-                    fver = edge.front().vertices()
-                    btet = edge.back().tetrahedron()
-                    bver = edge.back().vertices()
-                    for v in range(2):
-                        fei = ftet.edge( fver[v], fver[2] ).index()
-                        bei = btet.edge( bver[v], bver[3] ).index()
-                        if ( fei in self ) and ( bei in self ):
-                            # Since this loop cannot be shortened, the
-                            # indices fei and bei correspond to the *only*
-                            # edges of this loop that are incident to the
-                            # triangles involved in the close book move.
-                            # After performing the move, we can remove these
-                            # two edges from the loop.
-                            newEdgeIndices = [ ei for ei in self
-                                    if ei not in { fei, bei } ]
-                            return ( edge,
-                                    False,  # Close book without layering.
-                                    newEdgeIndices )
-
-            # Resort to layering a new tetrahedron to facilitate a close book
-            # move that effectively removes one of the edges from this loop.
-            # This operation is guaranteed to be legal for any edge belonging
-            # to this loop; here we choose to perform it on the last edge.
-            #
-            # It is safe to directly modify self._edgeIndices since this will
-            # need to be updated anyway.
-            lastEdgeIndex = self._edgeIndices.pop()
-            return ( self._tri.edge(lastEdgeIndex),
-                    True,   # Layer before performing close book.
-                    self._edgeIndices )
-
-        # At this point, if the boundary component containing the loop is not
-        # yet minimal, then we at least know that the loop consists only of a
-        # single edge e. Our goal now is to minimise boundary components
-        # without touching e. 
-        for bc in self._tri.boundaryComponents():
-            if bc.countTriangles() <= 2 or bc.countVertices() <= 1:
-                continue
-
-            # First try to find a close book move.
-            for edge in bc.edges():
-                if edge.index() == self[0]:
-                    # Leave the loop untouched.
-                    continue
-                if self._tri.closeBook( edge, True, False ):
-                    return ( edge,
-                            False,  # Close book without layering.
-                            self._edgeIndices )
-
-            # We could not find a suitable close book move, so our plan now
-            # is to find a boundary edge e that joins two distinct vertices.
-            # We can layer over such an edge e, and then simplify the
-            # boundary using a close book move on the newly layered edge.
-            for edge in bc.edges():
-                if edge.vertex(0) == edge.vertex(1):
-                    continue
-
-                # The layering is illegal if this edge is incident to the
-                # same boundary triangle F on both sides (rather than two
-                # distinct triangles). But in that scenario, F forms a disc,
-                # and there must be a close book move available on the edge b
-                # that forms the boundary of this disc. The only possible
-                # close book that we haven't already ruled out is the one we
-                # were trying to avoid; in other words, b must coincide with
-                # the loop that we are trying to preserve.
-                front = edge.front()
-                back = edge.back()
-                if ( front.tetrahedron().triangle( front.vertices()[3] ) ==
-                        back.tetrahedron().triangle( back.vertices()[2] ) ):
-                    raise BoundsDisc()
-                else:
-                    return ( edge,
-                            True,   # Layer before performing close book.
-                            self._edgeIndices )
-
-            # We should never reach this point.
-            raise RuntimeError(
-                    "_findBoundaryMove() failed unexpectedly." )
-
-        # If we fell out of the boundary component loop, then all boundary
-        # components are minimal.
-        return None
-
-    def minimiseVertices(self):
-        """
-        Ensures that the triangulation containing this boundary loop has the
-        smallest possible number of vertices for the 3-manifold that it
-        represents, potentially adding tetrahedra to do this.
-
-        A side-effect of calling this routine is that it will shorten this
-        boundary loop if possible.
-
-        This routine might raise BoundsDisc.
-
-        The following are guaranteed to hold once this routine is finished:
-        --> If the ambient triangulation is closed, then it will have
-            precisely one vertex.
-        --> If the ambient triangulation has real boundary, then:
-            --- there will be no internal vertices;
-            --- every 2-sphere boundary component will have exactly two
-                triangles and three vertices;
-            --- every projective plane boundary component will have exactly
-                two triangles and two vertices;
-            --- every other boundary component will have exactly one vertex.
-
-        The changes that this routine performs can always be expressed using
-        only the following operations:
-        --> Shortening this loop by redirecting it across triangular faces.
-        --> Close book moves, layerings and/or snap edge moves on
-            self.triangulation().
-        In particular, this routine never creates new vertices.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.minimiseVertices().
-
-        Precondition:
-        --> The ambient triangulation (i.e., self.triangulation()) is valid.
-
-        Returns:
-            True if and only if this loop or its ambient triangulation were
-            changed. In other words, a return value of False indicates that:
-            (1) this loop could not be shortened; and
-            (2) the number of vertices in the ambient triangulation was
-                already minimal to begin with.
-        """
-        # Can use the default implementation provided we supply an
-        # implementation for _findSnapEdge().
-        return super().minimiseVertices()
-
-    def _findSnapEdge(self):
-        # Precondition:
-        #   --> This loop cannot be shortened.
-        #   --> The boundary of self._tri has been minimised.
-
-        # Find a suitable edge on which to perform a snap edge move (just
-        # check whether the move is legal, do not perform yet).
-        for edge in self._tri.edges():
-            if snapEdge( edge, True, False ):
-                # This loop should lie entirely in the boundary, so the snap
-                # edge move should not change the loop.
-                return ( edge, self._edgeIndices )
-        return
-
-    def simplifyMonotonic(self):
-        """
-        Uses 2-0 edge, 2-1 edge, and 3-2 moves to monotonically reduce the
-        number of tetrahedra in the ambient triangulation, while leaving this
-        boundary loop untouched.
-
-        There should usually be no need to call this routine directly, since
-        the functionality is subsumed by the more powerful simplify()
-        routine.
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplifyToLocalMinimum().
-
-        Returns:
-            True if and only if the ambient triangulation was successfully
-            simplified. Otherwise, the ambient triangulation will not be
-            modified at all.
-        """
-        # Just use the default implementation.
-        # Might raise BoundsDisc.
-        return super().simplifyMonotonic()
-
-    def simplify(self):
-        """
-        Attempts to simplify this boundary loop.
-
-        This routine uses minimiseVertices() and simplifyMonotonic(), in
-        combination with random 4-4 moves (which leave this loop untouched).
-
-        This routine might raise BoundsDisc.
-
-        If the triangulation containing this loop is currently oriented, then
-        this routine guarantees to preserve the orientation.
-
-        Adapted from Regina's Triangulation3.simplify().
-
-        Warning:
-            --> Running this routine multiple times on the same loop may
-                return different results, since the implementation makes
-                random decisions.
-
-        Returns:
-            True if and only if this loop was successfully simplified.
-            Otherwise, this loop will not be modified at all.
-        """
-        # We have implemented the minimiseVertices() routine, so we can just
-        # use the default implementation.
-        return super().simplify()

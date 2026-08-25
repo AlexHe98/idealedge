@@ -16,6 +16,6 @@ if __name__ == "__main__":
         print( "Found 1 prime:" )
     else:
         print( "Found {} primes:".format( len(primes) ) )
-    for i, loop in enumerate(primes):
+    for i, edgeIdealPrimeKnot in enumerate(primes):
         print( "    Drilled iso sig for prime #{}: {}".format(
-            i, loop.drill().isoSig() ) )
+            i, edgeIdealPrimeKnot.drill().isoSig() ) )

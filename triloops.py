@@ -8,9 +8,11 @@ from regina import *
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
 from aux.looperror import BoundsDisc
 from aux.edgeemb import embeddingsFromEdgeIndices
+from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour
 from retriangulate.insert import snapEdge, layerOn
 from retriangulate.edgelabel import EdgeLabelling
+from chord import pairUpChordEndsByCrushing
 
 
 class TriangulationWithEmbeddedLoops:
@@ -76,6 +78,9 @@ class TriangulationWithEmbeddedLoops:
         self._loops = list(loops)
         self._tri = self._loops[0].triangulation()
         return
+    
+    def __repr__(self):
+        return "{}({})".format( type(self).__name__, self._loops )
 
     def clone(self):
         """
@@ -311,82 +316,62 @@ class TriangulationWithEmbeddedLoops:
             ans.append( loop.orientation() )
         return tuple(ans)
 
+    #TODO Which of the following do we really need?
+    #       --> intersects()
+    #       --> incidentLoopWeights()
+    #       --> weight()
+    #       --> incidentLoopIndices()
+
+    def intersects( self, surf ):
+        """
+        Returns True if and only if the union of embedded loops has nonempty
+        intersection with the given normal surface surf.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        for embLoop in self:
+            if embLoop.intersects(surf):
+                return True
+        return False
+
+    def incidentLoopWeights( self, surf ):
+        """
+        Returns a dictionary mapping loop indices to their weights with
+        respect to the given normal surface.
+
+        Only loops with positive weights will be included in the returned
+        dictionary.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        ans = dict()
+        for i, embLoop in enumerate(self):
+            wt = embLoop.weight(surf)
+            if wt > 0:
+                ans[i] = wt
+        return ans
+
+    def weight( self, surf ):
+        """
+        Returns the number of times the union of embedded loops intersects
+        the given normal surface surf.
+
+        Precondition:
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        return sum( self.incidentLoopWeights(surf).values() )
+
     def incidentLoopIndices( self, surf ):
         """
         Returns a set consisting of the indices of the embedded loops that
         are incident to the given normal surface.
-        """
-        ans = set()
-        for i, embLoop in enumerate(self):
-            if embLoop.weight(surf) > 0:
-                ans.add(i)
-        return count
-
-    def splitArcs( self, surf ):
-        """
-        Returns a list containing the arcs into which the given normal surface
-        surf splits the union of embedded loops.
-
-        The ends of all the returned arcs will be abstractly joined together
-        in pairs to indicate how all these arcs would combine to form new
-        embedded loops after crushing surf.
 
         Precondition:
         --> The given normal surface is embedded in self.triangulation().
-        --> If surf is one-sided, then self.weight(surf) <= 1; otherwise,
-            self.weight(surf) <= 2.
         """
-        arcsByLoopIndex = []
-        for embLoop in self:
-            arcsByLoopIndex.append( embLoop.splitArcs(surf) )
-
-        # Find arcs (if any) that will get joined together after crushing.
-        incidentLoopInds = self.incidentLoopIndices(surf)
-        if len(incidentLoopInds) == 2:
-            # From the preconditions, we may assume that surf is two-sided. We
-            # may also assume that each of the two incident loops has weight
-            # one with respect to surf, which means that each such loop is
-            # split into exactly one arc; after crushing surf, the segments at
-            # the ends of the two arcs will get joined together, so that the
-            # two arcs combine to form a single new loop. Note that both of
-            # the arcs will be "long arcs", so the segments at either end of
-            # each arc are guaranteed to be distinct; hence, we will have four
-            # segments that get joined to each other in two pairs.
-            endSegments = { loopIndex: set()
-                              for loopIndex in incidentLoopInds }
-            segLocations = dict()
-            for loopIndex in incidentLoopInds:
-                # As above, we should have exactly one arc.
-                arc = arcsByLoopIndex[loopIndex][0]
-                for endNum in range(2):
-                    seg = arc.endSegment(endNum)
-                    endSegments[loopIndex].add(seg)
-                    segLocations[seg] = ( arc, endNum )
-
-            # Work out which two pairs of the endSegments will be joined
-            # to each other after crushing surf.
-            myLoopInd, yourLoopInd = endSegments.keys()
-            mySeg = endSegments[myLoopInd].pop()
-            yourSeg = mySeg.translateAlongSurface(
-                    endSegments[yourLoopInd] )
-            endSegments[yourLoopInd].remove(yourSeg)
-
-            # Abstractly join the two pairs of endSegments together, so that
-            # we can reconstruct the new embedded loops after crushing surf.
-            myArc, myEndNum = segLocations[mySeg]
-            yourArc, yourEndNum = segLocations[yourSeg]
-            myArc.join( myEndNum, yourArc, yourEndNum )
-            myArc.join( 1 - myEndNum, yourArc, 1 - yourEndNum )
-
-        # All as yet unjoined arcs will simply join with themselves to form
-        # a new loop.
-        ans = []
-        for loopIndex in range( len(self) ):
-            for arc in arcsByLoopIndex[loopIndex]:
-                if arc.joinedArc(0) is None:
-                    arc.join( 0, arc, 1 )
-                ans.append(arc)
-        return ans
+        return set( self.incidentLoopWeights(surf).keys() )
 
     def shorten(self):
         """
@@ -917,6 +902,149 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         super().__init__(loops)
         return
 
+    def drill(self):
+        """
+        Returns an ideal triangulation of the 3-manifold given by drilling
+        out all the loops in this edge-ideal triangulation.
+        """
+        drilled = Triangulation3( self._tri )
+        drillEmbeddings = []
+        for loop in self:
+            drillEmbeddings.extend(
+                    embeddingsFromEdgeIndices( drilled, loop ) )
+        for emb in drillEmbeddings:
+            drilled.pinchEdge(
+                    emb.tetrahedron().edge( emb.edge() ) )
+        #NOTE Triangulation3.simplify() was introduced in Regina 7.4. In older
+        #       versions of Regina, equivalent functionality was provided by
+        #       Triangulation3.intelligentSimplify().
+        drilled.simplify()
+        drilled.minimiseVertices()
+        drilled.simplify()
+        return drilled
+
+    def checkCrushAllowed( self, surf ):
+        """
+        Checks that we are allowed to crush this edge-ideal triangulation
+        along the given normal surface.
+
+        This routine raises ValueError if and only if self.allowsCrush()
+        returns False.
+
+        Pre-condition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        surfType = SurfaceType.recognise(surf)
+        weight = self.weight(surf)
+        if surfType == SurfaceType.SPHERE:
+            if weight in {0, 2}:
+                return
+            raise ValueError( "To crush along a 2-sphere, it must have " +
+                             "edge-ideal weight either 0 or 2" )
+        elif surfType == SurfaceType.DISC:
+            if weight == 1:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    return
+                raise ValueError( "To crush along a disc with edge-ideal " +
+                                 "weight 1, its boundary curve must be " +
+                                 "nontrivial" )
+            elif weight == 0:
+                return
+            raise ValueError( "To crush along a disc, it must have " +
+                             "edge-ideal weight either 0 or 1" )
+        elif surfType == SurfaceType.RP3:
+            if weight == 1:
+                return
+            raise ValueError( "To crush along a projective plane, it must " +
+                             "have edge-ideal weight 1" )
+        raise ValueError( "With an edge-ideal triangulation, we cannot " +
+                         "crush along {}".format(surfType) )
+
+    def allowsCrush( self, surf ):
+        """
+        Are we allowed to crush this edge-ideal triangulation along the given
+        normal surface?
+
+        Letting W denote self.weight(surf), this routine returns True if and
+        only if surf is of one of the following types:
+        --> A 2-sphere with either W == 2 or W == 0.
+        --> A disc with W == 1 and nontrivial boundary curve.
+        --> A disc with W == 0.
+        --> A projective plane with W == 1.
+
+        Pre-condition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        try:
+            self.checkCrushAllowed(surf)
+        except ValueError:
+            return False
+        return True
+
+    def splitIntoChords( self, surf ):
+        """
+        Returns a set containing the chords into which the given normal
+        surface surf splits the union of ideal loops.
+
+        Some or all of the ends of the returned chords will be abstractly
+        joined together in pairs to indicate how all these chords would
+        combine to form new loops after crushing surf. If a chord has its
+        ends left unjoined, that indicates that the chord forms a properly
+        embedded arc (in other words, its ends lie in real boundary, rather
+        than joining up with other chords to form a loop).
+
+        Each NormalChord in the returned set will be oriented in the same
+        direction as the IdealLoop which contains the chord.
+
+        Precondition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        --> self.allowsCrush(surf) must be True.
+        """
+        chordsByLoopIndex = []
+        ans = set()
+        for embLoop in self:
+            chords = embLoop.splitIntoChords(surf)
+            chordsByLoopIndex.append(chords)
+            ans.update(chords)
+
+        # If the ideal weight is 2, then we might have two chords which are
+        # joined to each other after crushing.
+        #
+        # From the pre-conditions, to have ideal weight 2, surf must be a
+        # 2-sphere.
+        incidentLoopWts = self.incidentLoopWeights(surf)
+        if sum( incidentLoopWts.values() ) == 2:
+            # Ideal weight 2 implies that surf is incident to exactly 2
+            # ideal chords.
+            incidentChords = []
+            for loopInd in incidentLoopWts:
+                for incChord in chordsByLoopIndex[loopInd]:
+                    incidentChords.append(incChord)
+            pairUpChordEndsByCrushing(*incidentChords)
+
+        # Except for a chord which is incident to surf in the case where
+        # surf is a disc, all as yet unjoined chords will join with
+        # themselves to form a new loop.
+        #
+        # Note that from the pre-conditions, a disc has ideal weight at most
+        # 1. So if there is a chord incident to the disc, then the ideal
+        # weight must of course be equal to 1.
+        chordToAvoid = None
+        if SurfaceType.recognise(surf) == SurfaceType.DISC:
+            for incidentLoopInd in incidentLoopWts:
+                chordToAvoid = chordsByLoopindex[incidentLoopInd].pop()
+                # The pre-conditions imply that len(incidentLoopWts) <= 1,
+                # but break out anyway just to be safe.
+                break
+        for chord in ans:
+            if ( (chord != chordToAvoid) and
+                (chord.joinedChord(0) is None) ):
+                chord.join( 0, chord, 1 )
+        return ans
+
     def shorten(self):
         """
         Shortens the union of ideal loops.
@@ -1164,7 +1292,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             if len(iloop) == 1:
                 continue
 
-            # We can shorten iloop by snapping of its edges. Here, we
+            # We can shorten iloop by snapping one of its edges. Here, we
             # choose the last edge of iloop.
             data = self._edgeEmbeddingsData( remove={ iloop[-1] } )
             return ( self._tri.edge( iloop[-1] ), data )
@@ -1316,7 +1444,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             relabelling = twoThree(
                     self._tri.triangle(
                         RandomEngine.rand( self._tri.countTriangles() ) ),
-                    self._edgeLabs() )
+                    self._edgeLab() )
             if relabelling is not None:
                 self._setFromRelab(relabelling)
 

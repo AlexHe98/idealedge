@@ -26,8 +26,7 @@ class OrientedSegment:
     after crushing S, the segment seg will become identified with the entirety
     of the edge corresponding to this surviving embedding.
     """
-    def __init__( self,
-                 surface, edgeIndex, segPos, orientation, survivingEmb=None ):
+    def __init__( self, surface, edgeIndex, segPos, orientation ):
         """
         Initialises an oriented segment with the given data.
 
@@ -46,20 +45,48 @@ class OrientedSegment:
                             segment is oriented from vertex 0 to vertex 1 of
                             the ambient edge, and -1 if it is oriented from
                             vertex 1 to vertex 0.
-        --> survivingEmb    An optional parameter specifying a surviving
-                            embedding associated to the segment.
+
+        Initially, no value will be cached for self.survivingEmbedding().
         """
         self._surface = surface
         self._edgeIndex = edgeIndex
         self._segPos = segPos
+        if orientation not in {1, -1}:
+            raise ValueError( "orientation must be either +1 or -1" )
         self._orientation = orientation
-        if survivingEmb is None:
-            self._checkedSurvivingEmb = False
-            self._survivingEmb = None
-        else:
-            self._checkedSurvivingEmb = True
-            self._survivingEmb = survivingEmb
+
+        # Internal values that we might compute and cache.
+        self._isSurvivingEmbCached = False
+        self._survivingEmb = None
         return
+
+    def __repr__(self):
+        return "OrientedSegment({}, {}, {}, {})".format(
+                "NormalSurface(...)", self._edgeIndex, self._segPos,
+                self._orientation )
+
+    def reversed(self):
+        """
+        Returns a copy of this segment with the opposite orientation.
+
+        If this segment has already cached a surviving embedding, then the
+        returned reversed segment will already have cached a corresponding
+        reversed surviving embedding.
+        """
+        revSeg = OrientedSegment(
+                self._surface, self._edgeIndex, self._segPos,
+                -self._orientation )
+
+        # Don't forget to transfer cached values.
+        if self._isSurvivingEmbCached:
+            se = self._survivingEmb
+            if se is None:
+                revSeg._setSurvivingEmb(None)
+            else:
+                revSeg._setSurvivingEmb( EdgeEmbedding3(
+                    se.tetrahedron(),
+                    se.vertices() * Perm4(1, 0, 3, 2) ) )
+        return revSeg
 
     def integerData(self):
         """
@@ -119,15 +146,17 @@ class OrientedSegment:
                 survivingSegPos = cls._survivingSegmentPosition(
                         tet, vertexPerm, surface )
 
-                # Include both +1 and -1 orientations.
-                survivorSet.add(
-                        cls( surface, edgeInd, survivingSegPos,
-                            1, EdgeEmbedding3(
-                                tet, vertexPerm ) ) )
-                survivorSet.add(
-                        cls( surface, edgeInd, survivingSegPos,
-                            -1, EdgeEmbedding3(
-                                tet, vertexPerm * Perm4(1,0,3,2) ) ) )
+                # Surviving segment with +1 orientation.
+                survivingSeg = cls( surface, edgeInd, survivingSegPos, 1 )
+                survivingSeg._setSurvivingEmbedding( EdgeEmbedding3(
+                    tet, vertexPerm ) )
+                survivorSet.add(survivingSeg)
+
+                # Surviving segment with -1 orientation.
+                survivingSeg = cls( surface, edgeInd, survivingSegPos, -1 )
+                survivingSeg._setSurvivingEmbedding( EdgeEmbedding3(
+                    tet, vertexPerm * Perm4(1, 0, 3, 2) ) )
+                survivorSet.add(survivingSeg)
         return survivorSet
 
     @staticmethod
@@ -171,8 +200,8 @@ class OrientedSegment:
 
         In detail, if e is the edge containing this segment, then the segment
         incident to vertex 0 of e is in position 0, and then subsequent
-        segments along e are numbered in increasing order; the last segment is
-        then incident to vertex 1, and is in position self.edgeWeight().
+        segments along e are numbered in increasing order; the last segment
+        is then incident to vertex 1, and is in position self.edgeWeight().
         """
         return self._segPos
 
@@ -184,6 +213,17 @@ class OrientedSegment:
         ambient edge, and -1 if it is oriented from vertex 1 to vertex 0.
         """
         return self._orientation
+
+    def _setSurvivingEmbedding( self, survivingEmb ):
+        """
+        Internal routine for setting the surviving embedding.
+
+        See the survivingEmbedding() routine for the conditions that must be
+        satisfied by the given survivingEmb.
+        """
+        self._isSurvivingEmbCached = True
+        self._survivingEmb = survivingEmb
+        return
 
     def survivingEmbedding(self):
         """
@@ -203,11 +243,11 @@ class OrientedSegment:
         The result of this routine is cached internally, so repeated calls to
         this routine will be fast and give identical results.
         """
-        if self._checkedSurvivingEmb:
+        if self._isSurvivingEmbCached:
             return self._survivingEmb
 
         # Check whether a surviving embedding exists.
-        self._checkedSurvivingEmb = True
+        self._isSurvivingEmbCached = True
         self._survivingEmb = None   # Just in case default isn't set properly.
         for emb in self.edge().embeddings():
             tet = emb.tetrahedron()
@@ -250,6 +290,42 @@ class OrientedSegment:
         if self._segPos in { 0, wt }:
             return 1
         return 2
+
+    def endIncidentToSurface(self):
+        """
+        Returns an end of this segment which is incident to self.surface(),
+        or None if there is no such end.
+
+        An end of this segment is returned as either 0 or 1, which
+        respectively indicate the tail or head of this segment. In other
+        words, this segment is oriented away from end 0 and towards end 1.
+
+        The return value depends on the type of this segment (as calculated
+        by self.segmentType()):
+        --> Type 0: Neither end is incident to the surface, so this routine
+                    returns None.
+        --> Type 1: This routine returns the unique end incident to the
+                    surface.
+        --> Type 2: Both ends are incident to the surface. This routine
+                    always returns end 0 (this is an arbitrary choice).
+        """
+        segType = self.segmentType()
+        if segType == 0:
+            return None
+        elif segType == 1:
+            if self._segPos == 0:
+                if self._orientation == 1:
+                    return 1
+                else:   # self._orientation == -1
+                    return 0
+            else:   # self._segPos == self.edgeWeight()
+                if self._orientation == 1:
+                    return 0
+                else:   # self._orientation == -1
+                    return 1
+
+        # Otherwise, segType == 2.
+        return 0
 
     def _traverseOrbit( self, targets, adjacentSegments, *args ):
         """
@@ -363,40 +439,59 @@ class OrientedSegment:
         # All done!
         return ans
 
-    def translateAlongSurface( self, targets ):
+    def translateAlongSurface( self, targets, segmentEnd=None ):
         """
-        Translates this type-1 segment along self.surface(), and if possible
-        returns one of the given target segments onto which this segment
-        translates.
-
-        Raises ValueError if this segment is not of type 1.
+        Translates one end of this segment along self.surface(), and if
+        possible returns one of the given target segments onto which this
+        segment translates.
 
         If no target segment is reachable under such translation, then this
         routine returns None. Otherwise, this routine will return a target
         segment whose orientation is consistent with this segment's
         orientation under the translation.
 
+        The segmentEnd parameter may be optionally provided to specify which
+        of the two ends of this segment should be translated along the
+        surface. This parameter must be either:
+        --> 0, indicating the tail of this segment relative to its
+            orientation, or
+        --> 1, indicating the head of this segment relative to its
+            orientation
+        (in other words, this segment is oriented away from end 0, and
+        towards end 1). Moreover, segmentEnd must be an end of this segment
+        which is actually incident to self.surface(). This routine raises
+        ValueError if these conditions are not satisfied.
+
+        Also, regardless of whether segmentEnd is provided, this routine
+        always raises ValueError if self.segmentType() == 0, because type-0
+        segments are never incident to the surface.
+
+        If segmentEnd is not provided, then this routine simply uses the
+        self.endIncidentToSurface() routine to choose which end of this
+        segment will be translated along self.surface().
+
         This routine only runs membership tests on the given set of targets.
         In particular, this routine will never modify targets.
         """
-        if self.segmentType() != 1:
+        if segmentEnd not in {0, 1, None}:
             raise ValueError(
-                    "translateAlongSurface() requires type-1 segment" )
+                    "segmentEnd must be either 0 or 1" )
+        endIncidentToSurf = self.endIncidentToSurface()
+        if endIncidentToSurf is None:
+            raise ValueError(
+                    "Type-0 segments are never incident to the surface" )
 
-        # Mark the end of this segment that is incident to self.surface().
-        if self._segPos == 0:
-            if self._orientation == 1:
-                markedEnd = 1
-            else:   # self._orientation == -1
-                markedEnd = 0
-        else:   # self._segPos == self.edgeWeight()
-            if self._orientation == 1:
-                markedEnd = 0
-            else:   # self._orientation == -1
-                markedEnd = 1
+        # If segmentEnd is provided, then use that as the endIncidentToSurf
+        # (provided that it is indeed incident to the surface).
+        if segmentEnd is not None:
+            if ( (self.segmentType() == 1) and
+                (segmentEnd != endIncidentToSurf) ):
+                raise ValueError(
+                        "segmentEnd must be incident to the surface" )
+            endIncidentToSurf = segmentEnd
         return self._traverseOrbit( targets,
                                    _adjacentSegmentsAlongSurface,
-                                   markedEnd )
+                                   endIncidentToSurf )
 
     def translateAlongParallelCells( self, targets ):
         """
@@ -475,7 +570,7 @@ def _adjacentSegmentsAlongSurface( seg, markedEnd ):
         elif markedIncidence[0] == _SegmentEndIncidence.QUAD:
             includeNonParallel = True
             for adjSeg in _adjSegsAlongQuad(
-                    seg, edgeEmb, markedIncident[1], includeNonParallel ):
+                    seg, edgeEmb, markedIncidence[1], includeNonParallel ):
                 yield adjSeg
         else:
             raise ValueError(

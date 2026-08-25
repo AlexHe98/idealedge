@@ -37,13 +37,14 @@ if __name__ == "__main__":
 
     # Now try to decompose the knot (in verbose mode).
     print()
-    primeLoops = decompose( knot, True )
+    #TODO Update usage.
+    edgeIdealPrimeKnots = decompose( knot, True )
     print()
 
     # Finally, try to identify the summands.
     print( "Algorithm computed the following summands:" )
     last = None
-    for p in primeLoops:
+    for p in edgeIdealPrimeKnots:
         drilled = p.drill()
         mfd = snappy.Manifold( snappy.Triangulation( drilled.isoSig() ) )
         identified = mfd.identify()

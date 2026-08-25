@@ -1,38 +1,52 @@
 """
-Traverse wedge cells to detect lost L(3,1) components.
-
-In the context of a Seifert fibre space with (some component of the) boundary
-given by an ideal loop, such lost components correspond to a lost fibre of
-multiplicity 3.
+Find non-surviving triangular orbits by traversing wedge cells.
 """
+from enum import Enum, auto
 from regina import *
 from aux.quad import tetQuadType
 
 
-def wedgeLoops(surf):
+class NonSurvivingTriangularOrbitType(Enum):
     """
-    Detects loops of wedge cells induced by the given normal surface.
+    An enumeration of types of non-surviving triangular orbits.
 
-    This routine returns a list of such loops, each of which is encoded as a
-    pair (R,T), where:
-    --> R is a single wedge cell in the loop, chosen as a representative for
-        the entire loop.
-    --> T is 0 if the loop has no twist, and either +1 or -1 if the loop has
-        a twist.
-
-    We have exactly two wedge cells per tetrahedron intersecting surf in a
-    positive number of quads. Each wedge cell is encoded as a pair (i,s),
-    where:
-    --> i is the index of the tetrahedron containing the wedge cell; and
-    --> s is 0 if the wedge cell is incident to edge q of tetrahedron i,
-        where q is the quad type, and 1 if the wedge cell is incident to edge
-        5-q of tetrahedron i.
-
-    The sign of the twist is determined relative to the vertex labelling of
-    the tetrahedron containing the representative wedge cell. Thus, in an
-    oriented triangulation, wedge loops with the same sign will twist in the
-    same direction.
+    In detail, we have the following possible types:
+    --> BOUNDARY        A triangular orbit whose core fibre forms an arc with
+                        both endpoints lying in real boundary.
+    --> TRIVIAL_CYCLE   A triangular orbit whose core fibre forms a loop with
+                        no twist.
+    --> TWIST_PLUS      A triangular orbit whose core fibre forms a loop with
+                        a twist. The sign of the twist is +1, as determined
+                        by the orientation of some tetrahedron incident to
+                        the orbit.
+    --> TWIST_MINUS     A triangular orbit whose core fibre forms a loop with
+                        a twist. The sign of the twist is -1, as determined
+                        by the orientation of some tetrahedron incident to
+                        the orbit.
+    As defined, the signs of the twists depend on the chosen tetrahedron.
+    Thus, these signs are most meaningful when we are working with an
+    oriented triangulation.
     """
+    BOUNDARY = auto()
+    TRIVIAL_CYCLE = auto()
+    TWIST_PLUS = auto()
+    TWIST_MINUS = auto()
+    pass
+
+
+def nonSurvivingTriangularOrbitCounts(surf):
+    """
+    Counts the number of non-surviving triangular orbits of each possible
+    type.
+
+    In detail, this routine returns a dictionary N with keys given by the
+    NonSurvivingTriangularOrbitType enumeration, such that for each key k,
+    N[k] counts the number of non-surviving triangular orbits of type k.
+
+    Pre-condition:
+    --> surf.triangulation() is oriented.
+    """
+    OrbitType = NonSurvivingTriangularOrbitType
     tri = surf.triangulation()
 
     # Find all wedge cells.
@@ -48,7 +62,7 @@ def wedgeLoops(surf):
         # We have at least one quad in this tet, and hence two wedge cells.
         #
         # If we index the wedge cells by i in {0,1}, and if wedge i is drawn
-        # at the front in the figure below, then the vertex numbers of tet
+        # at the *front* in the figure below, then the vertex numbers of tet
         # will be as shown in the figure.
         #
         #               eOrder[1-i][1]
@@ -66,10 +80,10 @@ def wedgeLoops(surf):
         #                     \|/
         #                      •
         #               eOrder[1-i][0]
-        #
         eOrder = [ tet.edgeMapping(quadType), tet.edgeMapping(5-quadType) ]
         wedgeAdjacencies[teti] = dict()
         for i in range(2):
+            # Encode wedge cell i via the following triple:
             wedge = ( teti, eOrder[i][0], eOrder[i][1] )
             wedgePerms[wedge] = eOrder[i] * Perm4(0,1) * eOrder[i].inverse()
 
@@ -88,63 +102,97 @@ def wedgeLoops(surf):
                 wedgeAdjacencies[teti][eOrder[i][ii]] =\
                         ( eOrder[i][1-ii], wedge )
 
-    # Traverse all wedge cells.
-    loops = set()
+    # Count non-surviving triangular orbit types by explicitly traversing all
+    # wedge cells.
+    orbitCounts = { OrbitType.BOUNDARY: 0,
+                   OrbitType.TRIVIAL_CYCLE: 0,
+                   OrbitType.TWIST_PLUS: 0,
+                   OrbitType.TWIST_MINUS: 0 }
     while wedgePerms:
         startWedge, endPerm = wedgePerms.popitem()
-        startTeti, currentFace, referenceVertex = startWedge
-        currentTet = tri.tetrahedron(startTeti)
-        vertPerm = Perm4()
+        startTeti, forwardFace, backwardFace = startWedge
 
-        # Traverse until one of the following occurs:
-        #   --> We return to the start (in which case we have found a loop of
-        #       wedge cells).
-        #   --> We reach a wedge cell that we already previously traversed
-        #       (in which case we do not have a loop of wedge cells).
-        #   --> We reach a tetrahedron with no wedge cells (in which case we
-        #       again do not have a loop of wedge cells).
+        # Traverse *forwards* until one of the following occurs:
+        #   --> We return to the start (in which case we have found a cycle
+        #       of wedge cells).
+        #   --> We hit the boundary.
+        #   --> We reach a tetrahedron with no wedge cells.
+        currentTet = tri.tetrahedron(startTeti)
+        currentFace = forwardFace
+        vertPerm = Perm4()
+        forwardsEndedAtBoundary = False # Until proven otherwise.
+        foundCycle = False
         while True:
             # Traverse across face gluing.
             adjTet = currentTet.adjacentTetrahedron(currentFace)
             if adjTet is None:
-                # No adjacent tet, so definitely not traversing a loop of
-                # wedge cells.
+                forwardsEndedAtBoundary = True
                 break
             adjTeti = adjTet.index()
             adjFace = currentTet.adjacentFace(currentFace)
             adjGluing = currentTet.adjacentGluing(currentFace)
             vertPerm = adjGluing * vertPerm
 
-            # Have we reached a new wedge cell?
+            # Have we reached another wedge cell?
             if adjTeti not in wedgeAdjacencies:
-                # No wedge cells in adjTet, and hence we are not traversing
-                # a loop of wedge cells.
+                # Forwards traversal ended in the interior, at a tetrahedron
+                # with no wedge cells.
                 break
             currentFace, adjWedge = wedgeAdjacencies[adjTet.index()][adjFace]
 
-            # Have we already previously traversed the new wedge cell? If so,
-            # then either:
-            #   --> we have returned to the start of a loop of wedge cells;
-            #       or
-            #   --> we are not traversing a loop of wedge cells.
-            if adjWedge not in wedgePerms:
-                # If we are back to the start of a loop, then use the
-                # twistSign dictionary to determine which direction this loop
-                # twists.
-                if adjWedge == startWedge:
-                    vertPerm = endPerm * vertPerm
-                    loopSign = twistSign[startWedge][
-                            vertPerm[referenceVertex] ]
-                    loops.add( ( startWedge, loopSign ) )
-
-                # Regardless of whether or not we had a loop, there is no
-                # further traversal we can do.
+            # Have we returned to the start? If so, then use the twistSign
+            # dictionary to determine which direction this cycle twists.
+            if adjWedge == startWedge:
+                vertPerm = endPerm * vertPerm
+                cycleSign = twistSign[startWedge][ vertPerm[backwardFace] ]
+                if cycleSign == 1:
+                    orbitCounts[ OrbitType.TWIST_PLUS ] += 1
+                elif cycleSign == -1:
+                    orbitCounts[ OrbitType.TWIST_MINUS ] += 1
+                else:   # cycleSign == 0
+                    orbitCounts[ OrbitType.TRIVIAL_CYCLE ] += 1
+                foundCycle = True
                 break
 
             # Traverse across the new wedge cell.
             # No need to set currentFace since that was done earlier.
             vertPerm = wedgePerms.pop(adjWedge) * vertPerm
             currentTet = adjTet
+        # End of forwards traversal.
+        if foundCycle:
+            continue
+
+        # At this point, we definitely do not have a cycle of wedge cells,
+        # but we still need to traverse backwards to both:
+        #   (a) find out whether we have a (non-surviving) triangular orbit
+        #       where both ends are at the boundary; and
+        #   (b) remove all wedges in this orbit from wedgePerms.
+        currentTet = tri.tetrahedron(startTeti)
+        currentFace = backwardFace
+        while True:
+            # Traverse across face gluing.
+            adjTet = currentTet.adjacentTetrahedron(currentFace)
+            if adjTet is None:
+                # Backwards traversal has ended at boundary.
+                if forwardsEndedAtBoundary:
+                    orbitCounts[ OrbitType.BOUNDARY ] += 1
+                break
+            adjTeti = adjTet.index()
+            adjFace = currentTet.adjacentFace(currentFace)
+            adjGluing = currentTet.adjacentGluing(currentFace)
+
+            # Have we reached another wedge cell?
+            if adjTeti not in wedgeAdjacencies:
+                # Backwards traversal ended in the interior, at a tetrahedron
+                # with no wedge cells.
+                break
+            currentFace, adjWedge = wedgeAdjacencies[adjTet.index()][adjFace]
+            currentTet = adjTet
+
+            # Don't forget to remove from wedgePerms, so that we only
+            # traverse each wedge exactly once.
+            wedgePerms.pop(adjWedge)
+        # End of backwards traversal.
 
     # All done!
-    return loops
+    return orbitCounts
