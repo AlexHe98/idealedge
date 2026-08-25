@@ -76,7 +76,7 @@ def embedByFilling( knot, insertAsChild=False ):
             base = tri.tetrahedron( tri.size() - 1 )
             lst = LayeredSolidTorus.recogniseFromBase(base)
             idealEdge = base.edge( lst.baseEdge(3,0) )
-            return _edgeToIdealLoop( idealEdge, packet )
+            return _edgeToEdgeIdealTri( idealEdge, packet )
 
     # Otherwise, we must fall back to doing the filling using Regina, which
     # is not guaranteed to terminate.
