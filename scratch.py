@@ -122,10 +122,7 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
         for edgeIdealTri in decomposed:
             if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
                 try:
-                    #TODO TEST
-                    edgeIdealTri.minimiseVertices()
-                    edgeIdealTri.simplifyMonotonic()
-#                    edgeIdealTri.simplify()
+                    edgeIdealTri.simplify()
                 except BoundsDisc:
                     #TODO
                     print( "Loop bounds disc!" )
@@ -272,10 +269,7 @@ def decomposeAlongSpheres(edgeIdealTri):
             for newEdgeIdealTri in decomposed:
                 if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
                     try:
-                        #TODO TEST
-                        newEdgeIdealTri.minimiseVertices()
-                        newEdgeIdealTri.simplifyMonotonic()
-#                        newEdgeIdealTri.simplify()
+                        newEdgeIdealTri.simplify()
                     except BoundsDisc:
                         #TODO
                         print( "Loop bounds disc!" )

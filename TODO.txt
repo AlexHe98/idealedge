@@ -1,7 +1,4 @@
 --- Bounded orientable SFS recognition
-    --> Bug fixes
-        ->- Why does loop orientation tracking break when we run minimiseVertices() followed immediately by simplifyMonotonic()?
-        ->- Fix EdgeIdealTriangulation.simplify() so that it tracks loop orientations correctly
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
     --> Adapt the experimental code in scratch.py to implement the real algorithm
     --> etc
