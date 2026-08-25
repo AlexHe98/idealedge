@@ -8,11 +8,11 @@ are embedded as sequences of internal edges of *T*.
 
 The algorithms implemented here are underpinned by theory which was developed
 in the following joint work with *Eric Sedgwick* and *Jonathan Spreer*:
-- A practical algorithm for knot factorisation.
-    [DOI:10.4230/LIPIcs.SoCG.2025.55](https://doi.org/10.4230/LIPIcs.SoCG.2025.55)
+- A practical algorithm for knot factorisation.\
+    [DOI:10.4230/LIPIcs.SoCG.2025.55](https://doi.org/10.4230/LIPIcs.SoCG.2025.55)\
     [arXiv:2504.03942](https://arxiv.org/abs/2504.03942)
-- Practical bounded orientable Seifert fibred space recognition.
-    In preparation.
+- Practical bounded orientable Seifert fibred space recognition.\
+    *In preparation.*
 
 This source code depends on [Regina](https://regina-normal.github.io/). The
 oldest compatible version of Regina is 7.4. For users who are (for whatever
