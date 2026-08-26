@@ -1,6 +1,10 @@
 """
 Recognition of bounded orientable Seifert fibred spaces.
 """
+from idealedge import ComponentDeletedByCrushing as DelComp
+from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
+from idealedge import decomposeAlong
+from triloops import EdgeIdealTriangulation
 
 
 def recogniseSFS(tri):
@@ -73,4 +77,95 @@ class _SFSpaceRecognitionInvariants:
         self._fibres = []
         self._isBaseNonOrbl = False
         return
-    #TODO
+
+    def baseEuler(self):
+        return self._baseEuler
+
+    def addToBaseEuler( self, shift ):
+        self._baseEuler += shift
+        return
+
+    def fibres(self):
+        return self._fibres
+
+    def newFibre( self, fibre ):
+        self._fibres.append(fibre)
+        return
+
+    def isBaseNonOrientable(self):
+        return self._isBaseNonOrbl
+
+    def flagBaseNonOrientable(self):
+        self._isBaseNonOrbl = True
+        return
+
+
+def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
+    """
+    Crushes the given candidate for a vertical surface in a
+    vertically-aligned edge-ideal triangulation of a bounded orientable
+    Seifert fibred space.
+
+    This routine might detect that the drilled 3-manifold of the ambient
+    triangulation is reducible, in which case it will return None.
+
+    Otherwise, this routine returns a list consisting of the non-3-sphere,
+    non-3-ball components of the edge-ideal triangulation that results from
+    crushing. Each element of the returned list will be an instance of
+    EdgeIdealTriangulation.
+
+    The given invariants are updated in-place.
+
+    Precondition
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> surf.triangulation() must be oriented.
+    --> If edgeIdealTri is None, then CandidateSurface.recognise(surf) must
+        be CandidateSurface.VERTICAL. Otherwise, we must have
+            edgeIdealTri.weight(surf) == surf.eulerChar() > 0.
+    --> If surf has real boundary, then each of its boundary curves must be a
+        nontrivial curve in a two-triangle boundary torus.
+    --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
+        be the same as surf.triangulation(). In other words, edgeIdealTri and
+        surf should both reference the same triangulation object in memory.
+    """
+    decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
+            surf, edgeIdealTri )
+
+    # Remove all 3-sphere and 3-ball components.
+    ans = []
+    numSpheresAndBalls = delComps[DelComp.SPHERE] + delComps[DelComp.BALL]
+    for tri in decomposed:
+        if isinstance( tri, EdgeIdealTriangulation ):
+            ans.append(tri)
+        elif tri.isSphere() or tri.isBall():
+            numSpheresAndBalls += 1
+        else:
+            # We have either a closed non-3-sphere, or a bounded non-3-ball.
+            # This implies that the input drilled 3-manifold is reducible.
+            return None
+    if numSpheresAndBalls < numOrbCuts:
+        # Every cut along an orbital compression disc creates a new 2-sphere
+        # boundary component, which might or might not be capped off. If the
+        # input 3-manifold is irreducible, then the orbital compression discs
+        # should be in bijection with 3-sphere and 3-ball components.
+        return None
+    assert ( numSpheresAndBalls == numOrbCuts )
+
+    # Update the invariants.
+    invariants.addToBaseEuler( numOrbCuts +
+                              delComps[DelComp.FIBRE_TRIVIAL] +
+                              delComps[DelComp.FIBRE_PLUS] +
+                              delComps[DelComp.FIBRE_MINUS] )
+    if surf.isOrientable():
+        invariants.addToBaseEuler(-1)
+    else:
+        invariants.newFibre( (2, 1) )
+    for _ in range( delComps[DelComp.FIBRE_PLUS] ):
+        invariants.newFibre( (3, 1) )
+    for _ in range( delComps[DelComp.FIBRE_MINUS] ):
+        invariants.newFibre( (3, -1) )
+    if inconsistent:
+        invariants.flagBaseNonOrientable()
+
+    # All done!
+    return ans

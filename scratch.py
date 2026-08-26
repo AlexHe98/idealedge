@@ -16,6 +16,9 @@ from construct.sfs import orientableSFS
 from aux.tetrenum import tetRenumbering
 from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
+#TODO
+from recsfs import _crushCandidateVerticalSurface
+from recsfs import _SFSpaceRecognitionInvariants
 
 
 #TODO Make this more general.
@@ -100,82 +103,107 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
         print( "Time: {:.6f}. Crush #{}.".format(
             default_timer() - start, surfNum) )
 
-        # Crush this candidate vertical surface.
-        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(surf)
-        twists = []
-        for _ in range( delComps[ DelComp.FIBRE_PLUS ] ):
-            twists.append(1)
-        for _ in range( delComps[ DelComp.FIBRE_MINUS ] ):
-            twists.append(-1)
-        crushedDesc = "Crushed #{}".format(surfNum)
-        if not surf.isOrientable():
-            crushedDesc += " Lost (2,1)."
-        for twist in twists:
-            crushedDesc += " Lost (3,{}).".format(twist)
-        print(crushedDesc)
-        if inconsistent:
-            print( "--------------------" )
-            print( "NON-ORIENTABLE BASE!" )
-            print( "--------------------" )
-        #TODO Use numOrbCuts (number of orbital compressions).
-        #TODO Update filledHomology() and use it for sanity checking.
-        for edgeIdealTri in decomposed:
-            if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
-                try:
-                    edgeIdealTri.simplify()
-                except BoundsDisc:
-                    #TODO
-                    print( "Loop bounds disc!" )
-                else:
-                    # Try to identify the topology of edgeIdealTri.
-                    decomposedDesc = "Decomposed into fibres: "
-                    decomposedList = decomposeAlongSpheres(edgeIdealTri)
-                    for newEdgeIdealTri in decomposedList:
-                        if len(newEdgeIdealTri) != 1:
-                            decomposedDesc +=\
-                                    "N/A (piece w/ {} loops)".format(
-                                            len(newEdgeIdealTri) )
-                            continue
-
-                        # We should be able to drill and get Seifert fibre
-                        # parameters.
-                        try:
-                            newTriWithMeridian = drillMeridian(
-                                    newEdgeIdealTri[0] )
-                        except BoundsDisc:
-                            decomposedDesc += "N/A (S2 x S1); "
-                        else:
-                            newTriWithMeridian.minimiseBoundary()
-                            newTriWithMeridian.simplify()
-                            newTriWithMeridian.simplify()
-
-                            # There is only one BoundaryLoop, corresponding
-                            # to the meridian. Also, because we minimised the
-                            # boundary, the meridian is guaranteed to be
-                            # given by a single edge.
-                            newMerEdgeIndex = newTriWithMeridian[0][0]
-                            newSurf = newTriWithMeridian.triangulation().nonTrivialSphereOrDisc()
-                            if newSurf is None:
-                                decomposedDesc += "N/A (no disc); "
-                            elif newSurf.eulerChar() == 2:
-                                decomposedDesc += "unknown (found sphere); "
-                            else:
-                                decomposedDesc += "({},{}); ".format(
-                                        *fibreParams( newSurf, newMerEdgeIndex ) )
-
-                    # Format decomposedDesc correctly.
-                    decomposedDesc = decomposedDesc[:-2]
-                    print( "    " + decomposedDesc )
-                # End of try-except-else
+        # Check whether this is really a vertical surface.
+        invariants = _SFSpaceRecognitionInvariants()
+        if protoRecogniseVerticalSurf( surf, invariants ):
+            print("Base Euler: {}".format(
+                invariants.baseEuler() ) )
+            print("Fibres: {}".format(
+                sorted( invariants.fibres() ) ) )
+            if invariants.isBaseNonOrientable():
+                print("Non-orientable base")
             else:
-                print( "Component with no loops!" )
-        # End of loop through decomposed list.
+                print("Orientable base")
+        else:
+            print("NOT VERTICAL!")
 
     # All done!
     print()
     print( "Time: {:.6f}. All done!".format(
         default_timer() - start ) )
     return
+
+
+def protoRecogniseVerticalSurf( surf, invariants ):
+    toProcess = _crushCandidateVerticalSurface( surf, invariants )
+    while toProcess:
+        oldEdgeIdealTri = toProcess.pop()
+        tri = oldEdgeIdealTri.triangulation()
+
+        # Search for a suitable sphere to crush.
+        enumeration = TreeEnumeration( tri, NormalCoords.Quad )
+        while True:
+            # Get the next 2-sphere.
+            if enumeration.next():
+                sphere = enumeration.buildSurface()
+                if not isSphere(sphere):
+                    continue
+            else:
+                # No suitable 2-sphere. For now, we assume that
+                # oldEdgeIdealTri is a vertically-aligned solid torus, and
+                # try to calculate the fibre parameters.
+                try:
+                    triWithMeridian = drillMeridian( oldEdgeIdealTri[0] )
+                except BoundsDisc:
+                    # Not vertically-aligned.
+                    print( "BoundsDisc" )
+                    return False
+                else:
+                    triWithMeridian.minimiseBoundary()
+                    triWithMeridian.simplify()
+                    triWithMeridian.simplify()
+
+                    # There is only one BoundaryLoop, corresponding to the
+                    # drilled meridian. Also, because we minimised the
+                    # boundary, the drilled meridian is guaranteed to be
+                    # given by a single edge.
+                    merEdgeIndex = triWithMeridian[0][0]
+                    newSurf = triWithMeridian.triangulation().nonTrivialSphereOrDisc()
+                    if newSurf is None:
+                        print( "NO DISC" )
+                        return False
+                    elif newSurf.eulerChar() == 2:
+                        #TODO Deal with this case properly.
+                        print( "FOUND SPHERE" )
+                    else:
+                        fibre = fibreParams( newSurf, merEdgeIndex )
+                        invariants.addToBaseEuler(1)
+                        if fibre[0] > 1:
+                            invariants.newFibre(fibre)
+                break
+
+            # Does the sphere intersect the ideal loop at most twice?
+            wt = oldEdgeIdealTri.weight(sphere)
+            if wt != 2:
+                #TODO Actually do something with the following cases.
+                if wt == 0:
+                    print( "Found sphere disjoint from ideal loop!" )
+                if wt == 1:
+                    print( "Found sphere intersecting ideal loop once!" )
+
+                # Continue searching for suitable spheres.
+                continue
+
+            # See what happens if we crush.
+            decomposed = _crushCandidateVerticalSurface(
+                    sphere, invariants, oldEdgeIdealTri )
+            #TODO Update filledHomology() and use it for sanity checking.
+            for newEdgeIdealTri in decomposed:
+                try:
+                    newEdgeIdealTri.simplify()
+                except BoundsDisc:
+                    #TODO
+                    print( "Loop bounds disc!" )
+                else:
+                    toProcess.append(newEdgeIdealTri)
+
+            # Found and crushed a suitable sphere, so stop enumerating.
+            break
+        # End of enumeration loop.
+
+    # If we reach this point, then we must have started with a
+    # vertically-aligned edge-ideal triangulation.
+    return True
 
 
 def fibreParams( surf, merEdgeIndex ):
@@ -192,13 +220,13 @@ def fibreParams( surf, merEdgeIndex ):
     lowWt = surf.edgeWeight( lower.index() ).pythonValue()
     uppWt = surf.edgeWeight( upper.index() ).pythonValue()
     if merWt == lowWt + uppWt:
-        print("M=L+U")
+#        print("M=L+U")
         shift = lowWt
     elif uppWt == merWt + lowWt:
-        print("U=M+L")
+#        print("U=M+L")
         shift = -lowWt
     elif lowWt == merWt + uppWt:
-        print("L=M+U")
+#        print("L=M+U")
         shift = uppWt
     else:
         raise ValueError( "Weights don't add up." )
