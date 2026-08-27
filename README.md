@@ -1,29 +1,39 @@
-Ideal loops
------------
+Edge-ideal triangulations
+-------------------------
 
-This repository contains source code for working with *ideal loops*: loops
-that are embedded in the interior of a 3-manifold triangulation as a sequence
-of edges.
+This repository implements algorithms which rely on the notion of an
+*edge-ideal triangulation*: that is, a 3-manifold triangulation *T*
+containing a collection of distinguished loops, called *ideal loops*, which
+are embedded as sequences of internal edges of *T*.
 
-This source code depends on Regina (https://regina-normal.github.io/). The
-oldest suitable version of Regina is 7.4. For users who are (for whatever
+The algorithms implemented here are underpinned by theory which was developed
+in the following joint work with *Eric Sedgwick* and *Jonathan Spreer*:
+- A practical algorithm for knot factorisation.\
+    [DOI:10.4230/LIPIcs.SoCG.2025.55](https://doi.org/10.4230/LIPIcs.SoCG.2025.55)\
+    [arXiv:2504.03942](https://arxiv.org/abs/2504.03942)
+- Practical bounded orientable Seifert fibred space recognition.\
+    *In preparation.*
+
+This source code depends on [Regina](https://regina-normal.github.io/). The
+oldest compatible version of Regina is 7.4. For users who are (for whatever
 reason) unable to upgrade to Regina 7.4 or later, there are some comments
 throughout the code to help with porting to older versions of Regina.
 
-The rationale is that an *edge-ideal triangulation* (i.e., a triangulation
-endowed with an ideal loop) represents a 3-manifold *M* with a torus boundary
-component *B* given by deleting a small regular neighbourhood *N* of the
-ideal loop. One of the advantages of this notion is that a normal surface in
-an edge-ideal triangulation must intersect the ideal loop transversely, and
-therefore corresponds to a surface that intersects the boundary torus *B* in
-curves with a prescribed slope (specifically, the curves correspond to the
-meridian of the solid torus *N*).
+An edge-ideal triangulation represents a 3-manifold *M* which has
+"edge-ideal" torus boundary components given by drilling out each of the
+ideal loops. One of the advantages of this idea is that a normal surface in
+an edge-ideal triangulation must intersect ideal loops traversely, and must
+therefore correspond to a properly embedded surface in *M* that intersects
+the edge-ideal boundary tori in curves of a prescribed slope (namely, the
+slope of the meridian of a solid torus neighbourhood of an ideal loop).
 
 Currently, the main application is an algorithm for decomposing a knot into
-its prime summands. The output primes are always given as ideal loops, but
-the input knot is more flexible: the input could be an ideal loop, but could
-also be a Regina Link object. This knot decomposition algorithm was designed
-in joint work with *Eric Sedgwick* and *Jonathan Spreer*.
+its prime summands. The output primes are always given as edge-ideal
+triangulations, but the input knot is more flexible: the input could be an
+edge-ideal triangulation, but could also be a Regina Link object.
+
+An algorithm for recognising bounded orientable Seifert fibred spaces is
+currently in development here.
 
 The main scripts in this repository are the following:
 - ``decomposeknot.py``: Contains the decompose() routine, which implements
@@ -34,10 +44,10 @@ The main scripts in this repository are the following:
     an ideal loop.
 - ``idealedge.py``: Contains the decomposeAlong() routine, which crushes a
     normal surface, while keeping track of not just how the triangulation
-    changes, but also how the ideal loop changes.
-- ``demo.py``: Runs a live demonstration of the decomposeAlong() routine,
-    either with a randomly-generated hard diagram of a composite knot, or with
-    a user-provided knot signature.
+    changes, but also how the ideal loops change.
+- ``demo.py``: Runs a live demonstration of the decompose() routine for
+    knots, either with a randomly-generated hard diagram of a composite knot,
+    or with a user-provided knot signature.
 
 An important test of the performance of our knot decomposition algorithm is on
 hard diagrams of composite knots. Here, by *hard*, we mean that the diagram is
@@ -62,9 +72,10 @@ following scripts for running computational experiments:
 - ``experiments/knots/sigs.py``: Runs the decompose() routine on all knots
     given by knot signatures in a given dataset.
 
-One of the implementation challenges with ideal loops is keeping track of them
-as we modify a triangulation (say, through local moves, or through crushing).
-In particular, our implementations for tracking edges through local moves,
-available in the ``retriangulate/`` directory, may be of independent interest.
+One of the implementation challenges with edge-ideal triangulations is
+keeping track of the ideal loops as we modify the ambient triangulation (say,
+through local moves, or through crushing). In particular, our implementations
+for tracking edges through local moves, available in the ``retriangulate/``
+directory, may be of independent interest.
 
-— *Alex He (a.he@uqconnect.edu.au)*, 31 Jan 2026
+— *Alex He (a.he@uqconnect.edu.au)*, 25 Aug 2026
