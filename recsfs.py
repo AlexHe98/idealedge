@@ -2,9 +2,12 @@
 Recognition of bounded orientable Seifert fibred spaces.
 """
 from enum import Enum, auto
+from regina import *
+from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from idealedge import decomposeAlong
+from pinch import drillMeridian
 from triloops import EdgeIdealTriangulation
 
 
@@ -91,6 +94,9 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
         and so might be very slow for larger triangulations (although faster
         tests are used where possible).
     """
+    tri = edgeIdealTri.triangulation()
+    if not tri.isValid() or not tri.isOrientable():
+        return ManifoldProperty.NOT_FST
     #TODO
     raise NotImplementedError()
 
@@ -99,17 +105,83 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
     """
     Implementation of recogniseVerticallyAlignedSolidTorus().
 
-    If this routine returns ManifoldProperty.NOT_FST, then this is guaranteed
-    to be correct.
+    If this routine returns either ManifoldProperty.NOT_FST or
+    ManifoldProperty.REDUCIBLE, then this is guaranteed to be correct.
 
     Otherwise, this routine returns candidate fibre parameters (p, q),
     together with a normal disc D which witnesses these parameters. In this
     case, we have one of the following:
     --> If the drilled 3-manifold of edgeIdealTri is irreducible, then the
-        input is indeed a vertically-aligned solid torus.
+        input is indeed a vertically-aligned solid torus, and moreover it
+        carries a (p, q)-fibre.
     --> Otherwise, the drilled 3-manifold is not a solid torus at all, and
-        boundary-reducibility can be certified by crushing the disc D.
+        boundary-reducibility can be certified by checking whether the
+        triangulation given by crushing the disc D is either empty or
+        homeomorphic to the 3-ball.
     """
+    if ( not edgeIdealTri.triangulation().isClosed() or
+        len(edgeIdealTri) != 1 ):
+        return ManifoldProperty.NOT_FST
+
+    #TODO Maybe update drillMeridian().
+
+    # Build drilled triangulation, and look for an essential disc from which
+    # we can read off the fibre parameters.
+    drilled = drillMeridian( edgeIdealTri[0] )
+    fibre = None    #TODO Might be enough to just use while True and break
+    while fibre is None:
+        # Try really hard to simplify, since we will
+        # need to enumerate surfaces.
+        drilled.simplify()
+        simplifiedNow = True
+        while simplifiedNow:
+            simplifiedNow = drilled.simplify()
+        merEdgeIndex = drilled[0][0]
+
+        # Search for the disc. We might find other useful surfaces instead.
+        enumeration = TreeEnumeration(
+                drilled.triangulation(), NormalCoords.Quad )
+        while True:
+            if not enumeration.next():
+                # No useful surfaces. In particular, no essential disc.
+                return ManifoldProperty.NOT_FST
+            surf = enumeration.buildSurface()
+
+            # Is this a useful surface?
+            surfType = SurfaceType.recognise(surf)
+            if surfType == SurfaceType.RP3:
+                # Orientability of the 3-manifold implies that the projective
+                # plane is one-sided.
+                return ManifoldProperty.REDUCIBLE
+            elif surfType == SurfaceType.MOBIUS:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    # We don't consider a Mobius band with nontrivial
+                    # boundary curve to be a useful surface.
+                    continue
+                else:
+                    # Boundary of the Mobius band bounds a disc, so the
+                    # 3-manifold contains a (one-sided) embedded projective
+                    # plane.
+                    return ManifoldProperty.REDUCIBLE
+            elif surfType == SurfaceType.SPHERE:
+                foundMerDisc = False
+            elif surfType == SurfaceType.DISC:
+                foundMerDisc = hasOnlyNonTrivialBoundaryCurves(surf)
+            else:
+                # Any other surface is definitely not useful.
+                continue
+
+            # Process the surface.
+            if foundMerDisc:
+                #TODO
+                raise NotImplementedError()
+            else:
+                #TODO
+                raise NotImplementedError()
+            #TODO
+            raise NotImplementedError()
+        #TODO
+        raise NotImplementedError()
     #TODO
     raise NotImplementedError()
 
