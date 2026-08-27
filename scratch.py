@@ -19,6 +19,7 @@ from aux.surface import isSphere, isAnnulus
 #TODO
 from recsfs import _crushCandidateVerticalSurface
 from recsfs import _SFSpaceRecognitionInvariants
+from recsfs import ManifoldProperty
 
 
 #TODO Make this more general.
@@ -126,6 +127,9 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
 
 def protoRecogniseVerticalSurf( surf, invariants ):
     toProcess = _crushCandidateVerticalSurface( surf, invariants )
+    if toProcess == ManifoldProperty.REDUCIBLE:
+        #TODO
+        return False
     while toProcess:
         oldEdgeIdealTri = toProcess.pop()
         tri = oldEdgeIdealTri.triangulation()
@@ -146,6 +150,7 @@ def protoRecogniseVerticalSurf( surf, invariants ):
                     triWithMeridian = drillMeridian( oldEdgeIdealTri[0] )
                 except BoundsDisc:
                     # Not vertically-aligned.
+                    #TODO
                     print( "BoundsDisc" )
                     return False
                 else:
@@ -160,6 +165,7 @@ def protoRecogniseVerticalSurf( surf, invariants ):
                     merEdgeIndex = triWithMeridian[0][0]
                     newSurf = triWithMeridian.triangulation().nonTrivialSphereOrDisc()
                     if newSurf is None:
+                        #TODO
                         print( "NO DISC" )
                         return False
                     elif newSurf.eulerChar() == 2:
@@ -187,6 +193,9 @@ def protoRecogniseVerticalSurf( surf, invariants ):
             # See what happens if we crush.
             decomposed = _crushCandidateVerticalSurface(
                     sphere, invariants, oldEdgeIdealTri )
+            if decomposed == ManifoldProperty.REDUCIBLE:
+                #TODO
+                return False
             #TODO Update filledHomology() and use it for sanity checking.
             for newEdgeIdealTri in decomposed:
                 try:

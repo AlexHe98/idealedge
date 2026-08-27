@@ -1,6 +1,7 @@
 """
 Recognition of bounded orientable Seifert fibred spaces.
 """
+from enum import Enum, auto
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from idealedge import decomposeAlong
@@ -59,6 +60,41 @@ def recogniseSFS(tri):
     raise NotImplementedError()
 
 
+class ManifoldProperty(Enum):
+    """
+    An enumeration of various properties that an algorithm might prove about
+    an edge-ideal triangulation T of a 3-manifold M.
+
+    The properties are not mutually exclusive, and a 3-manifold need not
+    satisfy any of these properties at all.
+
+    At present, this enumeration includes the following properties:
+    --> REDUCIBLE   M is reducible.
+    --> NOT_FST     T is not a vertically-aligned solid torus.
+    """
+    REDUCIBLE = auto()
+    NOT_FST = auto()
+    pass
+
+
+def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
+    """
+    Determines whether the given EdgeIdealTriangulation is a
+    vertically-aligned solid torus, and if so returns the fibre parameters
+    that it carries.
+
+    If it is not a vertically-aligned solid torus, then this routine returns
+    ManifoldProperty.NOT_FST.
+
+    Warning:
+        The algorithms used in this routine rely on normal surface theory,
+        and so might be very slow for larger triangulations (although faster
+        tests are used where possible).
+    """
+    #TODO
+    raise NotImplementedError()
+
+
 class _SFSpaceRecognitionInvariants:
     """
     Internal invariants used by recogniseSFS() to help recover a complete
@@ -107,7 +143,8 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
     Seifert fibred space.
 
     This routine might detect that the drilled 3-manifold of the ambient
-    triangulation is reducible, in which case it will return None.
+    triangulation is reducible, in which case it will return
+    ManifoldProperty.REDUCIBLE.
 
     Otherwise, this routine returns a list consisting of the non-3-sphere,
     non-3-ball components of the edge-ideal triangulation that results from
@@ -141,14 +178,13 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
             numSpheresAndBalls += 1
         else:
             # We have either a closed non-3-sphere, or a bounded non-3-ball.
-            # This implies that the input drilled 3-manifold is reducible.
-            return None
+            return ManifoldProperty.REDUCIBLE
     if numSpheresAndBalls < numOrbCuts:
         # Every cut along an orbital compression disc creates a new 2-sphere
         # boundary component, which might or might not be capped off. If the
         # input 3-manifold is irreducible, then the orbital compression discs
         # should be in bijection with 3-sphere and 3-ball components.
-        return None
+        return ManifoldProperty.REDUCIBLE
     assert ( numSpheresAndBalls == numOrbCuts )
 
     # Update the invariants.
