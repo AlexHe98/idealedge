@@ -95,6 +95,25 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
     raise NotImplementedError()
 
 
+def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
+    """
+    Implementation of recogniseVerticallyAlignedSolidTorus().
+
+    If this routine returns ManifoldProperty.NOT_FST, then this is guaranteed
+    to be correct.
+
+    Otherwise, this routine returns candidate fibre parameters (p, q),
+    together with a normal disc D which witnesses these parameters. In this
+    case, we have one of the following:
+    --> If the drilled 3-manifold of edgeIdealTri is irreducible, then the
+        input is indeed a vertically-aligned solid torus.
+    --> Otherwise, the drilled 3-manifold is not a solid torus at all, and
+        boundary-reducibility can be certified by crushing the disc D.
+    """
+    #TODO
+    raise NotImplementedError()
+
+
 class _SFSpaceRecognitionInvariants:
     """
     Internal invariants used by recogniseSFS() to help recover a complete
