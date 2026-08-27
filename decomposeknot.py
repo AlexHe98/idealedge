@@ -84,7 +84,8 @@ def decompose( knot, tracker=False, insertAsChild=False ):
     if isinstance( knot, EdgeIdealTriangulation ):
         edgeIdealTri = knot.clone()
     elif isinstance( knot, Edge3 ):
-        edgeIdealTri = EdgeIdealTriangulation( IdealLoop( [knot] ).clone() )
+        edgeIdealTri = EdgeIdealTriangulation(
+                [ IdealLoop( [knot] ).clone() ] )
     else:
         if verbose:
             beforeReport = "Knot sig: {}.\n".format( knot.knotSig() )

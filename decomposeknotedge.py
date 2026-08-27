@@ -5,7 +5,6 @@ import sys
 from regina import *
 import snappy
 from decomposeknot import decompose
-from loop import IdealLoop
 
 
 if __name__ == "__main__":
@@ -18,8 +17,7 @@ if __name__ == "__main__":
     if not tri.isSphere():
         print("ERROR: Triangulation must be a 3-sphere!")
         sys.exit()
-    loop = IdealLoop( [ tri.edge(edgeIndex) ] )
-    primeLoops = decompose( loop, True )
+    primeLoops = decompose( tri.edge(edgeIndex), True )
     print()
 
     # Try to identify the summands.
