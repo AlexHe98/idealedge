@@ -395,6 +395,34 @@ class TriangulationWithEmbeddedLoops:
         """
         return False
 
+    def _splitIntoChordsImpl( self, surf ):
+        """
+        Returns the chords into which the given normal surface surf splits
+        the union of embedded loops.
+
+        For flexibility, the chords are returned in two data structures:
+        (0) A set containing all of the chords.
+        (1) A list such that item i of the list is a set of all the chords
+            arising from the loop given by self[i].
+
+        None of the ends of the returned chords will be abstractly joined
+        with any other chords.
+
+        Each NormalChord in the returned set will be oriented in the same
+        direction as the EmbeddedLoop which contains the chord.
+
+        Precondition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        ans = set()
+        chordsByLoopIndex = []
+        for embLoop in self:
+            chords = embLoop.splitIntoChords(surf)
+            ans.update(chords)
+            chordsByLoopIndex.append(chords)
+        return ans, chordsByLoopIndex
+
     def shorten(self):
         """
         Shortens the union of embedded loops by looking for triangles that
@@ -1025,12 +1053,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         --> The given normal surface is embedded in self.triangulation().
         --> self.allowsCrush(surf) must be True.
         """
-        chordsByLoopIndex = []
-        ans = set()
-        for embLoop in self:
-            chords = embLoop.splitIntoChords(surf)
-            chordsByLoopIndex.append(chords)
-            ans.update(chords)
+        ans, chordsByLoopIndex = self._splitIntoChordsImpl(surf)
 
         # If the ideal weight is 2, then we might have two chords which are
         # joined to each other after crushing.
@@ -1593,7 +1616,8 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         --> The given normal surface is embedded in self.triangulation().
         --> self.allowsCrush(surf) must be True.
         """
-        #TODO Do we actually care about the orientation promise?
+        ans, chordsByLoopIndex = self._splitIntoChordsImpl(surf)
+
         #TODO
         raise NotImplementedError()
 
