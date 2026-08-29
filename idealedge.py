@@ -4,8 +4,8 @@ Find the ideal edges after crushing a normal surface.
 from enum import Enum, auto
 from math import gcd as pythonGCD
 from regina import *
-from loop import IdealLoop  #TODO Probably need to keep this, but double-check.
-from triloops import EdgeIdealTriangulation
+from loop import IdealLoop, BoundaryLoop
+from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 from chord import pairUpChordEndsByCrushing, NormalChord
 from segment import OrientedSegment
 from aux.bdry import hasOnlyMinimalRealTorusBoundaryComponents
@@ -142,11 +142,12 @@ def decomposeAlong( surf, triWithLoops=None ):
         elif crushCase == SurfaceToCrushInSuspectedSFS.VERTICAL:
             # We have boundary chords which piece together to form new ideal
             # loops after crushing.
-            chordSequences = _buildNewLoopsFromBoundaryChords(surf)
+            chordSequences = _buildNewIdealLoopsFromBoundaryChords(surf)
         else:
             # We are crushing a 2-sphere or disc, so we don't pick up any new
             # ideal loops after crushing.
             chordSequences = []
+        buildEdgeIdeal = True
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
@@ -157,11 +158,12 @@ def decomposeAlong( surf, triWithLoops=None ):
                                "same Triangulation3 object in memory" )
         triWithLoops.checkCrushAllowed(surf)
         if isinstance( triWithLoops, EdgeIdealTriangulation ):
-            chordSequences = _buildNewLoopsFromIdealChords(
+            chordSequences = _buildNewIdealLoopsFromIdealChords(
                     surf, triWithLoops )
+            buildEdgeIdeal = True
         elif isinstance( triWithLoops, TriangulationWithBoundaryLoops ):
-            #TODO Use splitIntoChords() to calculate chordSequences
-            raise NotImplementedError()
+            chordSequences = _buildNewBoundaryLoops( surf, triWithLoops )
+            buildEdgeIdeal = False
         else:
             raise TypeError( "Unsupported type: {}".format(
                 type(triWithLoops).__name__ ) )
@@ -173,11 +175,11 @@ def decomposeAlong( surf, triWithLoops=None ):
     foundInconsistentLoop = False
     survivors = OrientedSegment.survivors(surf)
     for chordsInNewLoop, loopStatus in chordSequences:
-        if loopStatus == _IdealLoopStatus.COMPRESSED:
+        if loopStatus == _LoopStatus.COMPRESSED:
             numOrbitalCompressions += 1
             # Loop is compressed away, so no need to add it to the newLoops.
             continue
-        elif loopStatus == _IdealLoopStatus.INCONSISTENT:
+        elif loopStatus == _LoopStatus.INCONSISTENT:
             foundInconsistentLoop = True
 
         # As a consequence of the pre-condition that surf is quad vertex,
@@ -226,6 +228,9 @@ def decomposeAlong( surf, triWithLoops=None ):
                  deletedOrbitCounts[ OrbitType.TWIST_MINUS ] )
         deletedComponentCounts[ DelComp.SPHERE ] =\
                 ( deletedOrbitCounts[ OrbitType.TRIVIAL_CYCLE ] )
+
+    #TODO Only want to close up if we want to end up with IdealLoops, not
+    #   BoundaryLoops.
 
     # Find where the new ideal loops will be after first crushing, and then
     # closing up pinched boundary 2-spheres.
@@ -350,7 +355,10 @@ def decomposeAlong( surf, triWithLoops=None ):
                 orientation = 1
             else:
                 orientation = -1
-            loops.append( IdealLoop( edgeList, orientation ) )
+            if buildEdgeIdeal:
+                loops.append( IdealLoop( edgeList, orientation ) )
+            else:
+                loops.append( BoundaryLoop( edgeList, orientation ) )
 
         # If we have any loops at all, then package them all together as a
         # single EdgeIdealTriangulation. Otherwise, just add an ordinary
@@ -365,9 +373,9 @@ def decomposeAlong( surf, triWithLoops=None ):
             foundInconsistentLoop )
 
 
-class _IdealLoopStatus(Enum):
+class _LoopStatus(Enum):
     """
-    Status of a new ideal loop created by crushing a quad vertex surface.
+    Status of a new embedded loop created by crushing a quad vertex surface.
 
     This is one of the following:
     COMPRESSED      Indicates that the loop consists entirely of two type-1
@@ -387,7 +395,7 @@ class _IdealLoopStatus(Enum):
     pass
 
 
-def _buildNewLoopsFromBoundaryChords(surf):
+def _buildNewIdealLoopsFromBoundaryChords(surf):
     """
     Uses boundary chords to build the new ideal loops that would arise from
     crushing the given normal surface surf.
@@ -396,7 +404,7 @@ def _buildNewLoopsFromBoundaryChords(surf):
     a new ideal loop via a pair consisting of the following items:
     (0) A list of boundary chords, appearing in order of traversal around the
         new loop, and also oriented consistently with the order of traversal.
-    (1) A status given by _IdealLoopStatus.
+    (1) A status given by _LoopStatus.
 
     Warning:
         This routine does not check any of the pre-conditions listed below.
@@ -436,12 +444,12 @@ def _buildNewLoopsFromBoundaryChords(surf):
                 chordsInNewLoop.append(yourChord)
             if ( len(myChord) == 1 or len(yourChord) == 1 ):
                 assert chordOrientationsDisagree
-                loopStatus = _IdealLoopStatus.INCONSISTENT
+                loopStatus = _LoopStatus.INCONSISTENT
             else:
                 # In this case, we are joining two boundary chords from two
                 # different boundary tori, so the choices of orientations on
                 # the two chords are arbitrary and meaningless.
-                loopStatus = _IdealLoopStatus.CONSISTENT
+                loopStatus = _LoopStatus.CONSISTENT
             chordSequences.append( ( chordsInNewLoop, loopStatus ) )
             return chordSequences
 
@@ -454,14 +462,14 @@ def _buildNewLoopsFromBoundaryChords(surf):
     # will have a boundary chord which bounds D.
     for bdryChord in boundaryChords:
         if _boundsOrbitalCompressionDisc(bdryChord):
-            loopStatus = _IdealLoopStatus.COMPRESSED
+            loopStatus = _LoopStatus.COMPRESSED
         else:
-            loopStatus = _IdealLoopStatus.CONSISTENT
+            loopStatus = _LoopStatus.CONSISTENT
         chordSequences.append( ( [bdryChord], loopStatus ) )
     return chordSequences
 
 
-def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
+def _buildNewIdealLoopsFromIdealChords( surf, edgeIdealTri ):
     """
     Uses the ideal chords to build the new ideal loops that would arise from
     crushing the given normal surface surf.
@@ -470,7 +478,7 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     a new ideal loop via a pair consisting of the following items:
     (0) A list of normal chords, appearing in order of traversal around the
         new loop, and also oriented consistently with the order of traversal.
-    (1) A status given by _IdealLoopStatus.
+    (1) A status given by _LoopStatus.
 
     The new ideal loops described by the returned list are related to the old
     ideal loops in edgeIdealTri as follows:
@@ -507,7 +515,7 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
     while idealChords:
         currentChord = idealChords.pop()
         chordsInNewLoop = [currentChord]
-        loopStatus = _IdealLoopStatus.CONSISTENT    # Until proven otherwise.
+        loopStatus = _LoopStatus.CONSISTENT # Until proven otherwise.
         currentTailEnd = currentChord.joinedEnd(1)
         currentChord = currentChord.joinedChord(1)
         if currentChord is None:
@@ -534,7 +542,7 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
                 if currentTailEnd == 1:
                     # The current chord is oriented inconsistently with the
                     # first chord in this new loop.
-                    loopStatus = _IdealLoopStatus.INCONSISTENT
+                    loopStatus = _LoopStatus.INCONSISTENT
                     chordsInNewLoop.append( currentChord.reversed() )
                 else:
                     chordsInNewLoop.append(currentChord)
@@ -548,14 +556,65 @@ def _buildNewLoopsFromIdealChords( surf, edgeIdealTri ):
         # Check whether this loop is compressed away by an orbital
         # compression disc.
         if len(chordsInNewLoop) == 1:
-            assert loopStatus == _IdealLoopStatus.CONSISTENT
+            assert loopStatus == _LoopStatus.CONSISTENT
             if _boundsOrbitalCompressionDisc( chordsInNewLoop[0] ):
-                loopStatus = _IdealLoopStatus.COMPRESSED
+                loopStatus = _LoopStatus.COMPRESSED
 
         # Done with this loop.
         chordSequences.append( ( chordsInNewLoop, loopStatus ) )
 
     # All done!
+    return chordSequences
+
+
+def _buildNewBoundaryLoops( surf, triWithBdryLoops ):
+    """
+    Uses the boundary chords to build the new boundary loops that would arise
+    from crushing the given normal surface surf.
+
+    In detail, this routine returns a list, each of whose elements describes
+    a new boundary loop via a pair consisting of the following items:
+    (0) A list of normal chords, appearing in order of traversal around the
+        new loop, and also oriented consistently with the order of traversal.
+    (1) _LoopStatus.CONSISTENT
+    Although the _LoopStatus carries no extra information, it is included so
+    that the results of this function can be handled in a unified way with
+    the results of the _buildNewIdealLoopsFromBoundaryChords() and
+    _buildNewIdealLoopsFromIdealChords() routines.
+
+    The new boundary loops described by the returned list are related to the
+    old boundary loops in triWithBdryLoops as follows:
+    --> Old boundary loops that are disjoint from the surface will be left
+        topologically untouched. In particular, their orientations will be
+        preserved.
+    --> If the surface is incident to an old boundary loop L, then the
+        preconditions require that the surface is in fact a disc with trivial
+        boundary curve. It follows that the surface will split L into two
+        boundary chords. One of these chords will lie entirely inside a small
+        regular neighbourhood of a boundary vertex, and this chord will *not*
+        be included in this routine's returned list. The other chord will
+        necessarily consist of a single type-2 segment, and this *will* be
+        included in the returned list.
+
+    Warning:
+        This routine does not check any of the pre-conditions listed below.
+
+    Pre-condition:
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> The ambient triangulation surf.triangulation() must have minimal
+        toroidal boundary.
+    --> Both surf.triangulation() and triWithBdryLoops.triangulation() must
+        reference the same Triangulation3 object in memory.
+    --> triWithBdryLoops.allowsCrush(surf) must be True.
+    """
+    for chord in triWithBdryLoops.splitIntoChords(surf):
+        # By boundary-minimality, a boundary loop disjoint from surf yields
+        # a boundary chord consisting precisely of a single type-0 segment.
+        # The only other boundary chords we return consist of a single type-2
+        # segment, and the boundary chords we ignore consist of *two* type-1
+        # segments.
+        if len(chord) == 1:
+            chordSequences.append( ( [chord], _LoopStatus.CONSISTENT ) )
     return chordSequences
 
 

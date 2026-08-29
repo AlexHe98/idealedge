@@ -1616,10 +1616,10 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         --> The given normal surface is embedded in self.triangulation().
         --> self.allowsCrush(surf) must be True.
         """
-        ans, chordsByLoopIndex = self._splitIntoChordsImpl(surf)
-
-        #TODO
-        raise NotImplementedError()
+        ans, _ = self._splitIntoChordsImpl(surf)
+        for chord in ans:
+            chord.join( 0, chord, 1 )
+        return ans
 
     def shorten(self):
         """
