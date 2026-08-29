@@ -90,7 +90,7 @@ class ComponentDeletedByCrushing(Enum):
     pass
 
 
-def decomposeAlong( surf, edgeIdealTri=None ):
+def decomposeAlong( surf, triWithLoops=None ):
     """
     Uses crushing to decompose along surf.
 
@@ -109,9 +109,9 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     (3) A Boolean flag which is True if and only if surf is either a
         slope-reversing annulus or a fibre-reversing 2-sphere.
 
-    If edgeIdealTri is None, then SurfaceToCrushInSuspectedSFS.recognise(surf)
+    If triWithLoops is None, then SurfaceToCrushInSuspectedSFS.recognise(surf)
     must return an instance of SurfaceToCrushInSuspectedSFS. Otherwise,
-    edgeIdealTri.allowsCrush(surf) must be True. This routine raises
+    triWithLoops.allowsCrush(surf) must be True. This routine raises
     ValueError if surf does not satisfy these conditions.
 
     We also require surf to be a quadrilateral vertex normal surface, but
@@ -121,8 +121,8 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf has real boundary, then each boundary component that it meets
         must be a two-triangle torus.
-    --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
-        be the same as surf.triangulation(). In other words, edgeIdealTri and
+    --> If triWithLoops is supplied, then triWithLoops.triangulation() should
+        be the same as surf.triangulation(). In other words, triWithLoops and
         surf should both reference the same triangulation object in memory.
     """
     tri = surf.triangulation()
@@ -134,7 +134,7 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     # Compute the sequences of chords which will become new ideal loops (if
     # any) after crushing surf. Along the way, we also check that we are
     # actually allowed to crush surf.
-    if edgeIdealTri is None:
+    if triWithLoops is None:
         crushCase = SurfaceToCrushInSuspectedSFS.recognise(surf)
         if isinstance( crushCase, str ):
             # Not allowed to crush.
@@ -150,13 +150,21 @@ def decomposeAlong( surf, edgeIdealTri=None ):
     else:
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
-        if tri is not edgeIdealTri.triangulation():
+        if tri is not triWithLoops.triangulation():
             raise RuntimeError( "decomposeAlong() requires the input " +
                                "NormalSurface and the input " +
                                "EdgeIdealTriangulation to reference the " +
                                "same Triangulation3 object in memory" )
-        edgeIdealTri.checkCrushAllowed(surf)
-        chordSequences = _buildNewLoopsFromIdealChords( surf, edgeIdealTri )
+        triWithLoops.checkCrushAllowed(surf)
+        if isinstance( triWithLoops, EdgeIdealTriangulation ):
+            chordSequences = _buildNewLoopsFromIdealChords(
+                    surf, triWithLoops )
+        elif isinstance( triWithLoops, TriangulationWithBoundaryLoops ):
+            #TODO Use splitIntoChords() to calculate chordSequences
+            raise NotImplementedError()
+        else:
+            raise TypeError( "Unsupported type: {}".format(
+                type(triWithLoops).__name__ ) )
 
     # Convert chord sequences into sequences of surviving edge embeddings.
     newLoops = []

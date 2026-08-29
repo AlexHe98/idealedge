@@ -176,6 +176,8 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
                 #TODO
                 raise NotImplementedError()
             else:
+                # We have either a 2-sphere, or a disc with trivial boundary
+                # curve.
                 #TODO
                 raise NotImplementedError()
             #TODO
@@ -225,6 +227,24 @@ class _SFSpaceRecognitionInvariants:
     def flagBaseNonOrientable(self):
         self._isBaseNonOrbl = True
         return
+
+
+def _crushCandidateInessentialSphereOrDisc( surf, triWithLoops=None ):
+    """
+    Crushes the given candidate for an inessential 2-sphere or disc.
+
+    This routine might detect that the drilled 3-manifold of the ambient
+    triangulation is reducible, in which case it will return
+    ManifoldProperty.REDUCIBLE.
+
+    Otherwise, this routine returns a list consisting of the non-3-sphere
+    components of the edge-ideal triangulation that results from crushing.
+    Each element of the returned list will be an instance of either
+    EdgeIdealTriangulation, TriangulationWithBoundaryLoops, or Regina's
+    Triangulation3.
+    """
+    #TODO
+    raise NotImplementedError()
 
 
 def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):

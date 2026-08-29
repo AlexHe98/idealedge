@@ -373,6 +373,28 @@ class TriangulationWithEmbeddedLoops:
         """
         return set( self.incidentLoopWeights(surf).keys() )
 
+    def checkCrushAllowed( self, surf ):
+        """
+        Always raises ValueError because this base class does not support
+        crushing any normal surfaces.
+
+        Subclasses may override this routine to allow crushing for some or
+        all normal surfaces.
+        """
+        raise ValueError( "TriangulationWithEmbeddedLoops does not " +
+                         "support crushing any surfaces. Please use a " +
+                         "suitable subclass instead" )
+
+    def allowsCrush( self, surf ):
+        """
+        Always returns False because this base class does not support
+        crushing any normal surfaces.
+
+        Subclasses may override this routine to allow crushing for some or
+        all normal surfaces.
+        """
+        return False
+
     def shorten(self):
         """
         Shortens the union of embedded loops by looking for triangles that
@@ -1509,6 +1531,71 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         """
         super().__init__(loops)
         return
+
+    def checkCrushAllowed( self, surf ):
+        """
+        Checks that we are allowed to crush this triangulation with boundary
+        loops along the given normal surface.
+
+        This routine raises ValueError if and only if self.allowsCrush()
+        returns False.
+
+        Pre-condition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        if self.weight(surf) != 0:
+            raise ValueError( "To crush a normal surface, it must have " +
+                             "weight 0 on all boundary loops." )
+        surfType = SurfaceType.recognise(surf)
+        if surfType == SurfaceType.SPHERE:
+            # Crushing 2-spheres is always allowed.
+            return
+        elif surfType == SurfaceType.DISC:
+            if not hasOnlyNonTrivialBoundaryCurves(surf):
+                return
+            raise ValueError( "To crush along a disc, its boundary curve " +
+                             "must by trivial" )
+        raise ValueError( "With an edge-ideal triangulation, we cannot " +
+                         "crush along {}".format(surfType) )
+
+    def allowsCrush( self, surf ):
+        """
+        Are we allowed to crush this triangulation with boundary loops along
+        the given normal surface?
+
+        This routine returns True if and only if either surf is a 2-sphere,
+        or it is a disc with trivial boundary curve.
+
+        Pre-condition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        """
+        try:
+            self.checkCrushAllowed(surf)
+        except ValueError:
+            return False
+        return True
+
+    def splitIntoChords( self, surf ):
+        """
+        Returns a set containing the chords into which the given normal
+        surface surf splits the union of boundary loops.
+
+        Each returned chord will have its two ends abstractly joined to each
+        other.
+
+        Each NormalChord in the returned set will be oriented in the same
+        direction as the BoundaryLoop which contains the chord.
+
+        Precondition:
+        --> self.triangulation() is orientable.
+        --> The given normal surface is embedded in self.triangulation().
+        --> self.allowsCrush(surf) must be True.
+        """
+        #TODO Do we actually care about the orientation promise?
+        #TODO
+        raise NotImplementedError()
 
     def shorten(self):
         """
