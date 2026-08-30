@@ -116,6 +116,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
                 edgeIdealTri.triangulation().isSphere() ):
                 # We have found a trivial fibred solid torus.
                 invariants.addToBaseEuler(1)
+                continue
             else:
                 # The drilled 3-manifold of edgeIdealTri is reducible.
                 return ManifoldProperty.NOT_SFS

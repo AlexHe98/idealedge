@@ -1,5 +1,4 @@
 --- Bounded orientable SFS recognition
-    --> Find bug which is causing ``regipy scratch.py 1 1 3 1 3 1 4 3 5 -1 5 3`` to fail sometimes
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
     --> Adapt the experimental code in scratch.py to implement the real algorithm
         ->- Main algorithm
