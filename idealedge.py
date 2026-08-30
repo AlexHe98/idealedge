@@ -95,8 +95,8 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
     Builds the edge-ideal triangulations resulting from crushing surf.
 
     This routine returns a tuple consisting of the following items:
-    (0) A list of triangulated components resulting from this decomposition.
-        Each element of this list will be an instance of either
+    (0) A list of triangulated components resulting from crushing surf. Each
+        element of this list will be an instance of either
         EdgeIdealTriangulation or Regina's Triangulation3. Note that this
         routine does *not* attempt to simplify the triangulations in this
         list.
@@ -119,8 +119,8 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
 
     Precondition
     --> The given surf should be a quadrilateral vertex normal surface.
-    --> If surf has real boundary, then each boundary component that it meets
-        must be a two-triangle torus.
+    --> Each boundary component of surf.triangulation() must be a real
+        two-triangle torus.
     --> If edgeIdealTri is supplied, then edgeIdealTri.triangulation() should
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
@@ -147,7 +147,7 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
             # We are crushing a 2-sphere or disc, so we don't pick up any new
             # ideal loops after crushing.
             chordSequences = []
-    else:
+    elif isinstance( edgeIdealTri, EdgeIdealTriangulation ):
         # Enforce the precondition that the two input objects reference
         # precisely the same Triangulation3 object in memory.
         if tri is not edgeIdealTri.triangulation():
@@ -156,12 +156,11 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
                                "input EdgeIdealTriangulation to reference " +
                                "the same Triangulation3 object in memory" )
         edgeIdealTri.checkCrushAllowed(surf)
-        if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
-            chordSequences = _buildNewIdealLoopsFromIdealChords(
-                    surf, edgeIdealTri )
-        else:
-            raise TypeError( "Unsupported type: {}".format(
-                type(edgeIdealTri).__name__ ) )
+        chordSequences = _buildNewIdealLoopsFromIdealChords(
+                surf, edgeIdealTri )
+    else:
+        raise TypeError( "Unsupported type: {}".format(
+            type(edgeIdealTri).__name__ ) )
 
     # Convert chord sequences into sequences of surviving edge embeddings.
     newLoops = []
@@ -362,6 +361,140 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
             foundInconsistentLoop )
 
 
+def triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops ):
+    """
+    Builds the triangulations with boundary loops resulting from crushing
+    surf.
+
+    This routine returns a list of triangulated components resulting from
+    crushing surf. Each element of this list will be an instance of either
+    TriangulationWithBoundaryLoops or Regina's Triangulation3. Note that this
+    routine does *not* attempt to simplify the triangulations in this list.
+
+    This routine requires that triWithBdryLoops.allowsCrush(surf) is True,
+    and will raise ValueError if this requirement is not satisfied.
+
+    We also require surf to be a quadrilateral vertex normal surface, but
+    this routine does *not* check this condition.
+
+    Precondition
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> Each boundary component of surf.triangulation() must be a real
+        two-triangle torus.
+    --> triWithBdryLoops.triangulation() should be the same as
+        surf.triangulation(). In other words, triWithBdryLoops and surf
+        should both reference the same triangulation object in memory.
+    """
+    tri = surf.triangulation()
+    if not hasOnlyMinimalRealTorusBoundaryComponents(tri):
+        raise ValueError( "triangulationsWithBoundaryLoopsFromCrushing() " +
+                         "requires that the ambient triangulation only " +
+                         "has real boundary components that are " +
+                         "two-triangle tori" )
+
+    # Compute the sequences of chords which will become new boundary loops
+    # after crushing surf. Along the way, we also check that we are actually
+    # allowed to crush surf.
+    if isinstance( triWithBdryLoops, TriangulationWithBoundaryLoops ):
+        # Enforce the precondition that the two input objects reference
+        # precisely the same Triangulation3 object in memory.
+        if tri is not triWithBdryLoops.triangulation():
+            raise RuntimeError(
+                    "triangulationsWithBoundaryLoopsFromCrushing() " +
+                    "requires the input NormalSurface and the input " +
+                    "TriangulationWithBoundaryLoops to reference the same " +
+                    "Triangulation3 object in memory" )
+        triWithBdryLoops.checkCrushAllowed(surf)
+        newLoopChords = _buildNewBoundaryLoopsFromChords(
+                surf, triWithBdryLoops )
+    else:
+        raise TypeError( "Unsupported type: {}".format(
+            type(triWithBdryLoops).__name__ ) )
+
+    # Convert chord sequences into sequences of surviving edge embeddings.
+    newLoopEdgeEmbs = []
+    survivors = OrientedSegment.survivors(surf)
+    for chord in newLoopChords:
+        # The chord has length 1, so we must have either exactly 1 surviving
+        # embedding, or none at all.
+        survivingEmbs = _extractSurvivingEmbeddings( [chord], survivors )
+        if survivingEmbs:
+            newLoopEdgeEmbs.append( survivingEmbs[0] )
+
+    # Find where the new boundary loops will be after crushing.
+    doomed = [ tet for tet in surf.triangulation().tetrahedra()
+              if tetHasQuads( surf, tet.index() ) ]
+    tetIndicesAfterCrush = tetRenumbering(doomed)
+    crushed = surf.crush()
+    crushedLoopEdgeEmbs = []
+    for oldEmb in newLoopEdgeEmbs:
+        crushedTet = crushed.tetrahedron(
+                tetIndicesAfterCrush[ oldEmb.tetrahedron().index() ] )
+        crushedLoopEdgeEmbs.append(
+                EdgeEmbedding3( crushedTet, oldEmb.vertices() ) )
+
+    # Split crushed into its components.
+    if crushed.isConnected():
+        components = [crushed]
+        compLoopInfo = [[]]
+        for edgeEmb in crushedLoopEdgeEmbs:
+            compLoopInfo[0].append(
+                    ( edgeEmb.tetrahedron().index(), edgeEmb.vertices() ) )
+    else:
+        components = list( crushed.triangulateComponents() )
+
+        # Work out how tetrahedra get renumbered after splitting crushed into
+        # its components.
+        shiftedIndex = []
+        compSize = [0] * crushed.countComponents()
+        for i in range( crushed.size() ):
+            compi = crushed.tetrahedron(i).component().index()
+            shiftedIndex.append( compSize[compi] )
+            compSize[compi] += 1
+
+        # Using the renumbering that we just computed, record shifted
+        # tetrahedron indices for the boundary loops.
+        compLoopInfo = [ [] for _ in range( crushed.countComponents() ) ]
+        for edgeEmb in crushedLoopEdgeEmbs:
+            teti = edgeEmb.tetrahedron().index()
+            compi = crushed.tetrahedron(teti).component().index()
+            compLoopInfo[compi].append(
+                    ( shiftedIndex[teti], edgeEmb.vertices() ) )
+
+    # Use compLoopInfo to find the boundary loops in each component.
+    triList = []
+    for compi in range( crushed.countComponents() ):
+        tri = components[compi]
+        loopInfo = compLoopInfo[compi]
+        loops = []
+        for loopTeti, loopVertexPerm in loopInfo:
+            # To construct a BoundaryLoop, we need:
+            #   --> a list of edges, in order as we traverse the loop; and
+            #   --> an orientation, which is either +1 if the first edge of
+            #       the loop is oriented from vertex 0 to vertex 1, and -1 if
+            #       the first edge is oriented from vertex 1 to vertex 0.
+            loopTet = tri.tetrahedron(loopTeti)
+            edgeList = [ loopTet.edge(
+                loopVertexPerm[0], loopVertexPerm[1] ) ]
+            loopEdgeNum = Edge3.faceNumber(loopVertexPerm)
+            if loopVertexPerm[0] == loopTet.edgeMapping(loopEdgeNum)[0]:
+                orientation = 1
+            else:
+                orientation = -1
+            loops.append( BoundaryLoop( edgeList, orientation ) )
+
+        # If we have any loops at all, then package them all together as a
+        # single TriangulationWithBoundaryLoops. Otherwise, just add an
+        # ordinary Triangulation3 to the triList.
+        if loops:
+            triList.append( TriangulationWithBoundaryLoops(loops) )
+        else:
+            triList.append(tri)
+
+    # All done!
+    return triList
+
+
 class _IdealLoopStatus(Enum):
     """
     Status of a new ideal loop created by crushing a quad vertex surface.
@@ -556,20 +689,13 @@ def _buildNewIdealLoopsFromIdealChords( surf, edgeIdealTri ):
     return chordSequences
 
 
-def _buildNewBoundaryLoops( surf, triWithBdryLoops ):
+def _buildNewBoundaryLoopsFromChords( surf, triWithBdryLoops ):
     """
     Uses the boundary chords to build the new boundary loops that would arise
     from crushing the given normal surface surf.
 
-    In detail, this routine returns a list, each of whose elements describes
-    a new boundary loop via a pair consisting of the following items:
-    (0) A list of normal chords, appearing in order of traversal around the
-        new loop, and also oriented consistently with the order of traversal.
-    (1) _IdealLoopStatus.CONSISTENT
-    Although the _IdealLoopStatus carries no extra information, it is included so
-    that the results of this function can be handled in a unified way with
-    the results of the _buildNewIdealLoopsFromBoundaryChords() and
-    _buildNewIdealLoopsFromIdealChords() routines.
+    In detail, this routine returns a list of normal chords of length 1, each
+    of which will form a new boundary loop after crushing.
 
     The new boundary loops described by the returned list are related to the
     old boundary loops in triWithBdryLoops as follows:
@@ -596,6 +722,7 @@ def _buildNewBoundaryLoops( surf, triWithBdryLoops ):
         reference the same Triangulation3 object in memory.
     --> triWithBdryLoops.allowsCrush(surf) must be True.
     """
+    newLoopChords = []
     for chord in triWithBdryLoops.splitIntoChords(surf):
         # By boundary-minimality, a boundary loop disjoint from surf yields
         # a boundary chord consisting precisely of a single type-0 segment.
@@ -603,8 +730,8 @@ def _buildNewBoundaryLoops( surf, triWithBdryLoops ):
         # segment, and the boundary chords we ignore consist of *two* type-1
         # segments.
         if len(chord) == 1:
-            chordSequences.append( ( [chord], _IdealLoopStatus.CONSISTENT ) )
-    return chordSequences
+            newLoopChords.append(chord)
+    return newLoopChords
 
 
 def _extractSurvivingEmbeddings( chordSequence, survivors ):
