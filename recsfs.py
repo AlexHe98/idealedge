@@ -8,7 +8,7 @@ from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from idealedge import edgeIdealTriangulationsFromCrushing
 from idealedge import triangulationsWithBoundaryLoopsFromCrushing
-from pinch import drillMeridian
+from drill import drillMeridian
 from triloops import TriangulationWithEmbeddedLoops
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
@@ -99,8 +99,18 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
     tri = edgeIdealTri.triangulation()
     if not tri.isValid() or not tri.isOrientable():
         return ManifoldProperty.NOT_FST
-    #TODO
-    raise NotImplementedError()
+    ans = _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri)
+    if isinstance( ans, ManifoldProperty ):
+        return ans
+    fibreParams, disc = ans
+
+    # We have a vertically-aligned solid torus if and only if crushing the
+    # disc produces a triangulation which is either empty or homeomorphic to
+    # the 3-ball.
+    crushed = disc.crush()
+    if crushed.isEmpty() or crushed.isBall():
+        return fibreParams
+    return ManifoldProperty.REDUCIBLE
 
 
 def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
@@ -117,23 +127,20 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         input is indeed a vertically-aligned solid torus, and moreover it
         carries a (p, q)-fibre.
     --> Otherwise, the drilled 3-manifold is not a solid torus at all, and
-        boundary-reducibility can be certified by checking whether the
-        triangulation given by crushing the disc D is either empty or
-        homeomorphic to the 3-ball.
+        reducibility can be certified by checking that the triangulation
+        given by crushing the disc D is non-empty and not homeomorphic to the
+        3-ball.
     """
     if ( not edgeIdealTri.triangulation().isClosed() or
         len(edgeIdealTri) != 1 ):
         return ManifoldProperty.NOT_FST
 
-    #TODO Maybe update drillMeridian().
-
     # Build drilled triangulation, and look for an essential disc from which
     # we can read off the fibre parameters.
     drilled = drillMeridian( edgeIdealTri[0] )
-    fibre = None    #TODO Might be enough to just use while True and break
-    while fibre is None:
-        # Try really hard to simplify, since we will
-        # need to enumerate surfaces.
+    while True:
+        # Try really hard to simplify, since we will need to enumerate quad
+        # vertex surfaces
         drilled.simplify()
         simplifiedNow = True
         while simplifiedNow:
@@ -144,6 +151,8 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         enumeration = TreeEnumeration(
                 drilled.triangulation(), NormalCoords.Quad )
         while True:
+            # We are enumerating finitely many surfaces, so we must
+            # eventually break out of this loop.
             if not enumeration.next():
                 # No useful surfaces. In particular, no essential disc.
                 return ManifoldProperty.NOT_FST
@@ -175,19 +184,60 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
 
             # Process the surface.
             if foundMerDisc:
-                #TODO
-                raise NotImplementedError()
+                # Read off fibre parameters.
+                p, q = _fibreParameters( surf, drilled )
+                if p == 0:
+                    return ManifoldProperty.NOT_FST
+                return ( (p, q), surf )
             else:
                 # We have either a 2-sphere, or a disc with trivial boundary
                 # curve.
-                #TODO
-                raise NotImplementedError()
-            #TODO
-            raise NotImplementedError()
-        #TODO
-        raise NotImplementedError()
-    #TODO
-    raise NotImplementedError()
+                crushAns = _crushCandidateInessentialSphereOrDisc(
+                        surf, drilled )
+                if crushAns == ManifoldProperty.REDUCIBLE:
+                    return ManifoldProperty.REDUCIBLE
+
+                # At this point, we should have a new drilled triangulation
+                # with strictly fewer tetrahedra than before. Restart the
+                # normal surface enumeration with this new triangulation.
+                drilled = crushAns
+                break
+    raise AssertionError( "_recogniseVerticallyAlignedSolidTorusImpl() " +
+                         "should never reach this point" )
+
+
+def _fibreParameters( disc, drilled ):
+    """
+    Uses the given meridional disc to read off the Seifert fibre parameters
+    carried by the given drilled triangulation.
+
+    This routine assumes that drilled is a TriangulationWithBoundaryLoops
+    whose boundary consists of exactly one real two-triangle torus, which
+    contains exactly one BoundaryLoop (of length 1).
+    """
+    merWt = drilled.weight(disc)
+    if merWt == 0:
+        return (0, 1)
+    merEdge = drilled.triangulation().edge( drilled[0][0] )
+    front = merEdge.front()
+    ver = front.vertices()
+    tet = front.tetrahedron()
+    lower = tet.edge( ver[0], ver[2] )
+    upper = tet.edge( ver[1], ver[2] )
+    lowWt = surf.edgeWeight( lower.index() ).pythonValue()
+    uppWt = surf.edgeWeight( upper.index() ).pythonValue()
+    if merWt == lowWt + uppWt:
+        shift = lowWt
+    elif uppWt == merWt + lowWt:
+        shift = -lowWt
+    elif lowWt == merWt + uppWt:
+        shift = uppWt
+    else:
+        raise ValueError( "Weights don't add up." )
+    q = shift % merWt
+    if q > merWt // 2:
+        q -= merWt
+    return ( merWt, q )
 
 
 class _SFSpaceRecognitionInvariants:

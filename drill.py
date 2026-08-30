@@ -1,5 +1,5 @@
 """
-Pinch an ideal loop without forgetting the meridian.
+Drill out an ideal loop without forgetting the meridian.
 """
 from regina import *
 from loop import BoundaryLoop
