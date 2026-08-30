@@ -4,7 +4,7 @@ Decompose knots into prime knots.
 from sys import stdout
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong
+from idealedge import edgeIdealTriangulationsFromCrushing
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
 from knotted import isKnotted, knownHyperbolic
@@ -390,8 +390,9 @@ def _enumerateParallel( oldEdgeIdealTri, tracker ):
         # the 3-sphere, orbital compression discs and deleted components
         # correspond to either 3-spheres or edge-ideal triangulations of
         # unknots, so we can ignore all of the extra bookkeeping.
-        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
+        decomposed, numOrbCuts, delComps, inconsistent =\
+                edgeIdealTriangulationsFromCrushing(
+                        sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
         newEdgeIdealKnots = []
         for edgeIdealTri in decomposed:
             if isinstance( edgeIdealTri, EdgeIdealTriangulation ):
@@ -473,8 +474,8 @@ def _indefiniteEnumerate( receiver, sender ):
         # the 3-sphere, orbital compression discs and deleted components
         # correspond to either 3-spheres or edge-ideal triangulations of
         # unknots, so we can ignore all of the extra bookkeeping.
-        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                sphere, edgeIdealTri )
+        decomposed, numOrbCuts, delComps, inconsistent =\
+                edgeIdealTriangulationsFromCrushing( sphere, edgeIdealTri )
         newBlueprints = []
         for newEdgeIdealTri in decomposed:
             if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
@@ -550,8 +551,9 @@ def _enumerateSerial( oldEdgeIdealTri, tracker ):
         # the 3-sphere, orbital compression discs and deleted components
         # correspond to either 3-spheres or edge-ideal triangulations of
         # unknots, so we can ignore all of the extra bookkeeping.
-        decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
+        decomposed, numOrbCuts, delComps, inconsistent =\
+                edgeIdealTriangulationsFromCrushing(
+                        sphere, EdgeIdealTriangulation( [oldEdgeIdealTri] ) )
         newEdgeIdealKnots = []
         for edgeIdealTri in decomposed:
             if isinstance( edgeIdealTri, EdgeIdealTriangulation ):

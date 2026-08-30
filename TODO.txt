@@ -1,5 +1,5 @@
 --- Bounded orientable SFS recognition
-    --> Extend decomposeAlong() to drilled triangulations represented as TriangulationWithBoundaryLoops objects
+    --> Implement triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops )
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
     --> Adapt the experimental code in scratch.py to implement the real algorithm
         ->- Crushing 2-spheres and discs

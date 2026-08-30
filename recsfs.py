@@ -6,7 +6,7 @@ from regina import *
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
-from idealedge import decomposeAlong
+from idealedge import edgeIdealTriangulationsFromCrushing
 from pinch import drillMeridian
 from triloops import EdgeIdealTriangulation
 
@@ -276,8 +276,8 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
         be the same as surf.triangulation(). In other words, edgeIdealTri and
         surf should both reference the same triangulation object in memory.
     """
-    decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-            surf, edgeIdealTri )
+    decomposed, numOrbCuts, delComps, inconsistent =\
+            edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri )
 
     # Remove all 3-sphere and 3-ball components.
     ans = []

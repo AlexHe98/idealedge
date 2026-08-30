@@ -4,7 +4,8 @@ Scratch work for ideal edges.
 from sys import argv
 from timeit import default_timer
 from regina import *
-from idealedge import decomposeAlong, newIdealLoopEmbs, fillIdealEdges
+from idealedge import edgeIdealTriangulationsFromCrushing
+from idealedge import newIdealLoopEmbs, fillIdealEdges
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from loop import IdealLoop, BoundsDisc
@@ -286,8 +287,9 @@ def decomposeAlongSpheres(edgeIdealTri):
                 continue
 
             # See what happens if we crush.
-            decomposed, numOrbCuts, delComps, inconsistent = decomposeAlong(
-                    sphere, oldEdgeIdealTri )
+            decomposed, numOrbCuts, delComps, inconsistent =\
+                    edgeIdealTriangulationsFromCrushing(
+                            sphere, oldEdgeIdealTri )
             twists = []
             for _ in range( delComps[ DelComp.FIBRE_PLUS ] ):
                 twists.append(1)
