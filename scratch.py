@@ -19,7 +19,7 @@ from aux.quad import tetHasQuads
 from aux.surface import isSphere, isAnnulus
 #TODO
 from recsfs import _crushCandidateVerticalSurface
-from recsfs import _SFSpaceRecognitionInvariants
+from recsfs import _SFSpaceInvariants
 from recsfs import _recogniseVerticallyAlignedSolidTorusImpl
 from recsfs import ManifoldProperty
 
@@ -107,7 +107,7 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
             default_timer() - start, surfNum) )
 
         # Check whether this is really a vertical surface.
-        invariants = _SFSpaceRecognitionInvariants()
+        invariants = _SFSpaceInvariants()
         if protoRecogniseVerticalSurf( surf, invariants ):
             print("Base Euler: {}".format(
                 invariants.baseEuler() ) )
@@ -155,7 +155,7 @@ def protoRecogniseVerticalSurf( surf, invariants ):
                 fibre, _ = ans
                 invariants.addToBaseEuler(1)
                 if fibre[0] > 1:
-                    invariants.newFibre(fibre)
+                    invariants.newFibre( SFSFibre(*fibre) )
                 break
 
             # Does the sphere intersect the ideal loop at most twice?

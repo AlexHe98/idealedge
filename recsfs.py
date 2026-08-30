@@ -74,9 +74,10 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
     Given a candidate vertical surface, attempts to determine whether the
     ambient triangulation is a bounded orientable Seifert fibred space.
 
-    If recognition succeeds, then this routine returns a Seifert fibration.
-    In particular, recognition is guaranteed to succeed if surf is vertical
-    with respect to *some* Seifert fibration on surf.triangulation().
+    If recognition succeeds, then this routine returns an instance of
+    Regina's SFSpace. In particular, recognition is guaranteed to succeed if
+    surf is vertical with respect to *some* Seifert fibration on
+    surf.triangulation().
 
     Otherwise, this routine returns either:
     --> ManifoldProperty.NOT_SFS, which certifies that surf.triangulation()
@@ -91,9 +92,34 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
     --> surf.triangulation() is oriented, has nonempty boundary, and every
         boundary component is a real two-triangle torus.
     """
-    tri = surf.triangulation()
-    #TODO
-    raise NotImplementedError()
+    invariants = _SFSpaceInvariants
+    toProcess = _crushCandidateVerticalSurface( surf, invariants )
+    if toProcess == ManifoldProperty.REDUCIBLE:
+        return ManifoldProperty.NOT_SFS
+
+    # At this point, toProcess is a list of EdgeIdealTriangulation objects
+    # which require further processing.
+    while toProcess:
+        #TODO
+        raise NotImplementedError()
+
+    # We have emptied out toProcess, which means that the invariants carry
+    # a complete description of a Seifert fibration.
+    numBdries = surf.triangulation().countBoundaryComponents()
+    genus = 2 - invariants.baseEuler() - numBdries
+    #TODO When Regina's SFSpace is overhauled to use BundleType instead of
+    #   Class, we should replace Class.bo1 and Class.bn2 with BundleType.o1
+    #   and BundleType.n2, respectively.
+    if invariants.isBaseNonOrientable():
+        baseClass = SFSpace.Class.bn2
+    else:
+        baseClass = SFSpace.Class.bo1
+        assert ( genus % 2 == 0 )
+        genus //= 2
+    fibration = SFSpace( baseClass, genus, numBdries )
+    for fibre in invariants.fibres():
+        fibration.insertFibre(fibre)
+    return fibration
 
 
 class ManifoldProperty(Enum):
@@ -107,9 +133,12 @@ class ManifoldProperty(Enum):
     At present, this enumeration includes the following properties:
     --> REDUCIBLE   M is reducible.
     --> NOT_FST     T is not a vertically-aligned solid torus.
+    --> NOT_SFS     T is not a vertically-aligned triangulation of a
+                    Seifert fibred space
     """
     REDUCIBLE = auto()
     NOT_FST = auto()
+    NOT_SFS = auto()
     pass
 
 
@@ -274,7 +303,7 @@ def _fibreParameters( disc, drilled ):
     return ( merWt, q )
 
 
-class _SFSpaceRecognitionInvariants:
+class _SFSpaceInvariants:
     """
     Internal invariants used by recogniseSFS() to help recover a complete
     description of a Seifert fibration.
@@ -294,23 +323,52 @@ class _SFSpaceRecognitionInvariants:
         return
 
     def baseEuler(self):
+        """
+        Returns the Euler characteristic of the base surface.
+        """
         return self._baseEuler
 
     def addToBaseEuler( self, shift ):
+        """
+        Adds the given (possibly negative) value to self.baseEuler().
+        """
         self._baseEuler += shift
         return
 
     def fibres(self):
+        """
+        Returns the list of exceptional fibres.
+
+        Each element of the returned list will be an instance f of Regina's
+        SFSFibre with f.alpha >= 2.
+
+        Warning:
+            Modifying the returned list will invalidate the invariants which
+            are being tracked by this object.
+        """
         return self._fibres
 
     def newFibre( self, fibre ):
+        """
+        Adds the given new fibre to self.fibres().
+
+        The given fibre must be an instance of Regina's SFSFibre such that
+        fibre.alpha >= 2.
+        """
         self._fibres.append(fibre)
         return
 
     def isBaseNonOrientable(self):
+        """
+        Returns a Boolean flag which is True if and only if the base surface
+        is known to be non-orientable.
+        """
         return self._isBaseNonOrbl
 
     def flagBaseNonOrientable(self):
+        """
+        Sets self.isBaseNonOrientable() to True.
+        """
         self._isBaseNonOrbl = True
         return
 
@@ -431,11 +489,11 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
     if surf.isOrientable():
         invariants.addToBaseEuler(-1)
     else:
-        invariants.newFibre( (2, 1) )
+        invariants.newFibre( SFSFibre(2, 1) )
     for _ in range( delComps[DelComp.FIBRE_PLUS] ):
-        invariants.newFibre( (3, 1) )
+        invariants.newFibre( SFSFibre(3, 1) )
     for _ in range( delComps[DelComp.FIBRE_MINUS] ):
-        invariants.newFibre( (3, -1) )
+        invariants.newFibre( SFSFibre(3, -1) )
     if inconsistent:
         invariants.flagBaseNonOrientable()
 
