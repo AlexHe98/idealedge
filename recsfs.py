@@ -24,6 +24,8 @@ def recogniseSFS(tri):
     This routine requires that tri is bounded and orientable, and raises
     ValueError if these conditions are not satisfied.
 
+    This routine does not modify tri.
+
     Warning:
         The algorithms used in this routine rely on normal surface theory,
         and so might be very slow for larger triangulations (although faster
@@ -52,16 +54,45 @@ def recogniseSFS(tri):
         # Boundary components must all be tori to have a Seifert fibration.
         if ( bc.eulerChar() != 0 ) or ( not bc.isOrientable() ):
             return None
-    tri.minimiseBoundary()
+    orientedTri = Triangulation3(tri)
+    orientedTri.minimiseBoundary()
+    orientedTri.orient()
 
-    # We now have a boundary-minimal triangulation of an orientable
-    # 3-manifold whose boundary is a non-empty union of tori. This is where
-    # the real work begins.
+    # We now have an oriented boundary-minimal triangulation of a 3-manifold
+    # whose boundary is a non-empty union of tori. This is where the real
+    # work begins.
 
     #TODO Start with combinatorial recognition, and only fall back on normal
     #   surfaces and edge-ideal triangulations if this fails.
     #TODO Introduce a separate function which doesn't use combinatorial
     #   recognition, since this is what we want to experiment on.
+    raise NotImplementedError()
+
+
+def _recogniseSFSGivenCandidateVerticalSurface(surf):
+    """
+    Given a candidate vertical surface, attempts to determine whether the
+    ambient triangulation is a bounded orientable Seifert fibred space.
+
+    If recognition succeeds, then this routine returns a Seifert fibration.
+    In particular, recognition is guaranteed to succeed if surf is vertical
+    with respect to *some* Seifert fibration on surf.triangulation().
+
+    Otherwise, this routine returns either:
+    --> ManifoldProperty.NOT_SFS, which certifies that surf.triangulation()
+        does not admit any Seifert fibration; or
+    --> None, which certifies that there is no Seifert fibration such that
+        surf is vertical (although it is possible that some other Seifert
+        fibration exists).
+
+    Precondition
+    --> The given surf is a quadrilateral vertex normal surface.
+    --> CandidateSurface.recognise(surf) must be CandidateSurface.VERTICAL.
+    --> surf.triangulation() is oriented, has nonempty boundary, and every
+        boundary component is a real two-triangle torus.
+    """
+    tri = surf.triangulation()
+    #TODO
     raise NotImplementedError()
 
 
@@ -303,7 +334,7 @@ def _crushCandidateInessentialSphereOrDisc( surf, triWithLoops=None ):
         TriangulationWithBoundaryLoops or Regina's Triangulation3.
 
     Precondition
-    --> The given surf should be a quadrilateral vertex normal surface.
+    --> The given surf is a quadrilateral vertex normal surface.
     --> Either the given surf is a 2-sphere, or it is disc with trivial
         boundary curve.
     --> surf.triangulation() must be oriented, and each boundary component
@@ -359,7 +390,7 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
     The given invariants are updated in-place.
 
     Precondition
-    --> The given surf should be a quadrilateral vertex normal surface.
+    --> The given surf is a quadrilateral vertex normal surface.
     --> surf.triangulation() must be oriented.
     --> If edgeIdealTri is None, then CandidateSurface.recognise(surf) must
         be CandidateSurface.VERTICAL. Otherwise, we must have
