@@ -20,6 +20,7 @@ from aux.surface import isSphere, isAnnulus
 #TODO
 from recsfs import _crushCandidateVerticalSurface
 from recsfs import _SFSpaceRecognitionInvariants
+from recsfs import _recogniseVerticallyAlignedSolidTorusImpl
 from recsfs import ManifoldProperty
 
 
@@ -144,39 +145,17 @@ def protoRecogniseVerticalSurf( surf, invariants ):
                 if not isSphere(sphere):
                     continue
             else:
-                # No suitable 2-sphere. For now, we assume that
-                # oldEdgeIdealTri is a vertically-aligned solid torus, and
-                # try to calculate the fibre parameters.
-                try:
-                    triWithMeridian = drillMeridian( oldEdgeIdealTri[0] )
-                except BoundsDisc:
-                    # Not vertically-aligned.
+                # No suitable 2-sphere. Do we have a vertically-aligned solid
+                # torus?
+                ans = _recogniseVerticallyAlignedSolidTorusImpl(
+                        oldEdgeIdealTri )
+                if isinstance( ans, ManifoldProperty ):
                     #TODO
-                    print( "BoundsDisc" )
                     return False
-                else:
-                    triWithMeridian.minimiseBoundary()
-                    triWithMeridian.simplify()
-                    triWithMeridian.simplify()
-
-                    # There is only one BoundaryLoop, corresponding to the
-                    # drilled meridian. Also, because we minimised the
-                    # boundary, the drilled meridian is guaranteed to be
-                    # given by a single edge.
-                    merEdgeIndex = triWithMeridian[0][0]
-                    newSurf = triWithMeridian.triangulation().nonTrivialSphereOrDisc()
-                    if newSurf is None:
-                        #TODO
-                        print( "NO DISC" )
-                        return False
-                    elif newSurf.eulerChar() == 2:
-                        #TODO Deal with this case properly.
-                        print( "FOUND SPHERE" )
-                    else:
-                        fibre = fibreParams( newSurf, merEdgeIndex )
-                        invariants.addToBaseEuler(1)
-                        if fibre[0] > 1:
-                            invariants.newFibre(fibre)
+                fibre, _ = ans
+                invariants.addToBaseEuler(1)
+                if fibre[0] > 1:
+                    invariants.newFibre(fibre)
                 break
 
             # Does the sphere intersect the ideal loop at most twice?
@@ -214,37 +193,6 @@ def protoRecogniseVerticalSurf( surf, invariants ):
     # If we reach this point, then we must have started with a
     # vertically-aligned edge-ideal triangulation.
     return True
-
-
-def fibreParams( surf, merEdgeIndex ):
-    # Use boundary edge weights of the disc to calculate
-    # Seifert parameters.
-    drilled = surf.triangulation()
-    merWt = surf.edgeWeight(merEdgeIndex).pythonValue()
-    merEdge = drilled.edge(merEdgeIndex)
-    front = merEdge.front()
-    ver = front.vertices()
-    tet = front.tetrahedron()
-    lower = tet.edge( ver[0], ver[2] )
-    upper = tet.edge( ver[1], ver[2] )
-    lowWt = surf.edgeWeight( lower.index() ).pythonValue()
-    uppWt = surf.edgeWeight( upper.index() ).pythonValue()
-    if merWt == lowWt + uppWt:
-#        print("M=L+U")
-        shift = lowWt
-    elif uppWt == merWt + lowWt:
-#        print("U=M+L")
-        shift = -lowWt
-    elif lowWt == merWt + uppWt:
-#        print("L=M+U")
-        shift = uppWt
-    else:
-        raise ValueError( "Weights don't add up." )
-    #q = pow( shift, -1, merWt )
-    q = shift % merWt
-    if q > merWt // 2:
-        q -= merWt
-    return ( merWt, q )
 
 
 def decomposeAlongSpheres(edgeIdealTri):

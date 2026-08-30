@@ -137,7 +137,10 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
 
     # Build drilled triangulation, and look for an essential disc from which
     # we can read off the fibre parameters.
-    drilled = drillMeridian( edgeIdealTri[0] )
+    try:
+        drilled = drillMeridian( edgeIdealTri[0] )
+    except BoundsDisc:
+        return ManifoldProperty.NOT_FST
     while True:
         # Try really hard to simplify, since we will need to enumerate quad
         # vertex surfaces
@@ -224,8 +227,8 @@ def _fibreParameters( disc, drilled ):
     tet = front.tetrahedron()
     lower = tet.edge( ver[0], ver[2] )
     upper = tet.edge( ver[1], ver[2] )
-    lowWt = surf.edgeWeight( lower.index() ).pythonValue()
-    uppWt = surf.edgeWeight( upper.index() ).pythonValue()
+    lowWt = disc.edgeWeight( lower.index() ).pythonValue()
+    uppWt = disc.edgeWeight( upper.index() ).pythonValue()
     if merWt == lowWt + uppWt:
         shift = lowWt
     elif uppWt == merWt + lowWt:
