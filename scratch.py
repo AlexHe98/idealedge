@@ -10,7 +10,6 @@ from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
-from drill import drillMeridian
 from wedge import NonSurvivingTriangularOrbitType as OrbitType
 from wedge import nonSurvivingTriangularOrbitCounts as orbitCounts
 from construct.sfs import orientableSFS

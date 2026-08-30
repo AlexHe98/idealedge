@@ -100,8 +100,125 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
     # At this point, toProcess is a list of EdgeIdealTriangulation objects
     # which require further processing.
     while toProcess:
-        #TODO
-        raise NotImplementedError()
+        edgeIdealTri = toProcess.pop()
+
+        # Try really hard to simplify, since we will need to enumerate quad
+        # vertex surfaces
+        try:
+            edgeIdealTri.simplify()
+            simplifiedNow = True
+            while simplifiedNow:
+                simplifiedNow = edgeIdealTri.simplify()
+        except BoundsDisc:
+            if ( len(edgeIdealTri) == 1 and
+                edgeIdealTri.triangulation().isSphere() ):
+                # We have found a trivial fibred solid torus.
+                invariants.addToBaseEuler(1)
+            else:
+                # The drilled 3-manifold of edgeIdealTri is reducible.
+                return ManifoldProperty.NOT_SFS
+
+        # Search for a surface we can crush.
+        enumeration = TreeEnumeration(
+                edgeIdealTri.triangulation(), NormalCoords.Quad )
+        while True:
+            # We are enumerating finitely many surfaces, so we must
+            # eventually break out of this loop.
+            if not enumeration.next():
+                # No candidate vertical surfaces, so either edgeIdealTri is a
+                # vertically-aligned solid torus, or it isn't
+                # vertically-aligned at all.
+                fstAns = _recogniseVerticallyAlignedSolidTorusImpl(
+                        edgeIdealTri )
+                if fstAns == ManifoldProperty.REDUCIBLE:
+                    return ManifoldProperty.NOT_SFS
+                elif fstAns == ManifoldProperty.NOT_FST:
+                    return None
+
+                # We have found a fibred solid torus.
+                fibreParams, _ = fstAns
+                invariants.addToBaseEuler(1)
+                if fibreParams[0] > 1:
+                    invariants.newFibre( SFSFibre(*fibreParams) )
+                break
+            surf = enumeration.buildSurface()
+
+            # Is this a useful surface?
+            surfType = SurfaceType.recognise(surf)
+            wt = edgeIdealTri.weight(surf)
+            if surfType == SurfaceType.RP3:
+                if wt == 0:
+                    # Orientability of the 3-manifold implies that the
+                    # projective plane is one-sided.
+                    return ManifoldProperty.NOT_SFS
+                elif wt == 1:
+                    # This surf restricts to a candidate vertical Mobius
+                    # band.
+                    foundCandidateVertical = True
+                else:
+                    # We do not work with higher weights.
+                    continue
+            elif surfType == SurfaceType.DISC:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    if wt == 0:
+                        # The drilled 3-manifold is reducible.
+                        return ManifoldProperty.NOT_SFS
+                    elif wt == 1:
+                        # This surf restricts to a candidate vertical
+                        # annulus.
+                        foundCandidateVertical = True
+                    else:
+                        # We do not work with higher weights.
+                        continue
+                else:
+                    #TODO Check the theory in this case.
+                    if wt == 0:
+                        # If the drilled 3-manifold is Seifert fibred, then
+                        # surf should be an inessential disc.
+                        foundCandidateVertical = False
+                    elif wt == 1:
+                        # The drilled 3-manifold is reducible.
+                        return ManifoldProperty.NOT_SFS
+                    else:
+                        # We do not work with higher weights.
+                        continue
+            elif surfType == SurfaceType.SPHERE:
+                if wt == 0:
+                    # If the drilled 3-manifold is Seifert fibred, then surf
+                    # should be an inessential 2-sphere.
+                    foundCandidateVertical = False
+                elif wt == 1:
+                    #TODO Check the theory in this case.
+                    if ( ( len(edgeIdealTri) > 1 ) or
+                        ( not edgeIdealTri.triangulation().isClosed() ) ):
+                        # The drilled 3-manifold is reducible.
+                        return ManifoldProperty.NOT_SFS
+                    else:
+                        # This edgeIdealTri is definitely not
+                        # vertically-aligned.
+                        return None
+                elif wt == 2:
+                    # This surf restricts to a candidate vertical annulus.
+                    foundCandidateVertical = True
+                else:
+                    # We do not work with higher weights.
+                    continue
+            else:
+                # Any other surface is definitely not useful.
+                continue
+
+            # Process the surface.
+            if foundCandidateVertical:
+                crushAns = _crushCandidateVerticalSurface(
+                        surf, invariants, edgeIdealTri )
+                #TODO
+                raise NotImplementedError()
+            else:
+                crushAns = _crushCandidateInessentialSphereOrDisc(
+                        surf, edgeIdealTri )
+                #TODO
+                raise NotImplementedError()
+        # End of enumeration loop.
 
     # We have emptied out toProcess, which means that the invariants carry
     # a complete description of a Seifert fibration.
@@ -204,10 +321,14 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
     while True:
         # Try really hard to simplify, since we will need to enumerate quad
         # vertex surfaces
-        drilled.simplify()
-        simplifiedNow = True
-        while simplifiedNow:
-            simplifiedNow = drilled.simplify()
+        try:
+            # Need to make sure we have minimal boundary.
+            drilled.minimiseBoundary()
+            simplifiedNow = True
+            while simplifiedNow:
+                simplifiedNow = drilled.simplify()
+        except BoundsDisc:
+            return ManifoldProperty.NOT_FST
         merEdgeIndex = drilled[0][0]
 
         # Search for the disc. We might find other useful surfaces instead.
@@ -265,6 +386,8 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
                 # normal surface enumeration with this new triangulation.
                 drilled = crushAns
                 break
+        # End of enumeration loop.
+    # End of loop processing drilled triangulations.
     raise AssertionError( "_recogniseVerticallyAlignedSolidTorusImpl() " +
                          "should never reach this point" )
 
