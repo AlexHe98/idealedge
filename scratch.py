@@ -19,7 +19,7 @@ from aux.surface import isSphere, isAnnulus
 #TODO
 from recsfs import _crushCandidateVerticalSurface
 from recsfs import _SFSpaceInvariants
-from recsfs import _recogniseVerticallyAlignedSolidTorusImpl
+from recsfs import _recogniseSFSGivenCandidateVerticalSurface
 from recsfs import ManifoldProperty
 
 
@@ -73,7 +73,7 @@ def filledHomology(annulus):
     return AbelianGroup( MatrixInt(presentation) )
 
 
-def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
+def crushCandidateVerticalSurfaces( tri, threshold=30 ):
     """
     Crushes all candidate vertical surfaces in the given list of quad vertex
     normal surfaces.
@@ -92,106 +92,42 @@ def crushCandidateVerticalSurfaces( surfaces, threshold=30 ):
         two-triangle torus.
     """
     start = default_timer()
-    annulusCount = 0
-    for surfNum, surf in enumerate(surfaces):
+    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
+    surfNum = -1
+    while True:
+        if not enumeration.next():
+            print( "Exhausted all surfaces!" )
+            return
+        surf = enumeration.buildSurface()
+        surfNum += 1
         if CandidateSurface.recognise(surf) != CandidateSurface.VERTICAL:
             continue
         thin = surf.isThinEdgeLink()
         if thin[0] is not None:
             # Don't bother with thin edge links.
             continue
-        annulusCount += 1
         print()
         print( "Time: {:.6f}. Crush #{}.".format(
             default_timer() - start, surfNum) )
 
         # Check whether this is really a vertical surface.
-        invariants = _SFSpaceInvariants()
-        if protoRecogniseVerticalSurf( surf, invariants ):
-            print("Base Euler: {}".format(
-                invariants.baseEuler() ) )
-            print("Fibres: {}".format(
-                sorted( invariants.fibres() ) ) )
-            if invariants.isBaseNonOrientable():
-                print("Non-orientable base")
-            else:
-                print("Orientable base")
-        else:
+        ans = _recogniseSFSGivenCandidateVerticalSurface(surf)
+        if ans is None:
             print("NOT VERTICAL!")
+        elif isinstance( ans, SFSpace ):
+            print(ans)
+            return
+        elif ans == ManifoldProperty.NOT_SFS:
+            print("NOT SFS!")
+            return
+        else:
+            raise AssertionError( "This should never occur!" )
 
     # All done!
     print()
     print( "Time: {:.6f}. All done!".format(
         default_timer() - start ) )
     return
-
-
-def protoRecogniseVerticalSurf( surf, invariants ):
-    toProcess = _crushCandidateVerticalSurface( surf, invariants )
-    if toProcess == ManifoldProperty.REDUCIBLE:
-        #TODO
-        return False
-    while toProcess:
-        oldEdgeIdealTri = toProcess.pop()
-        tri = oldEdgeIdealTri.triangulation()
-
-        # Search for a suitable sphere to crush.
-        enumeration = TreeEnumeration( tri, NormalCoords.Quad )
-        while True:
-            # Get the next 2-sphere.
-            if enumeration.next():
-                sphere = enumeration.buildSurface()
-                if not isSphere(sphere):
-                    continue
-            else:
-                # No suitable 2-sphere. Do we have a vertically-aligned solid
-                # torus?
-                ans = _recogniseVerticallyAlignedSolidTorusImpl(
-                        oldEdgeIdealTri )
-                if isinstance( ans, ManifoldProperty ):
-                    #TODO
-                    return False
-                fibre, _ = ans
-                invariants.addToBaseEuler(1)
-                if fibre[0] > 1:
-                    invariants.newFibre( SFSFibre(*fibre) )
-                break
-
-            # Does the sphere intersect the ideal loop at most twice?
-            wt = oldEdgeIdealTri.weight(sphere)
-            if wt != 2:
-                #TODO Actually do something with the following cases.
-                if wt == 0:
-                    print( "Found sphere disjoint from ideal loop!" )
-                if wt == 1:
-                    print( "Found sphere intersecting ideal loop once!" )
-
-                # Continue searching for suitable spheres.
-                continue
-
-            # See what happens if we crush.
-            decomposed = _crushCandidateVerticalSurface(
-                    sphere, invariants, oldEdgeIdealTri )
-            if decomposed == ManifoldProperty.REDUCIBLE:
-                #TODO
-                return False
-            #TODO Update filledHomology() and use it for sanity checking.
-            for newEdgeIdealTri in decomposed:
-                try:
-                    newEdgeIdealTri.simplify()
-                except BoundsDisc:
-                    #TODO
-                    print( "Loop bounds disc!" )
-                else:
-                    toProcess.append(newEdgeIdealTri)
-
-            # Found and crushed a suitable sphere, so stop enumerating.
-            break
-        # End of enumeration loop.
-
-    # If we reach this point, then we must have started with a
-    # vertically-aligned edge-ideal triangulation.
-    return True
 
 
 def decomposeAlongSpheres(edgeIdealTri):
@@ -288,5 +224,4 @@ if __name__ == "__main__":
     #NOTE As of Regina 7.4, NS_QUAD and NS_VERTEX have been deprecated and
     #       replaced with NormalCoords.Quad and NormalList.Vertex,
     #       respectively.
-    surfaces = NormalSurfaces( tri, NormalCoords.Quad, NormalList.Vertex )
-    crushCandidateVerticalSurfaces(surfaces)
+    crushCandidateVerticalSurfaces(tri)

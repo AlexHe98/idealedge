@@ -3,6 +3,7 @@ Recognition of bounded orientable Seifert fibred spaces.
 """
 from enum import Enum, auto
 from regina import *
+from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
@@ -92,7 +93,8 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
     --> surf.triangulation() is oriented, has nonempty boundary, and every
         boundary component is a real two-triangle torus.
     """
-    invariants = _SFSpaceInvariants
+    numBdries = surf.triangulation().countBoundaryComponents()
+    invariants = _SFSpaceInvariants()
     toProcess = _crushCandidateVerticalSurface( surf, invariants )
     if toProcess == ManifoldProperty.REDUCIBLE:
         return ManifoldProperty.NOT_SFS
@@ -211,18 +213,17 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
             if foundCandidateVertical:
                 crushAns = _crushCandidateVerticalSurface(
                         surf, invariants, edgeIdealTri )
-                #TODO
-                raise NotImplementedError()
             else:
                 crushAns = _crushCandidateInessentialSphereOrDisc(
                         surf, edgeIdealTri )
-                #TODO
-                raise NotImplementedError()
+            if crushAns == ManifoldProperty.REDUCIBLE:
+                return ManifoldProperty.NOT_SFS
+            toProcess.extend(crushAns)
+            break
         # End of enumeration loop.
 
     # We have emptied out toProcess, which means that the invariants carry
     # a complete description of a Seifert fibration.
-    numBdries = surf.triangulation().countBoundaryComponents()
     genus = 2 - invariants.baseEuler() - numBdries
     #TODO When Regina's SFSpace is overhauled to use BundleType instead of
     #   Class, we should replace Class.bo1 and Class.bn2 with BundleType.o1
@@ -384,7 +385,11 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
                 # At this point, we should have a new drilled triangulation
                 # with strictly fewer tetrahedra than before. Restart the
                 # normal surface enumeration with this new triangulation.
-                drilled = crushAns
+                assert len(crushAns) == 1
+                drilled = crushAns[0]
+                assert isinstance( drilled, TriangulationWithBoundaryLoops )
+                assert len(drilled) == 1
+                assert drilled.triangulation().countBoundaryComponents() == 1
                 break
         # End of enumeration loop.
     # End of loop processing drilled triangulations.
