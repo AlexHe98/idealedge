@@ -7,8 +7,10 @@ from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from idealedge import edgeIdealTriangulationsFromCrushing
+from idealedge import triangulationsWithBoundaryLoopsFromCrushing
 from pinch import drillMeridian
-from triloops import EdgeIdealTriangulation
+from triloops import TriangulationWithEmbeddedLoops
+from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
 def recogniseSFS(tri):
@@ -239,12 +241,51 @@ def _crushCandidateInessentialSphereOrDisc( surf, triWithLoops=None ):
 
     Otherwise, this routine returns a list consisting of the non-3-sphere
     components of the edge-ideal triangulation that results from crushing.
-    Each element of the returned list will be an instance of either
-    EdgeIdealTriangulation, TriangulationWithBoundaryLoops, or Regina's
-    Triangulation3.
+    The specific types of the returned triangulations depends on the input:
+    --> If triWithLoops is either None or an instance of
+        EdgeIdealTriangulation, then each returned triangulation will be an
+        instance of either EdgeIdealTriangulation or Regina's Triangulation3.
+    --> If triWithLoops is an instance of TriangulationWithBoundaryLoops,
+        then each returned triangulation will be an instance of either
+        TriangulationWithBoundaryLoops or Regina's Triangulation3.
+
+    Precondition
+    --> The given surf should be a quadrilateral vertex normal surface.
+    --> Either the given surf is a 2-sphere, or it is disc with trivial
+        boundary curve.
+    --> surf.triangulation() must be oriented, and each boundary component
+        must be a real two-triangle torus.
+    --> If triWithLoops is supplied, then triWithLoops.triangulation() should
+        be the same as surf.triangulation(). In other words, triWithLoops and
+        surf should both reference the same triangulation object in memory.
     """
-    #TODO
-    raise NotImplementedError()
+    if ( ( triWithLoops is None ) or
+        ( isinstance( triWithLoops, EdgeIdealTriangulation ) ) ):
+        decomposed, _, delComps, _ = edgeIdealTriangulationsFromCrushing(
+                surf, triWithLoops )
+    elif isinstance( triWithLoops, TriangulationWithBoundaryLoops ):
+        decomposed, delComps = triangulationsWithBoundaryLoopsFromCrushing(
+                surf, triWithLoops )
+    else:
+        raise TypeError( "Unsupported type: {}".format(
+            type(triWithLoops).__name__ ) )
+
+    # Did we detect that the 3-manifold is reducible?
+    if delComps[DelComp.L31] > 0:
+        return ManifoldProperty.REDUCIBLE
+    if sum( delComps.values() ) == 0 and len(decomposed) == 1:
+        # The 3-manifold contains a non-separating 2-sphere.
+        return ManifoldProperty.REDUCIBLE
+    ans = []
+    for tri in decomposed:
+        # We keep only the EdgeIdealTriangulation and
+        # TriangulationWithBoundaryLoop objects. Everything else should be a
+        # 3-sphere, otherwise the input 3-manifold is reducible.
+        if isinstance( tri, TriangulationWithEmbeddedLoops ):
+            ans.append(tri)
+        elif not tri.isSphere():
+            return ManifoldProperty.REDUCIBLE
+    return ans
 
 
 def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):

@@ -366,10 +366,16 @@ def triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops ):
     Builds the triangulations with boundary loops resulting from crushing
     surf.
 
-    This routine returns a list of triangulated components resulting from
-    crushing surf. Each element of this list will be an instance of either
-    TriangulationWithBoundaryLoops or Regina's Triangulation3. Note that this
-    routine does *not* attempt to simplify the triangulations in this list.
+    This routine returns a pair consisting of the following items:
+    (0) A list of triangulated components resulting from crushing surf. Each
+        element of this list will be an instance of either
+        TriangulationWithBoundaryLoops or Regina's Triangulation3. Note that
+        this routine does *not* attempt to simplify the triangulations in
+        this list.
+    (1) A dictionary mapping each case K of ComponentDeletedByCrushing to a
+        non-negative integer counting the number of components of type K
+        which arise from non-surviving triangular orbits, and which are
+        therefore deleted as a consequence of crushing.
 
     This routine requires that triWithBdryLoops.allowsCrush(surf) is True,
     and will raise ValueError if this requirement is not satisfied.
@@ -420,6 +426,19 @@ def triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops ):
         survivingEmbs = _extractSurvivingEmbeddings( [chord], survivors )
         if survivingEmbs:
             newLoopEdgeEmbs.append( survivingEmbs[0] )
+
+    # Count deleted components arising from non-surviving triangular orbits.
+    deletedOrbitCounts = orbitCounts(surf)
+    DelComp = ComponentDeletedByCrushing
+    delL31Count = ( deletedOrbitCounts[OrbitType.TWIST_PLUS] +
+                   deletedOrbitCounts[OrbitType.TWIST_MINUS] )
+    deletedComponentCounts = {
+            DelComp.FIBRE_PLUS: 0,
+            DelComp.FIBRE_MINUS: 0,
+            DelComp.FIBRE_TRIVIAL: 0,
+            DelComp.L31: delL31Count,
+            DelComp.SPHERE: deletedOrbitCounts[OrbitType.TRIVIAL_CYCLE],
+            DelComp.BALL: deletedOrbitCounts[OrbitType.BOUNDARY] }
 
     # Find where the new boundary loops will be after crushing.
     doomed = [ tet for tet in surf.triangulation().tetrahedra()
@@ -492,7 +511,7 @@ def triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops ):
             triList.append(tri)
 
     # All done!
-    return triList
+    return ( triList, deletedComponentCounts )
 
 
 class _IdealLoopStatus(Enum):

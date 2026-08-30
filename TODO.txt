@@ -1,7 +1,6 @@
 --- Bounded orientable SFS recognition
     --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
     --> Adapt the experimental code in scratch.py to implement the real algorithm
-        ->- Crushing 2-spheres and discs
         ->- Vertically-aligned solid torus recognition
         ->- Main algorithm
     --> etc
