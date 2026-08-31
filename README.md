@@ -27,24 +27,34 @@ therefore correspond to a properly embedded surface in *M* that intersects
 the edge-ideal boundary tori in curves of a prescribed slope (namely, the
 slope of the meridian of a solid torus neighbourhood of an ideal loop).
 
-Currently, the main application is an algorithm for decomposing a knot into
-its prime summands. The output primes are always given as edge-ideal
-triangulations, but the input knot is more flexible: the input could be an
-edge-ideal triangulation, but could also be a Regina Link object.
-
-An algorithm for recognising bounded orientable Seifert fibred spaces is
-currently in development here.
+As suggested by the paper titles listed above, there are currently two main
+applications for the techniques implemented here:
+- An algorithm for decomposing a knot into its prime summands (see the
+    decompose() routine in ``decomposeknot.py``). The output primes are
+    always given as edge-ideal triangulations, but the input knot is more
+    flexible: the input could be an edge-ideal triangulation, but could also
+    be a Regina Link object. Naturally, this algorithm specialises in the
+    following ways:
+    + *Unknot recognition*: A knot is the unknot if and only if its prime
+        factorisation is empty.
+    + *Prime knot recognition*: A nontrivial knot is prime if and only if its
+        prime factorisation contains exactly one knot.
+    + *Composite knot recognition*: A knot is composite if and only if its
+        prime factorisation contains at least two knots.
+- An algorithm for recognising bounded orientable Seifert fibred spaces (see
+    the recogniseSFS() routine in ``recsfs.py``). This algorithm is already
+    fully functional, but further improvements are still in development.
 
 The main scripts in this repository are the following:
-- ``decomposeknot.py``: Contains the decompose() routine, which implements
-    the aforementioned knot decomposition algorithm.
+- ``decomposeknot.py``: Contains the decompose() routine.
+- ``recsfs.py``: Contains the recogniseSFS() routine.
 - ``loop.py``: Implements the IdealLoop class.
 - ``triloops.py``: Implements the EdgeIdealTriangulation class.
 - ``embed.py``: Implements routines for converting a Regina Link object into
-    an ideal loop.
-- ``idealedge.py``: Contains the decomposeAlong() routine, which crushes a
-    normal surface, while keeping track of not just how the triangulation
-    changes, but also how the ideal loops change.
+    an edge-ideal triangulation.
+- ``idealedge.py``: Implements routines for crushing a normal surface, while
+    keeping track of not just how the ambient triangulation changes, but also
+    how the ideal loops change.
 - ``demo.py``: Runs a live demonstration of the decompose() routine for
     knots, either with a randomly-generated hard diagram of a composite knot,
     or with a user-provided knot signature.
@@ -78,4 +88,4 @@ through local moves, or through crushing). In particular, our implementations
 for tracking edges through local moves, available in the ``retriangulate/``
 directory, may be of independent interest.
 
-— *Alex He (a.he@uqconnect.edu.au)*, 25 Aug 2026
+— *Alex He (a.he@uqconnect.edu.au)*, 31 Aug 2026
