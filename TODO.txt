@@ -1,8 +1,10 @@
 --- Bounded orientable SFS recognition
-    --> Experiment with a bit more of the SFS base surface bookkeeping in scratch.py
-    --> Adapt the experimental code in scratch.py to implement the real algorithm
-        ->- Main algorithm
-    --> etc
+    --> Make specialised recogniseTorusKnot() function
+    --> Experiment with examples other than the standard SFS constructions
+    --> Consider fixing up filledHomology() and using it for sanity-checking
+    --> Possible speed-ups
+        ->- Recording boundary slopes that have already been shown not to be vertical, to avoid unnecessary computations
+        ->- Randomisation and alternate enumerations, similar to knot factorisation
     --> Update README.md
 --- Cleaning up
     --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop

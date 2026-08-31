@@ -65,24 +65,136 @@ def recogniseSFS( tri, useHeuristics=True ):
             return None
     orientedTri = Triangulation3(tri)
     orientedTri.minimiseBoundary()
-    orientedTri.simplify()
-    orientedTri.simplify()
     orientedTri.orient()
 
     # We now have an oriented boundary-minimal triangulation of a 3-manifold
     # whose boundary is a non-empty union of tori.
-    if useHeuristics:
-        # Attempt combinatorial recognition using Regina.
-        blocked = BlockedSFS.recognise(orientedTri)
-        if blocked is not None:
-            return blocked.manifold()
+    #
+    # Each time we come back to the top of this loop, orientedTri has
+    # strictly fewer tetrahedra than before, so we can only ever loop
+    # finitely many times.
+    while True:
+        # Try really hard to simplify, since this should help for both
+        # combinatorial recognition and enumerating quad vertex surfaces.
+        orientedTri.simplify()
+        simplifiedNow = True
+        while simplifiedNow:
+            simplifiedNow = orientedTri.simplify()
 
-        #TODO Other heuristics? For example, certifying hyperbolicity?
+        # Would like to avoid the normal surface enumeration where possible.
+        if useHeuristics:
+            # Attempt combinatorial recognition using Regina.
+            blocked = BlockedSFS.recognise(orientedTri)
+            if blocked is not None:
+                return blocked.manifold()
 
-    # Time for the heavy-duty normal surface machinery.
+            #TODO Other heuristics? For example, certifying hyperbolicity?
 
-    #TODO Implement main normal surface algorithm.
-    raise NotImplementedError()
+        #TODO Consider recording boundary slopes that we have already ruled
+        #   out, to avoid some unnecessary computations. This might speed up
+        #   cases where the input is not a Seifert fibred space.
+
+        # Time for the heavy-duty normal surface machinery.
+        #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
+        #   with NormalCoords.Quad.
+        enumeration = TreeEnumeration( orientedTri, NormalCoords.Quad )
+        while True:
+            # We are enumerating finitely many surfaces, so we must
+            # eventually break out of this loop.
+            if not enumeration.next():
+                # No vertical surfaces, so orientedTri cannot be a
+                # triangulation of a Seifert fibred space.
+                return None
+            surf = enumeration.buildSurface()
+
+            # Is this a useful surface?
+            surfType = SurfaceType.recognise(surf)
+            if surfType == SurfaceType.RP3:
+                # Orientability of the 3-manifold implies that the projective
+                # plane is one-sided, and hence that the 3-manifold is
+                # reducible.
+                return None
+            elif surfType == SurfaceType.MOBIUS:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    # Mobius band with nontrivial boundary is a candidate to
+                    # be a vertical surface.
+                    foundCandidateVertical = True
+                else:
+                    # Mobius band with trivial boundary implies the existence
+                    # of an embedded (one-sided) projective plane.
+                    return None
+            elif surfType == SurfaceType.SPHERE:
+                # If the 3-manifold is a Seifert fibred space, then we expect
+                # this 2-sphere to be inessential.
+                foundCandidateVertical = False
+            elif surfType == SurfaceType.DISC:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    # Either the 3-manifold is a solid torus, or it is
+                    # reducible (and hence not a Seifert fibred space).
+                    crushed = surf.crush()
+                    if crushed.isEmpty() or crushed.isBall():
+                        return _trivialSolidTorusFibration()
+                    else:
+                        # Reducible.
+                        return None
+                else:
+                    # If the 3-manifold is a Seifert fibred space, then we
+                    # expect this disc to be inessential.
+                    foundCandidateVertical = False
+            elif surfType == SurfaceType.ANNULUS:
+                if hasOnlyNonTrivialBoundaryCurves(surf):
+                    # Annulus with two nontrivial boundary curves is a
+                    # candidate to be a vertical surface.
+                    thin = surf.isThinEdgeLink()
+                    if thin[0] is not None:
+                        # Although the algorithm can handle thin edge links,
+                        # in practice this usually seems unhelpful, so we
+                        # just ignore them instead.
+                        continue
+                    foundCandidateVertical = True
+                else:
+                    # We don't work with annuli with trivial boundary curves.
+                    continue
+            else:
+                # Any other surface is definitely not useful.
+                continue
+
+            # Process the surface.
+            if foundCandidateVertical:
+                ans = _recogniseSFSGivenCandidateVerticalSurface(surf)
+                if ans is None:
+                    # It turns out that the current surface is not vertical,
+                    # so we need to look for another surface.
+                    continue
+                elif isinstance( ans, SFSpace ):
+                    return ans
+                elif ans == ManifoldProperty.NOT_SFS:
+                    return None
+                else:
+                    raise AssertionError(
+                            "recogniseSFS() should never reach this point" )
+            else:
+                crushAns = _crushCandidateInessentialSphereOrDisc(surf)
+                if crushAns == ManifoldProperty.REDUCIBLE:
+                    return ManifoldProperty.REDUCIBLE
+
+                # At this point, we should have a new triangulation with
+                # strictly fewer tetrahedra than before. Restart the normal
+                # surface enumeration with this new triangulation.
+                assert len(crushAns) == 1
+                orientedTri = crushAns[0]
+                assert isinstance( orientedTri, Triangulation3 )
+                assert orientedTri.isOriented()
+                break
+        # End of enumeration loop.
+    # End of loop processing triangulations.
+    raise AssertionError( "recogniseSFS() should never reach this point" )
+
+
+def _trivialSolidTorusFibration():
+    #TODO When Regina's SFSpace is overhauled to use BundleType instead of
+    #   Class, we should replace Class.bo1 with BundleType.o1.
+    return SFSpace( SFSpace.Class.bo1, 0, 1 )
 
 
 def _recogniseSFSGivenCandidateVerticalSurface(surf):
@@ -137,6 +249,8 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
                 return ManifoldProperty.NOT_SFS
 
         # Search for a surface we can crush.
+        #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
+        #   with NormalCoords.Quad.
         enumeration = TreeEnumeration(
                 edgeIdealTri.triangulation(), NormalCoords.Quad )
         while True:
@@ -347,6 +461,8 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         merEdgeIndex = drilled[0][0]
 
         # Search for the disc. We might find other useful surfaces instead.
+        #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
+        #   with NormalCoords.Quad.
         enumeration = TreeEnumeration(
                 drilled.triangulation(), NormalCoords.Quad )
         while True:

@@ -1,26 +1,12 @@
 """
-Scratch work for ideal edges.
+Scratch work for bounded orientable SFS recognition using edge-ideal
+triangulations.
 """
 from sys import argv
 from timeit import default_timer
 from regina import *
-from idealedge import edgeIdealTriangulationsFromCrushing
-from idealedge import newIdealLoopEmbs, fillIdealEdges
-from idealedge import ComponentDeletedByCrushing as DelComp
-from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
-from loop import IdealLoop, BoundsDisc
-from triloops import EdgeIdealTriangulation
-from wedge import NonSurvivingTriangularOrbitType as OrbitType
-from wedge import nonSurvivingTriangularOrbitCounts as orbitCounts
 from construct.sfs import orientableSFS
-from aux.tetrenum import tetRenumbering
-from aux.quad import tetHasQuads
-from aux.surface import isSphere, isAnnulus
-#TODO
-from recsfs import _crushCandidateVerticalSurface
-from recsfs import _SFSpaceInvariants
-from recsfs import _recogniseSFSGivenCandidateVerticalSurface
-from recsfs import ManifoldProperty
+from recsfs import recogniseSFS
 
 
 #TODO Make this more general.
@@ -73,139 +59,6 @@ def filledHomology(annulus):
     return AbelianGroup( MatrixInt(presentation) )
 
 
-def crushCandidateVerticalSurfaces( tri, threshold=30 ):
-    """
-    Crushes all candidate vertical surfaces in the given list of quad vertex
-    normal surfaces.
-
-    This routine prints details of the crushed triangulations.
-
-    This routine attempts to identify the topology of the manifold that
-    results from crushing. The main strategy is to simplify and attempt
-    combinatorial recognition. Additionally, whenever this routine encounters
-    a component whose number of tetrahedra is strictly less than the
-    threshold (default 30), it will also use more computationally intensive
-    recognition algorithms involving normal surfaces.
-
-    Pre-condition:
-    --> Every boundary component of the ambient triangulation must be a
-        two-triangle torus.
-    """
-    start = default_timer()
-    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
-    surfNum = -1
-    while True:
-        if not enumeration.next():
-            print( "Exhausted all surfaces!" )
-            return
-        surf = enumeration.buildSurface()
-        surfNum += 1
-        if CandidateSurface.recognise(surf) != CandidateSurface.VERTICAL:
-            continue
-        thin = surf.isThinEdgeLink()
-        if thin[0] is not None:
-            # Don't bother with thin edge links.
-            continue
-        print()
-        print( "Time: {:.6f}. Crush #{}.".format(
-            default_timer() - start, surfNum) )
-
-        # Check whether this is really a vertical surface.
-        ans = _recogniseSFSGivenCandidateVerticalSurface(surf)
-        if ans is None:
-            print("NOT VERTICAL!")
-        elif isinstance( ans, SFSpace ):
-            print(ans)
-            return
-        elif ans == ManifoldProperty.NOT_SFS:
-            print("NOT SFS!")
-            return
-        else:
-            raise AssertionError( "This should never occur!" )
-
-    # All done!
-    print()
-    print( "Time: {:.6f}. All done!".format(
-        default_timer() - start ) )
-    return
-
-
-def decomposeAlongSpheres(edgeIdealTri):
-    """
-    Returns a list of ideal loops given by repeatedly decomposing the given
-    ideal loop along spheres that intersect the ideal loop twice.
-    """
-    # Repeatedly crush along spheres that intersect the ideal loop at most
-    # twice.
-    toProcess = [edgeIdealTri]
-    decomposedList = []
-    while toProcess:
-        oldEdgeIdealTri = toProcess.pop()
-        tri = oldEdgeIdealTri.triangulation()
-
-        # Search for a suitable sphere to crush.
-        enumeration = TreeEnumeration( tri, NormalCoords.Quad )
-        while True:
-            # Get the next 2-sphere.
-            if enumeration.next():
-                sphere = enumeration.buildSurface()
-                if not isSphere(sphere):
-                    continue
-            else:
-                # No suitable 2-sphere means that we're done with the current
-                # oldEdgeIdealTri.
-                decomposedList.append(oldEdgeIdealTri)
-                break
-
-            # Does the sphere intersect the ideal loop at most twice?
-            wt = oldEdgeIdealTri.weight(sphere)
-            if wt != 2:
-                #TODO Actually do something with the following cases.
-                if wt == 0:
-                    print( "Found sphere disjoint from ideal loop!" )
-                if wt == 1:
-                    print( "Found sphere intersecting ideal loop once!" )
-
-                # Continue searching for suitable spheres.
-                continue
-
-            # See what happens if we crush.
-            decomposed, numOrbCuts, delComps, inconsistent =\
-                    edgeIdealTriangulationsFromCrushing(
-                            sphere, oldEdgeIdealTri )
-            twists = []
-            for _ in range( delComps[ DelComp.FIBRE_PLUS ] ):
-                twists.append(1)
-            for _ in range( delComps[ DelComp.FIBRE_MINUS ] ):
-                twists.append(-1)
-            lostFibres = ""
-            for twist in twists:
-                lostFibres += " Lost (3,{}).".format(twist)
-            if lostFibres:
-                print( lostFibres[1:] )
-            if inconsistent:
-                print( "vvvvvvvvvvvvvvvvvvvv" )
-                print( "NON-ORIENTABLE BASE!" )
-                print( "^^^^^^^^^^^^^^^^^^^^" )
-            #TODO Use numOrbCuts (number of orbital compressions).
-            for newEdgeIdealTri in decomposed:
-                if isinstance( newEdgeIdealTri, EdgeIdealTriangulation ):
-                    try:
-                        newEdgeIdealTri.simplify()
-                    except BoundsDisc:
-                        #TODO
-                        print( "Loop bounds disc!" )
-                    else:
-                        toProcess.append(newEdgeIdealTri)
-
-            # Found and crushed a suitable sphere, so stop enumerating.
-            break
-
-    # If we reach this point, then we have decomposed as far as possible, and
-    # everything remaining has no suitable spheres.
-    return decomposedList
-
-
 if __name__ == "__main__":
     genus = int( argv[1] )
     boundaries = int( argv[2] )
@@ -219,9 +72,6 @@ if __name__ == "__main__":
     print(fibres)
     print()
     tri = orientableSFS( genus, boundaries, *fibres )
-    tri.simplify()
-    tri.simplify()
-    #NOTE As of Regina 7.4, NS_QUAD and NS_VERTEX have been deprecated and
-    #       replaced with NormalCoords.Quad and NormalList.Vertex,
-    #       respectively.
-    crushCandidateVerticalSurfaces(tri)
+    start = default_timer()
+    print( recogniseSFS( tri, False ) )
+    print( "Time: {:.6f}".format( default_timer() - start ) )

@@ -1080,7 +1080,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         chordToAvoid = None
         if SurfaceType.recognise(surf) == SurfaceType.DISC:
             for incidentLoopInd in incidentLoopWts:
-                chordToAvoid = chordsByLoopindex[incidentLoopInd].pop()
+                chordToAvoid = chordsByLoopIndex[incidentLoopInd].pop()
                 # The pre-conditions imply that len(incidentLoopWts) <= 1,
                 # but break out anyway just to be safe.
                 break
