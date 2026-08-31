@@ -30,10 +30,10 @@ slope of the meridian of a solid torus neighbourhood of an ideal loop).
 As suggested by the paper titles listed above, there are currently two main
 applications for the techniques implemented here:
 - An algorithm for decomposing a knot into its prime summands (see the
-    decompose() routine in ``decomposeknot.py``). The output primes are
+    ``decompose()`` routine in ``decomposeknot.py``). The output primes are
     always given as edge-ideal triangulations, but the input knot is more
     flexible: the input could be an edge-ideal triangulation, but could also
-    be a Regina Link object. Naturally, this algorithm specialises in the
+    be a Regina ``Link`` object. Naturally, this algorithm specialises in the
     following ways:
     + *Unknot recognition*: A knot is the unknot if and only if its prime
         factorisation is empty.
@@ -42,20 +42,21 @@ applications for the techniques implemented here:
     + *Composite knot recognition*: A knot is composite if and only if its
         prime factorisation contains at least two knots.
 - An algorithm for recognising bounded orientable Seifert fibred spaces (see
-    the recogniseSFS() routine in ``recsfs.py``). This algorithm is already
-    fully functional, but further improvements are still in development.
+    the ``recogniseSFS()`` routine in ``recsfs.py``). This algorithm is
+    already fully functional, but further improvements are still in
+    development.
 
 The main scripts in this repository are the following:
-- ``decomposeknot.py``: Contains the decompose() routine.
-- ``recsfs.py``: Contains the recogniseSFS() routine.
-- ``loop.py``: Implements the IdealLoop class.
-- ``triloops.py``: Implements the EdgeIdealTriangulation class.
-- ``embed.py``: Implements routines for converting a Regina Link object into
-    an edge-ideal triangulation.
+- ``decomposeknot.py``: Contains the ``decompose()`` routine.
+- ``recsfs.py``: Contains the ``recogniseSFS()`` routine.
+- ``loop.py``: Implements the ``IdealLoop`` class.
+- ``triloops.py``: Implements the ``EdgeIdealTriangulation`` class.
+- ``embed.py``: Implements routines for converting a Regina ``Link`` object
+    into an ``EdgeIdealTriangulation``.
 - ``idealedge.py``: Implements routines for crushing a normal surface, while
     keeping track of not just how the ambient triangulation changes, but also
     how the ideal loops change.
-- ``demo.py``: Runs a live demonstration of the decompose() routine for
+- ``demo.py``: Runs a live demonstration of the ``decompose()`` routine for
     knots, either with a randomly-generated hard diagram of a composite knot,
     or with a user-provided knot signature.
 
@@ -67,20 +68,20 @@ may be of independent interest, is available in the ``hardknot/`` directory.
 
 This repository includes, in the ``experiments/knots/`` directory, the
 following scripts for running computational experiments:
-- ``experiments/knots/main.py``: Runs the decompose() routine on all knots
-    from a given collection of knot tables.
-- ``experiments/knots/sample.py``: Runs the decompose() routine on a random
-    sample of knots from a given collection of knot tables.
-- ``experiments/knots/composite.py``: Runs the decompose() routine on a
+- ``experiments/knots/main.py``: Runs the ``decompose()`` routine on all
+    knots from a given collection of knot tables.
+- ``experiments/knots/sample.py``: Runs the ``decompose()`` routine on a
+    random sample of knots from a given collection of knot tables.
+- ``experiments/knots/composite.py``: Runs the ``decompose()`` routine on a
     collection of composite knots constructed by composing knots that are
     randomly sampled from a given collection of knot tables.
-- ``experiments/knots/torus.py``: Runs the decompose() routine on all torus
-    knots with crossing number in a given interval.
-- ``experiments/knots/s3edges.py``: Runs the decompose() routine on all knots
-    that appear as edges in a given collection of one-vertex triangulations of
-    the 3-sphere.
-- ``experiments/knots/sigs.py``: Runs the decompose() routine on all knots
-    given by knot signatures in a given dataset.
+- ``experiments/knots/torus.py``: Runs the ``decompose()`` routine on all
+    torus knots with crossing number in a given interval.
+- ``experiments/knots/s3edges.py``: Runs the ``decompose()`` routine on all
+    knots that appear as edges in a given collection of one-vertex
+    triangulations of the 3-sphere.
+- ``experiments/knots/sigs.py``: Runs the ``decompose()`` routine on all
+    knots given by knot signatures in a given dataset.
 
 One of the implementation challenges with edge-ideal triangulations is
 keeping track of the ideal loops as we modify the ambient triangulation (say,
