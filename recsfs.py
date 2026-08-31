@@ -14,23 +14,31 @@ from triloops import TriangulationWithEmbeddedLoops
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
-def recogniseSFS(tri):
+def recogniseSFS( tri, useHeuristics=True ):
     """
     Determines whether the given triangulation is a bounded orientable
-    Seifert fibred space, and if so returns a Seifert fibration.
+    Seifert fibred space, and if so returns an instance of Regina's SFSpace.
 
-    If the triangulation is not a Seifert fibred space, then this routine
-    returns None.
+    If the triangulation is not a Seifert fibred space at all, then this
+    routine returns None.
 
     This routine requires that tri is bounded and orientable, and raises
     ValueError if these conditions are not satisfied.
 
     This routine does not modify tri.
 
+    The main Seifert fibred space recognition algorithm was designed in joint
+    work with Eric Sedgwick and Jonathan Spreer; it relies on normal surface
+    theory, and can therefore be very slow for larger triangulations.
+    However, if useHeuristics is True (the default), this routine will
+    attempt faster tests where possible. Setting useHeuristics to False is
+    not recommended unless you have a particular reason for doing so, such as 
+    if your goal is specifically to test the performance of the main normal
+    surface algorithm.
+
     Warning:
-        The algorithms used in this routine rely on normal surface theory,
-        and so might be very slow for larger triangulations (although faster
-        tests are used where possible).
+        As explained above, the main algorithm used in this routine might be
+        be very slow for larger triangulations.
     """
     if not tri.isValid():
         # This rules out:
@@ -57,16 +65,23 @@ def recogniseSFS(tri):
             return None
     orientedTri = Triangulation3(tri)
     orientedTri.minimiseBoundary()
+    orientedTri.simplify()
+    orientedTri.simplify()
     orientedTri.orient()
 
     # We now have an oriented boundary-minimal triangulation of a 3-manifold
-    # whose boundary is a non-empty union of tori. This is where the real
-    # work begins.
+    # whose boundary is a non-empty union of tori.
+    if useHeuristics:
+        # Attempt combinatorial recognition using Regina.
+        blocked = BlockedSFS.recognise(orientedTri)
+        if blocked is not None:
+            return blocked.manifold()
 
-    #TODO Start with combinatorial recognition, and only fall back on normal
-    #   surfaces and edge-ideal triangulations if this fails.
-    #TODO Introduce a separate function which doesn't use combinatorial
-    #   recognition, since this is what we want to experiment on.
+        #TODO Other heuristics? For example, certifying hyperbolicity?
+
+    # Time for the heavy-duty normal surface machinery.
+
+    #TODO Implement main normal surface algorithm.
     raise NotImplementedError()
 
 
@@ -174,7 +189,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
                         # We do not work with higher weights.
                         continue
                 else:
-                    #TODO Check the theory in this case.
                     if wt == 0:
                         # If the drilled 3-manifold is Seifert fibred, then
                         # surf should be an inessential disc.
@@ -191,7 +205,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
                     # should be an inessential 2-sphere.
                     foundCandidateVertical = False
                 elif wt == 1:
-                    #TODO Check the theory in this case.
                     if ( ( len(edgeIdealTri) > 1 ) or
                         ( not edgeIdealTri.triangulation().isClosed() ) ):
                         # The drilled 3-manifold is reducible.
