@@ -92,4 +92,4 @@ through local moves, or through crushing). In particular, our implementations
 for tracking edges through local moves, available in the ``retriangulate/``
 directory, may be of independent interest.
 
-— *Alex He (a.he@uqconnect.edu.au)*, 31 Aug 2026
+— *Alex He (a.he@uqconnect.edu.au)*, 1 Sep 2026
