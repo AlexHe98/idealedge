@@ -7,7 +7,8 @@ from regina import *
 from idealedge import edgeIdealTriangulationsFromCrushing
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
-from knotted import isKnotted, knownHyperbolic
+from knotted import isKnotted
+from hyp import knownHyperbolic
 from embed import loopPacket, reversePinch, embedByFilling, embedFromDiagram
 from aux.surface import isSphere
 try:
