@@ -203,6 +203,82 @@ def _trivialSolidTorusFibration():
     return SFSpace( SFSpace.Class.bo1, 0, 1 )
 
 
+def recogniseTorusKnot( knot, useHeuristics=True ):
+    """
+    Determines whether the given knot is a torus knot, and if so returns a
+    pair (p, q) describing the parameters of the torus knot.
+
+    If the knot is not a torus knot, then this routine returns None.
+
+    The given knot is allowed to be encoded in various ways:
+    --> It could be an instance of EdgeIdealTriangulation, in which case it
+        is assumed that this consists of a 3-sphere triangulation containing
+        exactly one IdealLoop.
+    --> It could be an instance of Regina's Edge3, in which case it is
+        assumed that the endpoints of this edge are identified, and that the
+        triangulation containing this edge is a 3-sphere.
+    --> It could be an instance of Regina's Link or PacketOfLink, in which
+        case it is assumed that this link has exactly one component.
+
+    This routine does not modify the given knot.
+
+    This relies on the bounded orientable Seifert fibred space recognition
+    algorithm implemented in recogniseSFS(), which was designed in joint work
+    with Eric Sedgwick and Jonathan Spreer. Consequently, this routine can be
+    very slow for knots with many crossings, which typically require more
+    tetrahedra to triangulate the exterior. If useHeuristics is True (the
+    default), this routine will attempt faster tests where possible. As
+    explained in the documentation of recogniseSFS(), setting useHeuristics
+    to False is not recommended unless you have a particular reason for doing
+    so.
+
+    Warning:
+        As explained above, the main algorithm used in this routine might be
+        be very slow for knots with many crossings.
+    """
+    if isinstance( knot, EdgeIdealTriangulation ):
+        tri = knot.drill()
+    elif isinstance( knot, Edge3 ):
+        tri = Triangulation3( knot.triangulation() )
+        tri.pinchEdge( tri.edge( knot.index() ) )
+    else:
+        # Here, we assume that knot is an instance of either Link or
+        # PacketOfLink.
+        tri = knot.complement()
+    tri.idealToFinite()
+    ans = recogniseSFS( tri, useHeuristics )
+    if ans is None:
+        return None
+
+    # We have a Seifert fibred space. Does it have the correct parameters to
+    # be the exterior of a torus knot?
+    if ans.baseClass() != SFSpace.Class.bo1:
+        #TODO When Regina's SFSpace is overhauled to use BundleType instead
+        #   of Class, we should replace Class.bo1 with BundleType.o1.
+        return None
+    if ans.baseGenus() != 0:
+        return None
+    if ans.punctures() != 1:
+        return None
+    if ans.fibreCount() != 2:
+        return None
+
+    # We have a Seifert fibred space over the disc with exactly two
+    # exceptional fibres. If we have the exterior of a (p, q)-torus knot,
+    # then, up to orientation, the fibre parameters can be normalised to be
+    # (p, r) and (q, s) such that p*s + q*r == 1.
+    myFibre = ans.fibre(0)
+    yourFibre = ans.fibre(1)
+    p, q, r = myFibre.alpha, yourFibre.alpha, myFibre.beta
+    s = yourFibre.beta + q*ans.obstruction()
+    if p > q:
+        p, q = q, p
+        r, s = s, r
+    if (p*s + q*r) % (p*q) in { 1, p*q - 1 }:
+        return (p, q)
+    return None
+
+
 def _recogniseSFSGivenCandidateVerticalSurface(surf):
     """
     Given a candidate vertical surface, attempts to determine whether the

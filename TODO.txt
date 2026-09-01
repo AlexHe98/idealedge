@@ -1,5 +1,4 @@
 --- Bounded orientable SFS recognition
-    --> Make specialised recogniseTorusKnot() function
     --> Experiment with examples other than the standard SFS constructions
     --> Consider fixing up filledHomology() and using it for sanity-checking
     --> Possible speed-ups

@@ -44,11 +44,14 @@ applications for the techniques implemented here:
 - An algorithm for recognising bounded orientable Seifert fibred spaces (see
     the ``recogniseSFS()`` routine in ``recsfs.py``). This algorithm is
     already fully functional, but further improvements are still in
-    development.
+    development. For knots, Seifert fibred space recognition specialises to
+    torus knot recognition (see the ``recogniseTorusKnot()`` routine, also in
+    ``recsfs.py``).
 
 The main scripts in this repository are the following:
 - ``decomposeknot.py``: Contains the ``decompose()`` routine.
-- ``recsfs.py``: Contains the ``recogniseSFS()`` routine.
+- ``recsfs.py``: Contains the ``recogniseSFS()`` and ``recogniseTorusKnot()
+    routines.
 - ``loop.py``: Implements the ``IdealLoop`` class.
 - ``triloops.py``: Implements the ``EdgeIdealTriangulation`` class.
 - ``embed.py``: Implements routines for converting a Regina ``Link`` object
