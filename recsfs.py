@@ -5,6 +5,7 @@ from enum import Enum, auto
 from regina import *
 from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
+from hyp import knownHyperbolic
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import SurfaceToCrushInSuspectedSFS as CandidateSurface
 from idealedge import edgeIdealTriangulationsFromCrushing
@@ -54,7 +55,8 @@ def recogniseSFS( tri, useHeuristics=True ):
         #   --> Triangulations in which all vertex links are 2-spheres
         #   --> Vertex links which are closed and not 2-spheres
         raise ValueError(
-                "recogniseSFS() requires an orientable triangulation" )
+                "recogniseSFS() requires a triangulation with no ideal " +
+                "vertices and nonempty real boundary" )
 
     # At this point, we have an orientable 3-manifold with nonempty boundary,
     # where each boundary component is built entirely out of real boundary
@@ -88,7 +90,11 @@ def recogniseSFS( tri, useHeuristics=True ):
             if blocked is not None:
                 return blocked.manifold()
 
-            #TODO Other heuristics? For example, certifying hyperbolicity?
+            # Try to certify hyperbolicity.
+            if knownHyperbolic(orientedTri):
+                return None
+
+            #TODO Other heuristics?
 
         #TODO Consider recording boundary slopes that we have already ruled
         #   out, to avoid some unnecessary computations. This might speed up

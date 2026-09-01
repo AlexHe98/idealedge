@@ -21,46 +21,6 @@ else:
     _serial = False
 
 
-def knownHyperbolic(edgeIdealTri):
-    """
-    Is the given edge-ideal triangulation known to represent a hyperbolic
-    knot?
-
-    If this routine returns True, then the edge-ideal triangulation is
-    guaranteed to represent a hyperbolic knot (and hence a nontrivial prime
-    knot); otherwise, if this routine returns False, then we have no
-    guarantee about whether or not the knot is hyperbolic.
-
-    Pre-condition:
-    --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
-    """
-    drilled = edgeIdealTri.drill()
-    spt = SnapPeaTriangulation(drilled)
-    probablyHyperbolic = False
-    attempts = 0
-    while True:
-        attempts += 1
-        sol = spt.solutionType()
-        try:
-            # Introduced in Regina 7.4:
-            geom = SnapPeaTriangulation.Solution.Geometric
-            nong = SnapPeaTriangulation.Solution.Nongeometric
-        except AttributeError:
-            # For backwards compatibility with Regina 7.3 and earlier (but
-            # this usage is deprecated as of Regina 7.4):
-            geom = SnapPeaTriangulation.geometric_solution
-            nong = SnapPeaTriangulation.nongeometric_solution
-        if ( sol == geom or sol == nong ):
-            probablyHyperbolic = True
-            break
-        elif attempts < 4:  # Hard-coded limit on the number of attempts.
-            # Try again.
-            spt.randomise()
-        else:
-            break
-    return ( probablyHyperbolic and spt.hasStrictAngleStructure() )
-
-
 def isKnotted( edgeIdealTri, tracker=None ):
     """
     Does the given edge-ideal triangulation represent a nontrivial knot?
