@@ -50,7 +50,7 @@ applications for the techniques implemented here:
 
 The main scripts in this repository are the following:
 - ``decomposeknot.py``: Contains the ``decompose()`` routine.
-- ``recsfs.py``: Contains the ``recogniseSFS()`` and ``recogniseTorusKnot()
+- ``recsfs.py``: Contains the ``recogniseSFS()`` and ``recogniseTorusKnot()``
     routines.
 - ``loop.py``: Implements the ``IdealLoop`` class.
 - ``triloops.py``: Implements the ``EdgeIdealTriangulation`` class.
