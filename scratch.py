@@ -2,7 +2,7 @@
 Scratch work for bounded orientable SFS recognition using edge-ideal
 triangulations.
 """
-from sys import argv
+import sys
 from timeit import default_timer
 from regina import *
 from construct.sfs import orientableSFS
@@ -60,9 +60,9 @@ def filledHomology(annulus):
 
 
 if __name__ == "__main__":
-    genus = int( argv[1] )
-    boundaries = int( argv[2] )
-    params = [ int(n) for n in argv[3:] ]
+    genus = int( sys.argv[1] )
+    boundaries = int( sys.argv[2] )
+    params = [ int(n) for n in sys.argv[3:] ]
     fibres = []
     while params:
         q = params.pop()
@@ -72,6 +72,42 @@ if __name__ == "__main__":
     print(fibres)
     print()
     tri = orientableSFS( genus, boundaries, *fibres )
+#    hardS3 = Triangulation3("-cwc3admabhuOIgKiJlYydn+idrcreqg5Kuazew8OJu+qLwkrexkzfuEHLwwrLzMbgyGzMyKHgB0PhKmIOFesjJkQOMkkPKGQQMO6PTOkQOWAmX66RVSYlYwdUVcRUYuRV2sdV2CJo+cCqa3ZV9YJo-0tocNlp9smrfleWcjCq-qesjfKsiF0XdF0XkLKXfBKXgBCsjPCskRSY--Vpp+0KL3-sTlHIjai+tTc8rxKyobacJ-75w-hwUWhqnMaPcGD2bXbWaXA0br8QASXWXgt1Drz3sTLirMDGAintbar1ivHubIAiytCQ62CYHqybAg7KtZzo1OigAfrN1K5qyG4ccTswDfCgBxZGmXb")
+#    tri.connectedSumWith(hardS3)
+
+    # Simplify and attempt combinatorial recognition.
+    print( "Combinatorial recognition" )
+    print( "-------------------------" )
+    print( "Initial size: {}".format( tri.size() ) )
+    sys.stdout.flush()
+    start = default_timer()
+    simplifiedNow = tri.simplify()
+    if not simplifiedNow:
+#        tri.simplifyUpDown(1024)
+        # Make sure to attempt simplification at least once more.
+        simplifiedNow = True
+    while simplifiedNow:
+        simplifiedNow = tri.simplify()
+#        if not simplifiedNow:
+#            simplifiedNow = tri.simplifyUpDown(1024)
+    print( "Simplified size: {}".format( tri.size() ) )
+    print( "Time: {:.6f}".format( default_timer() - start ) )
+    blocked = BlockedSFS.recognise(tri)
+    if blocked is None:
+        print( "Not recognised" )
+    else:
+        print( "Recognised!" )
+        print( blocked.manifold() )
+    print( "Time: {:.6f}".format( default_timer() - start ) )
+    print()
+    sys.stdout.flush()
+
+    # Now run the normal surface computation.
+    print( "Normal surfaces" )
+    print( "---------------" )
+    sys.stdout.flush()
     start = default_timer()
     print( recogniseSFS( tri, False ) )
     print( "Time: {:.6f}".format( default_timer() - start ) )
+    print()
+    sys.stdout.flush()
