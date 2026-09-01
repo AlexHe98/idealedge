@@ -59,7 +59,7 @@ def filledHomology(annulus):
     return AbelianGroup( MatrixInt(presentation) )
 
 
-def attemptHardSFS( baseSignedGenus, boundaries, fibres, attempts=16 ):
+def attemptHardSFS( baseSignedGenus, boundaries, fibres, attempts=8 ):
     """
     Attempts to construct a hard triangulation of an orientable Seifert fibre
     space by randomising a few times.
