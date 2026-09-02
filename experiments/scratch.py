@@ -14,6 +14,7 @@ from math import gcd as pythonGCD
 from itertools import combinations_with_replacement as combinsWithRep
 from multiprocessing import Pool, TimeoutError
 from timeit import default_timer
+from collections import Counter
 from regina import *
 from construct.sfs import orientableSFS
 
@@ -116,25 +117,36 @@ if __name__ == "__main__":
     start = default_timer()
     fibres = []
     for p in range( 2, 1 + maxMultiplicity ):
-        for q in range( 1, p ):
+        for q in range( 1, 1 + p//2 ):
             if pythonGCD(p, q) != 1:
                 continue
             fibres.append( (p, q) )
+            if p != 2:
+                fibres.append( (p, -q) )
 
     # Try to generate a non-standard triangulation for each Seifert fibred
     # space satisfying the given parameters.
-    unfinished = dict()
     manifold = dict()
+    unfinished = dict()
     with Pool( processes=numWorkers ) as pool:
-        for i, fibreParams in enumerate(
-                combinsWithRep( fibres, numFibres ) ):
-            #TODO Filter out fibre parameters that are just negations
-            unfinished[i] = pool.apply_async( attemptHardSFS, args = (
-                baseSignedGenus, numBdries, fibreParams, maxAttempts ) )
-            manifold[i] = SFSpace( baseClass, baseGenus, numBdries )
+        sortedNegations = set()
+        count = 0
+        for fibreParams in combinsWithRep( fibres, numFibres ):
+            # Avoid duplicates with the opposite orientation.
+            if tuple( sorted(fibreParams) ) in sortedNegations:
+                continue
+            sortedNegations.add( tuple( sorted(
+                (2, 1) if p == 2 else (p, -q) for p, q in fibreParams ) ) )
+
+            # We have a bounded orientable SFS for which we hope to find a
+            # non-standard triangulation.
+            manifold[count] = SFSpace( baseClass, baseGenus, numBdries )
             for p, q in fibreParams:
-                manifold[i].insertFibre( p, q )
-        print( "Generating up to {} triangulations".format(i + 1) )
+                manifold[count].insertFibre( p, q )
+            unfinished[count] = pool.apply_async( attemptHardSFS, args = (
+                baseSignedGenus, numBdries, fibreParams, maxAttempts ) )
+            count += 1
+        print( "Generating up to {} triangulations".format(count) )
         print()
         sys.stdout.flush()
 
