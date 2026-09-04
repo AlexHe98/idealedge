@@ -125,6 +125,9 @@ if __name__ == "__main__":
     if numFibres < 0:
         raise ValueError( "Can't have {} ".format(numFibres) +
                          "exceptional fibres. Must be at least 0." )
+    if baseSignedGenus == 0 and numBdries == 1 and numFibres < 2:
+        # Ignore solid tori.
+        raise ValueError( "This script does not work with solid tori." )
     maxMultiplicity = int( sys.argv[4] )
     if maxMultiplicity < 2:
         raise ValueError( "Can't have exceptional fibres of " +
