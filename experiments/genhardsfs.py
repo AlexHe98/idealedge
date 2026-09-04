@@ -1,5 +1,10 @@
 """
-Scratch work for experimental testing of recogniseSFS().
+Generate hard triangulations of bounded orientable SFS.
+
+Here, "hard" means that combinatorial recognition heuristics fail to identify
+the Seifert fibred structure, which makes such hard triangulations good test
+cases for the practical performance of the bounded orientable SFS recognition
+algorithm implemented by the recogniseSFS() routine.
 
 Usage: Must supply the following integer input arguments:
     (1) Signed genus of the base surface
@@ -13,7 +18,6 @@ from math import gcd as pythonGCD
 from itertools import combinations_with_replacement as combinsWithRep
 from multiprocessing import Pool, TimeoutError, cpu_count
 from timeit import default_timer
-from collections import Counter
 from regina import *
 from construct.sfs import orientableSFS
 
