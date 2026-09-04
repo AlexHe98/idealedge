@@ -218,8 +218,11 @@ if __name__ == "__main__":
 
                         # Did we actually find a hard SFS triangulation?
                         if output is not None:
-                            #TODO Write to file.
+                            # Write to file and print update to stdout.
                             found += 1
+                            sfsFile.write( _sfsLine(
+                                output, paramsToAttempt[i] ) )
+                            sfsFile.flush()
                             print( "#{}. Time: {:.6f}. {}. \"{}\".".format(
                                 found, default_timer() - start, manifold[i], output ) )
                             sys.stdout.flush()
