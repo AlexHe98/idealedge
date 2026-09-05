@@ -71,7 +71,7 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     # Run the main enumeration.
     #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
     #   NormalCoords.Quad.
-    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
+    enumeration = TreeEnumeration( underlyingTri, NormalCoords.Quad )
     while True:
         if runParallelEnumerations:
             # Has the randomiseProcess detected a loop which bounds a disc?
@@ -113,7 +113,7 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
             ans = ( tri, None, None )
             break
         surf = enumeration.buildSurface()
-        surfDesc = identifyAcceptableSurface(surf)
+        surfDesc = identifyAcceptableSurface( tri, surf )
         if surfDesc is not None:
             # Found an acceptable surface!
             ans = ( tri, surf, surfDesc )
@@ -181,14 +181,14 @@ def _indefiniteEnumerate( receiver, sender, identifyAcceptableSurface ):
             searches = 0
             blueprint, attempts = receiver.recv()
             if isEdgeIdeal:
-                tri = Triangulation3.tightDecoding(blueprint)
-                underlyingTri = tri
-            else:
                 tri = EdgeIdealTriangulation.fromBlueprint(*blueprint)
                 underlyingTri = tri.triangulation()
+            else:
+                tri = Triangulation3.tightDecoding(blueprint)
+                underlyingTri = tri
             #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
             #   with NormalCoords.Quad.
-            enumeration = TreeEnumeration( tri, NormalCoords.Quad )
+            enumeration = TreeEnumeration( underlyingTri, NormalCoords.Quad )
 
         # Get the next surface and check whether it is acceptable.
         searches += 1
@@ -197,7 +197,7 @@ def _indefiniteEnumerate( receiver, sender, identifyAcceptableSurface ):
             sender.send( ( blueprint, None, None, attempts ) )
             return
         surf = enumeration.buildSurface()
-        surfDesc = identifyAcceptableSurface(surf)
+        surfDesc = identifyAcceptableSurface( tri, surf )
         if surfDesc is not None:
             # Found an acceptable surface!
             sender.send( ( blueprint, _normalSurfacePythonVector(surf),
