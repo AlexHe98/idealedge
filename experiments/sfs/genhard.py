@@ -20,6 +20,7 @@ from multiprocessing import Pool, TimeoutError, cpu_count
 from timeit import default_timer
 from regina import *
 from construct.sfs import orientableSFS
+from experiments.sfs.io import sfsLine, readSFSLine, hardSFSPath
 
 
 def attemptHardSFS( baseSignedGenus, boundaries, fibres, attempts ):
@@ -81,14 +82,6 @@ def attemptHardSFS( baseSignedGenus, boundaries, fibres, attempts ):
     return None
 
 
-def _hardSFSPath( isBaseOrbl, genus, numBdries ):
-    if isBaseOrbl:
-        base = "baseOr"
-    else:
-        base = "baseNor"
-    return "sfs-samples/sfs-{}-g{}-m{}.txt".format( base, genus, numBdries )
-
-
 def _sortedFibreParams(fibreParams):
     return tuple( sorted(fibreParams) )
 
@@ -96,23 +89,6 @@ def _sortedFibreParams(fibreParams):
 def _sortedFibreNegation(fibreParams):
     return _sortedFibreParams(
             (2, 1) if p == 2 else (p, -q) for p, q in fibreParams )
-
-
-def _readSFSLine(line):
-    data = line.rstrip().split(" ")
-    fibres = []
-    neoSig = data[0]
-    for fibreString in data[1:]:
-        fibres.append( tuple(
-            int(k) for k in fibreString[1:-1].split(",") ) )
-    return neoSig, tuple(fibres)
-
-
-def _sfsLine( neoSig, fibres ):
-    line = neoSig
-    for p, q in fibres:
-        line += " ({},{})".format( p, q )
-    return line + "\n"
 
 
 if __name__ == "__main__":
@@ -153,7 +129,7 @@ if __name__ == "__main__":
         print( "Max {} randomisation attempts per SFS.".format(maxAttempts) )
     print()
     sys.stdout.flush()
-    filePath = _hardSFSPath( isBaseOrbl, baseGenus, numBdries )
+    filePath = hardSFSPath( isBaseOrbl, baseGenus, numBdries )
     with open( filePath, 'a+' ) as sfsFile:
         # First read in all the manifolds where we have previously found
         # non-standard triangulations.
@@ -161,7 +137,7 @@ if __name__ == "__main__":
         sortedNegations = set()
         sfsFile.seek(0)
         for line in sfsFile:
-            _, fibres = _readSFSLine(line)
+            _, fibres = readSFSLine(line)
             foundParams.add(fibres)
             sortedNegations.add( _sortedFibreNegation(fibres) )
 
@@ -227,7 +203,7 @@ if __name__ == "__main__":
                         if output is not None:
                             # Write to file and print update to stdout.
                             found += 1
-                            sfsFile.write( _sfsLine(
+                            sfsFile.write( sfsLine(
                                 output, paramsToAttempt[i] ) )
                             sfsFile.flush()
                             print( "#{}. Time: {:.6f}. {}. \"{}\".".format(
