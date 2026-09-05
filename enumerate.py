@@ -19,12 +19,13 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
 
     If, for whatever reason, you require a surface specifically in the given
     triangulation (and not in some different triangulation of the same
-    3-manifold), simply set runParallelEnumerations to False.
+    3-manifold), you should set runParallelEnumerations to False.
 
     The given tri must be an instance of either EdgeIdealTriangulation or
     Regina's Triangulation3.
 
-    If an acceptable quad vertex surface S, then this routine returns the
+    If this routine finds an acceptable quad vertex surface S in a
+    triangulation T of the same 3-manifold as tri, then it will return the
     triple (T, S, R), where R is the return value of
         identifyAcceptableSurface(T, S).
     Otherwise, this routine returns (T, None, None), where T is a
