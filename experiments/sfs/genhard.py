@@ -19,6 +19,7 @@ from itertools import combinations_with_replacement as combinsWithRep
 from multiprocessing import Pool, TimeoutError, cpu_count
 from timeit import default_timer
 from regina import *
+from aux.sfs import sortedFibreParams, sortedFibreNegation
 from construct.sfs import orientableSFS
 from experiments.sfs.io import sfsLine, readSFSLine, hardSFSPath
 
@@ -82,15 +83,6 @@ def attemptHardSFS( baseSignedGenus, boundaries, fibres, attempts ):
     return None
 
 
-def _sortedFibreParams(fibreParams):
-    return tuple( sorted(fibreParams) )
-
-
-def _sortedFibreNegation(fibreParams):
-    return _sortedFibreParams(
-            (2, 1) if p == 2 else (p, -q) for p, q in fibreParams )
-
-
 if __name__ == "__main__":
     baseSignedGenus = int( sys.argv[1] )
     numBdries = int( sys.argv[2] )
@@ -139,7 +131,7 @@ if __name__ == "__main__":
         for line in sfsFile:
             _, fibres = readSFSLine(line)
             foundParams.add(fibres)
-            sortedNegations.add( _sortedFibreNegation(fibres) )
+            sortedNegations.add( sortedFibreNegation(fibres) )
 
         # For each SFS satisfying the given parameters, if we haven't already
         # found a non-standard triangulation, then try to generate one now.
@@ -160,9 +152,9 @@ if __name__ == "__main__":
                 continue
 
             # Avoid duplicates with the opposite orientation.
-            if _sortedFibreParams(fibreParams) in sortedNegations:
+            if sortedFibreParams(fibreParams) in sortedNegations:
                 continue
-            sortedNegations.add( _sortedFibreNegation(fibreParams) )
+            sortedNegations.add( sortedFibreNegation(fibreParams) )
 
             # We have a bounded orientable SFS for which we hope to find
             # a non-standard triangulation.
