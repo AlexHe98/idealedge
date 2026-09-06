@@ -1,5 +1,14 @@
 """
-Scratch work for SFS experiments.
+Run recogniseSFS() on hard triangulations of bounded orientable SFS.
+
+Here, "hard" means that combinatorial recognition heuristics fail to identify
+the Seifert fibred structure, which makes such hard triangulations good test
+cases for the practical performance of the bounded orientable SFS recognition
+algorithm implemented by the recogniseSFS() routine.
+
+Usage: Must supply a path to which to write the experimental data. To avoid
+    overwriting data, this script will check that the path is to a file which
+    does not yet exist.
 """
 from pathlib import Path
 import sys
