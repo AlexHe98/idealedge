@@ -91,7 +91,7 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
                 alternateProcess.join()
                 raise BoundsDisc()
 
-            # Has the altenatveProcess given an answer?
+            # Has the alternateProcess given an answer?
             if alternateReceiver.poll():
                 # Make sure to clean up child processes before returning the
                 # answer from the alternateProcess.

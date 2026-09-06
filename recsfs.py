@@ -112,63 +112,16 @@ def recogniseSFS( tri, useHeuristics=True ):
                 # triangulation of a Seifert fibred space.
                 return None
             surf = enumeration.buildSurface()
-
-            #TODO For readability, refactor using _identifyAcceptable...()
-
-            # Is this a useful surface?
-            surfType = SurfaceType.recognise(surf)
-            if surfType == SurfaceType.RP3:
-                # Orientability of the 3-manifold implies that the projective
-                # plane is one-sided, and hence that the 3-manifold is
-                # reducible.
-                return None
-            elif surfType == SurfaceType.MOBIUS:
-                if hasOnlyNonTrivialBoundaryCurves(surf):
-                    # Mobius band with nontrivial boundary is a candidate to
-                    # be a vertical surface.
-                    foundCandidateVertical = True
-                else:
-                    # Mobius band with trivial boundary implies the existence
-                    # of an embedded (one-sided) projective plane.
-                    return None
-            elif surfType == SurfaceType.SPHERE:
-                # If the 3-manifold is a Seifert fibred space, then we expect
-                # this 2-sphere to be inessential.
-                foundCandidateVertical = False
-            elif surfType == SurfaceType.DISC:
-                if hasOnlyNonTrivialBoundaryCurves(surf):
-                    # Either the 3-manifold is a solid torus, or it is
-                    # reducible (and hence not a Seifert fibred space).
-                    crushed = surf.crush()
-                    if crushed.isEmpty() or crushed.isBall():
-                        return _trivialSolidTorusFibration()
-                    else:
-                        # Reducible.
-                        return None
-                else:
-                    # If the 3-manifold is a Seifert fibred space, then we
-                    # expect this disc to be inessential.
-                    foundCandidateVertical = False
-            elif surfType == SurfaceType.ANNULUS:
-                if hasOnlyNonTrivialBoundaryCurves(surf):
-                    # Annulus with two nontrivial boundary curves is a
-                    # candidate to be a vertical surface.
-                    thin = surf.isThinEdgeLink()
-                    if thin[0] is not None:
-                        # Although the algorithm can handle thin edge links,
-                        # in practice this usually seems unhelpful, so we
-                        # just ignore them instead.
-                        continue
-                    foundCandidateVertical = True
-                else:
-                    # We don't work with annuli with trivial boundary curves.
-                    continue
-            else:
-                # Any other surface is definitely not useful.
+            surfDesc = _identifyAcceptableSurfaceForRealSFS(surf)
+            if surfDesc is None:
                 continue
 
-            # Process the surface.
-            if foundCandidateVertical:
+            # Process surf.
+            if surfDesc == _FoundSurface.REDUCING:
+                return None
+            elif surfDesc == _FoundSurface.MERIDIONAL:
+                return _trivialSolidTorusFibration()
+            elif surfDesc == _FoundSurface.VERTICAL:
                 ans = _recogniseSFSGivenCandidateVerticalSurface(surf)
                 if ans is None:
                     # It turns out that the current surface is not vertical,
@@ -178,22 +131,23 @@ def recogniseSFS( tri, useHeuristics=True ):
                     return ans
                 elif ans == ManifoldProperty.NOT_SFS:
                     return None
-                else:
-                    raise AssertionError(
-                            "recogniseSFS() should never reach this point" )
-            else:
+                raise AssertionError(
+                        "recogniseSFS() should never reach this point" )
+            elif surfDesc == _FoundSurface.SPHERE_DISC:
                 crushAns = _crushCandidateInessentialSphereOrDisc(surf)
                 if crushAns == ManifoldProperty.REDUCIBLE:
                     return ManifoldProperty.REDUCIBLE
 
                 # At this point, we should have a new triangulation with
-                # strictly fewer tetrahedra than before. Restart the normal
-                # surface enumeration with this new triangulation.
+                # strictly fewer tetrahedra than before. Start a new quad
+                # vertex surface enumeration using this new triangulation.
                 assert len(crushAns) == 1
                 orientedTri = crushAns[0]
                 assert isinstance( orientedTri, Triangulation3 )
                 assert orientedTri.isOriented()
                 break
+            raise AssertionError(
+                    "recogniseSFS() should never reach this point" )
         # End of enumeration loop.
     # End of loop processing triangulations.
     raise AssertionError( "recogniseSFS() should never reach this point" )
@@ -278,6 +232,101 @@ def recogniseTorusKnot( knot, useHeuristics=True ):
         r, s = s, r
     if (p*s + q*r) % (p*q) in { 1, p*q - 1 }:
         return (p, q)
+    return None
+
+
+class ManifoldProperty(Enum):
+    """
+    An enumeration of various properties that an algorithm might prove about
+    an edge-ideal triangulation T of a 3-manifold M.
+
+    The properties are not mutually exclusive, and a 3-manifold need not
+    satisfy any of these properties at all.
+
+    At present, this enumeration includes the following properties:
+    --> REDUCIBLE   M is reducible.
+    --> NOT_FST     T is not a vertically-aligned solid torus.
+    --> NOT_SFS     T is not a vertically-aligned triangulation of a
+                    Seifert fibred space
+    """
+    REDUCIBLE = auto()
+    NOT_FST = auto()
+    NOT_SFS = auto()
+    pass
+
+
+class _FoundSurface(Enum):
+    """
+    An internal enumeration of various quad vertex surfaces that we might
+    find, which indicates how such surfaces should be handled.
+
+    This enumeration includes the following types of surfaces:
+    --> VERTICAL        Candidate vertical surface.
+    --> MERIDIONAL      Candidate meridional disc.
+    --> SPHERE_DISC     Candidate inessential 2-sphere or disc.
+    --> REDUCING        Surface which conclusively certifies that the ambient
+                        3-manifold is reducible.
+    --> MISALIGNED      A disc whose boundary runs along a candidate regular
+                        fibre c, which means that c cannot be a regular fibre
+                        after all.
+    """
+    VERTICAL = auto()
+    MERIDIONAL = auto()
+    SPHERE_DISC = auto()
+    REDUCING = auto()
+    MISALIGNED = auto()
+    pass
+
+
+def _identifyAcceptableSurfaceForRealSFS(surf):
+    #TODO
+    surfType = SurfaceType.recognise(surf)
+    if surfType == SurfaceType.RP3:
+        # Orientability of the 3-manifold implies that the projective plane
+        # is one-sided, and hence that the 3-manifold is reducible.
+        return _FoundSurface.REDUCING
+    elif surfType == SurfaceType.MOBIUS:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            # Mobius band with nontrivial boundary is a candidate to be a
+            # vertical surface.
+            return _FoundSurface.VERTICAL
+        else:
+            # Mobius band with trivial boundary implies the existence of an
+            # embedded (one-sided) projective plane.
+            return _FoundSurface.REDUCING
+    elif surfType == SurfaceType.SPHERE:
+        # If the 3-manifold is a Seifert fibred space, then we expect this
+        # 2-sphere to be inessential.
+        return _FoundSurface.SPHERE_DISC
+    elif surfType == SurfaceType.DISC:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            # Either the 3-manifold is a solid torus, or it is reducible (and
+            # hence not a bounded orientable Seifert fibred space).
+            crushed = surf.crush()
+            if crushed.isEmpty() or crushed.isBall():
+                return _FoundSurface.MERIDIONAL
+            else:
+                # Reducible.
+                return _FoundSurface.REDUCING
+        else:
+            # If the 3-manifold is a Seifert fibred space, then we expect
+            # this disc to be inessential.
+            return _FoundSurface.SPHERE_DISC
+    elif surfType == SurfaceType.ANNULUS:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            # Annulus with two nontrivial boundary curves is a candidate to
+            # be a vertical surface.
+            thin = surf.isThinEdgeLink()
+            if thin[0] is not None:
+                # Although the algorithm can handle thin edge links, in
+                # practice this usually seems unhelpful, so we just ignore
+                # them instead.
+                return None
+            return _FoundSurface.VERTICAL
+        else:
+            # We don't work with annuli with trivial boundary curves.
+            return None
+    # Any other surface is definitely not acceptable.
     return None
 
 
@@ -374,9 +423,10 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
         if crushAns == ManifoldProperty.REDUCIBLE:
             return ManifoldProperty.NOT_SFS
         toProcess.extend(crushAns)
+    # End of loop processing triangulations.
 
-    # We have emptied out toProcess, which means that the invariants carry
-    # a complete description of a Seifert fibration.
+    # We have emptied out toProcess, which means that the invariants carry a
+    # complete description of a Seifert fibration.
     genus = 2 - invariants.baseEuler() - numBdries
     #TODO When Regina's SFSpace is overhauled to use BundleType instead of
     #   Class, we should replace Class.bo1 and Class.bn2 with BundleType.o1
@@ -391,49 +441,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
     for fibre in invariants.fibres():
         fibration.insertFibre(fibre)
     return fibration
-
-
-class ManifoldProperty(Enum):
-    """
-    An enumeration of various properties that an algorithm might prove about
-    an edge-ideal triangulation T of a 3-manifold M.
-
-    The properties are not mutually exclusive, and a 3-manifold need not
-    satisfy any of these properties at all.
-
-    At present, this enumeration includes the following properties:
-    --> REDUCIBLE   M is reducible.
-    --> NOT_FST     T is not a vertically-aligned solid torus.
-    --> NOT_SFS     T is not a vertically-aligned triangulation of a
-                    Seifert fibred space
-    """
-    REDUCIBLE = auto()
-    NOT_FST = auto()
-    NOT_SFS = auto()
-    pass
-
-
-class _FoundSurface(Enum):
-    """
-    An internal enumeration of various quad vertex surfaces that we might
-    find, which indicates how such surfaces should be handled.
-
-    This enumeration includes the following types of surfaces:
-    --> VERTICAL        Candidate vertical surface.
-    --> MERIDIONAL      Candidate meridional disc.
-    --> SPHERE_DISC     Candidate inessential 2-sphere or disc.
-    --> REDUCING        Surface which conclusively certifies that the ambient
-                        3-manifold is reducible.
-    --> MISALIGNED      A disc whose boundary runs along a candidate regular
-                        fibre c, which means that c cannot be a regular fibre
-                        after all.
-    """
-    VERTICAL = auto()
-    MERIDIONAL = auto()
-    SPHERE_DISC = auto()
-    REDUCING = auto()
-    MISALIGNED = auto()
-    pass
 
 
 def _identifyAcceptableSurfaceForEdgeIdealSFS( edgeIdealTri, surf ):
@@ -613,10 +620,10 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
             assert isinstance( drilled, TriangulationWithBoundaryLoops )
             assert len(drilled) == 1
             assert drilled.triangulation().countBoundaryComponents() == 1
-        else:
-            raise AssertionError(
-                    "_recogniseVerticallyAlignedSolidTorusImpl() should " +
-                    "never reach this point" )
+            continue
+        raise AssertionError(
+                "_recogniseVerticallyAlignedSolidTorusImpl() should never " +
+                "reach this point" )
     # End of loop processing drilled triangulations.
     raise AssertionError( "_recogniseVerticallyAlignedSolidTorusImpl() " +
                          "should never reach this point" )
