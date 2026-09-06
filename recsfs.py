@@ -15,7 +15,7 @@ from triloops import TriangulationWithEmbeddedLoops
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
-def recogniseSFS( tri, useHeuristics=True ):
+def recogniseSFS( tri, useHeuristics=True, tracker=None ):
     """
     Determines whether the given triangulation is a bounded orientable
     Seifert fibred space, and if so returns an instance of Regina's SFSpace.
@@ -36,6 +36,10 @@ def recogniseSFS( tri, useHeuristics=True ):
     not recommended unless you have a particular reason for doing so, such as 
     if your goal is specifically to test the performance of the main normal
     surface algorithm.
+
+    You may optionally pass an instance of SFSRecognitionTracker to the
+    tracker argument. This will track some information about the internal
+    computations that were performed by this routine.
 
     Warning:
         As explained above, the main algorithm used in this routine might be
@@ -122,7 +126,8 @@ def recogniseSFS( tri, useHeuristics=True ):
             elif surfDesc == _FoundSurface.MERIDIONAL:
                 return _trivialSolidTorusFibration()
             elif surfDesc == _FoundSurface.VERTICAL:
-                ans = _recogniseSFSGivenCandidateVerticalSurface(surf)
+                ans = _recogniseSFSGivenCandidateVerticalSurface(
+                        surf, tracker )
                 if ans is None:
                     # It turns out that the current surface is not vertical,
                     # so we need to look for another surface.
@@ -278,6 +283,33 @@ class _FoundSurface(Enum):
     pass
 
 
+class SFSRecognitionTracker:
+    """
+    A progress tracker for recogniseSFS().
+
+    At present, the only information that this tracker stores is the number
+    of normal surfaces that were found using an alternate enumeration.
+    """
+    def __init__(self):
+        self._altEnumCount = 0
+        return
+
+    def alternateEnumerationsCount(self):
+        """
+        Returns the number of normal surfaces that were found using an
+        alternate enumeration.
+        """
+        return self._altEnumCount
+
+    def usedAlternateEnumeration(self):
+        """
+        Notifies this tracker that a normal surface was found using an
+        alternate enumeration.
+        """
+        self._altEnumCount += 1
+        return
+
+
 def _identifyAcceptableSurfaceForRealSFS(surf):
     #TODO
     surfType = SurfaceType.recognise(surf)
@@ -330,7 +362,7 @@ def _identifyAcceptableSurfaceForRealSFS(surf):
     return None
 
 
-def _recogniseSFSGivenCandidateVerticalSurface(surf):
+def _recogniseSFSGivenCandidateVerticalSurface( surf, tracker=None ):
     """
     Given a candidate vertical surface, attempts to determine whether the
     ambient triangulation is a bounded orientable Seifert fibred space.
@@ -347,6 +379,10 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
         surf is vertical (although it is possible that some other Seifert
         fibration exists).
 
+    You may optionally pass an instance of SFSRecognitionTracker to the
+    tracker argument. This will track some information about the internal
+    computations that were performed by this routine.
+
     Precondition
     --> The given surf is a quadrilateral vertex normal surface.
     --> SurfaceToCrushInSuspectedSFS.recognise(surf) must be
@@ -362,6 +398,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
 
     # At this point, toProcess is a list of EdgeIdealTriangulation objects
     # which require further processing.
+    runParallelEnums = True
     while toProcess:
         edgeIdealTri = toProcess.pop()
 
@@ -387,12 +424,14 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
 
         # Search for a surface we can crush.
         edgeIdealTri, surf, surfDesc = findQuadVertexSurface(
-                edgeIdealTri, _identifyAcceptableSurfaceForEdgeIdealSFS )
+                edgeIdealTri, _identifyAcceptableSurfaceForEdgeIdealSFS,
+                runParallelEnums, tracker )
         if surf is None:
             # No candidate vertical surfaces, so either edgeIdealTri is a
             # vertically-aligned solid torus, or it isn't vertically-aligned
             # at all.
-            fstAns = _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri)
+            fstAns = _recogniseVerticallyAlignedSolidTorusImpl(
+                    edgeIdealTri, tracker )
             if fstAns == ManifoldProperty.REDUCIBLE:
                 return ManifoldProperty.NOT_SFS
             elif fstAns == ManifoldProperty.NOT_FST:
@@ -515,7 +554,7 @@ def _identifyAcceptableSurfaceForEdgeIdealSFS( edgeIdealTri, surf ):
     return None
 
 
-def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
+def recogniseVerticallyAlignedSolidTorus( edgeIdealTri, tracker=None ):
     """
     Determines whether the given EdgeIdealTriangulation is a
     vertically-aligned solid torus, and if so returns the fibre parameters
@@ -523,6 +562,10 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
 
     If it is not a vertically-aligned solid torus, then this routine returns
     ManifoldProperty.NOT_FST.
+
+    You may optionally pass an instance of SFSRecognitionTracker to the
+    tracker argument. This will track some information about the internal
+    computations that were performed by this routine.
 
     Warning:
         The algorithms used in this routine rely on normal surface theory,
@@ -532,7 +575,7 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
     tri = edgeIdealTri.triangulation()
     if not tri.isValid() or not tri.isOrientable():
         return ManifoldProperty.NOT_FST
-    ans = _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri)
+    ans = _recogniseVerticallyAlignedSolidTorusImpl( edgeIdealTri, tracker )
     if isinstance( ans, ManifoldProperty ):
         return ans
     fibreParams, disc = ans
@@ -546,7 +589,7 @@ def recogniseVerticallyAlignedSolidTorus(edgeIdealTri):
     return ManifoldProperty.REDUCIBLE
 
 
-def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
+def _recogniseVerticallyAlignedSolidTorusImpl( edgeIdealTri, tracker=None ):
     """
     Implementation of recogniseVerticallyAlignedSolidTorus().
 
@@ -563,6 +606,10 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         reducibility can be certified by checking that the triangulation
         given by crushing the disc D is non-empty and not homeomorphic to the
         3-ball.
+
+    You may optionally pass an instance of SFSRecognitionTracker to the
+    tracker argument. This will track some information about the internal
+    computations that were performed by this routine.
     """
     if ( not edgeIdealTri.triangulation().isClosed() or
         len(edgeIdealTri) != 1 ):
@@ -574,6 +621,7 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         drilled = drillMeridian( edgeIdealTri[0] )
     except BoundsDisc:
         return ManifoldProperty.NOT_FST
+    runParallelEnums = True
     while True:
         # Try really hard to simplify, since we will need to enumerate quad
         # vertex surfaces
@@ -590,7 +638,8 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
         # Search for the disc (though we might find some other acceptable
         # surface instead).
         drilled, surf, surfDesc = findQuadVertexSurface(
-                drilled, _identifyAcceptableSurfaceForFST )
+                drilled, _identifyAcceptableSurfaceForFST,
+                runParallelEnums, tracker )
         if surf is None:
             # No acceptable surfaces. In particular, no essential disc.
             return ManifoldProperty.NOT_FST

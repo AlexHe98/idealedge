@@ -15,7 +15,7 @@ from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
 def findQuadVertexSurface( tri, identifyAcceptableSurface,
-                          runParallelEnumerations=True ):
+                          runParallelEnumerations=True, tracker=None ):
     """
     Searches for a quad vertex normal surface S in a triangulation T of the
     same 3-manifold as tri, such that identifyAcceptableSurface(T, S) is not
@@ -44,6 +44,10 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     enumeration can terminate more quickly. In cases where an acceptable
     surfaces does indeed exist, this is often an effective method for
     speeding up the search.
+
+    You may optionally pass an instance of SFSRecognitionTracker to the
+    tracker argument. This will track some information about the internal
+    computations that were performed by this routine.
     """
     if isinstance( tri, EdgeIdealTriangulation ):
         triType = _TriType.EDGE_IDEAL
@@ -93,6 +97,9 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
 
             # Has the alternateProcess given an answer?
             if alternateReceiver.poll():
+                if tracker is not None:
+                    tracker.usedAlternateEnumeration()
+
                 # Make sure to clean up child processes before returning the
                 # answer from the alternateProcess.
                 randomiseProcess.terminate()
