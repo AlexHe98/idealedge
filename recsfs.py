@@ -113,6 +113,8 @@ def recogniseSFS( tri, useHeuristics=True ):
                 return None
             surf = enumeration.buildSurface()
 
+            #TODO For readability, refactor using _identifyAcceptable...()
+
             # Is this a useful surface?
             surfType = SurfaceType.recognise(surf)
             if surfType == SurfaceType.RP3:
@@ -336,7 +338,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(surf):
 
         # Search for a surface we can crush.
         edgeIdealTri, surf, surfDesc = findQuadVertexSurface(
-                edgeIdealTri, _identifyAcceptableSurfaceForRecogniseSFS )
+                edgeIdealTri, _identifyAcceptableSurfaceForEdgeIdealSFS )
         if surf is None:
             # No candidate vertical surfaces, so either edgeIdealTri is a
             # vertically-aligned solid torus, or it isn't vertically-aligned
@@ -434,7 +436,7 @@ class _FoundSurface(Enum):
     pass
 
 
-def _identifyAcceptableSurfaceForRecogniseSFS( edgeIdealTri, surf ):
+def _identifyAcceptableSurfaceForEdgeIdealSFS( edgeIdealTri, surf ):
     surfType = SurfaceType.recognise(surf)
     wt = edgeIdealTri.weight(surf)
     if surfType == SurfaceType.RP3:
@@ -578,71 +580,71 @@ def _recogniseVerticallyAlignedSolidTorusImpl(edgeIdealTri):
             return ManifoldProperty.NOT_FST
         merEdgeIndex = drilled[0][0]
 
-        # Search for the disc. We might find other useful surfaces instead.
-        #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
-        #   with NormalCoords.Quad.
-        enumeration = TreeEnumeration(
-                drilled.triangulation(), NormalCoords.Quad )
-        while True:
-            # We are enumerating finitely many surfaces, so we must
-            # eventually break out of this loop.
-            if not enumeration.next():
-                # No useful surfaces. In particular, no essential disc.
+        # Search for the disc (though we might find some other acceptable
+        # surface instead).
+        drilled, surf, surfDesc = findQuadVertexSurface(
+                drilled, _identifyAcceptableSurfaceForFST )
+        if surf is None:
+            # No acceptable surfaces. In particular, no essential disc.
+            return ManifoldProperty.NOT_FST
+
+        # Process surf.
+        if surfDesc == _FoundSurface.REDUCING:
+            return ManifoldProperty.REDUCIBLE
+        elif surfDesc == _FoundSurface.MERIDIONAL:
+            # Read off fibre parameters.
+            p, q = _fibreParameters( surf, drilled )
+            if p == 0:
                 return ManifoldProperty.NOT_FST
-            surf = enumeration.buildSurface()
-
-            # Is this a useful surface?
-            surfType = SurfaceType.recognise(surf)
-            if surfType == SurfaceType.RP3:
-                # Orientability of the 3-manifold implies that the projective
-                # plane is one-sided.
+            return ( (p, q), surf )
+        elif surfDesc == _FoundSurface.SPHERE_DISC:
+            # We have either a 2-sphere, or a disc with trivial boundary
+            # curve.
+            crushAns = _crushCandidateInessentialSphereOrDisc(
+                    surf, drilled )
+            if crushAns == ManifoldProperty.REDUCIBLE:
                 return ManifoldProperty.REDUCIBLE
-            elif surfType == SurfaceType.MOBIUS:
-                if hasOnlyNonTrivialBoundaryCurves(surf):
-                    # We don't consider a Mobius band with nontrivial
-                    # boundary curve to be a useful surface.
-                    continue
-                else:
-                    # Boundary of the Mobius band bounds a disc, so the
-                    # 3-manifold contains a (one-sided) embedded projective
-                    # plane.
-                    return ManifoldProperty.REDUCIBLE
-            elif surfType == SurfaceType.SPHERE:
-                foundMerDisc = False
-            elif surfType == SurfaceType.DISC:
-                foundMerDisc = hasOnlyNonTrivialBoundaryCurves(surf)
-            else:
-                # Any other surface is definitely not useful.
-                continue
 
-            # Process the surface.
-            if foundMerDisc:
-                # Read off fibre parameters.
-                p, q = _fibreParameters( surf, drilled )
-                if p == 0:
-                    return ManifoldProperty.NOT_FST
-                return ( (p, q), surf )
-            else:
-                # We have either a 2-sphere, or a disc with trivial boundary
-                # curve.
-                crushAns = _crushCandidateInessentialSphereOrDisc(
-                        surf, drilled )
-                if crushAns == ManifoldProperty.REDUCIBLE:
-                    return ManifoldProperty.REDUCIBLE
-
-                # At this point, we should have a new drilled triangulation
-                # with strictly fewer tetrahedra than before. Restart the
-                # normal surface enumeration with this new triangulation.
-                assert len(crushAns) == 1
-                drilled = crushAns[0]
-                assert isinstance( drilled, TriangulationWithBoundaryLoops )
-                assert len(drilled) == 1
-                assert drilled.triangulation().countBoundaryComponents() == 1
-                break
-        # End of enumeration loop.
+            # At this point, we should have a new drilled triangulation with
+            # strictly fewer tetrahedra than before. Start a new quad vertex
+            # surface search using this new triangulation.
+            assert len(crushAns) == 1
+            drilled = crushAns[0]
+            assert isinstance( drilled, TriangulationWithBoundaryLoops )
+            assert len(drilled) == 1
+            assert drilled.triangulation().countBoundaryComponents() == 1
+        else:
+            raise AssertionError(
+                    "_recogniseVerticallyAlignedSolidTorusImpl() should " +
+                    "never reach this point" )
     # End of loop processing drilled triangulations.
     raise AssertionError( "_recogniseVerticallyAlignedSolidTorusImpl() " +
                          "should never reach this point" )
+
+
+def _identifyAcceptableSurfaceForFST( ignored, surf ):
+    surfType = SurfaceType.recognise(surf)
+    if surfType == SurfaceType.RP3:
+        # Orientability of the 3-manifold implies that the projective plane
+        # is one-sided.
+        return _FoundSurface.REDUCING
+    elif surfType == SurfaceType.MOBIUS:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            # We don't consider a Mobius band with nontrivial boundary curve
+            # to be an acceptable surface.
+            return None
+        else:
+            # Boundary of the Mobius band bounds a disc, so the 3-manifold
+            # contains a (one-sided) embedded projective plane.
+            return _FoundSurface.REDUCING
+    elif surfType == SurfaceType.SPHERE:
+        return _FoundSurface.SPHERE_DISC
+    elif surfType == SurfaceType.DISC:
+        if hasOnlyNonTrivialBoundaryCurves(surf):
+            return _FoundSurface.MERIDIONAL
+        return _FoundSurface.SPHERE_DISC
+    # Any other surface is definitely not acceptable.
+    return None
 
 
 def _fibreParameters( disc, drilled ):

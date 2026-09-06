@@ -6,7 +6,7 @@ triangulation, while preserving the topological embedding of the loops.
 """
 from regina import *
 from loop import EmbeddedLoop, IdealLoop, BoundaryLoop
-from aux.looperror import BoundsDisc
+from aux.looperror import BoundsDisc, NotLoop
 from aux.edgeemb import embeddingsFromEdgeIndices
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
 from retriangulate.moves import twoThree, threeTwo, twoZero, twoOne, fourFour

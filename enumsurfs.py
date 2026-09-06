@@ -1,13 +1,17 @@
 """
 Speed up quad vertex normal surface enumeration.
 """
+from enum import Enum, auto
 from multiprocessing import Process, Pipe
 from time import sleep
 from regina import *
 from loop import BoundsDisc
-from triloops import EdgeIdealTriangulation
+from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 #TODO Consider unifying this implementation with the enumerations performed
 #   as part of the knot factorisation algorithm.
+#TODO The current implementation supports Triangulation3, but we never
+#   actually use this because it requires dealing with dead ends, which makes
+#   the interaction with the overall logic of the algorithm more subtle.
 
 
 def findQuadVertexSurface( tri, identifyAcceptableSurface,
@@ -21,8 +25,8 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     triangulation (and not in some different triangulation of the same
     3-manifold), you should set runParallelEnumerations to False.
 
-    The given tri must be an instance of either EdgeIdealTriangulation or
-    Regina's Triangulation3.
+    The given tri must be an instance of either EdgeIdealTriangulation,
+    TriangulationWithBoundaryLoops, or Regina's Triangulation3.
 
     If this routine finds an acceptable quad vertex surface S in a
     triangulation T of the same 3-manifold as tri, then it will return the
@@ -42,11 +46,15 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     speeding up the search.
     """
     if isinstance( tri, EdgeIdealTriangulation ):
-        isEdgeIdeal = True
+        triType = _TriType.EDGE_IDEAL
+        blueprint = tri.blueprint()
+        underlyingTri = tri.triangulation()
+    elif isinstance( tri, TriangulationWithBoundaryLoops ):
+        triType = _TriType.BDRY_LOOPS
         blueprint = tri.blueprint()
         underlyingTri = tri.triangulation()
     elif isinstance( tri, Triangulation3 ):
-        isEdgeIdeal = False
+        triType = _TriType.REGINA
         blueprint = tri.tightEncoding()
         underlyingTri = tri
     else:
@@ -65,7 +73,7 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
         alternateReceiver, alternateSender = Pipe(False)
         alternateProcess = Process( target=_indefiniteEnumerate,
                 args=( randomiseReceiver, alternateSender,
-                      identifyAcceptableSurface ) )
+                      triType, identifyAcceptableSurface ) )
         alternateProcess.start()
 
     # Run the main enumeration.
@@ -93,8 +101,12 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
                 #TODO For now, we ignore the number of attempts.
                 newBlueprint, surfCoords, surfDesc, _ =\
                         alternateReceiver.recv()
-                if isEdgeIdeal:
+                if triType == _TriType.EDGE_IDEAL:
                     newTri = EdgeIdealTriangulation.fromBlueprint(
+                            *newBlueprint )
+                    newUnderlyingTri = newTri.triangulation()
+                elif triType == _TriType.BDRY_LOOPS:
+                    newTri = TriangulationWithBoundaryLoops.fromBlueprint(
                             *newBlueprint )
                     newUnderlyingTri = newTri.triangulation()
                 else:
@@ -128,6 +140,13 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     return ans
 
 
+class _TriType(Enum):
+    EDGE_IDEAL = auto()
+    BDRY_LOOPS = auto()
+    REGINA = auto()
+    pass
+
+
 def _perpetualRandomise( blueprint, sender ):
     attempts = 0
     if isinstance( blueprint, str ):
@@ -157,19 +176,21 @@ def _perpetualRandomise( blueprint, sender ):
     return
 
 
-def _indefiniteEnumerate( receiver, sender, identifyAcceptableSurface ):
+def _indefiniteEnumerate(
+        receiver, sender, triType, identifyAcceptableSurface ):
     searches = 0
     while not receiver.poll():
         sleep(0.01)
     blueprint, attempts = receiver.recv()
-    if isinstance( blueprint, str ):
-        isEdgeIdeal = False
-        tri = Triangulation3.tightDecoding(blueprint)
-        underlyingTri = tri
-    else:
-        isEdgeIdeal = True
+    if triType == _TriType.EDGE_IDEAL:
         tri = EdgeIdealTriangulation.fromBlueprint(*blueprint)
         underlyingTri = tri.triangulation()
+    elif triType == _TriType.BDRY_LOOPS:
+        tri = TriangulationWithBoundaryLoops.fromBlueprint(*blueprint)
+        underlyingTri = tri.triangulation()
+    else:
+        tri = Triangulation3.tightDecoding(blueprint)
+        underlyingTri = tri
     #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
     #   NormalCoords.Quad.
     enumeration = TreeEnumeration( underlyingTri, NormalCoords.Quad )
@@ -180,8 +201,11 @@ def _indefiniteEnumerate( receiver, sender, identifyAcceptableSurface ):
         if searches > 20 and receiver.poll():
             searches = 0
             blueprint, attempts = receiver.recv()
-            if isEdgeIdeal:
+            if triType == _TriType.EDGE_IDEAL:
                 tri = EdgeIdealTriangulation.fromBlueprint(*blueprint)
+                underlyingTri = tri.triangulation()
+            elif triType == _TriType.BDRY_LOOPS:
+                tri = TriangulationWithBoundaryLoops.fromBlueprint(*blueprint)
                 underlyingTri = tri.triangulation()
             else:
                 tri = Triangulation3.tightDecoding(blueprint)

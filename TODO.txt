@@ -1,5 +1,6 @@
 --- Bounded orientable SFS recognition
     --> Experiment with examples other than the standard SFS constructions
+    --> Tidy up TODOs in recsfs.py and enumsurfs.py
     --> Consider fixing up filledHomology() and using it for sanity-checking
     --> Possible speed-ups
         ->- Recording boundary slopes that have already been shown not to be vertical, to avoid unnecessary computations
