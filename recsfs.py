@@ -381,7 +381,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(
         fibration exists).
 
     If useHeuristics is True (the default), this routine will attempt faster
-    tests before running any enumeration of quad vertex normal surfaces.
+    tests so as to avoid enumerating quad vertex surfaces whenever possible.
 
     You may optionally pass an instance of SFSRecognitionTracker to the
     tracker argument. This will track some information about the internal
@@ -399,6 +399,14 @@ def _recogniseSFSGivenCandidateVerticalSurface(
     toProcess = _crushCandidateVerticalSurface( surf, invariants )
     if toProcess == ManifoldProperty.REDUCIBLE:
         return ManifoldProperty.NOT_SFS
+
+    # If we have a hyperbolic component, then we definitely don't have a
+    # Seifert fibre space, and hence we can terminate early.
+    if useHeuristics:
+        for edgeIdealTri in toProcess:
+            if knownHyperbolic(edgeIdealTri):
+                return ManifoldProperty.NOT_SFS
+    #TODO Other heuristics?
 
     # At this point, toProcess is a list of EdgeIdealTriangulation objects
     # which require further processing.
@@ -422,14 +430,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(
             else:
                 # The drilled 3-manifold of edgeIdealTri is reducible.
                 return ManifoldProperty.NOT_SFS
-
-        # Would like to avoid the normal surface enumeration where possible.
-        if useHeuristics:
-            # Try to certify hyperbolicity.
-            if knownHyperbolic(edgeIdealTri):
-                return ManifoldProperty.NOT_SFS
-
-            #TODO Other heuristics?
 
         #TODO Possible optimisation: Attempt vertically-aligned solid torus
         #   recognition in parallel with the enumeration.
@@ -473,6 +473,11 @@ def _recogniseSFSGivenCandidateVerticalSurface(
                     "never reach this point" )
         if crushAns == ManifoldProperty.REDUCIBLE:
             return ManifoldProperty.NOT_SFS
+        if useHeuristics:
+            for newEdgeIdealTri in crushAns:
+                if knownHyperbolic(newEdgeIdealTri):
+                    return ManifoldProperty.NOT_SFS
+        #TODO Other heuristics?
         toProcess.extend(crushAns)
     # End of loop processing triangulations.
 
