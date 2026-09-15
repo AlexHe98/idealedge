@@ -127,7 +127,7 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
                 return _trivialSolidTorusFibration()
             elif surfDesc == _FoundSurface.VERTICAL:
                 ans = _recogniseSFSGivenCandidateVerticalSurface(
-                        surf, tracker )
+                        surf, useHeuristics, tracker )
                 if ans is None:
                     # It turns out that the current surface is not vertical,
                     # so we need to look for another surface.
@@ -362,7 +362,8 @@ def _identifyAcceptableSurfaceForRealSFS(surf):
     return None
 
 
-def _recogniseSFSGivenCandidateVerticalSurface( surf, tracker=None ):
+def _recogniseSFSGivenCandidateVerticalSurface(
+        surf, useHeuristics=True, tracker=None ):
     """
     Given a candidate vertical surface, attempts to determine whether the
     ambient triangulation is a bounded orientable Seifert fibred space.
@@ -378,6 +379,9 @@ def _recogniseSFSGivenCandidateVerticalSurface( surf, tracker=None ):
     --> None, which certifies that there is no Seifert fibration such that
         surf is vertical (although it is possible that some other Seifert
         fibration exists).
+
+    If useHeuristics is True (the default), this routine will attempt faster
+    tests before running any enumeration of quad vertex normal surfaces.
 
     You may optionally pass an instance of SFSRecognitionTracker to the
     tracker argument. This will track some information about the internal
@@ -418,6 +422,14 @@ def _recogniseSFSGivenCandidateVerticalSurface( surf, tracker=None ):
             else:
                 # The drilled 3-manifold of edgeIdealTri is reducible.
                 return ManifoldProperty.NOT_SFS
+
+        # Would like to avoid the normal surface enumeration where possible.
+        if useHeuristics:
+            # Try to certify hyperbolicity.
+            if knownHyperbolic(edgeIdealTri):
+                return ManifoldProperty.NOT_SFS
+
+            #TODO Other heuristics?
 
         #TODO Possible optimisation: Attempt vertically-aligned solid torus
         #   recognition in parallel with the enumeration.
