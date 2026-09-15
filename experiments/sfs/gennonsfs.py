@@ -9,18 +9,40 @@ import sys
 from timeit import default_timer
 from regina import *
 import snappy
+from construct.sfs import orientableSFS
 from recsfs import recogniseSFS
 
 
+GENUS_LIST = [ -4, -3, -2, -1, 0, 1, 2 ]
+FIBRE_LIST = [ (2,1), (3,1), (3,-1), (4,1), (4,-1),
+              (5,1), (5,2), (5,-1), (5,-2) ]
+
+
 if __name__ == "__main__":
-    # Generate two random hyperbolic 3-manifolds to glue together.
+    # Generate a random hyperbolic 3-manifold with one torus boundary
+    # component, together with a random SFS with two torus boundary
+    # components, and glue them together.
     tri = dict()
+    hyp = snappy.OrientableCuspedCensus(num_cusps=1).random()
+    tri[1] = Triangulation3( hyp.triangulation_isosig(decorated=False) )
+    tri[1].idealToFinite()
+    tri[1].simplify()
+    tri[1].minimiseBoundary()
+    RandomEngine.reseedWithHardware()
+    baseSignedGenus = GENUS_LIST[ RandomEngine.rand( len(GENUS_LIST) ) ]
+    numBdries = 2
+    numFibres = 2 + RandomEngine.rand(3)
+    fibres = [ FIBRE_LIST[ RandomEngine.rand( len(FIBRE_LIST) ) ]
+              for _ in range(numFibres) ]
+    tri[2] = orientableSFS( baseSignedGenus, numBdries, *fibres )
+    tri[2].simplify()
     for i in [1, 2]:
-        mfd = snappy.OrientableCuspedCensus(num_cusps=i).random()
-        tri[i] = Triangulation3( mfd.triangulation_isosig(decorated=False) )
-        tri[i].idealToFinite()
-        tri[i].simplify()
-        tri[i].minimiseBoundary()
+#        mfd = snappy.OrientableCuspedCensus(num_cusps=i).random()
+#        tri[i] = Triangulation3( mfd.triangulation_isosig(decorated=False) )
+#        tri[i].idealToFinite()
+#        tri[i].simplify()
+#        tri[i].minimiseBoundary()
+        # Try really hard to simplify.
         simplifiedNow = True
         while simplifiedNow:
             simplifiedNow = tri[i].simplify()
