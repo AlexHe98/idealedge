@@ -1,0 +1,69 @@
+"""
+Generate triangulations of bounded orientable 3-manifolds other than a
+Seifert fibred space or hyperbolic 3-manifold.
+
+These are intended to be representative of the worst case for the current
+implementation of recogniseSFS().
+"""
+import sys
+from timeit import default_timer
+from regina import *
+import snappy
+from recsfs import recogniseSFS
+
+
+if __name__ == "__main__":
+    # Generate two random hyperbolic 3-manifolds to glue together.
+    tri = dict()
+    for i in [1, 2]:
+        mfd = snappy.OrientableCuspedCensus(num_cusps=i).random()
+        tri[i] = Triangulation3( mfd.triangulation_isosig(decorated=False) )
+        tri[i].idealToFinite()
+        tri[i].simplify()
+        tri[i].minimiseBoundary()
+        simplifiedNow = True
+        while simplifiedNow:
+            simplifiedNow = tri[i].simplify()
+            if not simplifiedNow:
+                simplifiedNow = tri[i].simplify()
+
+    # For now, just arbitrarily pick an easy gluing.
+    myFront = tri[1].boundaryComponent(0).edge(0).front()
+    myTeti = myFront.tetrahedron().index()
+    myEn = myFront.edge()
+    yourFront = tri[2].boundaryComponent(0).edge(0).front()
+    yourTeti = tri[1].size() + yourFront.tetrahedron().index()
+    yourEn = yourFront.edge()
+    tri[1].insertTriangulation( tri[2] )
+    myEdge = tri[1].tetrahedron(myTeti).edge(myEn)
+    yourEdge = tri[1].tetrahedron(yourTeti).edge(yourEn)
+    myFront = myEdge.front()
+    yourFront = yourEdge.front()
+    myBack = myEdge.back()
+    yourBack = yourEdge.back()
+    myFront.tetrahedron().join(
+            myFront.vertices()[3],
+            yourFront.tetrahedron(),
+            yourFront.vertices() * myFront.vertices().inverse() )
+    myBack.tetrahedron().join(
+            myBack.vertices()[2],
+            yourBack.tetrahedron(),
+            yourBack.vertices() * myBack.vertices().inverse() )
+
+    # Might as well simplify.
+    simplifiedNow = True
+    while simplifiedNow:
+        simplifiedNow = tri[1].simplify()
+        if not simplifiedNow:
+            simplifiedNow = tri[1].simplify()
+    print( f"Size: {tri[1].size()}" )
+    print( tri[1].isoSig() )
+    print()
+
+    # Test.
+    print( "Running recogniseSFS()..." )
+    print()
+    sys.stdout.flush()
+    start = default_timer()
+    print( recogniseSFS( tri[1] ) )
+    print( "Time: {:.6f}".format( default_timer() - start ) )
