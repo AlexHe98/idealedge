@@ -194,6 +194,9 @@ def findQuadVertexSurface(
         randomiseProcess.terminate()
         alternateProcess.join()
         randomiseProcess.join()
+    if otherComputation is not None:
+        otherProcess.terminate()
+        otherProcess.join()
     return ans
 
 

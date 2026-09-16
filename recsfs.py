@@ -433,32 +433,56 @@ def _recogniseSFSGivenCandidateVerticalSurface(
 
         # Set up parallel vertically-aligned solid torus recognition.
         def _solidTorusEarlyTermination(solidTorusAns):
-            #TODO
-            raise NotImplementedError()
-        #TODO Possible optimisation: Attempt vertically-aligned solid torus
-        #   recognition in parallel with the enumeration.
+            if ( isinstance( solidTorusAns, tuple ) or
+                solidTorusAns == ManifoldProperty.REDUCIBLE ):
+                return solidTorusAns
+            return None
+
+        #TODO Refactor output format of findQuadVertexSurface().
 
         # Search for a surface we can crush.
-        edgeIdealTri, surf, surfDesc = findQuadVertexSurface(
+        enumAns, surf, surfDesc = findQuadVertexSurface(
                 edgeIdealTri, _identifyAcceptableSurfaceForEdgeIdealSFS,
-                runParallelEnums, tracker )
+                runParallelEnums, tracker,
+                recogniseVerticallyAlignedSolidTorus,
+                _solidTorusEarlyTermination, edgeIdealTri, tracker )
         if surf is None:
-            # No candidate vertical surfaces, so either edgeIdealTri is a
-            # vertically-aligned solid torus, or it isn't vertically-aligned
-            # at all.
-            fstAns = _recogniseVerticallyAlignedSolidTorusImpl(
-                    edgeIdealTri, tracker )
-            if fstAns == ManifoldProperty.REDUCIBLE:
+            # Did we get early termination from vertically-aligned solid
+            # torus recognition?
+            if isinstance( enumAns, tuple ):
+                # Yes, we have found a fibred solid torus.
+                fibreParams = enumAns
+            elif isinstance( enumAns, ManifoldProperty ):
+                # Yes, we have found a reducible piece.
+                assert enumAns == ManifoldProperty.REDUCIBLE
                 return ManifoldProperty.NOT_SFS
-            elif fstAns == ManifoldProperty.NOT_FST:
-                return None
+            elif isinstance( enumAns, EdgeIdealTriangulation ):
+                # No early termination. Instead, we completed a full
+                # enumeration and found no candidate vertical surfaces. Thus,
+                # either enumAns is a vertically-aligned solid torus, or it
+                # isn't vertically-aligned at all.
+                fstAns = _recogniseVerticallyAlignedSolidTorusImpl(
+                        enumAns, tracker )
+                if fstAns == ManifoldProperty.REDUCIBLE:
+                    return ManifoldProperty.NOT_SFS
+                elif fstAns == ManifoldProperty.NOT_FST:
+                    return None
 
-            # We have found a fibred solid torus.
-            fibreParams, _ = fstAns
+                # We have found a fibred solid torus.
+                fibreParams, _ = fstAns
+            else:
+                raise AssertionError(
+                        "_recogniseSFSGivenCandidateVerticalSurface() " +
+                        "should never reach this point" )
+
+            # We now delete this fibred solid torus, and adjust the
+            # invariants accordingly.
             invariants.addToBaseEuler(1)
             if fibreParams[0] > 1:
                 invariants.newFibre( SFSFibre(*fibreParams) )
             continue
+        assert isinstance( enumAns, EdgeIdealTriangulation )
+        edgeIdealTri = enumAns
 
         # Process surf.
         if surfDesc == _FoundSurface.REDUCING:
