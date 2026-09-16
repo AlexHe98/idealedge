@@ -98,12 +98,6 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
             if knownHyperbolic(orientedTri):
                 return None
 
-            #TODO Other heuristics?
-
-        #TODO Consider recording boundary slopes that we have already ruled
-        #   out, to avoid some unnecessary computations. This might speed up
-        #   cases where the input is not a Seifert fibred space.
-
         # Time for the heavy-duty normal surface machinery.
         #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
         #   with NormalCoords.Quad.
@@ -405,7 +399,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(
         for edgeIdealTri in toProcess:
             if knownHyperbolic(edgeIdealTri):
                 return ManifoldProperty.NOT_SFS
-        #TODO Other heuristics?
 
     # At this point, toProcess is a list of EdgeIdealTriangulation objects
     # which require further processing.
@@ -503,7 +496,6 @@ def _recogniseSFSGivenCandidateVerticalSurface(
             for newEdgeIdealTri in crushAns:
                 if knownHyperbolic(newEdgeIdealTri):
                     return ManifoldProperty.NOT_SFS
-            #TODO Other heuristics?
         toProcess.extend(crushAns)
     # End of loop processing triangulations.
 

@@ -7,11 +7,6 @@ from time import sleep
 from regina import *
 from loop import BoundsDisc
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
-#TODO Consider unifying this implementation with the enumerations performed
-#   as part of the knot factorisation algorithm.
-#TODO The current implementation supports Triangulation3, but we never
-#   actually use this because it requires dealing with dead ends, which makes
-#   the interaction with the overall logic of the algorithm more subtle.
 
 
 def findQuadVertexSurface(
