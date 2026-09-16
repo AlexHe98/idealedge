@@ -311,7 +311,6 @@ class SFSRecognitionTracker:
 
 
 def _identifyAcceptableSurfaceForRealSFS(surf):
-    #TODO
     surfType = SurfaceType.recognise(surf)
     if surfType == SurfaceType.RP3:
         # Orientability of the 3-manifold implies that the projective plane
@@ -406,7 +405,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(
         for edgeIdealTri in toProcess:
             if knownHyperbolic(edgeIdealTri):
                 return ManifoldProperty.NOT_SFS
-    #TODO Other heuristics?
+        #TODO Other heuristics?
 
     # At this point, toProcess is a list of EdgeIdealTriangulation objects
     # which require further processing.
@@ -477,7 +476,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(
             for newEdgeIdealTri in crushAns:
                 if knownHyperbolic(newEdgeIdealTri):
                     return ManifoldProperty.NOT_SFS
-        #TODO Other heuristics?
+            #TODO Other heuristics?
         toProcess.extend(crushAns)
     # End of loop processing triangulations.
 
