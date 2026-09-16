@@ -14,8 +14,10 @@ from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 #   the interaction with the overall logic of the algorithm more subtle.
 
 
-def findQuadVertexSurface( tri, identifyAcceptableSurface,
-                          runParallelEnumerations=True, tracker=None ):
+def findQuadVertexSurface(
+        tri, identifyAcceptableSurface, runParallelEnumerations=True,
+        tracker=None, otherComputation=None, processEarlyTermination=None,
+        *otherArgs ):
     """
     Searches for a quad vertex normal surface S in a triangulation T of the
     same 3-manifold as tri, such that identifyAcceptableSurface(T, S) is not
@@ -48,6 +50,17 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
     You may optionally pass an instance of SFSRecognitionTracker to the
     tracker argument. This will track some information about the internal
     computations that were performed by this routine.
+
+    You may also optionally pass a function to the otherComputation argument.
+    This will specify a completely independent computation which will also be
+    run in parallel with the main enumeration, and which provides an
+    opportunity for early termination if this other computation succeeds.
+    Specifically, if the otherComputation returns some value V, then this
+    routine will run processEarlyTermination(V); if this returns R which is
+    not None, then this routine will terminate early with output
+    (R, None, None). The processEarlyTermination parameter should be followed
+    by any and all arguments which should be passed to the otherComputation
+    function.
     """
     if isinstance( tri, EdgeIdealTriangulation ):
         triType = _TriType.EDGE_IDEAL
@@ -69,22 +82,35 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
         # and send the randomised triangulations to another child process that
         # runs alternate enumerations.
         randomiseReceiver, randomiseSender = Pipe(False)
-        randomiseProcess = Process( target=_perpetualRandomise,
+        randomiseProcess = Process(
+                target=_perpetualRandomise,
                 args=( blueprint, randomiseSender ) )
         randomiseProcess.start()
 
         # Set up a child process to run the alternate enumerations.
         alternateReceiver, alternateSender = Pipe(False)
-        alternateProcess = Process( target=_indefiniteEnumerate,
+        alternateProcess = Process(
+                target=_indefiniteEnumerate,
                 args=( randomiseReceiver, alternateSender,
                       triType, identifyAcceptableSurface ) )
         alternateProcess.start()
+    if otherComputation is not None:
+        # Set up a child process to run this other computation.
+        def _runOther( sender, *args ):
+            sender.send( otherComputation(*args) )
+            return
+        otherReceiver, otherSender = Pipe(False)
+        otherProcess = Process(
+                target=_runOther,
+                args=(otherSender, *otherArgs) )
+        otherProcess.start()
 
     # Run the main enumeration.
     #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
     #   NormalCoords.Quad.
     enumeration = TreeEnumeration( underlyingTri, NormalCoords.Quad )
     while True:
+        # Check on the alternate enumerations.
         if runParallelEnumerations:
             # Has the randomiseProcess detected a loop which bounds a disc?
             if not randomiseProcess.is_alive():
@@ -93,6 +119,9 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
                 alternateProcess.terminate()
                 randomiseProcess.join()
                 alternateProcess.join()
+                if otherComputation is not None:
+                    otherProcess.terminate()
+                    otherProcess.join()
                 raise BoundsDisc()
 
             # Has the alternateProcess given an answer?
@@ -105,6 +134,9 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
                 randomiseProcess.terminate()
                 alternateProcess.join()
                 randomiseProcess.join()
+                if otherComputation is not None:
+                    otherProcess.terminate()
+                    otherProcess.join()
                 #TODO For now, we ignore the number of attempts.
                 newBlueprint, surfCoords, surfDesc, _ =\
                         alternateReceiver.recv()
@@ -125,6 +157,24 @@ def findQuadVertexSurface( tri, identifyAcceptableSurface,
                 foundSurf = NormalSurface(
                         newUnderlyingTri, NormalCoords.Standard, surfCoords )
                 return ( newTri, foundSurf, surfDesc )
+
+        # Check on the other computation.
+        if otherComputation is not None:
+            # Has the other computation given an answer?
+            if otherReceiver.poll():
+                otherProcess.join()
+                otherComputation = None
+
+                # Can we terminate early?
+                earlyAns = processEarlyTermination( otherReceiver.recv() )
+                if earlyAns is not None:
+                    # Make sure to clean up other child processes.
+                    if runParallelEnumerations:
+                        randomiseProcess.terminate()
+                        alternateProcess.terminate()
+                        randomiseProcess.join()
+                        alternateProcess.join()
+                    return ( earlyAns, None, None )
 
         # Continue with the main enumeration.
         if not enumeration.next():

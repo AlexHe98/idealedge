@@ -431,6 +431,10 @@ def _recogniseSFSGivenCandidateVerticalSurface(
                 # The drilled 3-manifold of edgeIdealTri is reducible.
                 return ManifoldProperty.NOT_SFS
 
+        # Set up parallel vertically-aligned solid torus recognition.
+        def _solidTorusEarlyTermination(solidTorusAns):
+            #TODO
+            raise NotImplementedError()
         #TODO Possible optimisation: Attempt vertically-aligned solid torus
         #   recognition in parallel with the enumeration.
 
@@ -575,10 +579,12 @@ def recogniseVerticallyAlignedSolidTorus( edgeIdealTri, tracker=None ):
     """
     Determines whether the given EdgeIdealTriangulation is a
     vertically-aligned solid torus, and if so returns the fibre parameters
-    that it carries.
+    (p, q) that it carries.
 
     If it is not a vertically-aligned solid torus, then this routine returns
-    ManifoldProperty.NOT_FST.
+    either ManifoldProperty.REDUCIBLE or ManifoldProperty.NOT_FST. The latter
+    output does not necessarily constitute a certificate that the manifold is
+    irreducible.
 
     You may optionally pass an instance of SFSRecognitionTracker to the
     tracker argument. This will track some information about the internal
