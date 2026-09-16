@@ -34,9 +34,11 @@ def findQuadVertexSurface(
     triangulation T of the same 3-manifold as tri, then it will return the
     triple (T, S, R), where R is the return value of
         identifyAcceptableSurface(T, S).
-    Otherwise, this routine returns (T, None, None), where T is a
-    triangulation of the same 3-manifold as tri in which it is certified that
-    no acceptable quad vertex surface exists.
+    Otherwise, this routine simply returns a triangulation T with the
+    following properties:
+    --> T is of the same type as tri.
+    --> T represents the same 3-manifold as tri.
+    --> It is certified that T contains no acceptable quad vertex surface.
 
     If runParallelEnumerations is True (the default), then addition to
     running a main enumeration on tri (which is guaranteed to terminate, but
@@ -57,10 +59,9 @@ def findQuadVertexSurface(
     opportunity for early termination if this other computation succeeds.
     Specifically, if the otherComputation returns some value V, then this
     routine will run processEarlyTermination(V); if this returns R which is
-    not None, then this routine will terminate early with output
-    (R, None, None). The processEarlyTermination parameter should be followed
-    by any and all arguments which should be passed to the otherComputation
-    function.
+    not None, then this routine will terminate early with output R. The
+    processEarlyTermination parameter should be followed by any and all
+    arguments which should be passed to the otherComputation function.
     """
     if isinstance( tri, EdgeIdealTriangulation ):
         triType = _TriType.EDGE_IDEAL
@@ -153,7 +154,7 @@ def findQuadVertexSurface(
                     newUnderlyingTri = newTri
                 if surfCoords is None:
                     # No acceptable surface exists.
-                    return ( newTri, None, None )
+                    return newTri
                 foundSurf = NormalSurface(
                         newUnderlyingTri, NormalCoords.Standard, surfCoords )
                 return ( newTri, foundSurf, surfDesc )
@@ -174,12 +175,12 @@ def findQuadVertexSurface(
                         alternateProcess.terminate()
                         randomiseProcess.join()
                         alternateProcess.join()
-                    return ( earlyAns, None, None )
+                    return earlyAns
 
         # Continue with the main enumeration.
         if not enumeration.next():
             # No acceptable surfaces.
-            ans = ( tri, None, None )
+            ans = tri
             break
         surf = enumeration.buildSurface()
         surfDesc = identifyAcceptableSurface( tri, surf )
