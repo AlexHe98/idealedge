@@ -430,19 +430,33 @@ def _recogniseSFSGivenCandidateVerticalSurface(
                 # The drilled 3-manifold of edgeIdealTri is reducible.
                 return ManifoldProperty.NOT_SFS
 
-        #TODO Possible optimisation: Attempt vertically-aligned solid torus
-        #   recognition in parallel with the enumeration.
+        # Set up parallel vertically-aligned solid torus recognition.
+        def _solidTorusEarlyTermination(solidTorusAns):
+            if ( isinstance( solidTorusAns, tuple ) or
+                solidTorusAns == ManifoldProperty.REDUCIBLE ):
+                return solidTorusAns
+            return None
 
-        # Search for a surface we can crush.
-        edgeIdealTri, surf, surfDesc = findQuadVertexSurface(
+        # Search for a surface we can crush. In parallel, we also attempt
+        # vertically-aligned solid torus recognition, which might let us stop
+        # the search early.
+        enumAns = findQuadVertexSurface(
                 edgeIdealTri, _identifyAcceptableSurfaceForEdgeIdealSFS,
-                runParallelEnums, tracker )
-        if surf is None:
-            # No candidate vertical surfaces, so either edgeIdealTri is a
+                runParallelEnums, tracker,
+                recogniseVerticallyAlignedSolidTorus,
+                _solidTorusEarlyTermination, edgeIdealTri, tracker )
+        if isinstance( enumAns, ManifoldProperty ):
+            # We must have terminated early upon detecting that the manifold
+            # is reducible.
+            assert enumAns == ManifoldProperty.REDUCIBLE
+            return ManifoldProperty.NOT_SFS
+        elif isinstance( enumAns, EdgeIdealTriangulation ):
+            # We must have completed a full enumeration and found no
+            # candidate vertical surfaces. Thus, either enumAns is a
             # vertically-aligned solid torus, or it isn't vertically-aligned
             # at all.
             fstAns = _recogniseVerticallyAlignedSolidTorusImpl(
-                    edgeIdealTri, tracker )
+                    enumAns, tracker )
             if fstAns == ManifoldProperty.REDUCIBLE:
                 return ManifoldProperty.NOT_SFS
             elif fstAns == ManifoldProperty.NOT_FST:
@@ -450,6 +464,19 @@ def _recogniseSFSGivenCandidateVerticalSurface(
 
             # We have found a fibred solid torus.
             fibreParams, _ = fstAns
+        else:
+            assert isinstance( enumAns, tuple )
+            if len(enumAns) == 2:
+                # We terminated early because we recognised a fibred solid
+                # torus.
+                fibreParams = enumAns
+            else:
+                # We found a surface.
+                fibreParams = None
+                edgeIdealTri, surf, surfDesc = enumAns
+        if fibreParams is not None:
+            # Delete the fibred solid torus, and adjust the invariants
+            # accordingly.
             invariants.addToBaseEuler(1)
             if fibreParams[0] > 1:
                 invariants.newFibre( SFSFibre(*fibreParams) )
@@ -574,10 +601,12 @@ def recogniseVerticallyAlignedSolidTorus( edgeIdealTri, tracker=None ):
     """
     Determines whether the given EdgeIdealTriangulation is a
     vertically-aligned solid torus, and if so returns the fibre parameters
-    that it carries.
+    (p, q) that it carries.
 
     If it is not a vertically-aligned solid torus, then this routine returns
-    ManifoldProperty.NOT_FST.
+    either ManifoldProperty.REDUCIBLE or ManifoldProperty.NOT_FST. The latter
+    output does not necessarily constitute a certificate that the manifold is
+    irreducible.
 
     You may optionally pass an instance of SFSRecognitionTracker to the
     tracker argument. This will track some information about the internal
@@ -653,12 +682,13 @@ def _recogniseVerticallyAlignedSolidTorusImpl( edgeIdealTri, tracker=None ):
 
         # Search for the disc (though we might find some other acceptable
         # surface instead).
-        drilled, surf, surfDesc = findQuadVertexSurface(
+        enumAns = findQuadVertexSurface(
                 drilled, _identifyAcceptableSurfaceForFST,
                 runParallelEnums, tracker )
-        if surf is None:
+        if isinstance( enumAns, TriangulationWithBoundaryLoops ):
             # No acceptable surfaces. In particular, no essential disc.
             return ManifoldProperty.NOT_FST
+        drilled, surf, surfDesc = enumAns
 
         # Process surf.
         if surfDesc == _FoundSurface.REDUCING:
