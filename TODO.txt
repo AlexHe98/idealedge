@@ -1,7 +1,6 @@
 --- Possible speed-ups for recogniseSFS()
     --> Recording boundary slopes that have already been shown not to be vertical, to avoid unnecessary computations (especially for cases where the input is not Seifert fibred)
     --> Other heuristics to perform before enumeration?
-        ->- Heuristics for rejecting triangulations which are not solid tori, similar to knot factorisation
     --> Other alternate computations to perform in parallel with enumeration?
 --- Gather experimental data for performance of recogniseSFS()
     --> Non-standard triangulations of bounded orientable SFS
@@ -18,6 +17,7 @@
         ->- Decide what to do with the explicit count of randomisation attempts (see TODO in enumsurfs.py)
         ->- Unify findQuadVertexSurface() with the enumerations performed as part of the knot factorisation algorithm
         ->- Currently, findQuadVertexSurface() supports Triangulation3, but recogniseSFS() never actually uses this because it requires dealing with dead ends, which makes the interaction with the overall logic of the algorithm more subtle
+    --> Unify covers enumeration in knotted.py and recsfs.py
 --- Update README.md
 --- Test suites
     --> OrientedSegment

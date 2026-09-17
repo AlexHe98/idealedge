@@ -672,12 +672,24 @@ def _recogniseVerticallyAlignedSolidTorusImpl( edgeIdealTri, tracker=None ):
             return ManifoldProperty.NOT_FST
         merEdgeIndex = drilled[0][0]
 
+        # Set up parallel covers enumeration.
+        def _coversEarlyTermination(coversAns):
+            if coversAns:
+                return ManifoldProperty.NOT_FST
+            return None
+
         # Search for the disc (though we might find some other acceptable
         # surface instead).
         enumAns = findQuadVertexSurface(
                 drilled, _identifyAcceptableSurfaceForFST,
-                runParallelEnums, tracker )
-        if isinstance( enumAns, TriangulationWithBoundaryLoops ):
+                runParallelEnums, tracker, _hasWrongCoversForSolidTorus,
+                _coversEarlyTermination, drilled.triangulation() )
+        if isinstance( enumAns, ManifoldProperty ):
+            # We must have certified that the triangulation isn't a solid
+            # torus, and thereby terminated early.
+            assert enumAns == ManifoldProperty.NOT_FST
+            return enumAns
+        elif isinstance( enumAns, TriangulationWithBoundaryLoops ):
             # No acceptable surfaces. In particular, no essential disc.
             return ManifoldProperty.NOT_FST
         drilled, surf, surfDesc = enumAns
@@ -714,6 +726,29 @@ def _recogniseVerticallyAlignedSolidTorusImpl( edgeIdealTri, tracker=None ):
     # End of loop processing drilled triangulations.
     raise AssertionError( "_recogniseVerticallyAlignedSolidTorusImpl() " +
                          "should never reach this point" )
+
+
+def _hasWrongCoversForSolidTorus(tri):
+    """
+    Returns True if tri has a cover of index less than or equal to 11 which
+    obviously does not match the covers for the solid torus.
+
+    Precondition:
+    --> tri is a real or ideal triangulation of a 3-manifold
+    """
+    gp = tri.group()
+
+    # The fundamental group of the solid torus is Z. Up to conjugacy, this
+    # admits exactly one transitive representation into Sym(index), and the
+    # abelianisation of the stabiliser subgroup is Z. Thus, if gp does not
+    # share these properties, then tri cannot be a solid torus.
+    for index in range(2, 12):
+        covers = gp.enumerateCovers(index)
+        if len(covers) != 1:
+            return True
+        if not covers[0].abelianisation().isZ():
+            return True
+    return False
 
 
 def _identifyAcceptableSurfaceForFST( ignored, surf ):
