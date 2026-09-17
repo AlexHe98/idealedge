@@ -2,6 +2,7 @@
 Recognition of bounded orientable Seifert fibred spaces.
 """
 from enum import Enum, auto
+from math import gcd as pythonGCD
 from regina import *
 from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
@@ -79,6 +80,7 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
     # Each time we come back to the top of this loop, orientedTri has
     # strictly fewer tetrahedra than before, so we can only ever loop
     # finitely many times.
+    runParallelEnums = True
     while True:
         # Try really hard to simplify, since this should help for both
         # combinatorial recognition and enumerating quad vertex surfaces.
@@ -101,18 +103,39 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
         # Time for the heavy-duty normal surface machinery.
         #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
         #   with NormalCoords.Quad.
-        enumeration = TreeEnumeration( orientedTri, NormalCoords.Quad )
+        slopesAlreadyExamined = []
         while True:
             # We are enumerating finitely many surfaces, so we must
             # eventually break out of this loop.
-            if not enumeration.next():
-                # No vertical surfaces, so orientedTri cannot be a
+            if not slopesAlreadyExamined:
+                # For the very first surface, we use findQuadVertexSurface(),
+                # which performs alternate enumerations in parallel, and
+                # therefore gives a chance of earlier termination.
+                enumAns = findQuadVertexSurface(
+                        orientedTri, _identifyAcceptableSurfaceForRealSFS,
+                        runParallelEnums, tracker )
+                if isinstance( enumAns, Triangulation3 ):
+                    # No vertical surfaces, so orientedTri cannot be a
+                    # triangulation of a Seifert fibred space.
+                    return None
+                orientedTri, surf, surfDesc = enumAns
+
+                # If this is a candidate vertical surface, then it might
+                # constitute a dead end, in which case we would need to
+                # continue the enumeration.
+                if surfDesc == _FoundSurface.VERTICAL:
+                    enumeration = TreeEnumeration(
+                            orientedTri, NormalCoords.Quad )
+            elif enumeration.next():
+                surf = enumeration.buildSurface()
+                surfDesc = _identifyAcceptableSurfaceForRealSFS(
+                        orientedTri, surf )
+                if surfDesc is None:
+                    continue
+            else:
+                # No vertical surfaces, so again, orientedTri cannot be a
                 # triangulation of a Seifert fibred space.
                 return None
-            surf = enumeration.buildSurface()
-            surfDesc = _identifyAcceptableSurfaceForRealSFS(surf)
-            if surfDesc is None:
-                continue
 
             # Process surf.
             if surfDesc == _FoundSurface.REDUCING:
@@ -120,11 +143,16 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
             elif surfDesc == _FoundSurface.MERIDIONAL:
                 return _trivialSolidTorusFibration()
             elif surfDesc == _FoundSurface.VERTICAL:
+                # We might already know that the slope is no good.
+                bdrySlopes = _surfaceBoundary(surf)
+                if bdrySlopes in slopesAlreadyExamined:
+                    continue
                 ans = _recogniseSFSGivenCandidateVerticalSurface(
                         surf, useHeuristics, tracker )
                 if ans is None:
                     # It turns out that the current surface is not vertical,
                     # so we need to look for another surface.
+                    slopesAlreadyExamined.append(bdrySlopes)
                     continue
                 elif isinstance( ans, SFSpace ):
                     return ans
@@ -304,7 +332,28 @@ class SFSRecognitionTracker:
         return
 
 
-def _identifyAcceptableSurfaceForRealSFS(surf):
+def _surfaceBoundary(surf):
+    """
+    Returns a list of coordinates describing the boundary slopes of the given
+    normal surface.
+
+    Precondition:
+    --> surf is a candidate vertical surface
+    """
+    surfBdry = []
+    for bc in surf.triangulation().boundaryComponents():
+        coords = []
+        for e in range(3):
+            coords.append(
+                    surf.edgeWeight( bc.edge(e).index() ).pythonValue() )
+        numParallel = pythonGCD(*coords)
+        if numParallel != 0:
+            coords = [ c // numParallel for c in coords ]
+        surfBdry.append(coords)
+    return surfBdry
+
+
+def _identifyAcceptableSurfaceForRealSFS( ignoredTri, surf ):
     surfType = SurfaceType.recognise(surf)
     if surfType == SurfaceType.RP3:
         # Orientability of the 3-manifold implies that the projective plane

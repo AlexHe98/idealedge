@@ -1,5 +1,6 @@
 --- Possible speed-ups for recogniseSFS()
-    --> Recording boundary slopes that have already been shown not to be vertical, to avoid unnecessary computations (especially for cases where the input is not Seifert fibred)
+    --> Improvements to the boundary slopes recording method?
+    --> More sophisticated use of parallel enumerations for the main real triangulation in recogniseSFS()?
     --> Other heuristics to perform before enumeration?
     --> Other alternate computations to perform in parallel with enumeration?
 --- Gather experimental data for performance of recogniseSFS()

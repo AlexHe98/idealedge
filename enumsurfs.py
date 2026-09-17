@@ -6,6 +6,7 @@ from multiprocessing import Process, Pipe
 from time import sleep
 from regina import *
 from loop import BoundsDisc
+from retriangulate.randomise import randomise
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
