@@ -10,7 +10,7 @@ from timeit import default_timer
 from regina import *
 import snappy
 from construct.sfs import orientableSFS
-from recsfs import recogniseSFS
+from recsfs import recogniseSFS, SFSRecognitionTracker
 
 
 GENUS_LIST = [ -4, -3, -2, -1, 0, 1, 2 ]
@@ -86,6 +86,9 @@ if __name__ == "__main__":
     print( "Running recogniseSFS()..." )
     print()
     sys.stdout.flush()
+    useHeuristics = True
+    tracker = SFSRecognitionTracker()
     start = default_timer()
-    print( recogniseSFS( tri[1] ) )
+    print( recogniseSFS( tri[1], useHeuristics, tracker ) )
     print( "Time: {:.6f}".format( default_timer() - start ) )
+    print( "Alternate enumerations:", tracker.alternateEnumerationsCount() )
