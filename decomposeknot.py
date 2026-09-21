@@ -314,7 +314,9 @@ def _enumerateParallel( oldEdgeIdealTri, tracker ):
     alternateProcess.start()
 
     # Run the main enumeration.
-    enumeration = TreeEnumeration( tri, NS_QUAD )
+    #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
+    #   NormalCoords.Quad.
+    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
     msg = "Main enumeration succeeded."
     while True:
         # Has the randomiseProcess determined that the oldEdgeIdealTri
@@ -440,7 +442,9 @@ def _indefiniteEnumerate( receiver, sender ):
     blueprint, attempts = receiver.recv()
     edgeIdealTri = EdgeIdealTriangulation.fromBlueprint( *blueprint )
     tri = edgeIdealTri.triangulation()
-    enumeration = TreeEnumeration( tri, NS_QUAD )
+    #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
+    #   NormalCoords.Quad.
+    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
     while True:
         if searches > 20 and receiver.poll():
             # Restart the enumeration with a new edge-ideal triangulation.
@@ -448,7 +452,9 @@ def _indefiniteEnumerate( receiver, sender ):
             blueprint, attempts = receiver.recv()
             edgeIdealTri = EdgeIdealTriangulation.fromBlueprint( *blueprint )
             tri = edgeIdealTri.triangulation()
-            enumeration = TreeEnumeration( tri, NS_QUAD )
+            #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced
+            #   with NormalCoords.Quad.
+            enumeration = TreeEnumeration( tri, NormalCoords.Quad )
 
         # Get the next 2-sphere.
         searches += 1
@@ -505,7 +511,9 @@ def _enumerateSerial( oldEdgeIdealTri, tracker ):
     # Unlike in _enumerateParallel(), here we implement the above idea in a
     # single-threaded fashion.
     tri = oldEdgeIdealTri.triangulation()
-    enumeration = TreeEnumeration( tri, NS_QUAD )
+    #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
+    #   NormalCoords.Quad.
+    enumeration = TreeEnumeration( tri, NormalCoords.Quad )
     while True:
         if tracker.hasStalled():
             # We have spent a comparatively long time on the current
@@ -518,7 +526,9 @@ def _enumerateSerial( oldEdgeIdealTri, tracker ):
             if simpEdgeIdealTri.triangulation().size() < tri.size():
                 oldEdgeIdealTri.setFromLoops(simpEdgeIdealTri)
                 tri = oldEdgeIdealTri.triangulation()
-                enumeration = TreeEnumeration( tri, NS_QUAD )
+                #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and
+                #   replaced with NormalCoords.Quad.
+                enumeration = TreeEnumeration( tri, NormalCoords.Quad )
                 beforeReport = "Simplified to {} tetrahedra.".format(
                         tri.size() )
                 tracker.report(beforeReport)

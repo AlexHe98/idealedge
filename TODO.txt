@@ -1,13 +1,25 @@
---- Bounded orientable SFS recognition
-    --> Experiment with examples other than the standard SFS constructions
-    --> Consider fixing up filledHomology() and using it for sanity-checking
-    --> Possible speed-ups
-        ->- Recording boundary slopes that have already been shown not to be vertical, to avoid unnecessary computations
-        ->- Randomisation and alternate enumerations, similar to knot factorisation
-    --> Update README.md
+--- Possible speed-ups for recogniseSFS()
+    --> Improvements to the boundary slopes recording method?
+    --> More sophisticated use of parallel enumerations for the main real triangulation in recogniseSFS()?
+    --> Other heuristics to perform before enumeration?
+    --> Other alternate computations to perform in parallel with enumeration?
+--- Gather experimental data for performance of recogniseSFS()
+    --> Non-standard triangulations of bounded orientable SFS
+        ->- Generate larger examples
+        ->- Run it on the full data set
+    --> Manifolds other than SFS or hyperbolic (answer is None, and no heuristic shortcuts)
 --- Cleaning up
+    --> Either get rid of scratch work, or repurpose it for something useful
+        --> Use filledHomology() for sanity-checking?
+        --> Just get rid of experiments with one example?
     --> Maybe implement TriangulationWithEmbeddedLoops.fromEdges() to minimise the number of places where we import IdealLoop
     --> Should EmbeddedLoop provide a method to test disjointness with another EmbeddedLoop?
+    --> Quad vertex surface enumeration
+        ->- Decide what to do with the explicit count of randomisation attempts (see TODO in enumsurfs.py)
+        ->- Unify findQuadVertexSurface() with the enumerations performed as part of the knot factorisation algorithm
+        ->- Currently, findQuadVertexSurface() supports Triangulation3, but recogniseSFS() never actually uses this because it requires dealing with dead ends, which makes the interaction with the overall logic of the algorithm more subtle
+    --> Unify covers enumeration in knotted.py and recsfs.py
+--- Update README.md
 --- Test suites
     --> OrientedSegment
     --> TriangulationWithEmbeddedLoops
