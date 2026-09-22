@@ -1,0 +1,8 @@
+7FxyyVGO4aHzbQHc6cBsBBVAF-sBlCS7ZR0meLSCNnDD9noU1D3DxEx+2oVghxphxF-3hJ-Q10GZw84wPcnKK+evPgwZrHk5gcDrM4eGAdKHSzPYahI1DHcMzGAj (2,1) (5,2)
+-ccbx4acfgiSWHejuSyHWgoecjsfkySiu4MpE40X0iqJkrIuPsMwXkLlwcxfZwTAcLnJMUC4ULRNpE7+buOpHbdg8ED9Chd6X9hYsjuRcsB8k6tGdS4cWmOIAnPU0yJbKHcsOGcn7LtiOIZolORndI6Ud (2,1) (5,1) (5,2)
+-cabhOGbalqOWHenC0ayeiqSuzcfGy4yrdOoF4qYujrMcDIuRwNETsLRzUSbeimG0UrdiUB2ULdxUD869ZhWFa-S8pUpUsDWNoj4k5ftkk6tuLA4cgzZuBr0aKnZG3qYKZTBnQvJMKkOKvIZElOgc (2,1) (5,2) (5,-2)
+-ccbxiHbclGybchkGWWHLlc1mHJLpzecsiPnc7GYKOxLC1Q0muPwXswnzSWLtxmF4SrtOnC3eEtNoE9+9tOpGcdgC7--hSEMNpGyU1etteMSkvrmlUtG3I5uuG2GKs7auoZyBeweyuda7ScjNKdOhQiae (3,1) (4,1) (4,-1)
+-ccbxiHbclSaXdfrAaPIJhB4CXsilycLrZisDecYKjvcjrs1PuWKTAfSxUe+YvTAZOj02nHcZLthqF-a67xqFcfg87hy7JF-WD4q26EzaxYyevrmlE4SdGwIvCcHibaIdmhfQfMwYw5nJfbEPiWgWAdwg (3,1) (4,1) (5,2)
+-ccbxOGbclqOWbemwaPbLmASmPIfHveMPdNsEgnkLOuIAjSfktWI5AflBcF9A3SA06XtNVE3e2tOWC6+5dyWFcbg8R7-U1QyX43WfvW3ri0qs6tuLAynhfQuheafjsdu7eGn6HWirrRH4cjOlvvIZTlUg (3,1) (4,-1) (5,1)
+-chb-iHbhlGaXdfqy0OcfkwYacZXtC6C8tkxVcvBfjCOoEAvnD9S1IxnB8APd2Xy0OfCgTJhZHZ3WF++n8yVFcdkK4XIgnU++-Tx5-1h1ObIB0aqgZmfPkIzXnWDqyqkhChCbyh8IyqmHbUDkzGD24KBfS2vYJoeXb3f (4,1) (4,1) (5,-1)
+-cdbFOGbdlqOWHepC4yIKHrWmSYWHw8SrtgnBe5HeitJozY0irJoHkLQwVg6QLSyWQn0gnB3SDl3UE7g2BiWFbfku41lZy9s3Ik9-cvFIESdsqrFIQudxGgCWPoAuIq6mXMSgBY70cwbsvJBUq0LeyXmrud (4,1) (5,2) (5,2)
