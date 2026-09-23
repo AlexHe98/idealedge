@@ -1,0 +1,4 @@
+-cpb-jHbplGybIgnu4GrJjuKKPYZlp7aYtjrKc9PujvNeHQ1jtRGjRgSyU0r7gpAd7LJ4rKg5H85rIpFM0OsHcxYS5WNiFEm5tNoD2S53-A77VmbRIPi9WpPheMhtOmNPkIzX9ck3bOAoA2zUrg0ezJDMCciqT2rgewHODKDMidmcKudqC3Hq (2,1) (5,1) (5,-1)
+-cpb-jHbgEwqXbfoya5zdhsI80sglCWistPNEa9C1OuOo5A1ktNCfdLRz5OH72oE78zRMoC3cgeiWH+698PVHdlA84ZKkrU8jtMmB60562QE8Vh9Qoe2zxR5GgmPevZOPlIzd8SyNlZrGdhsOA34MSsmTXorRBobReSzbqnzvadBQIquIDhCn (2,1) (5,1) (5,1)
+-cob3jHbolSaXdfrC2asMno7GbZisCafIZhpCs9rLRxNmzQuktXwjtvRA20PtxoE0CAZjoFbjkKNZIo-bmPYGelEKyXJitYS5sMoD2835-W+wCC5KQ7tf9MXtWoa6OevrmlEbUdKZo5nRquDxHyT7I7uBKXj5I4qtwxQtM2IWquo7OLHyMe (3,1) (3,1) (5,-1)
+-crbp6GOfkenkIglyuHYLjwKq5ZgnyIgnuhtr5efuOvJI561jtYwLsLRzUMD7LUz+0vl4oD-8HJ3pFitUm4XJrvw0irMnDQmzYOpHcfQZNF9v-NPWVPrj-d9ssC5Bucvg4e6kIAYa0AW7UKgO0eN6kiqtQsgHWeLiGCsybdirlBoyP8o6aydlbyG1a (4,1) (5,1) (5,1)
