@@ -4,8 +4,9 @@ knots on top of each other, with the goal of obtaining a composite knot with
 a diagram that is not obviously composite.
 """
 from sys import argv
-import snappy
 from regina import *
+import snappy
+from hardknot.pd import PDBuilder
 
 
 def compose(*knots):
@@ -26,13 +27,31 @@ def overlay(*braids):
     return snappy.Link( overlayPD(*braids) )
 
 
-def overlayPD(*braids):
+def overlayPD( *braids, marionette=False ):
+    numSummands = len(braids)
+    widths = [ braidWidth(b) for b in braids ]
+    strands = [ (0,ii) for ii in range( widths[0] ) ]
+    compBraid = overlayBraids( *braids, marionette=marionette )
+
+    # To build the desired composite knot, we take appropriate pairs of
+    # strands of compBraid and join them to each other (rather than simply
+    # closing up the strands like we would if we were constructing the braid
+    # closure).
+    return _overlayPDImpl( compBraid, strands, numSummands, widths )
+
+
+def overlayBraids( *braids, marionette=False ):
+    """
+    Returns the braid constructed by overlaying the given braids and
+    interleaving their strands.
+    """
     # Create a composite knot by overlaying the given braids on each other,
     # and interleaving the strands.
     numSummands = len(braids)
     widths = [ braidWidth(b) for b in braids ]
     strands = [ (0,ii) for ii in range( widths[0] ) ]
     rightmost = [ (0,ii) for ii in range( widths[0] ) ]
+    numCrossings = sum([ len(b) for b in braids ])
     for i in range( 1, numSummands ):
         if i % 2 == 0:
             _interleaveRight( i, widths, strands, rightmost, braids[i] )
@@ -42,6 +61,7 @@ def overlayPD(*braids):
     # Strands have been interleaved. Now we need to introduce the crossings.
     compBraid = []
     stillProcessing = True
+    crossingsProcessed = 0
     while stillProcessing:
         stillProcessing = False
         for i in range( len(braids) ):
@@ -50,7 +70,19 @@ def overlayPD(*braids):
                 stillProcessing = True
             else:
                 continue
+
+            # Marionette trick.
+            if marionette:
+                if crossingsProcessed == numCrossings // 4:
+                    # Add in positive full twist.
+                    _marionetteTwist( compBraid, len(strands), True )
+                elif crossingsProcessed == 3*numCrossings // 4:
+                    # Cancel out the positive full twist that we added earlier.
+                    _marionetteTwist( compBraid, len(strands), False )
+
+            # Now process crossing.
             oldCrossing = braid.pop(0)
+            crossingsProcessed += 1
             k = abs(oldCrossing)
             startStrand = strands.index( ( i, k-1 ) )
             endStrand = strands.index( ( i, k ) )
@@ -63,12 +95,7 @@ def overlayPD(*braids):
                     prefix.append(-s)
             suffix = [ -c for c in reversed(prefix) ]
             compBraid += prefix + [newCrossing] + suffix
-
-    # To build the desired composite knot, we take appropriate pairs of
-    # strands of compBraid and join them to each other (rather than simply
-    # closing up the strands like we would if we were constructing the braid
-    # closure).
-    return _overlayPDImpl( compBraid, strands, numSummands, widths )
+    return compBraid
 
 
 def _interleaveRight( i, widths, strands, rightmost, braid ):
@@ -128,6 +155,17 @@ def _interleaveLeft( i, widths, strands, rightmost, braid ):
     return
 
 
+def _marionetteTwist( braid, totalStrands, isPositive ):
+    for _ in range(totalStrands):
+        if isPositive:
+            for s in range( totalStrands-1, 0, -1 ):
+                braid.append(s)
+        else:
+            for s in range( 1, totalStrands ):
+                braid.append(-s)
+    return
+
+
 def _overlayPDImpl( braid, threads, numSummands, widths ):
     # To build the desired composite knot, we take appropriate pairs of
     # threads of compBraid and join them to each other (rather than simply
@@ -145,21 +183,17 @@ def _overlayPDImpl( braid, threads, numSummands, widths ):
 
     # Crossings are indexed in the same order as their corresponding elements
     # in the given braid word.
-    totalStrands = 0
     totalCrossings = len(braid)
-    pd = [ [None,None,None,None] for _ in range(totalCrossings) ]
-    overcrossingSwap = set()
+    builder = PDBuilder(totalCrossings)
 
     # Traverse "threads" of the braid. (Here we use the word "thread" to
     # distinguish them from "strands" of the knot diagram.)
     currentThread = 0
-    totalStrands += 1
     downwards = True
     while True:     # Loop to traverse threads.
-        backtrack = None
         if downwards:
             # Traverse currentThread downwards.
-            for i in range( len(braid) ):
+            for i in range(totalCrossings):
                 s = braid[i]
 
                 # We have reached a crossing that exchanges threads
@@ -167,47 +201,19 @@ def _overlayPDImpl( braid, threads, numSummands, widths ):
                 if s > 0:
                     # Positive crossing.
                     if currentThread == s - 1:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
+                        builder.underForwards(i)
                         currentThread += 1
-                        # This strand is coming in from above, so the
-                        # overcrossing strand won't need to be fixed
-                        # later.
                     elif currentThread == s:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][3] = totalStrands
-                        totalStrands += 1
-                        pd[i][1] = totalStrands
-                        backtrack = (i,1)
+                        builder.overBackwards(i)
                         currentThread -= 1
                 elif s < 0:
                     # Negative crossing.
                     if currentThread == -s - 1:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][1] = totalStrands
-                        totalStrands += 1
-                        pd[i][3] = totalStrands
-                        backtrack = (i,3)
+                        builder.overForwards(i)
                         currentThread += 1
                     elif currentThread == -s:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
+                        builder.underForwards(i)
                         currentThread -= 1
-                        # This strand is coming in from above, so the
-                        # overcrossing strand won't need to be fixed
-                        # later.
                 else:
                     raise ValueError()
         else:
@@ -220,46 +226,18 @@ def _overlayPDImpl( braid, threads, numSummands, widths ):
                 if s > 0:
                     # Positive crossing.
                     if currentThread == s - 1:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][1] = totalStrands
-                        totalStrands += 1
-                        pd[i][3] = totalStrands
-                        backtrack = (i,3)
+                        builder.overForwards(i)
                         currentThread += 1
                     elif currentThread == s:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
+                        builder.underBackwards(i)
                         currentThread -= 1
-                        # This strand is coming in from below, so we will
-                        # need to fix the overcrossing strand later.
-                        overcrossingSwap.add(i)
                 elif s < 0:
                     # Negative crossing.
                     if currentThread == -s - 1:
-                        # Undercrossing strand.
-                        pd[i][0] = totalStrands
-                        totalStrands += 1
-                        pd[i][2] = totalStrands
-                        backtrack = (i,2)
+                        builder.underBackwards(i)
                         currentThread += 1
-                        # This strand is coming in from below, so we will
-                        # need to fix the overcrossing strand later.
-                        overcrossingSwap.add(i)
                     elif currentThread == -s:
-                        # Overcrossing strand.
-                        # We assume for now that the undercrossing strand
-                        # will come in from above, and we will fix this
-                        # later if necessary.
-                        pd[i][3] = totalStrands
-                        totalStrands += 1
-                        pd[i][1] = totalStrands
-                        backtrack = (i,1)
+                        builder.overBackwards(i)
                         currentThread -= 1
                 else:
                     raise ValueError()
@@ -276,21 +254,10 @@ def _overlayPDImpl( braid, threads, numSummands, widths ):
 
         # Are we done?
         if downwards and currentThread == 0:
-            # We are back to the start, so we need to backtrack and fix the
-            # most recent strand.
-            totalStrands -= 1
-            pd[ backtrack[0] ][ backtrack[1] ] = 1
-
-            # We might also need to fix some overcrossing strands.
-            for i in overcrossingSwap:
-                pd[i][1], pd[i][3] = pd[i][3], pd[i][1]
-
-            # All done!
-            return pd
-
+            break
     # End of traversal loop.
-    # We should never reach this point.
-    raise RuntimeError()
+    builder.finalClean()
+    return builder.pd()
 
 
 if __name__ == "__main__":
