@@ -1,8 +1,22 @@
+"""
+Attempt to generate a hard diagram of a composite knot.
+"""
 from hardknot.overlay import overlayPD
 import snappy
 
 
 def attemptHardComposite(numSummands):
+    """
+    Randomly samples numSummands prime knots, and attempts to build a hard
+    diagram of the composite of these prime knots.
+
+    If this routine succeeds, then it returns a pair consisting of the
+    following items:
+    (0) A tuple of the names of the prime summands.
+    (1) A PD code for the hard diagram of the composite knot.
+
+    Otherwise, this routine simply returns None.
+    """
     # Randomly sample some knots to compose together.
     knots = snappy.HTLinkExteriors(cusps=1)
     sample = [ knots.random() for _ in range(numSummands) ]
