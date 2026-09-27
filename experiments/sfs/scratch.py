@@ -9,6 +9,10 @@ import sys
 
 if __name__ == "__main__":
     dataPath = sys.argv[1]
+    try:
+        yscale = sys.argv[2]
+    except IndexError:
+        yscale = "linear"
     sizes = []
     times = []
     altEnumCounts = []
@@ -27,4 +31,5 @@ if __name__ == "__main__":
         altEnumName: altEnumCounts } )
     scatterplot( data=data, x=sizeName, y=timeName, hue=altEnumName )
     pyplot.title("Timings for bounded orientable SFS recognition")
+    pyplot.yscale(yscale)
     pyplot.show()
