@@ -7,7 +7,7 @@ from timeit import default_timer
 from regina import *
 from construct.sfs import orientableSFS
 from experiments.sfs.genhard import attemptHardSFS
-from recsfs import recogniseSFS
+from recsfs import recogniseSFS, SFSRecognitionTracker
 
 
 #TODO Make this more general.
@@ -61,55 +61,62 @@ def filledHomology(annulus):
 
 
 if __name__ == "__main__":
-    genus = int( sys.argv[1] )
-    boundaries = int( sys.argv[2] )
-    params = [ int(n) for n in sys.argv[3:] ]
-    fibres = []
-    while params:
-        q = params.pop()
-        p = params.pop()
-        fibres.append( (p,q) )
-    print( "g={}, b={}".format( genus, boundaries ) )
-    print(fibres)
-    print()
-    RandomEngine.reseedWithHardware()
-    attempts = 8
-    start = default_timer()
-    print( "Attempting to build non-standard SFS..." )
-    sys.stdout.flush()
-    neoSig = attemptHardSFS( genus, boundaries, fibres, attempts )
-    if neoSig is None:
-        tri = orientableSFS( genus, boundaries, *fibres )
-        print( "Gave up and built standard SFS instead" )
-    else:
-        tri = Triangulation3(neoSig)
-        print( "Successfully built non-standard SFS" )
-    print( "Time: {:.6f}".format( default_timer() - start ) )
-    print()
-    sys.stdout.flush()
-
-    # Attempt combinatorial recognition.
-    print( "Combinatorial recognition" )
-    print( "-------------------------" )
+    sig = sys.argv[1]
+    tri = Triangulation3(sig)
     print( "Size: {}".format( tri.size() ) )
-    sys.stdout.flush()
-    start = default_timer()
-    blocked = BlockedSFS.recognise(tri)
-    if blocked is None:
-        print( "Not recognised" )
-    else:
-        print( "Recognised!" )
-        print( blocked.manifold() )
-    print( "Time: {:.6f}".format( default_timer() - start ) )
     print()
     sys.stdout.flush()
-
-    # Now run the normal surface computation.
-    print( "Normal surfaces" )
-    print( "---------------" )
-    sys.stdout.flush()
+#    genus = int( sys.argv[1] )
+#    boundaries = int( sys.argv[2] )
+#    params = [ int(n) for n in sys.argv[3:] ]
+#    fibres = []
+#    while params:
+#        q = params.pop()
+#        p = params.pop()
+#        fibres.append( (p,q) )
+#    print( "g={}, b={}".format( genus, boundaries ) )
+#    print(fibres)
+#    print()
+#    RandomEngine.reseedWithHardware()
+#    attempts = 8
+#    start = default_timer()
+#    print( "Attempting to build non-standard SFS..." )
+#    sys.stdout.flush()
+#    neoSig = attemptHardSFS( genus, boundaries, fibres, attempts )
+#    if neoSig is None:
+#        tri = orientableSFS( genus, boundaries, *fibres )
+#        print( "Gave up and built standard SFS instead" )
+#    else:
+#        tri = Triangulation3(neoSig)
+#        print( "Successfully built non-standard SFS" )
+#    print( "Time: {:.6f}".format( default_timer() - start ) )
+#    print()
+#    sys.stdout.flush()
+#
+#    # Attempt combinatorial recognition.
+#    print( "Combinatorial recognition" )
+#    print( "-------------------------" )
+#    print( "Size: {}".format( tri.size() ) )
+#    sys.stdout.flush()
+#    start = default_timer()
+#    blocked = BlockedSFS.recognise(tri)
+#    if blocked is None:
+#        print( "Not recognised" )
+#    else:
+#        print( "Recognised!" )
+#        print( blocked.manifold() )
+#    print( "Time: {:.6f}".format( default_timer() - start ) )
+#    print()
+#    sys.stdout.flush()
+#
+#    # Now run the normal surface computation.
+#    print( "Normal surfaces" )
+#    print( "---------------" )
+#    sys.stdout.flush()
+    tracker = SFSRecognitionTracker()
     start = default_timer()
     print( recogniseSFS( tri, False ) )
     print( "Time: {:.6f}".format( default_timer() - start ) )
+    print( "Alt enums: {}".format( tracker.alternateEnumerationsCount() ) )
     print()
     sys.stdout.flush()
