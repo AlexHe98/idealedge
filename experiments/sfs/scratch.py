@@ -29,7 +29,8 @@ if __name__ == "__main__":
         sizeName: sizes,
         timeName: times,
         altEnumName: altEnumCounts } )
-    scatterplot( data=data, x=sizeName, y=timeName, hue=altEnumName )
+    scatterplot( data=data, x=sizeName, y=timeName,
+                hue=altEnumName, palette="flare_r" )
     pyplot.title("Timings for bounded orientable SFS recognition")
     pyplot.yscale(yscale)
     pyplot.show()
