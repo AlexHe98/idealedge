@@ -33,11 +33,12 @@ if __name__ == "__main__":
         sizeName: sizes,
         timeName: times,
         altEnumName: altEnumCounts } )
+    _, ax = pyplot.subplots( figsize=(16, 9) )
     if useAltEnum:
-        scatterplot( data=data, x=sizeName, y=timeName,
+        scatterplot( data=data, x=sizeName, y=timeName, ax=ax,
                     hue=altEnumName, palette="flare_r" )
     else:
-        scatterplot( data=data, x=sizeName, y=timeName )
+        scatterplot( data=data, x=sizeName, y=timeName, ax=ax )
     pyplot.title("Timings for bounded orientable SFS recognition")
     pyplot.yscale(yscale)
     pyplot.show()
