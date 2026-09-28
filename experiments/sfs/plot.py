@@ -13,6 +13,10 @@ if __name__ == "__main__":
         yscale = sys.argv[2]
     except IndexError:
         yscale = "linear"
+    try:
+        useAltEnum = bool( int( sys.argv[3] ) )
+    except IndexError:
+        useAltEnum = False
     sizes = []
     times = []
     altEnumCounts = []
@@ -29,8 +33,11 @@ if __name__ == "__main__":
         sizeName: sizes,
         timeName: times,
         altEnumName: altEnumCounts } )
-    scatterplot( data=data, x=sizeName, y=timeName,
-                hue=altEnumName, palette="flare_r" )
+    if useAltEnum:
+        scatterplot( data=data, x=sizeName, y=timeName,
+                    hue=altEnumName, palette="flare_r" )
+    else:
+        scatterplot( data=data, x=sizeName, y=timeName )
     pyplot.title("Timings for bounded orientable SFS recognition")
     pyplot.yscale(yscale)
     pyplot.show()
