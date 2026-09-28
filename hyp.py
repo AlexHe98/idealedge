@@ -76,6 +76,9 @@ def knownHyperbolic(edgeIdealTri):
     simplifiedNow = True
     while simplifiedNow:
         simplifiedNow = drilled.simplify()
+    #NOTE If SnapPea throws a fatal error, then there will be a message in
+    #   stderr, but Regina catches the error, so there should be no need to
+    #   worry about premature termination.
     spt = SnapPeaTriangulation(drilled)
     probablyHyperbolic = False
     attempts = 0

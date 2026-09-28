@@ -1,4 +1,3 @@
---- Exit gracefully if SnapPea fails with "FATAL ERROR: shortest_cusp_basis, install_shortest_bases"
 --- Possible speed-ups for recogniseSFS()
     --> Improvements to the boundary slopes recording method?
     --> More sophisticated use of parallel enumerations for the main real triangulation in recogniseSFS()?
