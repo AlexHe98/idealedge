@@ -976,13 +976,17 @@ def _crushCandidateInessentialSphereOrDisc( surf, triWithLoops=None ):
         return ManifoldProperty.REDUCIBLE
     ans = []
     for tri in decomposed:
-        # We keep only the EdgeIdealTriangulation and
-        # TriangulationWithBoundaryLoop objects. Everything else should be a
-        # 3-sphere, otherwise the input 3-manifold is reducible.
+        # We keep only 3-manifolds with nonempty boundary. Everything else
+        # should be a 3-sphere, otherwise the input 3-manifold is reducible.
         if isinstance( tri, TriangulationWithEmbeddedLoops ):
             ans.append(tri)
-        elif not tri.isSphere():
-            return ManifoldProperty.REDUCIBLE
+        else:
+            assert isinstance( tri, Triangulation3 )
+            if tri.isClosed():
+                if not tri.isSphere():
+                    return ManifoldProperty.REDUCIBLE
+            else:
+                ans.append(tri)
     return ans
 
 
