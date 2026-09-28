@@ -83,7 +83,7 @@ def layerOn(edge):
     tetrahedron T, and the new boundary edge created by the layering will be
     edge 5 of T (i.e., the edge joining vertices 2 and 3 of T).
 
-    Pre-condition:
+    Precondition:
     --> The given edge is a boundary edge of a 3-manifold triangulation.
     --> The boundary triangles on either side of the given edge are distinct.
 

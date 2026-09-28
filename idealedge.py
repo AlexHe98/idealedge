@@ -51,7 +51,7 @@ class SurfaceToCrushInSuspectedSFS(Enum):
         Recognises the given surface as a SurfaceToCrushInSuspectedSFS, or
         returns a string describing why the surface cannot be crushed.
 
-        Pre-condition:
+        Precondition:
         --> Every boundary component of surface.triangulation() is a real
             two-triangle torus
         """
@@ -117,7 +117,7 @@ def edgeIdealTriangulationsFromCrushing( surf, edgeIdealTri=None ):
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does *not* check this condition.
 
-    Precondition
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> Each boundary component of surf.triangulation() must be a real
         two-triangle torus.
@@ -383,7 +383,7 @@ def triangulationsWithBoundaryLoopsFromCrushing( surf, triWithBdryLoops ):
     We also require surf to be a quadrilateral vertex normal surface, but
     this routine does *not* check this condition.
 
-    Precondition
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> Each boundary component of surf.triangulation() must be a real
         two-triangle torus.
@@ -550,7 +550,7 @@ def _buildNewIdealLoopsFromBoundaryChords(surf):
     Warning:
         This routine does not check any of the pre-conditions listed below.
 
-    Pre-condition:
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> The ambient triangulation surf.triangulation() must have nonempty
         minimal toroidal boundary.
@@ -637,7 +637,7 @@ def _buildNewIdealLoopsFromIdealChords( surf, edgeIdealTri ):
     Warning:
         This routine does not check any of the pre-conditions listed below.
 
-    Pre-condition:
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> The ambient triangulation surf.triangulation() must either be closed
         or have minimal toroidal boundary.
@@ -733,7 +733,7 @@ def _buildNewBoundaryLoopsFromChords( surf, triWithBdryLoops ):
     Warning:
         This routine does not check any of the pre-conditions listed below.
 
-    Pre-condition:
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> The ambient triangulation surf.triangulation() must have minimal
         toroidal boundary.
@@ -765,7 +765,7 @@ def _extractSurvivingEmbeddings( chordSequence, survivors ):
     This routine will never modify the given chordSequence and the given set
     of survivors.
 
-    Pre-condition:
+    Precondition:
     --> If some segment of some chord in chordSequence translates along
         parallel cells to a surviving segment, then the same holds for all
         such segments.
@@ -811,7 +811,7 @@ def _findBoundaryChords(surf):
     the constraint that boundary chords lying in the same boundary torus are
     oriented consistently with each other.
 
-    Pre-condition:
+    Precondition:
     --> The given surf should be either a 2-sphere, projective plane, disc,
         annulus, or Mobius band. Moreover, if surf has a trivial boundary
         curve, then it must be a disc.
@@ -1031,7 +1031,7 @@ def newIdealLoopEmbs( surf, oldLoops=[] ):
         create an entirely new ideal loop. This new loop will be assigned an
         arbitrary orientation.
 
-    Pre-condition:
+    Precondition:
     --> The given surf should be a quadrilateral vertex normal surface.
     --> If surf is an annulus, then each boundary component that it meets
         must be a two-triangle torus.

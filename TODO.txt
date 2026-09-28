@@ -29,7 +29,7 @@
 --- Reorganise source files to reduce clutter
 --- Tidy up imports
 --- Tidy up documentation
-    --> Preconditions
+    --> Ensure style/formatting is consistent.
 --- The SnapPy construction in embedByFilling() sometimes raises ValueError for the knot sig below.
     I have added a workaround which ensures that we still get the right answer even when such an error occurs.
     However, I haven't fully figured out the root cause.

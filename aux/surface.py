@@ -60,7 +60,7 @@ def hasOnlyNonTrivialBoundaryCurves(surf):
     is not checked, and failure of this condition may lead to undefined
     behaviour.
 
-    Pre-condition:
+    Precondition:
     --> Every boundary component of surf.triangulation() is a real
         two-triangle torus
     """
@@ -85,7 +85,7 @@ def isAnnulus(s):
     """
     Is the given normal surface s an annulus?
 
-    Pre-condition:
+    Precondition:
     --> It is known in advance that s is connected.
     """
     return ( SurfaceType.recognise(s) == SurfaceType.ANNULUS )
@@ -95,7 +95,7 @@ def isSphere(s):
     """
     Is the given normal surface s a 2-sphere?
 
-    Pre-condition:
+    Precondition:
     --> It is known in advance that s is connected.
     """
     return ( SurfaceType.recognise(s) == SurfaceType.SPHERE )
@@ -106,7 +106,7 @@ def countIncidentBoundaries(s):
     In the triangulation containing the given normal surface s, counts the
     number of boundary components that are incident to s.
 
-    Pre-condition:
+    Precondition:
     --> The surface s lies inside a triangulation with only real boundary
         components.
     """

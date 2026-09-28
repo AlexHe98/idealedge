@@ -43,7 +43,7 @@ def nonSurvivingTriangularOrbitCounts(surf):
     NonSurvivingTriangularOrbitType enumeration, such that for each key k,
     N[k] counts the number of non-surviving triangular orbits of type k.
 
-    Pre-condition:
+    Precondition:
     --> surf.triangulation() is oriented.
     """
     OrbitType = NonSurvivingTriangularOrbitType

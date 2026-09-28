@@ -180,7 +180,7 @@ def _addBoundaries( surf, boundaries ):
     This routine modifies surf directly. Adding the boundary components
     increases the size of surf by (3*boundaries - 3).
 
-    Pre-condition:
+    Precondition:
     --> surf has exactly one boundary edge, and this boundary edge is given
         by edge (01) of triangle 0.
     """

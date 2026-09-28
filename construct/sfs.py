@@ -490,7 +490,7 @@ class TriPrism:
         This routine returns the new slope that results from performing the
         flip.
 
-        Pre-condition:
+        Precondition:
         --> self.isSquareGlued(square) is False.
         """
         doomed = self._layerTet[square]
@@ -574,7 +574,7 @@ class TriPrism:
         --> if isSolidTorus() is False for every prism, then T will be the
             orientable I-bundle over S.
 
-        Pre-condition:
+        Precondition:
         --> This prism and otherPrism belong to the same triangulation.
         --> Boundary square s of this prism is not currently glued to
             anything.

@@ -47,7 +47,7 @@ def pinch(loop):
     If the triangulation containing the given ideal loop is oriented, then
     this operation guarantees to preserve the orientation.
 
-    Pre-condition:
+    Precondition:
     --> The given ideal loop has length one.
     """
     if len(loop) != 1:
@@ -170,7 +170,7 @@ class TruncatedTriangulation:
         If the reference triangulation is oriented, then the same is
         guaranteed to be true for the constructed truncated triangulation.
 
-        Preconditions:
+        Precondition:
         --> vertices is a set of integers, each of which is greater than or
             equal to 0, and strictly less than tri.size().
         """
@@ -216,7 +216,7 @@ class TruncatedTriangulation:
         If the given triangulation is oriented, then the same is guaranteed
         to be true for the truncated triangulation constructed by this routine.
 
-        Preconditions:
+        Precondition:
         --> vertices is a set of integers, each of which is greater than or
             equal to 0, and strictly less than tri.size().
         """

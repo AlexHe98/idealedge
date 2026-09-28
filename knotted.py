@@ -31,7 +31,7 @@ def isKnotted( edgeIdealTri, tracker=None ):
     assumes that tracker.start() has already been called, and it is
     guaranteed that this routine will never call tracker.finish().
 
-    Pre-condition:
+    Precondition:
     --> edgeIdealTri is a 3-sphere containing exactly one ideal loop.
     """
     drilled = edgeIdealTri.drill()

@@ -210,7 +210,7 @@ class TriangulationWithEmbeddedLoops:
         twoOne, and fourFour routines from retriangulate/moves.py for examples
         of how relabellings are specified.
 
-        Pre-condition:
+        Precondition:
         --> The given EdgeLabelling relab tracks every index ei in
             self.loopEdgeIndices().
         """
@@ -437,7 +437,7 @@ class TriangulationWithEmbeddedLoops:
 
         This is equivalent to calling loop.shorten() for each loop in self.
 
-        Pre-condition:
+        Precondition:
         --> Each loop in self must be an instance of a subclass of
             EmbeddedLoop that implements the shorten() routine.
 
@@ -686,7 +686,7 @@ class TriangulationWithEmbeddedLoops:
         routine, so subclasses that require this routine must provide an
         implementation.
 
-        Pre-condition:
+        Precondition:
         --> The union of loops cannot be shortened.
         --> If the ambient triangulation has real boundary, then this
             boundary has already been minimised.
@@ -981,7 +981,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         This routine raises ValueError if and only if self.allowsCrush()
         returns False.
 
-        Pre-condition:
+        Precondition:
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         """
@@ -1023,7 +1023,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
         --> A disc with W == 0.
         --> A projective plane with W == 1.
 
-        Pre-condition:
+        Precondition:
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         """
@@ -1189,7 +1189,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             triangulation that results from this move, as required by the
             setFromEdgeEmbeddings() routine.
 
-        Pre-condition:
+        Precondition:
         --> Every ideal loop is internal. Equivalently, every boundary
             triangle is disjoint from the ideal loops.
         --> Any triangular face F is incident to an ideal loop in at most one
@@ -1322,7 +1322,7 @@ class EdgeIdealTriangulation(TriangulationWithEmbeddedLoops):
             triangulation that results from this move, as required by the
             setFromEdgeEmbeddings() routine.
 
-        Pre-condition:
+        Precondition:
         --> The ideal loops cannot be shortened.
         --> If the ambient triangulation has real boundary, then this
             boundary has already been minimised.
@@ -1563,7 +1563,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         This routine raises ValueError if and only if self.allowsCrush()
         returns False.
 
-        Pre-condition:
+        Precondition:
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         """
@@ -1590,7 +1590,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         This routine returns True if and only if either surf is a 2-sphere,
         or it is a disc with trivial boundary curve.
 
-        Pre-condition:
+        Precondition:
         --> self.triangulation() is orientable.
         --> The given normal surface is embedded in self.triangulation().
         """
@@ -1727,7 +1727,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
         If some boundary loop bounds a disc, then this routine might (but is
         not guaranteed to) raise BoundsDisc.
 
-        Pre-condition:
+        Precondition:
         --> Any boundary triangle F is incident to a boundary loop in at most
             one edge (this includes the case where multiple model edges of F
             are identified to form a single edge of some boundary loop).
@@ -1946,7 +1946,7 @@ class TriangulationWithBoundaryLoops(TriangulationWithEmbeddedLoops):
             triangulation that results from this move, as required by the
             setFromEdgeEmbeddings() routine.
 
-        Pre-condition:
+        Precondition:
         --> The boundary loops cannot be shortened.
         --> The real boundary of the ambient triangulation has already been
             minimised.

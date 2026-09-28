@@ -229,7 +229,7 @@ class EmbeddedLoop:
         twoOne, and fourFour routines from retriangulate/moves.py for examples
         of how relabellings are specified.
 
-        Pre-condition:
+        Precondition:
         --> The given EdgeLabelling relab tracks every index ei in self.
         """
         edges = []

@@ -429,7 +429,7 @@ def _recogniseSFSGivenCandidateVerticalSurface(
     tracker argument. This will track some information about the internal
     computations that were performed by this routine.
 
-    Precondition
+    Precondition:
     --> The given surf is a quadrilateral vertex normal surface.
     --> SurfaceToCrushInSuspectedSFS.recognise(surf) must be
         SurfaceToCrushInSuspectedSFS.VERTICAL.
@@ -947,7 +947,7 @@ def _crushCandidateInessentialSphereOrDisc( surf, triWithLoops=None ):
         then each returned triangulation will be an instance of either
         TriangulationWithBoundaryLoops or Regina's Triangulation3.
 
-    Precondition
+    Precondition:
     --> The given surf is a quadrilateral vertex normal surface.
     --> Either the given surf is a 2-sphere, or it is disc with trivial
         boundary curve.
@@ -1007,7 +1007,7 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
 
     The given invariants are updated in-place.
 
-    Precondition
+    Precondition:
     --> The given surf is a quadrilateral vertex normal surface.
     --> surf.triangulation() must be oriented.
     --> If edgeIdealTri is None, then

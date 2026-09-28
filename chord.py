@@ -12,7 +12,7 @@ def pairUpChordEndsByCrushing( myChord, yourChord ):
     This routine directly modifies the given chords by performing the
     appropriate abstract joins on their ends.
 
-    Pre-condition:
+    Precondition:
     --> myChord and yourChord are both chords for the same normal surface.
     --> The normal surface is two-sided, and each side of the surface is
         incident to precisely two out of the four ends of the given chords.
