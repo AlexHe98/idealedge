@@ -4,9 +4,6 @@
     --> Other heuristics to perform before enumeration?
     --> Other alternate computations to perform in parallel with enumeration?
 --- Gather experimental data for performance of recogniseSFS()
-    --> Non-standard triangulations of bounded orientable SFS
-        ->- Generate larger examples
-        ->- Run it on the full data set
     --> Manifolds other than SFS or hyperbolic (answer is None, and no heuristic shortcuts)
 --- Cleaning up
     --> Either get rid of scratch work, or repurpose it for something useful
@@ -17,7 +14,6 @@
     --> Quad vertex surface enumeration
         ->- Decide what to do with the explicit count of randomisation attempts (see TODO in enumsurfs.py)
         ->- Unify findQuadVertexSurface() with the enumerations performed as part of the knot factorisation algorithm
-        ->- Currently, findQuadVertexSurface() supports Triangulation3, but recogniseSFS() never actually uses this because it requires dealing with dead ends, which makes the interaction with the overall logic of the algorithm more subtle
     --> Unify covers enumeration in knotted.py and recsfs.py
 --- Update README.md
 --- Test suites
