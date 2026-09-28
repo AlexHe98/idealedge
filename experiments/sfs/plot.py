@@ -1,5 +1,5 @@
 """
-Scratch work for SFS experiments.
+Plot results from SFS experiments.
 """
 from matplotlib import pyplot
 from pandas import DataFrame
