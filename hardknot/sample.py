@@ -23,5 +23,10 @@ if __name__ == "__main__":
         for _ in range(numSamples):
             _, pd, _ = randomHardComposite( numSummands, workers )
             pdcodes.write( str(pd) + "\n" )
-            sig = Link.fromPD(pd).knotSig()
+            knot = Link.fromPD(pd)
+            try:
+                sig = knot.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                sig = knot.knotSig()
             sigs.write( sig + "\n" )

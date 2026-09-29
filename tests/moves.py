@@ -251,8 +251,13 @@ def _test20single( tri, edgeIndex, i, ii ):
     if relab is None:
         # No 0-2 move here.
         return False
+    try:
+        sig = tri.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sig = tri.isoSig()
     description = "{}. Inverse 2-0 move {}/{}/{}.".format(
-            tri.isoSig(), edgeIndex, i, ii )
+            sig, edgeIndex, i, ii )
 
     # Test that the inverse 2-0 move, performed on tri02 using twoZero(),
     # brings us back to a triangulation isomorphic to tri.
@@ -364,7 +369,12 @@ def _test44single( name, testSig, edge, data=None ):
     # moves, and check that the isomorphism types of the resulting
     # triangulations all match up.
     isoSigSet = { i: set() for i in range(3) }
-    isoSigSet[2].add( t.isoSig() )
+    try:
+        sig = t.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sig = t.isoSig()
+    isoSigSet[2].add(sig)
     for newAxis in range(2):
         #NOTE Triangulation3.with44( e, ax ) was introduced in Regina 7.4.
         #       Older versions of Regina did not provide a routine to
@@ -395,7 +405,11 @@ def _test44single( name, testSig, edge, data=None ):
         if t.isOriented():
             doTest( description + " Oriented?",
                    True, new44.isOriented() )
-        newSig = new44.isoSig()
+        try:
+            newSig = new44.neoSig()
+        except AttributeError:
+            #NOTE For compatibility with Regina <= 7.4.1
+            newSig = new44.isoSig()
         isoSigSet[2].add(newSig)
         isoSigSet[newAxis].add(newSig)
 
@@ -412,7 +426,12 @@ def _test44single( name, testSig, edge, data=None ):
             inv44 = Triangulation3(new44)
             fourFour( inv44.edge( relab.underlyingEdgeIndex(newEdgeInd) ),
                      invAxis )
-            isoSigSet[newAxis].add( inv44.isoSig() )
+            try:
+                invSig = inv44.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                invSig = inv44.isoSig()
+            isoSigSet[newAxis].add(invSig)
     for newAxis in range(2):
         description = "{}. {}. Edge {}. New axis {}. Iso sig set.".format(
                 name, testSig, edge.index(), newAxis )
@@ -554,7 +573,11 @@ def testTriGraph():
 
                     # If we haven't seen the new triangulation before (up to
                     # combinatorial isomorphism), then add it to the stack.
-                    newSig = newTri.isoSig()
+                    try:
+                        newSig = newTri.neoSig()
+                    except AttributeError:
+                        #NOTE For compatibility with Regina <= 7.4.1
+                        newSig = newTri.isoSig()
                     if newSig not in seen:
                         seen.add(newSig)
                         stack.append(newSig)
@@ -567,7 +590,11 @@ def testTriGraph():
 
                 # If we haven't seen the new triangulation before (up to
                 # combinatorial isomorphism), then add it to the stack.
-                newSig = newTri.isoSig()
+                try:
+                    newSig = newTri.neoSig()
+                except AttributeError:
+                    #NOTE For compatibility with Regina <= 7.4.1
+                    newSig = newTri.isoSig()
                 if newSig not in seen:
                     seen.add(newSig)
                     stack.append(newSig)
@@ -580,7 +607,11 @@ def testTriGraph():
 
                 # If we haven't seen the new triangulation before (up to
                 # combinatorial isomorphism), then add it to the stack.
-                newSig = newTri.isoSig()
+                try:
+                    newSig = newTri.neoSig()
+                except AttributeError:
+                    #NOTE For compatibility with Regina <= 7.4.1
+                    newSig = newTri.isoSig()
                 if newSig not in seen:
                     seen.add(newSig)
                     stack.append(newSig)
@@ -594,7 +625,11 @@ def testTriGraph():
 
                     # If we haven't seen the new triangulation before (up to
                     # combinatorial isomorphism), then add it to the stack.
-                    newSig = newTri.isoSig()
+                    try:
+                        newSig = newTri.neoSig()
+                    except AttributeError:
+                        #NOTE For compatibility with Regina <= 7.4.1
+                        newSig = newTri.isoSig()
                     if newSig not in seen:
                         seen.add(newSig)
                         stack.append(newSig)
@@ -611,7 +646,11 @@ def testTriGraph():
 
             # If we haven't seen the new triangulation before (up to
             # combinatorial isomorphism), then add it to the stack.
-            newSig = newTri.isoSig()
+            try:
+                newSig = newTri.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                newSig = newTri.isoSig()
             if newSig not in seen:
                 seen.add(newSig)
                 stack.append(newSig)

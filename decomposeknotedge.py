@@ -21,6 +21,11 @@ if __name__ == "__main__":
     print()
 
     # Try to identify the summands.
+    if hasattr( Triangulation3, "neoSig" ):
+        sigGeneration = "2nd"
+    else:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sigGeneration = "1st"
     print( "Algorithm computed the following summands:" )
     for p in primeLoops:
         drilled = p.drill()
@@ -29,5 +34,10 @@ if __name__ == "__main__":
         if identified:
             print( identified[0] )
         else:
-            print( "Unidentified prime knot. Ideal triangulation '{}'".format(
-                drilled.isoSig() ) )
+            try:
+                sig = drilled.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                sig = drilled.isoSig()
+            print( f"Unidentified prime knot. {sigGeneration}-gen iso sig " +
+                  f"for ideal triangulation: '{sig}'" )

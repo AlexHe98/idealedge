@@ -89,7 +89,12 @@ def decompose( knot, tracker=False, insertAsChild=False ):
                 [ IdealLoop( [knot] ).clone() ] )
     else:
         if verbose:
-            beforeReport = "Knot sig: {}.\n".format( knot.knotSig() )
+            try:
+                knotSig = knot.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                knotSig = knot.knotSig()
+            beforeReport = "Knot sig: {}.\n".format(knotSig)
             beforeReport += "Embedding knot as an ideal loop."
             tracker.report(beforeReport)
         if _serial:
@@ -200,7 +205,11 @@ def decompose( knot, tracker=False, insertAsChild=False ):
 
 
 def _embedParallel( knot, tracker ):
-    knotSig = knot.knotSig()
+    try:
+        knotSig = knot.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        knotSig = knot.knotSig()
 
     # Run embedByFilling() in a child process.
     fillingReceiver, fillingSender = Pipe(False)

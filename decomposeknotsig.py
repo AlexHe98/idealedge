@@ -16,6 +16,17 @@ if __name__ == "__main__":
         print( "Found 1 prime:" )
     else:
         print( "Found {} primes:".format( len(primes) ) )
+    if hasattr( Triangulation3, "neoSig" ):
+        sigGeneration = "2nd"
+    else:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sigGeneration = "1st"
     for i, edgeIdealPrimeKnot in enumerate(primes):
-        print( "    Drilled iso sig for prime #{}: {}".format(
-            i, edgeIdealPrimeKnot.drill().isoSig() ) )
+        drilled = edgeIdealPrimeKnot.drill()
+        try:
+            sig = drilled.neoSig()
+        except AttributeError:
+            #NOTE For compatibility with Regina <= 7.4.1
+            sig = drilled.isoSig()
+        print( "    Drilled {}-gen iso sig for prime #{}: {}".format(
+            sigGeneration, i, sig ) )

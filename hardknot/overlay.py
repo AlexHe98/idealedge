@@ -280,4 +280,14 @@ if __name__ == "__main__":
         pd = composite.PD_code( min_strand_index=1 )
         print(pd)
         print()
-        print( Link.fromPD(pd).knotSig() )
+        knot = Link.fromPD(pd)
+        try:
+            knotSig = knot.neoSig()
+        except AttributeError:
+            #NOTE For compatibility with Regina <= 7.4.1
+            knotSig = knot.knotSig()
+            sigGeneration = "1st"
+        else:
+            sigGeneration = "2nd"
+        print( f"{sigGeneration}-generation knot/link signature:" )
+        print(knotSig)

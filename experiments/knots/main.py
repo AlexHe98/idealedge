@@ -138,6 +138,11 @@ def _experimentImpl( knotIterator, slowCoefficient ):
     timedOutNames = []
     knots = []
     times = []
+    if hasattr( Triangulation3, "neoSig" ):
+        sigGeneration = "2nd"
+    else:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sigGeneration = "1st"
     for name, knot in knotIterator:
         knots.append( ( name, knot ) )
         print(name)
@@ -166,8 +171,14 @@ def _experimentImpl( knotIterator, slowCoefficient ):
         else:
             print( "Found {} primes:".format( len(primes) ) )
         for i, edgeIdealPrimeKnot in enumerate(primes):
-            print( "    Drilled iso sig for prime #{}: {}".format(
-                i, edgeIdealPrimeKnot.drill().isoSig() ) )
+            drilled = edgeIdealPrimeKnot.drill()
+            try:
+                sig = drilled.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                sig = drilled.isoSig()
+            print( f"    Drilled {sigGeneration}-gen iso sig for " +
+                  f"prime #{i}: {sig}" )
 
         # Store elapsed time for post-processing.
         times.append( tracker.elapsed() )

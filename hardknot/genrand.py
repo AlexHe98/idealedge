@@ -91,9 +91,19 @@ if __name__ == "__main__":
     print(comp)
     print()
 
+    # Print knot signature.
+    knot = Link.fromPD(pd)
+    try:
+        knotSig = knot.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        knotSig = knot.knotSig()
+        sigGeneration = "1st"
+    else:
+        sigGeneration = "2nd"
+    print( f"{sigGeneration}-generation knot/link signature:" )
+    print(knotSig)
+
     # View the knot diagram using the PLink viewer.
     #NOTE This doesn't seem to work on all machines.
     comp.view().window.mainloop()
-
-    # Print knot signature.
-    print( Link.fromPD(pd).knotSig() )

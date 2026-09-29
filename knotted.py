@@ -46,7 +46,11 @@ def _isKnottedParallel( drilled, tracker ):
     if tracker is not None:
         beforeReport = "Attempting to enumerate covers of index 2 to 6."
         tracker.report(beforeReport)
-    isoSig = drilled.isoSig()
+    try:
+        isoSig = drilled.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        isoSig = drilled.isoSig()
     gp = drilled.group()
     for index in range(2,7):
         if tracker is not None:

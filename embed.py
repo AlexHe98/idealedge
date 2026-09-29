@@ -17,7 +17,12 @@ def loopPacket(edgeIdealTri):
     with an ideal triangulation of the drilled 3-manifold as a child.
     """
     drilled = PacketOfTriangulation3( edgeIdealTri.drill() )
-    drilled.setLabel( "Drilled: {}".format( drilled.isoSig() ) )
+    try:
+        sig = drilled.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sig = drilled.isoSig()
+    drilled.setLabel( f"Drilled: {sig}" )
     packet = PacketOfTriangulation3( edgeIdealTri.triangulation() )
     packet.insertChildLast(drilled)
     return packet

@@ -89,7 +89,17 @@ if __name__ == "__main__":
     assert tri.isConnected()
     assert tri.countBoundaryComponents() == 1
     print( f"Size: {tri.size()}" )
-    print( tri.isoSig() )
+    #TODO
+    try:
+        sig = tri.neoSig()
+    except AttributeError:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sig = tri.isoSig()
+        sigGeneration = "1st"
+    else:
+        sigGeneration = "2nd"
+    print( f"{sigGeneration}-generation isomorphism signature:" )
+    print(sig)
     print()
 
     # Test.
