@@ -25,7 +25,7 @@ if __name__ == "__main__":
             snappy.Link(s).view()
         knot = Link.fromPD(pd)
     else:
-        knot = Link.fromKnotSig(sig)
+        knot = Link.fromSig(sig)
         snappyKnot = snappy.Link( knot.pdData() )
     if len(snappyKnot.crossings) == 0:
         print( "SnapPy simplified to 0 crossings!" )

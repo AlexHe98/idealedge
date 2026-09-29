@@ -43,7 +43,7 @@ def readKnotSigs(dataset):
     with open( dataset, "r" ) as lines:
         for sigline in lines:
             sig = sigline.rstrip()
-            yield ( sig, Link.fromKnotSig(sig) )
+            yield ( sig, Link.fromSig(sig) )
 
 
 if __name__ == "__main__":

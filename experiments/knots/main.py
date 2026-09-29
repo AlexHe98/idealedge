@@ -60,7 +60,7 @@ def readKnots(*datasets):
 
                     # Extract data from row.
                     entries = row.rstrip().split( "," )
-                    knot = Link.fromKnotSig( entries[sigCol] )
+                    knot = Link.fromSig( entries[sigCol] )
                     if knot.countComponents() == 1:
                         yield ( entries[nameCol], knot )
     return

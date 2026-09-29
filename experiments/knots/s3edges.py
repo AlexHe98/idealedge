@@ -47,7 +47,7 @@ def readS3Edges(dataset):
     with open( dataset, "r" ) as lines:
         for sigline in lines:
             sig = sigline.rstrip()
-            tri = Triangulation3.fromIsoSig(sig)
+            tri = Triangulation3.fromSig(sig)
             for i in range( tri.countEdges() ):
                 name = sig + ", edge {}".format(i)
                 yield ( name, tri.edge(i) )

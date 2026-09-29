@@ -121,7 +121,7 @@ def testTwoThree():
 def _test23all( testSig, maxIsos=16 ):
     print( "2-3 and 3-2 moves on \"{}\"".format(testSig) )
     stdout.flush()
-    t = Triangulation3.fromIsoSig(testSig)
+    t = Triangulation3.fromSig(testSig)
     t.orient()
 
     # Test 2-3 moves on all eligible triangles.
@@ -227,7 +227,7 @@ def _test20all(testSig):
     """
     print( "0-2 and 2-0 moves on \"{}\"".format(testSig) )
     stdout.flush()
-    t = Triangulation3.fromIsoSig(testSig)
+    t = Triangulation3.fromSig(testSig)
     t.orient()
 
     count = 0
@@ -323,7 +323,7 @@ def testFourFour():
 def _test44all(testSig):
     print( "4-4 moves on \"{}\"".format(testSig) )
     stdout.flush()
-    t = Triangulation3.fromIsoSig(testSig)
+    t = Triangulation3.fromSig(testSig)
     t.orient()
 
     count = 0
@@ -439,7 +439,7 @@ def testTwoOne():
 def _test21all(testSig):
     print( "2-1 moves on \"{}\"".format(testSig) )
     stdout.flush()
-    t = Triangulation3.fromIsoSig(testSig)
+    t = Triangulation3.fromSig(testSig)
     t.orient()
 
     count = 0
@@ -540,7 +540,7 @@ def testTriGraph():
     counts = { "2-1": 0, "2-0": 0, "3-2": 0, "4-4": 0, "2-3": 0 }
     while stack:
         sig = stack.pop()
-        tri = Triangulation3.fromIsoSig(sig)
+        tri = Triangulation3.fromSig(sig)
 
         # Moves on edges.
         for e in tri.edges():

@@ -270,7 +270,7 @@ def _embedParallel( knot, tracker ):
 def _runFilling( knotSig, sender ):
     RandomEngine.reseedWithHardware()
     try:
-        edgeIdealTri = embedByFilling( Link.fromKnotSig(knotSig) )
+        edgeIdealTri = embedByFilling( Link.fromSig(knotSig) )
     except BoundsDisc:
         # Send nothing if the given knot is unknotted.
         return
@@ -281,7 +281,7 @@ def _runFilling( knotSig, sender ):
 def _runDiagram( knotSig, sender ):
     RandomEngine.reseedWithHardware()
     try:
-        edgeIdealTri = embedFromDiagram( Link.fromKnotSig(knotSig) )
+        edgeIdealTri = embedFromDiagram( Link.fromSig(knotSig) )
     except BoundsDisc:
         # Send nothing if the given knot is unknotted.
         return

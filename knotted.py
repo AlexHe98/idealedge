@@ -128,7 +128,7 @@ def _coversDoNotMatch( gp, index, tracker ):
 
 
 def _runCoversEnumeration( isoSig, index, sender ):
-    gp = Triangulation3.fromIsoSig(isoSig).group()
+    gp = Triangulation3.fromSig(isoSig).group()
     data = { "sender": sender,
             "covers": 0,
             "certifiedNontrivial": False }
@@ -148,7 +148,7 @@ def _runCoversEnumeration( isoSig, index, sender ):
 
 
 def _notSolidTorus( isoSig, sender ):
-    drilled = Triangulation3.fromIsoSig(isoSig)
+    drilled = Triangulation3.fromSig(isoSig)
     sender.send( not drilled.isSolidTorus() )
     return
 
