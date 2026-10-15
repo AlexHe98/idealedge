@@ -1,21 +1,16 @@
 """
 Generate triangulations of bounded orientable 3-manifolds other than a
 Seifert fibred space or hyperbolic 3-manifold.
-
-These are intended to be representative of the worst case for the current
-implementation of recogniseSFS().
 """
-import sys
+from dataclasses import dataclass
+from pathlib import Path
 from timeit import default_timer
 from regina import *
 import snappy
-from construct.sfs import orientableSFS
-from recsfs import recogniseSFS, SFSRecognitionTracker
+from experiments.sfs.io import hardSFSPath, readSFSLine, parseSFSFileName
 
 
-GENUS_LIST = [ -4, -3, -2, -1, 0, 1, 2 ]
-FIBRE_LIST = [ (2,1), (3,1), (3,-1), (4,1), (4,-1),
-              (5,1), (5,2), (5,-1), (5,-2) ]
+MAX_CUSPS = 4
 
 
 def _simplifyHard(tri):
@@ -35,80 +30,112 @@ def _randomHyp(numBdries):
     tri.simplify()
     tri.minimiseBoundary()
     _simplifyHard(tri)
-    return tri
+
+    # Apply a random isomorphism.
+    return Isomorphism3.random( tri.size() )(tri)
 
 
-def _glueTogether( myTri, yourTri, simplify=True ):
-    glued = Triangulation3(myTri)
-    glued.insertTriangulation( yourTri )
+@dataclass
+class _Gluing:
+    """
+    A gluing between tetrahedra.
+    """
+    myTeti: int
+    myFace: int
+    yourTeti: int
+    gluingPerm: Perm4
 
-    # For now, just arbitrarily pick an easy gluing.
-    myFront = glued.boundaryComponent(0).edge(0).front()
-    myTeti = myFront.tetrahedron().index()
-    myEn = myFront.edge()
-    yourFront = yourTri.boundaryComponent(0).edge(0).front()
-    yourTeti = myTri.size() + yourFront.tetrahedron().index()
-    yourEn = yourFront.edge()
-    myEdge = glued.tetrahedron(myTeti).edge(myEn)
-    yourEdge = glued.tetrahedron(yourTeti).edge(yourEn)
-    myFront = myEdge.front()
-    yourFront = yourEdge.front()
-    myBack = myEdge.back()
-    yourBack = yourEdge.back()
-    myFront.tetrahedron().join(
-            myFront.vertices()[3],
-            yourFront.tetrahedron(),
-            yourFront.vertices() * myFront.vertices().inverse() )
-    myBack.tetrahedron().join(
-            myBack.vertices()[2],
-            yourBack.tetrahedron(),
-            yourBack.vertices() * myBack.vertices().inverse() )
-    if simplify:
-        _simplifyHard(glued)
-    return glued
+    def performOn(self, tri):
+        """
+        Performs this gluing on the given triangulation.
+        """
+        tri.tetrahedron(self.myTeti).join( self.myFace,
+                                          tri.tetrahedron(self.yourTeti),
+                                          self.gluingPerm )
+        return
 
 
 if __name__ == "__main__":
-    # Build inner triangulation from random hyperbolic 3-manifold(s)
-    inner = _randomHyp(1)
-#    hyp = dict()
-#    for hypNumBdries in [1, 2]:
-#        hyp[hypNumBdries] = _randomHyp(hypNumBdries)
-#    inner = _glueTogether( hyp[1], hyp[2] )
-
-    # Glue the inner triangulation to a random SFS.
     RandomEngine.reseedWithHardware()
-    baseSignedGenus = GENUS_LIST[ RandomEngine.rand( len(GENUS_LIST) ) ]
-    sfsNumBdries = 2
-    numFibres = 2 + RandomEngine.rand(3)
-    fibres = [ FIBRE_LIST[ RandomEngine.rand( len(FIBRE_LIST) ) ]
-              for _ in range(numFibres) ]
-    sfsTri = orientableSFS( baseSignedGenus, sfsNumBdries, *fibres )
-    _simplifyHard(sfsTri)
-    tri = _glueTogether( sfsTri, inner )
-    assert tri.isConnected()
-    assert tri.countBoundaryComponents() == 1
-    print( f"Size: {tri.size()}" )
-    #TODO
-    try:
-        sig = tri.neoSig()
-    except AttributeError:
-        #NOTE For compatibility with Regina <= 7.4.1
-        sig = tri.isoSig()
-        sigGeneration = "1st"
-    else:
-        sigGeneration = "2nd"
-    print( f"{sigGeneration}-generation isomorphism signature:" )
-    print(sig)
-    print()
-
-    # Test.
-    print( "Running recogniseSFS()..." )
-    print()
-    sys.stdout.flush()
-    useHeuristics = True
-    tracker = SFSRecognitionTracker()
     start = default_timer()
-    print( recogniseSFS( tri, useHeuristics, tracker ) )
+
+    # Only need to do this once, so just hard-code the path where we store
+    # the data.
+    with open( "data/nonsfs/sample.txt", "x" ) as outputFile:
+        for file in Path( hardSFSPath() ).iterdir():
+            if file.is_file():
+                isBaseOrbl, genus, numBdries = parseSFSFileName(file.name)
+                if numBdries < 2:
+                    continue
+
+                # We have a collection of hard SFS with 2 or more boundary
+                # tori. Attach a hyperbolic 3-manifold, but leaving at least
+                # one of the SFS boundaries exposed, so that recogniseSFS()
+                # has a chance of finding some surface to crush.
+                if isBaseOrbl:
+                    baseClass = SFSpace.Class.bo1
+                else:
+                    baseClass = SFSpace.Class.bn2
+                with open( hardSFSPath(
+                    isBaseOrbl, genus, numBdries ) ) as sfsFile:
+                    for line in sfsFile:
+                        neoSig, _fibresIgnored = readSFSLine(line)
+                        sfs = Triangulation3.fromSig(neoSig)
+                        sfs = Isomorphism3.random( sfs.size() )(sfs)
+
+                        # Pick the number of cusps in the hyperbolic piece to
+                        # attach.
+                        numCuspsToAttach = 1 + RandomEngine.rand(
+                                min( MAX_CUSPS, numBdries - 1 ) )
+                        numCusps = numCuspsToAttach + RandomEngine.rand(
+                                1 + MAX_CUSPS - numCuspsToAttach )
+                        hyp = _randomHyp(numCusps)
+                        assert ( numCuspsToAttach <
+                                sfs.countBoundaryComponents() )
+                        assert ( numCuspsToAttach <=
+                                hyp.countBoundaryComponents() )
+
+                        # Figure out the gluings.
+                        gluings = []
+                        for i in range(numCuspsToAttach):
+                            sfsBdry = sfs.boundaryComponent(i)
+                            hypBdry = hyp.boundaryComponent(i)
+                            sfsEdge = sfsBdry.edge(0)
+                            hypEdge = hypBdry.edge(0)
+
+                            # Gluing coming from the front.
+                            sfsFront = sfsEdge.front()
+                            hypFront = hypEdge.front()
+                            sfsTeti = sfsFront.tetrahedron().index()
+                            sfsFace = sfsFront.vertices()[3]
+                            hypTeti = ( sfs.size() +
+                                       hypFront.tetrahedron().index() )
+                            perm = ( hypFront.vertices() *
+                                    sfsFront.vertices().inverse() )
+                            gluings.append( _Gluing(
+                                sfsTeti, sfsFace, hypTeti, perm ) )
+
+                            # Gluing coming from the back.
+                            sfsBack = sfsEdge.back()
+                            hypBack = hypEdge.back()
+                            sfsTeti = sfsBack.tetrahedron().index()
+                            sfsFace = sfsBack.vertices()[2]
+                            hypTeti = ( sfs.size() +
+                                       hypBack.tetrahedron().index() )
+                            perm = ( hypBack.vertices() *
+                                    sfsBack.vertices().inverse() )
+                            gluings.append( _Gluing(
+                                sfsTeti, sfsFace, hypTeti, perm ) )
+
+                        # Perform the gluings.
+                        sfs.insertTriangulation(hyp)
+                        for gluing in gluings:
+                            gluing.performOn(sfs)
+
+                        # Do some sanity checks before saving this example.
+                        assert sfs.isValid()
+                        assert sfs.isOrientable()
+                        assert ( sfs.countBoundaryComponents() ==
+                                numBdries + numCusps - 2*numCuspsToAttach )
+                        outputFile.write( f"{sfs.neoSig()}\n" )
     print( "Time: {:.6f}".format( default_timer() - start ) )
-    print( "Alternate enumerations:", tracker.alternateEnumerationsCount() )
