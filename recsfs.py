@@ -3,20 +3,54 @@ Recognition of bounded orientable Seifert fibred spaces.
 """
 from enum import Enum, auto
 from math import gcd as pythonGCD
+from concurrent.futures import ProcessPoolExecutor
+from os import cpu_count
 from regina import *
 from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
+from drill import drillMeridian
+from enumsurfs import findQuadVertexSurface
 from hyp import knownHyperbolic
 from idealedge import ComponentDeletedByCrushing as DelComp
 from idealedge import edgeIdealTriangulationsFromCrushing
 from idealedge import triangulationsWithBoundaryLoopsFromCrushing
-from drill import drillMeridian
-from enumsurfs import findQuadVertexSurface
+from retriangulate.randomise import randomise
 from triloops import TriangulationWithEmbeddedLoops
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
-def recogniseSFS( tri, useHeuristics=True, tracker=None ):
+def recogniseSFS(
+        tri, useHeuristics=True, tracker=None, numParallelAttempts=3 ):
+    """
+    """
+    #TODO
+    numProcesses = max( cpu_count() - 1, numParallelAttempts )
+    running = []
+    with ProcessPoolExecutor( max_workers=numProcesses ) as executor:
+        for p in range(numParallelAttempts):
+            if p == 0:
+                inputSig = tri.isoSig()
+            else:
+                inputTri = Triangulation3(tri)
+                randomise(inputTri)
+                inputSig = inputTri.isoSig()
+            running.append( executor.submit(
+                _recogniseSFSImpl, inputSig, useHeuristics, tracker ) )
+        while True:
+            for i in range(numParallelAttempts):
+                try:
+                    output = running[i].result( timeout=0.001 )
+                except TimeoutError:
+                    pass
+                else:
+                    if isinstance( output, _PicklableSFSpace ):
+                        return output.reginaSFSpace()
+                    else:
+                        return output
+    raise AssertionError( "recogniseSFS() should never reach this point" )
+
+
+def _recogniseSFSImpl( isoSig, useHeuristics=True, tracker=None ):
     """
     Determines whether the given triangulation is a bounded orientable
     Seifert fibred space, and if so returns an instance of Regina's SFSpace.
@@ -46,6 +80,8 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
         As explained above, the main algorithm used in this routine might be
         be very slow for larger triangulations.
     """
+    #TODO
+    tri = Triangulation3.fromSig(isoSig)
     if not tri.isValid():
         # This rules out:
         #   --> Invalid edges
@@ -94,7 +130,7 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
             # Attempt combinatorial recognition using Regina.
             blocked = BlockedSFS.recognise(orientedTri)
             if blocked is not None:
-                return blocked.manifold()
+                return _PicklableSFSpace( blocked.manifold() )
 
             # Try to certify hyperbolicity.
             if knownHyperbolic(orientedTri):
@@ -141,7 +177,7 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
             if surfDesc == _FoundSurface.REDUCING:
                 return None
             elif surfDesc == _FoundSurface.MERIDIONAL:
-                return _trivialSolidTorusFibration()
+                return _PicklableSFSpace( _trivialSolidTorusFibration() )
             elif surfDesc == _FoundSurface.VERTICAL:
                 # We might already know that the slope is no good.
                 bdrySlopes = _surfaceBoundary(surf)
@@ -155,7 +191,7 @@ def recogniseSFS( tri, useHeuristics=True, tracker=None ):
                     slopesAlreadyExamined.append(bdrySlopes)
                     continue
                 elif isinstance( ans, SFSpace ):
-                    return ans
+                    return _PicklableSFSpace(ans)
                 elif ans == ManifoldProperty.NOT_SFS:
                     return None
                 raise AssertionError(
@@ -330,6 +366,68 @@ class SFSRecognitionTracker:
         """
         self._altEnumCount += 1
         return
+
+
+class _PicklableSFSpace:
+    """
+    A picklable representation of Regina's SFSpace.
+
+    At present, this class only
+    """
+    _NOT_SUPPORTED_MSG = ( "_PicklableSFSpace only supports orientable " +
+                          "Seifert fibred spaces at present" )
+    _CONVERT_BASE_CLASS = {
+            SFSpace.Class.o1: "o1",
+            SFSpace.Class.o2: "o2",
+            SFSpace.Class.n1: "n1",
+            SFSpace.Class.n2: "n2",
+            SFSpace.Class.n3: "n3",
+            SFSpace.Class.n4: "n4",
+            SFSpace.Class.bo1: "bo1",
+            SFSpace.Class.bo2: "bo2",
+            SFSpace.Class.bn1: "bn1",
+            SFSpace.Class.bn2: "bn2",
+            SFSpace.Class.bn3: "bn3",
+            "o1": SFSpace.Class.o1,
+            "o2": SFSpace.Class.o2,
+            "n1": SFSpace.Class.n1,
+            "n2": SFSpace.Class.n2,
+            "n3": SFSpace.Class.n3,
+            "n4": SFSpace.Class.n4,
+            "bo1": SFSpace.Class.bo1,
+            "bo2": SFSpace.Class.bo2,
+            "bn1": SFSpace.Class.bn1,
+            "bn2": SFSpace.Class.bn2,
+            "bn3": SFSpace.Class.bn3 }
+    def __init__( self, sfs ):
+        self._baseClass = self._CONVERT_BASE_CLASS[ sfs.baseClass() ]
+        if self._baseClass not in { "o1", "bo1", "n2", "bn2" }:
+            raise NotImplementedError(self._NOT_SUPPORTED_MSG)
+        if sfs.punctures(True) > 0 or sfs.reflectors() > 0:
+            raise NotImplementedError(self._NOT_SUPPORTED_MSG)
+        self._baseGenus = sfs.baseGenus()
+        self._punctures = sfs.punctures(False)
+        try:
+            self._fibres = [ ( f.alpha, f.beta ) for f in sfs.fibres() ]
+        except AttributeError:
+            #NOTE SFSpace.fibres() was not present in Regina 7.3.1 and
+            #   earlier. We must therefore resort to repeatedly calling the
+            #   linear time SFSpace.fibre().
+            self._fibres = []
+            for which in range( sfs.fibreCount() ):
+                f = sfs.fibre(which)
+                self._fibres.append( ( f.alpha, f.beta ) )
+        return
+
+    def reginaSFSpace(self):
+        """
+        Returns a copy of the Regina SFSpace represented by this class.
+        """
+        sfs = SFSpace( self._CONVERT_BASE_CLASS[ self._baseClass ],
+                      self._baseGenus, self._punctures )
+        for alpha, beta in self._fibres:
+            sfs.insertFibre( alpha, beta )
+        return sfs
 
 
 def _surfaceBoundary(surf):
