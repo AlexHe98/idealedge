@@ -85,16 +85,12 @@ def recogniseSFS(
     # computation on several different choices of triangulation in parallel.
     receivers = []
     processes = []
+    inputSig = tri.isoSig()
     for i in range(numParallelAttempts):
-        if i == 0:
-            inputSig = tri.isoSig()
-        else:
-            inputTri = Triangulation3(tri)
-            randomise(inputTri)
-            inputSig = inputTri.isoSig()
+        doRandomise = (False if i == 0 else True)
         receiver, sender = Pipe(False)
         p = Process( target=_recogniseSFSImpl,
-                    args=( sender, inputSig, useHeuristics ) )
+                    args=( sender, inputSig, useHeuristics, doRandomise ) )
         p.start()
         receivers.append(receiver)
         processes.append(p)
@@ -113,12 +109,15 @@ def recogniseSFS(
     return output
 
 
-def _recogniseSFSImpl( sender, isoSig, useHeuristics=True ):
+def _recogniseSFSImpl(
+        sender, isoSig, useHeuristics=True, doRandomise=False ):
     """
     Internal implementation of Seifert fibred space recognition which sends
     the answer and an instance of SFSRecognitionTracker via the given sender.
     """
     tri = Triangulation3.fromSig(isoSig)
+    if doRandomise:
+        randomise(tri)
     tracker = SFSRecognitionTracker()
     def sendAns(ans):
         sender.send( ( ans, tracker ) )
