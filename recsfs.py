@@ -19,68 +19,8 @@ from triloops import TriangulationWithEmbeddedLoops
 from triloops import EdgeIdealTriangulation, TriangulationWithBoundaryLoops
 
 
-#TODO Tracker usage will need to be completely overhauled.
 def recogniseSFS(
         tri, useHeuristics=True, tracker=None, numParallelAttempts=3 ):
-    """
-    """
-    if not tri.isValid():
-        # This rules out:
-        #   --> Invalid edges
-        #   --> Vertex links which are bounded and not discs
-        raise ValueError(
-                "recogniseSFS() requires a valid triangulation" )
-    if not tri.isOrientable():
-        raise ValueError(
-                "recogniseSFS() requires an orientable triangulation" )
-    if tri.isClosed() or tri.isIdeal():
-        # This rules out:
-        #   --> Triangulations in which all vertex links are 2-spheres
-        #   --> Vertex links which are closed and not 2-spheres
-        raise ValueError(
-                "recogniseSFS() requires a triangulation with no ideal " +
-                "vertices and nonempty real boundary" )
-
-    #TODO
-
-    # Occasionally, we encounter an unlucky triangulation for which the
-    # computation takes much longer than usual. We handle this by running the
-    # computation on several different choices of triangulation in parallel.
-    receivers = []
-    processes = []
-    for i in range(numParallelAttempts):
-        if i == 0:
-            inputSig = tri.isoSig()
-        else:
-            inputTri = Triangulation3(tri)
-            randomise(inputTri)
-            inputSig = inputTri.isoSig()
-        receiver, sender = Pipe(False)
-        p = Process( target=_recogniseSFSImpl,
-                    args=( sender, inputSig, useHeuristics, tracker ) )
-        p.start()
-        receivers.append(receiver)
-        processes.append(p)
-    while True:
-        for i in range(numParallelAttempts):
-            # Has process i given an answer?
-            if not receivers[i].poll( timeout=0.001 ):
-                continue
-
-            # Clean up all the processes before returning.
-            for ii in range(numParallelAttempts):
-                if ii != i:
-                    processes[ii].terminate()
-                processes[ii].join()
-            output = receivers[i].recv()
-            if isinstance( output, _PicklableSFSpace ):
-                return output.reginaSFSpace()
-            else:
-                return output
-    raise AssertionError( "recogniseSFS() should never reach this point" )
-
-
-def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
     """
     Determines whether the given triangulation is a bounded orientable
     Seifert fibred space, and if so returns an instance of Regina's SFSpace.
@@ -106,12 +46,90 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
     tracker argument. This will track some information about the internal
     computations that were performed by this routine.
 
+    This routine runs Seifert fibred space recognition on several different
+    triangulations in parallel. The first triangulation is always the one
+    given as input to this routine, and each subsequent triangulation is then
+    obtained by randomising the first one. The number of parallel
+    triangulations can be set using the optional numParallelAttempts argument
+    (default = 3).
+
+    If there is more than one parallel attempt, the tracker (if supplied)
+    will only track the internal computations performed by the attempt which
+    first succeeded in outputting an answer.
+
     Warning:
         As explained above, the main algorithm used in this routine might be
         be very slow for larger triangulations.
     """
-    #TODO
+    if not tri.isValid():
+        # This rules out:
+        #   --> Invalid edges
+        #   --> Vertex links which are bounded and not discs
+        raise ValueError(
+                "recogniseSFS() requires a valid triangulation" )
+    if not tri.isOrientable():
+        raise ValueError(
+                "recogniseSFS() requires an orientable triangulation" )
+    if tri.isClosed() or tri.isIdeal():
+        # This rules out:
+        #   --> Triangulations in which all vertex links are 2-spheres
+        #   --> Vertex links which are closed and not 2-spheres
+        raise ValueError(
+                "recogniseSFS() requires a triangulation with no ideal " +
+                "vertices and nonempty real boundary" )
+    if numParallelAttempts < 1:
+        raise ValueError(
+                "recogniseSFS() requires numParallelAttempts to be positive" )
+
+    # Occasionally, we encounter an unlucky triangulation for which the
+    # computation takes much longer than usual. We handle this by running the
+    # computation on several different choices of triangulation in parallel.
+    receivers = []
+    processes = []
+    for i in range(numParallelAttempts):
+        if i == 0:
+            inputSig = tri.isoSig()
+        else:
+            inputTri = Triangulation3(tri)
+            randomise(inputTri)
+            inputSig = inputTri.isoSig()
+        receiver, sender = Pipe(False)
+        p = Process( target=_recogniseSFSImpl,
+                    args=( sender, inputSig, useHeuristics ) )
+        p.start()
+        receivers.append(receiver)
+        processes.append(p)
+    while True:
+        for i in range(numParallelAttempts):
+            # Has process i given an answer?
+            if not receivers[i].poll( timeout=0.001 ):
+                continue
+            output, subtracker = receivers[i].recv()
+            if tracker is not None:
+                tracker.setFrom(subtracker)
+
+            # Clean up all the processes before returning.
+            for ii in range(numParallelAttempts):
+                if ii != i:
+                    processes[ii].terminate()
+                processes[ii].join()
+            if isinstance( output, _PicklableSFSpace ):
+                return output.reginaSFSpace()
+            else:
+                return output
+    raise AssertionError( "recogniseSFS() should never reach this point" )
+
+
+def _recogniseSFSImpl( sender, isoSig, useHeuristics=True ):
+    """
+    Internal implementation of Seifert fibred space recognition which sends
+    the answer and an instance of SFSRecognitionTracker via the given sender.
+    """
     tri = Triangulation3.fromSig(isoSig)
+    tracker = SFSRecognitionTracker()
+    def sendAns(ans):
+        sender.send( ( ans, tracker ) )
+        return
 
     # At this point, we have an orientable 3-manifold with nonempty boundary,
     # where each boundary component is built entirely out of real boundary
@@ -119,7 +137,7 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
     for bc in tri.boundaryComponents():
         # Boundary components must all be tori to have a Seifert fibration.
         if ( bc.eulerChar() != 0 ) or ( not bc.isOrientable() ):
-            sender.send(None)
+            sendAns(None)
             return
     orientedTri = Triangulation3(tri)
     orientedTri.minimiseBoundary()
@@ -145,12 +163,13 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
             # Attempt combinatorial recognition using Regina.
             blocked = BlockedSFS.recognise(orientedTri)
             if blocked is not None:
-                sender.send( _PicklableSFSpace( blocked.manifold() ) )
+                tracker.notifyCombinatorialRecognition()
+                sendAns( _PicklableSFSpace( blocked.manifold() ) )
                 return
 
             # Try to certify hyperbolicity.
             if knownHyperbolic(orientedTri):
-                sender.send(None)
+                sendAns(None)
                 return
 
         # Time for the heavy-duty normal surface machinery.
@@ -170,7 +189,7 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
                 if isinstance( enumAns, Triangulation3 ):
                     # No vertical surfaces, so orientedTri cannot be a
                     # triangulation of a Seifert fibred space.
-                    sender.send(None)
+                    sendAns(None)
                     return
                 orientedTri, surf, surfDesc = enumAns
 
@@ -189,15 +208,15 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
             else:
                 # No vertical surfaces, so again, orientedTri cannot be a
                 # triangulation of a Seifert fibred space.
-                sender.send(None)
+                sendAns(None)
                 return
 
             # Process surf.
             if surfDesc == _FoundSurface.REDUCING:
-                sender.send(None)
+                sendAns(None)
                 return
             elif surfDesc == _FoundSurface.MERIDIONAL:
-                sender.send( _PicklableSFSpace(
+                sendAns( _PicklableSFSpace(
                     _trivialSolidTorusFibration() ) )
                 return
             elif surfDesc == _FoundSurface.VERTICAL:
@@ -213,17 +232,17 @@ def _recogniseSFSImpl( sender, isoSig, useHeuristics=True, tracker=None ):
                     slopesAlreadyExamined.append(bdrySlopes)
                     continue
                 elif isinstance( ans, SFSpace ):
-                    sender.send( _PicklableSFSpace(ans) )
+                    sendAns( _PicklableSFSpace(ans) )
                     return
                 elif ans == ManifoldProperty.NOT_SFS:
-                    sender.send(None)
+                    sendAns(None)
                     return
                 raise AssertionError(
                         "_recogniseSFSImpl() should never reach this point" )
             elif surfDesc == _FoundSurface.SPHERE_DISC:
                 crushAns = _crushCandidateInessentialSphereOrDisc(surf)
                 if crushAns == ManifoldProperty.REDUCIBLE:
-                    sender.send( ManifoldProperty.REDUCIBLE )
+                    sendAns( ManifoldProperty.REDUCIBLE )
                     return
 
                 # At this point, we should have a new triangulation with
@@ -370,11 +389,40 @@ class SFSRecognitionTracker:
     """
     A progress tracker for recogniseSFS().
 
+    At present, this tracker stores the following information:
+    --> Whether the computation used combinatorial recognition to bypass all
+        normal surface computations.
+    --> The number of normal surfaces that were found using an alternate
+        enumeration.
+
     At present, the only information that this tracker stores is the number
     of normal surfaces that were found using an alternate enumeration.
     """
     def __init__(self):
+        self._usedCombinatorialRecognition = False
         self._altEnumCount = 0
+        return
+
+    def setFrom( self, otherTracker ):
+        """
+        Sets the state of this tracker using the state of the otherTracker.
+        """
+        self.__dict__.update( otherTracker.__dict__ )
+        return
+
+    def usedCombinatorialRecognition(self):
+        """
+        Returns True if and only if the tracked computation used
+        combinatorial recognition to bypass all normal surface computations.
+        """
+        return self._usedCombinatorialRecognition
+
+    def notifyCombinatorialRecognition(self):
+        """
+        Notifies this tracker that combinatorial recognition was used to
+        bypass all normal surface computations.
+        """
+        self._usedCombinatorialRecognition = True
         return
 
     def alternateEnumerationsCount(self):
@@ -384,7 +432,7 @@ class SFSRecognitionTracker:
         """
         return self._altEnumCount
 
-    def usedAlternateEnumeration(self):
+    def notifyAlternateEnumeration(self):
         """
         Notifies this tracker that a normal surface was found using an
         alternate enumeration.

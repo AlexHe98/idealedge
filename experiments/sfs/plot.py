@@ -14,29 +14,33 @@ if __name__ == "__main__":
     except IndexError:
         yscale = "linear"
     try:
-        useAltEnum = bool( int( sys.argv[3] ) )
+        colourCombRec = bool( int( sys.argv[3] ) )
     except IndexError:
-        useAltEnum = False
+        colourCombRec = False
     sizes = []
     times = []
-    altEnumCounts = []
+    usedCombRec = []
     with open( dataPath, 'r' ) as dataFile:
         for line in dataFile:
-            size, altEnums, time = line.rstrip().split(" ")
+            size, combRecIndicator, time = line.rstrip().split(" ")
             sizes.append( int(size) )
-            altEnumCounts.append( int(altEnums) )
+            usedCombRec.append( bool( int(combRecIndicator) ) )
             times.append( float(time) )
     sizeName = "Number of tetrahedra"
     timeName = "Time (seconds)"
-    altEnumName = "Number of alternate enumerations used"
+    combRecName = "Early termination using combinatorial recognition"
     data = DataFrame( {
         sizeName: sizes,
         timeName: times,
-        altEnumName: altEnumCounts } )
+        "combRecRaw": usedCombRec } )
+    combRecCounts = data["combRecRaw"].value_counts()
+    data[combRecName] = data["combRecRaw"].map(
+            lambda combRecBool:
+            f"{combRecBool} (n={combRecCounts[combRecBool]})" )
     _, ax = pyplot.subplots( figsize=(8, 4.5) )
-    if useAltEnum:
+    if colourCombRec:
         scatterplot( data=data, x=sizeName, y=timeName, ax=ax,
-                    hue=altEnumName, palette="flare_r" )
+                    hue=combRecName )
     else:
         scatterplot( data=data, x=sizeName, y=timeName, ax=ax )
     pyplot.title("Timings for bounded orientable SFS recognition")

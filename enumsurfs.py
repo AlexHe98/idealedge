@@ -124,7 +124,7 @@ def findQuadVertexSurface(
             # Has the alternateProcess given an answer?
             if alternateReceiver.poll():
                 if tracker is not None:
-                    tracker.usedAlternateEnumeration()
+                    tracker.notifyAlternateEnumeration()
 
                 # Make sure to clean up child processes before returning the
                 # answer from the alternateProcess.
