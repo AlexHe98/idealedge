@@ -389,9 +389,6 @@ class SFSRecognitionTracker:
         normal surface computations.
     --> The number of normal surfaces that were found using an alternate
         enumeration.
-
-    At present, the only information that this tracker stores is the number
-    of normal surfaces that were found using an alternate enumeration.
     """
     def __init__(self):
         self._usedCombinatorialRecognition = False
