@@ -1,9 +1,24 @@
 """
 Decompose knots into prime knots.
+
+Contains the implementation for decompose(), which computes the prime
+factorisation of a given knot. The output is given as a collection of
+EdgeIdealTriangulation objects.
+
+Users can run decompose() by directly running this script, by supplying the
+input in one of two ways:
+(1) A single string giving a knot signature (either 1st- or 2nd-generation)
+    for the input knot.
+(2) A string giving an isomorphism signature (either 1st- or 2nd-generation)
+    for a one-vertex triangulation T of the 3-sphere, followed by an integer
+    giving the index of an edge of T which realises the input knot.
+    
+    This script does _not_ check that T is indeed a 3-sphere.
 """
-from sys import stdout
+import sys
 from timeit import default_timer
 from regina import *
+import snappy
 from idealedge import edgeIdealTriangulationsFromCrushing
 from loop import IdealLoop, BoundsDisc
 from triloops import EdgeIdealTriangulation
@@ -785,7 +800,7 @@ class KnotDecompositionTracker:
     def _printMessage( self, msg ):
         self._log += msg + "\n"
         print(msg)
-        stdout.flush()
+        sys.stdout.flush()
         return
 
     def _reportImpl( self, time ):
@@ -981,3 +996,51 @@ class KnotDecompositionTracker:
         afterReport = "Found a hyperbolic knot!"
         self._newEvent( None, afterReport )
         return
+
+
+if __name__ == "__main__":
+    # First attempt to interpret the input as a knot signature.
+    sig = sys.argv[1]
+    try:
+        knot = Link.fromSig(sig)
+    except InvalidArgument:
+        # Try to interpret as a 3-sphere iso sig and edge index instead.
+        edgeIndex = int( sys.argv[2] )
+        tri = Triangulation3(sig)
+        if tri.countVertices() != 1:
+            print("ERROR: Triangulation must be one-vertex!")
+            sys.exit()
+        knot = tri.edge(edgeIndex)
+    print()
+
+    # Run decompose() with the verbose option.
+    primeLoops = decompose( knot, True )
+    print()
+    if len(primeLoops) == 0:
+        print( "Unknot!" )
+    elif len(primeLoops) == 1:
+        print( "Found 1 prime:" )
+    else:
+        print( "Found {} primes:".format( len(primeLoops) ) )
+
+    # Try to identify the summands.
+    if hasattr( Triangulation3, "neoSig" ):
+        sigGeneration = "2nd"
+    else:
+        #NOTE For compatibility with Regina <= 7.4.1
+        sigGeneration = "1st"
+    for p in primeLoops:
+        drilled = p.drill()
+        mfd = snappy.Manifold( snappy.Triangulation( drilled.isoSig() ) )
+        identified = mfd.identify()
+        if identified:
+            print( f"    {identified[0]}" )
+        else:
+            try:
+                primeSig = drilled.neoSig()
+            except AttributeError:
+                #NOTE For compatibility with Regina <= 7.4.1
+                primeSig = drilled.isoSig()
+            print( "    Unidentified prime knot. " +
+                  f"{sigGeneration}-gen iso sig for ideal triangulation: " +
+                  f"'{primeSig}'" )
