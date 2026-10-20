@@ -92,6 +92,7 @@ def recogniseSFS(
         p = Process( target=_recogniseSFSImpl,
                     args=( sender, inputSig, useHeuristics, doRandomise ) )
         p.start()
+        sender.close()
         receivers.append(receiver)
         processes.append(p)
     received = connection.wait(receivers)

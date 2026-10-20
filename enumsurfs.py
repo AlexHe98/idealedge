@@ -91,6 +91,11 @@ def findQuadVertexSurface(
                 args=( randomiseReceiver, alternateSender,
                       triType, identifyAcceptableSurface ) )
         alternateProcess.start()
+
+        # Close connections that are unused in this main process.
+        randomiseReceiver.close()
+        randomiseSender.close()
+        alternateSender.close()
     if otherComputation is not None:
         # Set up a child process to run this other computation.
         def _runOther( sender, *args ):
@@ -101,6 +106,7 @@ def findQuadVertexSurface(
                 target=_runOther,
                 args=(otherSender, *otherArgs) )
         otherProcess.start()
+        otherSender.close()
 
     # Run the main enumeration.
     #NOTE As of Regina 7.4, NS_QUAD has been deprecated, and replaced with
@@ -125,18 +131,20 @@ def findQuadVertexSurface(
             if alternateReceiver.poll():
                 if tracker is not None:
                     tracker.notifyAlternateEnumeration()
+                #TODO For now, we ignore the number of attempts.
+                newBlueprint, surfCoords, surfDesc, _ =\
+                        alternateReceiver.recv()
 
                 # Make sure to clean up child processes before returning the
                 # answer from the alternateProcess.
                 randomiseProcess.terminate()
                 alternateProcess.join()
                 randomiseProcess.join()
+                alternateReceiver.close()
                 if otherComputation is not None:
                     otherProcess.terminate()
                     otherProcess.join()
-                #TODO For now, we ignore the number of attempts.
-                newBlueprint, surfCoords, surfDesc, _ =\
-                        alternateReceiver.recv()
+                    otherReceiver.close()
                 if triType == _TriType.EDGE_IDEAL:
                     newTri = EdgeIdealTriangulation.fromBlueprint(
                             *newBlueprint )
@@ -159,11 +167,12 @@ def findQuadVertexSurface(
         if otherComputation is not None:
             # Has the other computation given an answer?
             if otherReceiver.poll():
+                earlyAns = processEarlyTermination( otherReceiver.recv() )
                 otherProcess.join()
+                otherReceiver.close()
                 otherComputation = None
 
                 # Can we terminate early?
-                earlyAns = processEarlyTermination( otherReceiver.recv() )
                 if earlyAns is not None:
                     # Make sure to clean up other child processes.
                     if runParallelEnumerations:
@@ -171,6 +180,7 @@ def findQuadVertexSurface(
                         alternateProcess.terminate()
                         randomiseProcess.join()
                         alternateProcess.join()
+                        alternateReceiver.close()
                     return earlyAns
 
         # Continue with the main enumeration.
@@ -191,9 +201,11 @@ def findQuadVertexSurface(
         randomiseProcess.terminate()
         alternateProcess.join()
         randomiseProcess.join()
+        alternateReceiver.close()
     if otherComputation is not None:
         otherProcess.terminate()
         otherProcess.join()
+        otherReceiver.close()
     return ans
 
 
@@ -226,11 +238,14 @@ def _perpetualRandomise( blueprint, sender ):
                 # This is the only route by which this routine can terminate
                 # early, so callers can use early termination as a
                 # certificate that some ideal loop bounds a disc.
+                sender.close()
                 return
             if edgeIdealTri.triangulation().size() <= size:
                 # Send randomised edgeIdealTri.
                 sender.send( ( edgeIdealTri.blueprint(), attempts ) )
-    return
+    sender.close()
+    raise AssertionError(
+            "_perpetualRandomise() should never reach this point" )
 
 
 def _indefiniteEnumerate(
@@ -276,6 +291,8 @@ def _indefiniteEnumerate(
         if not enumeration.next():
             # No acceptable surface exists.
             sender.send( ( blueprint, None, None, attempts ) )
+            receiver.close()
+            sender.close()
             return
         surf = enumeration.buildSurface()
         surfDesc = identifyAcceptableSurface( tri, surf )
@@ -283,7 +300,13 @@ def _indefiniteEnumerate(
             # Found an acceptable surface!
             sender.send( ( blueprint, _normalSurfacePythonVector(surf),
                           surfDesc, attempts ) )
+            receiver.close()
+            sender.close()
             return
+    receiver.close()
+    sender.close()
+    raise AssertionError(
+            "_indefiniteEnumerate() should never reach this point" )
 
 
 def _normalSurfacePythonVector(surf):
