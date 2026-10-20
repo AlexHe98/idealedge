@@ -100,7 +100,8 @@ def recogniseSFS(
         tracker.setFrom(subtracker)
 
     # Clean up all the processes before returning.
-    for p in processes:
+    for i, p in enumerate(processes):
+        receivers[i].close()
         if p.is_alive():
             p.terminate()
         p.join()
@@ -121,6 +122,7 @@ def _recogniseSFSImpl(
     tracker = SFSRecognitionTracker()
     def sendAns(ans):
         sender.send( ( ans, tracker ) )
+        sender.close()
         return
 
     # At this point, we have an orientable 3-manifold with nonempty boundary,
