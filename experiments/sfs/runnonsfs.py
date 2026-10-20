@@ -27,7 +27,9 @@ if __name__ == "__main__":
             ans = recogniseSFS( tri, useHeuristics, tracker )
             time = default_timer() - start
             msg = "{} {} {:.6f}".format(
-                    size, tracker.alternateEnumerationsCount(), time )
+                    size,
+                    int( tracker.usedCombinatorialRecognition() ),
+                    time )
             outputFile.write( msg + "\n" )
             outputFile.flush()
             print(msg)
