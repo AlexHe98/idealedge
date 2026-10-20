@@ -1011,6 +1011,10 @@ if __name__ == "__main__":
             print("ERROR: Triangulation must be one-vertex!")
             sys.exit()
         knot = tri.edge(edgeIndex)
+    else:
+        if knot.countComponents() != 1:
+            print("ERROR: Link must have exactly one component!")
+            sys.exit()
     print()
 
     # Run decompose() with the verbose option.

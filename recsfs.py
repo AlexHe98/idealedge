@@ -1,9 +1,33 @@
 """
 Recognition of bounded orientable Seifert fibred spaces.
+
+Contains the implementation of:
+--> recogniseSFS(), which determines whether a given bounded orientable
+    3-manifold triangulation is a Seifert fibred space.
+--> recogniseTorusKnot(), which determines whether a given knot is a torus
+    knot (equivalently, whether the exterior of the knot is a Seifert fibred
+    space).
+
+Users can run recogniseSFS() or recogniseTorusKnot() by directly running this
+script, by supplying the input in one of the following ways (this order is
+precisely the order in which this script will attempt to parse the input):
+(1) A single string giving an isomorphism signature (either 1st- or
+    2nd-generation) for a bounded triangulation to be passed to
+    recogniseSFS().
+(2) A string giving an isomorphism signature (either 1st- or 2nd-generation)
+    for a one-vertex triangulation T of the 3-sphere, followed by an integer
+    giving the index of an edge of T which realises a knot to be passed to
+    recogniseTorusKnot.
+    
+    This script does _not_ check that T is indeed a 3-sphere.
+(3) A single string giving a knot signature (either 1st- or 2nd-generation)
+    for a knot to be passed to recogniseTorusKnot().
 """
 from enum import Enum, auto
 from math import gcd as pythonGCD
 from multiprocessing import Process, Pipe, connection
+import sys
+from timeit import default_timer
 from regina import *
 from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
@@ -1223,3 +1247,47 @@ def _crushCandidateVerticalSurface( surf, invariants, edgeIdealTri=None ):
 
     # All done!
     return ans
+
+
+if __name__ == "__main__":
+    # First attempt to interpret the input as an isomorphism signature.
+    sig = sys.argv[1]
+    try:
+        tri = Triangulation3.fromSig(sig)
+    except InvalidArgument:
+        # Try to interpret as a knot signature instead.
+        try:
+            knot = Link.fromSig(sig)
+        except InvalidArgument:
+            print("ERROR: Failed to interpret input!")
+            sys.exit()
+        else:
+            if knot.countComponents() != 1:
+                print("ERROR: Link must have exactly one component!")
+                sys.exit()
+        # We run torus knot recognition below.
+    else:
+        if tri.isClosed():
+            # We expect a one-vertex 3-sphere, and we also expect to be given
+            # an edge index.
+            if tri.countVertices() != 1:
+                print("ERROR: Triangulation must be one-vertex!")
+                sys.exit()
+            edgeIndex = int( sys.argv[2] )
+            knot = tri.edge(edgeIndex)
+            # We run torus knot recognition below.
+        else:
+            # We have boundary, so try running SFS recognition.
+            print()
+            start = default_timer()
+            print( recogniseSFS(tri) )
+            print( "Time: {:.6f}".format( default_timer() - start ) )
+            print()
+            sys.exit()
+
+    # Run torus knot recognition.
+    print()
+    start = default_timer()
+    print( recogniseTorusKnot(knot) )
+    print( "Time: {:.6f}".format( default_timer() - start ) )
+    print()
