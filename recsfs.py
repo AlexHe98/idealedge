@@ -3,8 +3,7 @@ Recognition of bounded orientable Seifert fibred spaces.
 """
 from enum import Enum, auto
 from math import gcd as pythonGCD
-from multiprocessing import Process, Pipe
-from os import cpu_count
+from multiprocessing import Process, Pipe, connection
 from regina import *
 from aux.looperror import BoundsDisc
 from aux.surface import SurfaceType, hasOnlyNonTrivialBoundaryCurves
@@ -99,25 +98,19 @@ def recogniseSFS(
         p.start()
         receivers.append(receiver)
         processes.append(p)
-    while True:
-        for i in range(numParallelAttempts):
-            # Has process i given an answer?
-            if not receivers[i].poll( timeout=0.001 ):
-                continue
-            output, subtracker = receivers[i].recv()
-            if tracker is not None:
-                tracker.setFrom(subtracker)
+    received = connection.wait(receivers)
+    output, subtracker = received[0].recv()
+    if tracker is not None:
+        tracker.setFrom(subtracker)
 
-            # Clean up all the processes before returning.
-            for ii in range(numParallelAttempts):
-                if ii != i:
-                    processes[ii].terminate()
-                processes[ii].join()
-            if isinstance( output, _PicklableSFSpace ):
-                return output.reginaSFSpace()
-            else:
-                return output
-    raise AssertionError( "recogniseSFS() should never reach this point" )
+    # Clean up all the processes before returning.
+    for p in processes:
+        if p.is_alive():
+            p.terminate()
+        p.join()
+    if isinstance( output, _PicklableSFSpace ):
+        return output.reginaSFSpace()
+    return output
 
 
 def _recogniseSFSImpl( sender, isoSig, useHeuristics=True ):
